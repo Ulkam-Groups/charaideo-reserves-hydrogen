@@ -1,1 +1,2 @@
-# charaideo-reserves-hydrogen
+# charaideo-reserves-hydrogen 
+initial commmit.
