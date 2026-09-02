@@ -1,0 +1,36 @@
+{
+  "name": "assam-tea-storefront",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "shopify hydrogen dev",
+    "dev:local": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "start": "vite preview",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "deploy:oxygen": "shopify hydrogen deploy"
+  },
+  "dependencies": {
+    "@remix-run/react": "^2.16.8",
+    "@shopify/hydrogen": "^2026.4.5",
+    "@shopify/remix-oxygen": "^3.0.4",
+    "react-router": "~7.16.0",
+    "isbot": "^5.1.25",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^2.16.8",
+    "@react-router/dev": "~7.16.0",
+    "@shopify/cli": "^3.84.2",
+    "@types/node": "^22.15.3",
+    "@types/react": "^18.3.22",
+    "@types/react-dom": "^18.3.7",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-tsconfig-paths": "^5.1.4"
+  }
+}
