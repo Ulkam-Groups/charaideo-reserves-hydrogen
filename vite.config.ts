@@ -10,6 +10,6 @@ export default defineConfig({
     tsconfigPaths(),
   ],
   ssr: {
-    noExternal: ['react', 'react-dom', 'react/jsx-runtime'],
+    noExternal: true,
   },
 });
