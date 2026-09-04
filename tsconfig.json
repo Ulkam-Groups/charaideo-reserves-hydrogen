@@ -8,11 +8,10 @@
     "strict": true,
     "esModuleInterop": true,
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "paths": {"~/*": ["app/*"]},
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["node", "vite/client"],
     "typeRoots": ["./app/types", "./node_modules/@types"]
   }
 }

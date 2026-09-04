@@ -60,12 +60,73 @@ function loadDeferredData({context}: Route.LoaderArgs) {
 
 export default function Homepage() {
   const data = useLoaderData<typeof loader>();
+
   return (
-    <div className="home">
+    <main className="home-page">
       {data.isShopLinked ? null : <MockShopNotice />}
-      <FeaturedCollection collection={data.featuredCollection} />
+
+      <section className="home-hero">
+        <div className="hero-copy">
+          <span className="eyebrow">Small-batch Assam tea</span>
+          <h1>Crafted for slow mornings and deep conversations.</h1>
+          <p>
+            Discover single-origin Assam tea with bold malt character, floral
+            aroma, and the polished finish of a truly exceptional cup.
+          </p>
+          <div className="hero-actions">
+            <Link className="button primary" to="/collections/all">
+              Shop teas
+            </Link>
+            <Link className="button secondary" to="/collections/all">
+              Explore blends
+            </Link>
+          </div>
+          <ul className="hero-metrics" aria-label="Brand stats">
+            <li>
+              <strong>100%</strong>
+              <span>Assam heritage</span>
+            </li>
+            <li>
+              <strong>48h</strong>
+              <span>fresh roast</span>
+            </li>
+            <li>
+              <strong>4.9/5</strong>
+              <span>tea club rating</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="hero-visual">
+          <FeaturedCollection collection={data.featuredCollection} />
+        </div>
+      </section>
+
+      <section className="home-features" aria-label="Tea advantages">
+        <article>
+          <span>01</span>
+          <h3>Single-origin sourcing</h3>
+          <p>Handpicked gardens and small-batch processing for a clean, vibrant cup.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Freshly packed</h3>
+          <p>Every order is sealed to preserve aroma, body, and the natural character of Assam.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Perfect for rituals</h3>
+          <p>From brisk breakfast cups to slow afternoon infusions, there’s a tea for every moment.</p>
+        </article>
+      </section>
+
+      <section className="home-banner">
+        <p>Explore our signature Assam collection</p>
+        <Link to="/collections/all">View collection</Link>
+      </section>
+
       <RecommendedProducts products={data.recommendedProducts} />
-    </div>
+    </main>
   );
 }
 
@@ -76,17 +137,18 @@ function FeaturedCollection({
 }) {
   if (!collection) return null;
   const image = collection?.image;
+
   return (
-    <Link
-      className="featured-collection"
-      to={`/collections/${collection.handle}`}
-    >
+    <Link className="featured-collection" to={`/collections/${collection.handle}`}>
       {image && (
         <div className="featured-collection-image">
-          <Image data={image} sizes="100vw" />
+          <Image data={image} sizes="(min-width: 768px) 45vw, 100vw" />
         </div>
       )}
-      <h1>{collection.title}</h1>
+      <div className="featured-collection-copy">
+        <span>Featured assortment</span>
+        <h2>{collection.title}</h2>
+      </div>
     </Link>
   );
 }
@@ -97,9 +159,16 @@ function RecommendedProducts({
   products: Promise<RecommendedProductsQuery | null>;
 }) {
   return (
-    <div className="recommended-products">
-      <h2>Recommended Products</h2>
-      <Suspense fallback={<div>Loading...</div>}>
+    <section className="recommended-products">
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">Curated picks</span>
+          <h2>New arrivals in the tea room</h2>
+        </div>
+        <Link to="/collections/all">See all teas</Link>
+      </div>
+
+      <Suspense fallback={<div className="loading-state">Loading teas...</div>}>
         <Await resolve={products}>
           {(response) => (
             <div className="recommended-products-grid">
@@ -112,8 +181,7 @@ function RecommendedProducts({
           )}
         </Await>
       </Suspense>
-      <br />
-    </div>
+    </section>
   );
 }
 

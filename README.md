@@ -2,9 +2,11 @@
 
 ## What is implemented
 
-This is a Hydrogen storefront for individual, inventory-bearing teas and custom tea boxes.  The blend engine limits a recipe to 1–10 teas, uses 5g increments, validates global and per-tea weight caps, and calculates the price from individual ingredient gram prices. A configured packaging charge can be included server-side.
+This is a Hydrogen storefront for individual, inventory-bearing teas and custom tea boxes. The blend engine limits a recipe to 1–10 teas, uses 5g increments, validates global and per-tea weight caps, and calculates the price from individual ingredient gram prices. A configured packaging charge can be included server-side.
 
-Custom blends use a **server-created Shopify Draft Order** and redirect to its Shopify-hosted checkout. This is deliberate: a regular Storefront cart cannot accept a trustworthy dynamic custom price. Ingredient details are attached to the draft-order line and the order webhook deducts only the individual ingredient inventory (one Shopify inventory unit = one gram) after an order is created. No Admin token is sent to a browser.
+The app is designed for real-shop local development and production deployment against Shopify. Storefront data, customer-account flows, and checkout redirects all use Shopify-hosted services, while product creation and inventory adjustments are executed only from secure server-side Admin API calls. No Admin token is exposed to browser code.
+
+Custom blends use a server-created Shopify Draft Order and redirect to Shopify Checkout. This keeps the custom tea box price trustworthy and avoids building a custom checkout. Ingredient details are attached to the draft-order line and the order webhook deducts only the individual ingredient inventory (one Shopify inventory unit = one gram) after an order is created.
 
 ## Shopify configuration required
 
@@ -28,15 +30,14 @@ For initial operation, set `BLEND_MIN_GRAMS`, `BLEND_MAX_GRAMS`, and `PACKAGING_
 
 ## Local development against the real store
 
-Copy `.env.example` to `.env`, fill in real values, then install packages and start the Shopify-aware tunnel:
+Copy `.env.example` to `.env`, fill in real values, then install packages and run the Shopify-aware local app:
 
 ```powershell
-pnpm install
-pnpm approve-builds # select esbuild once when pnpm asks
-pnpm dev
+npm install
+npm run dev
 ```
 
-`pnpm dev` runs `shopify hydrogen dev`, so loaders query the actual shop and server-side actions mutate the actual shop. Do not use production tokens in browser-visible variables. `pnpm dev:local` is useful for UI-only work but does not register a webhook tunnel.
+`npm run dev` runs the Hydrogen dev workflow against the configured Shopify store, so loaders query the actual shop and server-side actions mutate the real shop. Do not use production tokens in browser-visible variables. `npm run dev:local` is useful for UI-only work but does not register a webhook tunnel.
 
 ### Secure product configuration API
 
@@ -47,10 +48,10 @@ pnpm dev
 Set all values from `.env` in the Hydrogen/Oxygen environment-variable UI (or via the Shopify CLI), then run:
 
 ```powershell
-pnpm build
-pnpm test
-pnpm typecheck
-pnpm deploy:oxygen
+npm run build
+npm test
+npm run typecheck
+npm run deploy:oxygen
 ```
 
 Set the deployed domain as the app URL and webhook destination. Send a test order, confirm the signed `orders/create` webhook succeeds, and inspect the order metafield `tea.inventory_adjusted_at` before enabling live sales.

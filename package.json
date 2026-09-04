@@ -4,13 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "shopify hydrogen dev",
+    "dev": "npm run typegen && shopify hydrogen dev",
     "dev:local": "vite --host 0.0.0.0",
-    "build": "vite build",
+    "build": "npm run typegen && vite build",
     "start": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "typecheck": "tsc --noEmit",
-    "deploy:oxygen": "shopify hydrogen deploy"
+    "typegen": "react-router typegen",
+    "typecheck": "npm run typegen && tsc --noEmit",
+    "deploy:oxygen": "npm run typegen && shopify hydrogen deploy"
   },
   "dependencies": {
     "@shopify/hydrogen": "^2026.4.5",
