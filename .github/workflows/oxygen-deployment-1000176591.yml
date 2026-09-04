@@ -35,15 +35,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Debug: show repo and config
+      - name: Debug show repo and config
         run: |
           echo "--- Git branch/status ---"
-          git --no-pager branch --show-current || true
+          git branch --show-current || true
           git status --porcelain --branch || true
           echo "--- List root files ---"
           ls -la
           echo "--- Show vite.config.ts ---"
-          if [ -f vite.config.ts ]; then sed -n '1,200p' vite.config.ts; else echo "vite.config.ts not found"; fi
+          if [ -f "vite.config.ts" ]; then sed -n '1,200p' vite.config.ts; else echo "vite.config.ts not found"; fi
           echo "--- Node & npm versions ---"
           node -v || true
           npm -v || true
