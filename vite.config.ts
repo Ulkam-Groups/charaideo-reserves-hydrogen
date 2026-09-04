@@ -9,4 +9,7 @@ export default defineConfig({
     reactRouter(),
     tsconfigPaths(),
   ],
+  ssr: {
+    noExternal: ['react', 'react-dom', 'react/jsx-runtime'],
+  },
 });
