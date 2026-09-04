@@ -1,5 +1,5 @@
 import {ServerRouter} from 'react-router';
-import {renderToReadableStream} from 'react-dom/server';
+import {renderToReadableStream} from 'react-dom/server.browser';
 
 export default async function handleRequest(
   request: Request,
