@@ -53,6 +53,9 @@ type Pages = {
   "/collections": {
     params: {};
   };
+  "/admin/teas": {
+    params: {};
+  };
   "/policies/:handle": {
     params: {
       "handle": string;
@@ -98,6 +101,9 @@ type Pages = {
     params: {};
   };
   "/account": {
+    params: {};
+  };
+  "/account/blends": {
     params: {};
   };
   "/account/orders": {
@@ -149,7 +155,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/api/:version/graphql.json" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/search" | "/cart" | "/cart/:lines" | "/*" | "/graphiql" | "/subrequest-profiler" | "/.well-known/appspecific/com.chrome.devtools.json";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/api/:version/graphql.json" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/api/blend-checkout" | "/collections" | "/admin/teas" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/blends" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/search" | "/cart" | "/cart/:lines" | "/*" | "/graphiql" | "/subrequest-profiler" | "/.well-known/appspecific/com.chrome.devtools.json";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
@@ -186,6 +192,10 @@ type RouteFiles = {
   "routes/collections._index.tsx": {
     id: "routes/collections._index";
     page: "/collections";
+  };
+  "routes/admin.teas._index.tsx": {
+    id: "routes/admin.teas._index";
+    page: "/admin/teas";
   };
   "routes/policies.$handle.tsx": {
     id: "routes/policies.$handle";
@@ -237,7 +247,11 @@ type RouteFiles = {
   };
   "routes/account.tsx": {
     id: "routes/account";
-    page: "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*";
+    page: "/account" | "/account/blends" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*";
+  };
+  "routes/account.blends._index.tsx": {
+    id: "routes/account.blends._index";
+    page: "/account/blends";
   };
   "routes/account.orders._index.tsx": {
     id: "routes/account.orders._index";
@@ -316,6 +330,7 @@ type RouteModules = {
   "routes/account_.authorize": typeof import("./app/routes/account_.authorize.tsx");
   "routes/api.blend-checkout": typeof import("./app/routes/api.blend-checkout.ts");
   "routes/collections._index": typeof import("./app/routes/collections._index.tsx");
+  "routes/admin.teas._index": typeof import("./app/routes/admin.teas._index.tsx");
   "routes/policies.$handle": typeof import("./app/routes/policies.$handle.tsx");
   "routes/products.$handle": typeof import("./app/routes/products.$handle.tsx");
   "routes/account_.logout": typeof import("./app/routes/account_.logout.tsx");
@@ -329,6 +344,7 @@ type RouteModules = {
   "routes/blogs._index": typeof import("./app/routes/blogs._index.tsx");
   "routes/[robots.txt]": typeof import("./app/routes/[robots.txt].tsx");
   "routes/account": typeof import("./app/routes/account.tsx");
+  "routes/account.blends._index": typeof import("./app/routes/account.blends._index.tsx");
   "routes/account.orders._index": typeof import("./app/routes/account.orders._index.tsx");
   "routes/account.orders.$id": typeof import("./app/routes/account.orders.$id.tsx");
   "routes/account.addresses": typeof import("./app/routes/account.addresses.tsx");
