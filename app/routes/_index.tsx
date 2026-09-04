@@ -1,5 +1,4 @@
-import {type LoaderFunctionArgs} from 'react-router';
-import {useLoaderData} from '@remix-run/react';
+import {type LoaderFunctionArgs, useLoaderData} from 'react-router';
 import {BlendBuilder, type BlendTea} from '~/components/BlendBuilder';
 import {rulesFromEnv} from '~/lib/admin.server';
 
