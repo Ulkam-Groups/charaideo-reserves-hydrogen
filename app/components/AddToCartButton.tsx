@@ -26,10 +26,11 @@ export function AddToCartButton({
           <button
             type="submit"
             onClick={onClick}
-            disabled={disabled ?? fetcher.state !== 'idle'}
+            disabled={disabled || fetcher.state !== 'idle'}
           >
-            {children}
+            {fetcher.state !== 'idle' ? 'Adding...' : children}
           </button>
+          {fetcher.data?.errors?.length > 0 && <p role="alert">We could not add this item. Please try again.</p>}
         </>
       )}
     </CartForm>

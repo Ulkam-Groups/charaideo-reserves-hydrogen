@@ -5,5 +5,11 @@
 declare module 'virtual:react-router/server-build' {
   export * from '@react-router/dev/server-build';
 }
+declare global {
+  interface ExecutionContext {
+    waitUntil(promise: Promise<unknown>): void;
+    passThroughOnException(): void;
+  }
+}
 // Enhance TypeScript's built-in typings.
 import '@total-typescript/ts-reset';

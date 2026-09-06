@@ -10,7 +10,7 @@ Custom blends use a server-created Shopify Draft Order and redirect to Shopify C
 
 ## Shopify configuration required
 
-1. Create a custom app for the real store and install it. Give it the scopes in `shopify.app.toml`; copy its Admin API access token into `SHOPIFY_ADMIN_ACCESS_TOKEN`.
+1. Create a custom app for the real store and install it. Give it the scopes in `shopify.app.toml`; copy its Admin API access token into `SHOPIFY_ADMIN_API_TOKEN`.
 2. Create a Storefront API token and set `PUBLIC_STORE_DOMAIN`, `PUBLIC_STOREFRONT_API_TOKEN`, and `PRIVATE_STOREFRONT_API_TOKEN`.
 3. Enable Customer Account API in Shopify Admin (Settings → Customer accounts). Configure its return URLs for localhost and your Oxygen domain. The UI includes a save flow; production customer identity must be passed from the Customer Account session before enabling it.
 4. Select the inventory location and put its GID in `SHOPIFY_LOCATION_ID`. Set the custom-app webhook secret in `SHOPIFY_WEBHOOK_SECRET`.
@@ -26,7 +26,7 @@ Custom blends use a server-created Shopify Draft Order and redirect to Shopify C
 | `tea.blend_min_g` | number_integer (store config / metaobject) | `50` |
 | `tea.blend_max_g` | number_integer (store config / metaobject) | `200` |
 
-For initial operation, set `BLEND_MIN_GRAMS`, `BLEND_MAX_GRAMS`, and `PACKAGING_PRICE` in Oxygen secrets; the server has safe defaults (50g, 200g, 0). Move these three global values into an Admin metaobject as the next configuration refinement.
+For initial operation, set `BLEND_MIN_GRAMS`, `BLEND_MAX_GRAMS`, `BLEND_MAX_ITEMS`, `BLEND_INCREMENT_GRAMS`, and `PACKAGING_PRICE` in Oxygen secrets; the server has safe defaults (25g, 200g, 10 teas, 5g, 0). Move these global values into an Admin metaobject as the next configuration refinement.
 
 ## Local development against the real store
 

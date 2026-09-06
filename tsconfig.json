@@ -1,5 +1,5 @@
 {
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
@@ -9,9 +9,10 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "ignoreDeprecations": "5.0",
+    "rootDirs": [".", "./.react-router/types"],
     "paths": {"~/*": ["app/*"]},
     "noEmit": true,
     "skipLibCheck": true,
-    "typeRoots": ["./app/types", "./node_modules/@types"]
+    "allowImportingTsExtensions": true
   }
 }

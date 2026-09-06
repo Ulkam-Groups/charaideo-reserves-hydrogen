@@ -1,4 +1,5 @@
 import {Suspense} from 'react';
+import {Brand} from './Brand';
 import {Await, NavLink, useAsyncValue} from 'react-router';
 import {
   type CartViewPayload,
@@ -23,12 +24,11 @@ export function Header({
   cart,
   publicStoreDomain,
 }: HeaderProps) {
-  const {shop, menu} = header;
+  const {menu} = header;
+
   return (
-    <header className="header">
-      <NavLink prefetch="intent" to="/" style={activeLinkStyle} end>
-        <strong>{shop.name}</strong>
-      </NavLink>
+    <header className="header header-solid">
+      <Brand />
       <HeaderMenu
         menu={menu}
         viewport="desktop"
@@ -56,18 +56,8 @@ export function HeaderMenu({
 
   return (
     <nav className={className} role="navigation">
-      {viewport === 'mobile' && (
-        <NavLink
-          end
-          onClick={close}
-          prefetch="intent"
-          style={activeLinkStyle}
-          to="/"
-        >
-          Home
-        </NavLink>
-      )}
-      {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
+      <NavLink className="header-menu-item" end onClick={close} to="/">Home</NavLink>
+      {FALLBACK_HEADER_MENU.items.map((item) => {
         if (!item.url) return null;
 
         // if the url is internal, we strip the domain
@@ -84,7 +74,6 @@ export function HeaderMenu({
             key={item.id}
             onClick={close}
             prefetch="intent"
-            style={activeLinkStyle}
             to={url}
           >
             {item.title}
@@ -102,10 +91,10 @@ function HeaderCtas({
   return (
     <nav className="header-ctas" role="navigation">
       <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/account" style={activeLinkStyle}>
-        <Suspense fallback="Sign in">
-          <Await resolve={isLoggedIn} errorElement="Sign in">
-            {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
+      <NavLink prefetch="intent" to="/sign-in">
+        <Suspense fallback="Account">
+          <Await resolve={isLoggedIn} errorElement="Account">
+            {() => 'Account'}
           </Await>
         </Suspense>
       </NavLink>
@@ -122,7 +111,7 @@ function HeaderMenuMobileToggle() {
       className="header-menu-mobile-toggle reset"
       onClick={() => open('mobile')}
     >
-      <h3>☰</h3>
+      <span>Menu</span>
     </button>
   );
 }
@@ -182,50 +171,28 @@ const FALLBACK_HEADER_MENU = {
       id: 'gid://shopify/MenuItem/461609500728',
       resourceId: null,
       tags: [],
-      title: 'Collections',
+      title: 'Catalog',
       type: 'HTTP',
-      url: '/collections',
+      url: '/collections/all',
       items: [],
     },
     {
       id: 'gid://shopify/MenuItem/461609533496',
       resourceId: null,
       tags: [],
-      title: 'Blog',
+      title: 'Contact',
       type: 'HTTP',
-      url: '/blogs/journal',
+      url: '/pages/contact',
       items: [],
     },
     {
       id: 'gid://shopify/MenuItem/461609566264',
       resourceId: null,
       tags: [],
-      title: 'Policies',
+      title: 'About Us',
       type: 'HTTP',
-      url: '/policies',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609599032',
-      resourceId: 'gid://shopify/Page/92591030328',
-      tags: [],
-      title: 'About',
-      type: 'PAGE',
-      url: '/pages/about',
+      url: '/pages/about-us',
       items: [],
     },
   ],
 };
-
-function activeLinkStyle({
-  isActive,
-  isPending,
-}: {
-  isActive: boolean;
-  isPending: boolean;
-}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'black',
-  };
-}

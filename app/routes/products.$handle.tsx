@@ -15,7 +15,7 @@ import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
+    {title: ` ${data?.product.title ?? "Tea"} | Charaideo Reserves`},
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,
@@ -101,6 +101,7 @@ export default function Product() {
     <div className="product">
       <ProductImage image={selectedVariant?.image} />
       <div className="product-main">
+        <span className="eyebrow">The tea cabinet / {product.productType || "Our selection"}</span>
         <h1>{title}</h1>
         <ProductPrice
           price={selectedVariant?.price}
@@ -111,14 +112,10 @@ export default function Product() {
           productOptions={productOptions}
           selectedVariant={selectedVariant}
         />
-        <br />
-        <br />
-        <p>
-          <strong>Description</strong>
-        </p>
-        <br />
-        <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        <br />
+        <div className="product-story"><h2>The character of this cup</h2><div dangerouslySetInnerHTML={{__html: descriptionHtml}} /></div>
+        {product.tastingNotes?.value && <details open><summary>Tasting notes</summary><p>{product.tastingNotes.value}</p></details>}
+        <details open><summary>Your brewing ritual</summary><p>{product.brewingSuggestion?.value || 'Follow the brewing directions on your pack. Use freshly drawn water and adjust the steep to your taste.'}</p></details>
+        <details><summary>Delivery & care</summary><p>Shipping is calculated at checkout. Keep your tea sealed, cool, and dry, away from strong aromas.</p></details>
       </div>
       <Analytics.ProductView
         data={{
@@ -182,6 +179,9 @@ const PRODUCT_FRAGMENT = `#graphql
     title
     vendor
     handle
+    productType
+    tastingNotes: metafield(namespace: "custom", key: "tasting_notes") { value }
+    brewingSuggestion: metafield(namespace: "custom", key: "brewing_suggestion") { value }
     descriptionHtml
     description
     encodedVariantExistence

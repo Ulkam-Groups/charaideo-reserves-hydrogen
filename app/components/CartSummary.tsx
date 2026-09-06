@@ -15,7 +15,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
 
   return (
     <div aria-labelledby="cart-summary" className={className}>
-      <h4>Totals</h4>
+      <h4 id="cart-summary">Your selection</h4>
       <dl className="cart-subtotal">
         <dt>Subtotal</dt>
         <dd>
@@ -38,10 +38,10 @@ function CartCheckoutActions({checkoutUrl}: {checkoutUrl?: string}) {
 
   return (
     <div>
-      <a href={checkoutUrl} target="_self">
+      <a className="button primary checkout-button" href={checkoutUrl} target="_self">
         <p>Continue to Checkout &rarr;</p>
       </a>
-      <br />
+      <p className="fine-print">Shipping and applicable taxes calculated at checkout.</p>
     </div>
   );
 }
@@ -155,6 +155,7 @@ function CartGiftCard({
             type="text"
             name="giftCardCode"
             placeholder="Gift card code"
+            aria-label="Gift card code"
             ref={giftCardCodeInput}
           />
           &nbsp;

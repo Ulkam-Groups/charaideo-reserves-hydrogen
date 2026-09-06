@@ -2,9 +2,12 @@ import {priceBlend, serialiseBlend, validateBlend, type BlendRules, type TeaIngr
 
 const domain = () => process.env.PUBLIC_STORE_DOMAIN!;
 const endpoint = () => `https://${domain()}/admin/api/${process.env.SHOPIFY_ADMIN_API_VERSION || '2026-04'}/graphql.json`;
+const adminToken = () => process.env.SHOPIFY_ADMIN_API_TOKEN || process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
 export async function adminGraphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-  const response = await fetch(endpoint(), {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Shopify-Access-Token': process.env.SHOPIFY_ADMIN_ACCESS_TOKEN!}, body: JSON.stringify({query, variables})});
+  const token = adminToken();
+  if (!token) throw new Error('SHOPIFY_ADMIN_API_TOKEN is not configured.');
+  const response = await fetch(endpoint(), {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Shopify-Access-Token': token}, body: JSON.stringify({query, variables})});
   if (!response.ok) throw new Error(`Admin API request failed (${response.status}).`);
   const result = await response.json() as {data?: T; errors?: {message: string}[]};
   if (result.errors?.length) throw new Error(result.errors.map((error) => error.message).join('; '));
@@ -12,7 +15,7 @@ export async function adminGraphql<T>(query: string, variables: Record<string, u
 }
 
 export function rulesFromEnv(): BlendRules {
-  return {minGrams: Number(process.env.BLEND_MIN_GRAMS || 50), maxGrams: Number(process.env.BLEND_MAX_GRAMS || 200), maxItems: 10, incrementGrams: 5, packagingPrice: Number(process.env.PACKAGING_PRICE || 0)};
+  return {minGrams: Number(process.env.BLEND_MIN_GRAMS || 25), maxGrams: Number(process.env.BLEND_MAX_GRAMS || 200), maxItems: Number(process.env.BLEND_MAX_ITEMS || 10), incrementGrams: Number(process.env.BLEND_INCREMENT_GRAMS || 5), packagingPrice: Number(process.env.PACKAGING_PRICE || 0)};
 }
 
 export async function createBlendCheckout(items: TeaIngredient[]) {

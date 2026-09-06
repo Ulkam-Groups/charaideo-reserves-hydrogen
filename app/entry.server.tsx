@@ -15,6 +15,7 @@ export default async function handleRequest(
   context: HydrogenRouterContextProvider,
 ) {
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
+    imgSrc: ["'self'", "https://cdn.shopify.com", "https://shopify.com", "https://images.unsplash.com", "data:"],
    shop: {
     checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN ?? process.env.PUBLIC_CHECKOUT_DOMAIN ?? '',
     storeDomain: context.env?.PUBLIC_STORE_DOMAIN ?? process.env.PUBLIC_STORE_DOMAIN ?? '',

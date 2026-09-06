@@ -81,6 +81,7 @@ export function ProductForm({
                           : '1px solid transparent',
                         opacity: available ? 1 : 0.3,
                       }}
+                      aria-pressed={selected}
                       disabled={!exists}
                       onClick={() => {
                         if (!selected) {
