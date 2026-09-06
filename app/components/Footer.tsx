@@ -1,5 +1,5 @@
-import {Suspense} from 'react';
-import {Await, NavLink} from 'react-router';
+import {Brand} from './Brand';
+import {NavLink} from 'react-router';
 import type {FooterQuery, HeaderQuery} from 'storefrontapi.generated';
 
 interface FooterProps {
@@ -9,26 +9,76 @@ interface FooterProps {
 }
 
 export function Footer({
-  footer: footerPromise,
+  footer,
   header,
   publicStoreDomain,
 }: FooterProps) {
   return (
-    <Suspense>
-      <Await resolve={footerPromise}>
-        {(footer) => (
-          <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
-              <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
-                publicStoreDomain={publicStoreDomain}
-              />
-            )}
-          </footer>
-        )}
-      </Await>
-    </Suspense>
+    <footer className="footer">
+      <div className="footer-accent" aria-hidden="true" />
+      <div className="footer-inner">
+        <section className="footer-brand">
+          <Brand />
+          <p>
+            A place. A people. A pot of tea.
+            Bringing Assam back to the table.
+          </p>
+        </section>
+        <FooterColumn
+          title="Company"
+          links={[
+            {label: 'About Us', to: '/pages/about-us'},
+            {label: 'Catalog', to: '/collections/all'},
+            {label: 'Contact', to: '/pages/contact'},
+          ]}
+        />
+        <FooterColumn
+          title="Products"
+          links={[
+            {label: 'BP-BOP Tea', to: '/collections/all'},
+            {label: 'BOPSM Tea', to: '/collections/all'},
+            {label: 'CTC Tea', to: '/collections/all'},
+            {label: 'Spiced Tea', to: '/collections/all'},
+          ]}
+        />
+        <section className="footer-contact">
+          <h3>Contact</h3>
+          <p>Ownguri Gaon, Rupai Siding, Assam 786153, India</p>
+          <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a>
+          <a href="tel:+918431988910">+91 84319 88910</a>
+        </section>
+      </div>
+      {header.shop.primaryDomain?.url && (
+        <FooterMenu
+          menu={null}
+          primaryDomainUrl={header.shop.primaryDomain.url}
+          publicStoreDomain={publicStoreDomain}
+        />
+      )}
+      <div className="footer-bottom">
+        <p>© {new Date().getFullYear()} Ulkam Group. All rights reserved.</p>
+        <p>Made with love in Assam.</p>
+      </div>
+    </footer>
+  );
+}
+
+function FooterColumn({
+  title,
+  links,
+}: {
+  title: string;
+  links: {label: string; to: string}[];
+}) {
+  return (
+    <section className="footer-column">
+      <h3>{title}</h3>
+      {links.map((link) => (
+        <NavLink key={link.to + link.label} prefetch="intent" to={link.to}>
+          {link.label}
+        </NavLink>
+      ))}
+    </section>
   );
 }
 
@@ -42,7 +92,7 @@ function FooterMenu({
   publicStoreDomain: string;
 }) {
   return (
-    <nav className="footer-menu" role="navigation">
+    <nav className="footer-menu" role="navigation" aria-label="Policies">
       {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
         if (!item.url) return null;
         // if the url is internal, we strip the domain
@@ -62,7 +112,6 @@ function FooterMenu({
             end
             key={item.id}
             prefetch="intent"
-            style={activeLinkStyle}
             to={url}
           >
             {item.title}
@@ -114,16 +163,3 @@ const FALLBACK_FOOTER_MENU = {
     },
   ],
 };
-
-function activeLinkStyle({
-  isActive,
-  isPending,
-}: {
-  isActive: boolean;
-  isPending: boolean;
-}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'white',
-  };
-}

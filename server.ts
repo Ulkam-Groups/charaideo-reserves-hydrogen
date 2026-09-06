@@ -10,7 +10,6 @@ export default {
     env: Env,
     executionContext: ExecutionContext,
   ): Promise<Response> {
-    console.log('ENV:', JSON.stringify(env));
     try {
       const hydrogenContext = await createHydrogenRouterContext(
         request,

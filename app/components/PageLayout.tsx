@@ -45,7 +45,8 @@ export function PageLayout({
           publicStoreDomain={publicStoreDomain}
         />
       )}
-      <main>{children}</main>
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <main id="main-content">{children}</main>
       <Footer
         footer={footer}
         header={header}
@@ -159,7 +160,6 @@ function MobileMenuAside({
   publicStoreDomain: PageLayoutProps['publicStoreDomain'];
 }) {
   return (
-    header.menu &&
     header.shop.primaryDomain?.url && (
       <Aside type="mobile" heading="MENU">
         <HeaderMenu

@@ -1,12 +1,31 @@
 import type {Route} from './+types/collections.all';
-import {useLoaderData} from 'react-router';
+import {Link, useLoaderData} from 'react-router';
 import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {ProductItem} from '~/components/ProductItem';
+import {AddToCartButton} from '~/components/AddToCartButton';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
+import {useAside} from '~/components/Aside';
+
+type CatalogProduct = CollectionItemFragment & {
+  tastingNotes?: {value: string} | null;
+  vendor?: string | null;
+  productType?: string | null;
+  description?: string | null;
+  selectedOrFirstAvailableVariant?: {
+    id: string;
+    availableForSale: boolean;
+  } | null;
+};
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Hydrogen | Products`}];
+  return [
+    {title: 'Catalog | Charaideo Reserves'},
+    {
+      name: 'description',
+      content:
+        'Browse the complete Charaideo Reserves tea catalog and add Assam tea products to your Shopify cart.',
+    },
+  ];
 };
 
 export async function loader(args: Route.LoaderArgs) {
@@ -51,21 +70,93 @@ export default function Collection() {
   const {products} = useLoaderData<typeof loader>();
 
   return (
-    <div className="collection">
-      <h1>Products</h1>
+    <div className="collection catalog-page">
+      <section className="catalog-hero">
+        <span className="eyebrow">Tea catalog</span>
+        <h1>The tea cabinet.</h1>
+        <p>
+          For strong mornings, unhurried afternoons, and conversations that last. Find a tea to make your own.
+        </p>
+      </section>
+
       <PaginatedResourceSection<CollectionItemFragment>
         connection={products}
         resourcesClassName="products-grid"
       >
         {({node: product, index}) => (
-          <ProductItem
+          <CatalogProductCard
             key={product.id}
-            product={product}
+            product={product as CatalogProduct}
             loading={index < 8 ? 'eager' : undefined}
           />
         )}
       </PaginatedResourceSection>
     </div>
+  );
+}
+
+function CatalogProductCard({
+  product,
+  loading,
+}: {
+  product: CatalogProduct;
+  loading?: 'eager' | 'lazy';
+}) {
+  const {open} = useAside();
+  const image = product.featuredImage;
+  const variant = product.selectedOrFirstAvailableVariant;
+  const canAddToCart = Boolean(variant?.id && variant.availableForSale);
+
+  return (
+    <article className="catalog-card">
+      <Link className="catalog-card-image" to={`/products/${product.handle}`} prefetch="intent">
+        {image ? (
+          <Image
+            alt={image.altText || product.title}
+            aspectRatio="4/5"
+            data={image}
+            loading={loading}
+            sizes="(min-width: 900px) 28vw, (min-width: 640px) 45vw, 100vw"
+          />
+        ) : (
+          <div className="catalog-card-placeholder" aria-hidden />
+        )}
+      </Link>
+      <div className="catalog-card-body">
+        <div>
+          <p>{product.productType || product.vendor || 'Assam tea'}</p>
+          <h2>
+            <Link to={`/products/${product.handle}`} prefetch="intent">
+              {product.title}
+            </Link>
+          </h2>
+        </div>
+        <p className="catalog-card-description">{product.tastingNotes?.value || product.description || "Discover the story and character of this tea."}</p>
+        <div className="catalog-card-footer">
+          <strong>
+            <Money data={product.priceRange.minVariantPrice} />
+          </strong>
+          {variant ? (
+            <AddToCartButton
+              disabled={!canAddToCart}
+              onClick={() => open('cart')}
+              lines={
+                canAddToCart
+                  ? [
+                      {
+                        merchandiseId: variant.id,
+                        quantity: 1,
+                      },
+                    ]
+                  : []
+              }
+            >
+              {canAddToCart ? 'Add to cart' : 'Sold out'}
+            </AddToCartButton>
+          ) : null}
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -78,6 +169,10 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
     id
     handle
     title
+    vendor
+    productType
+    tastingNotes: metafield(namespace: "custom", key: "tasting_notes") { value }
+    description
     featuredImage {
       id
       altText
@@ -92,6 +187,10 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
       maxVariantPrice {
         ...MoneyCollectionItem
       }
+    }
+    selectedOrFirstAvailableVariant {
+      id
+      availableForSale
     }
   }
 ` as const;
