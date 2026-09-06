@@ -1,0 +1,72 @@
+:root {
+  --rtc-red: #5c171c;
+  --rtc-heritage: #b12b2d;
+  --rtc-mist: #78908c;
+  --rtc-amber: #b87936;
+  --rtc-ink: #31484a;
+  --rtc-clay: #9d5f45;
+  --rtc-script: "Italianno", "Allura", "Snell Roundhand", cursive;
+  --rtc-readable-script: "Marck Script", "Apple Chancery", cursive;
+  --rtc-ui: "Manrope", "Helvetica Neue", Arial, sans-serif;
+}
+
+.rtc-script {
+  color: var(--rtc-red);
+  font-family: var(--rtc-script);
+  font-size: clamp(3.75rem, 10vw, 10rem);
+  font-weight: 400;
+  line-height: 0.85;
+  text-wrap: balance;
+}
+
+.rtc-script--compact {
+  font-family: var(--rtc-readable-script);
+  font-size: clamp(2.5rem, 6vw, 6rem);
+  line-height: 0.95;
+}
+
+.rtc-kicker {
+  color: var(--rtc-clay);
+  font: 600 0.75rem/1.3 var(--rtc-ui);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.rtc-product-name {
+  color: var(--rtc-red);
+  font: 400 clamp(2rem, 4vw, 4.5rem)/0.95 var(--rtc-readable-script);
+}
+
+.rtc-data,
+.rtc-price,
+.rtc-action {
+  font-family: var(--rtc-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.rtc-data {
+  color: var(--rtc-clay);
+}
+
+.rtc-price {
+  color: var(--rtc-red);
+}
+
+.rtc-action {
+  background: var(--rtc-red);
+  border: 1px solid var(--rtc-red);
+  color: #f4ebdd;
+  display: inline-flex;
+  min-height: 3rem;
+  padding: 1rem 1.4rem;
+  text-decoration: none;
+}
+
+.rtc-action:focus-visible {
+  outline: 3px solid var(--rtc-amber);
+  outline-offset: 4px;
+}

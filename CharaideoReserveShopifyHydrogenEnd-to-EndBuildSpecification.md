@@ -1,4 +1,4 @@
-# Charaideo Reserve — Headless Shopify Storefront
+# Charaideo Reserve - Headless Shopify Storefront
 
 ## Compressed, Context-Aware Product and Architecture Specification
 
@@ -310,9 +310,9 @@ The box is one outer package containing separately packed tea packets.
 
 ```text
 ONE OUTER BOX
-   ├── Hapjan Black — 10g
-   ├── Makolbari Black — 15g
-   └── Guwahati Green — 5g
+   ├── Hapjan Black - 10g
+   ├── Makolbari Black - 15g
+   └── Guwahati Green - 5g
 ```
 
 Use customer-facing language such as:
@@ -340,8 +340,8 @@ Maximum unique teas defaults to 10.
 Different products in the same category are valid:
 
 ```text
-Hapjan Black — 10g
-Makolbari Black — 15g
+Hapjan Black - 10g
+Makolbari Black - 15g
 ```
 
 ### Single tea
@@ -349,7 +349,7 @@ Makolbari Black — 15g
 One tea is valid:
 
 ```text
-Hapjan Black — 100g
+Hapjan Black - 100g
 ```
 
 ### Weight increment
@@ -630,10 +630,10 @@ Assam Morning
 Custom Tea Box
 100g
 
-Hapjan Black — 30g
-Makolbari Black — 25g
-Oolong — 25g
-Green — 20g
+Hapjan Black - 30g
+Makolbari Black - 25g
+Oolong - 25g
+Green - 20g
 
 ₹XXX
 ```
@@ -668,9 +668,9 @@ Fulfillment staff must be able to see:
 CUSTOM TEA BOX
 Name: Assam Morning
 
-Packet 1: Hapjan Black — 10g
-Packet 2: Makolbari Black — 15g
-Packet 3: Guwahati Green — 5g
+Packet 1: Hapjan Black - 10g
+Packet 2: Makolbari Black - 15g
+Packet 3: Guwahati Green - 5g
 
 Outer box: 1
 Total tea: 30g
@@ -1492,7 +1492,7 @@ Do not run destructive tests against production.
 
 ## 33. Implementation Order
 
-### Phase 1 — Foundation
+### Phase 1 - Foundation
 
 - Inspect the repository.
 - Confirm it is a valid Hydrogen application.
@@ -1500,7 +1500,7 @@ Do not run destructive tests against production.
 - Make `npm run dev` and `npm run build` work.
 - Do not add an `index.html` workaround.
 
-### Phase 2 — Shopify connectivity
+### Phase 2 - Shopify connectivity
 
 - Configure Storefront API.
 - Configure Admin GraphQL.
@@ -1509,7 +1509,7 @@ Do not run destructive tests against production.
 - Verify real product reads.
 - Verify secure server-side product operations.
 
-### Phase 3 — Shopify data model
+### Phase 3 - Shopify data model
 
 Create/configure:
 
@@ -1522,7 +1522,7 @@ Blend pricing
 Per-item gram limits
 ```
 
-### Phase 4 — Commerce foundation
+### Phase 4 - Commerce foundation
 
 Build:
 
@@ -1538,7 +1538,7 @@ Cart
 Checkout redirect
 ```
 
-### Phase 5 — Custom-box domain engine
+### Phase 5 - Custom-box domain engine
 
 Build and test:
 
@@ -1551,11 +1551,11 @@ Configuration adapter
 Inventory checks
 ```
 
-### Phase 6 — Custom-box UI
+### Phase 6 - Custom-box UI
 
 Build the mobile-first builder against real Shopify data.
 
-### Phase 7 — Order and inventory workflow
+### Phase 7 - Order and inventory workflow
 
 Implement:
 
@@ -1567,7 +1567,7 @@ Inventory adjustment
 Cancellation/restock behavior
 ```
 
-### Phase 8 — Customer accounts
+### Phase 8 - Customer accounts
 
 Implement:
 
@@ -1580,7 +1580,7 @@ Saved boxes
 Wishlist
 ```
 
-### Phase 9 — Content and design
+### Phase 9 - Content and design
 
 Finish:
 
@@ -1595,7 +1595,7 @@ FAQ
 Legal pages
 ```
 
-### Phase 10 — Production hardening
+### Phase 10 - Production hardening
 
 Run:
 
@@ -1612,7 +1612,7 @@ Security review
 Production build
 ```
 
-### Phase 11 — Oxygen
+### Phase 11 - Oxygen
 
 Configure Oxygen, deploy, and verify:
 

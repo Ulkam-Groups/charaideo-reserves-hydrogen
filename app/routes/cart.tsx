@@ -3,6 +3,7 @@ import type {Route} from './+types/cart';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
 import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
+import cartThread from '../../river-thread-web/svg/cart-basket.svg?url';
 
 export const meta: Route.MetaFunction = () => {
   return [{title: `Your cart | Charaideo Reserves`}];
@@ -106,8 +107,10 @@ export default function Cart() {
 
   return (
     <div className="cart">
-      <span className="eyebrow">A little Assam, on its way</span>
-      <h1>Your tea selection.</h1>
+      <header className="cart-header">
+        <div><span className="eyebrow">A little Assam, on its way</span><h1>Selected<br /><em>slowly.</em></h1></div>
+        <img src={cartThread} width="1600" height="600" alt="" />
+      </header>
       <CartMain layout="page" cart={cart} />
     </div>
   );
