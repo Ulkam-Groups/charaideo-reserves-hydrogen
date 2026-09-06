@@ -1,4 +1,4 @@
-# Assam Tea — Hydrogen storefront
+# Assam Tea - Hydrogen storefront
 
 ## What is implemented
 

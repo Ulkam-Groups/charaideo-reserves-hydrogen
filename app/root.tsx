@@ -12,9 +12,20 @@ import {PageLayout} from '~/components/PageLayout';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
+import riverThread from '../river-thread-web/river-thread-calligraphy.css?url';
 
 export function links() {
-  return [{rel: 'stylesheet', href: stylesheet}, {rel: 'stylesheet', href: identity}];
+  return [
+    {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
+    {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap',
+    },
+    {rel: 'stylesheet', href: stylesheet},
+    {rel: 'stylesheet', href: riverThread},
+    {rel: 'stylesheet', href: identity},
+  ];
 }
 
 export async function loader({context}: Route.LoaderArgs) {

@@ -1,79 +1,76 @@
-# Charaideo Reserves: A table in Assam
+# Charaideo Reserves: The River Thread tea room
 
-The identity is a contemporary Assamese tea room: hospitable, literate, tactile, and spacious. The signature is the tension between oversized ink-red serif lettering and cool mist-green space. Cream is the material, red is the cultural signal, and tea is the focus. Copy speaks in the language of everyday hospitality: �A little Assam. A world within your cup.�
+## Complete visual direction
+
+The storefront is a contemporary Assamese tea room: hospitable, literate, tactile, and spacious. Its signature is the River Thread-the Assamese **চ** crossed by a mist-coloured current and finished with a tea-liquor seed. It behaves as a mark of place, a page composition, and a thread between screens; it is never repeated as ethnic wallpaper.
+
+The central thought is **“Tea remembers where it comes from.”** Oversized, literary headlines are paired with precise map coordinates, harvest indexes, grade information, prices, and direct buying controls. The overall feeling is quiet rather than sparse: warm paper, fine rules, controlled typography, a trace of texture, and enough room for tea photography to matter.
 
 ## Palette
 
-| Name | Hex | Role and rule |
+| Name | Hex | Usage rule |
 | --- | --- | --- |
-| Tea-room paper | #FAF9F5 | Default canvas; roughly 60% of a typical page. |
-| Gamosa cream | #F0EADF | Catalog intro, cart summary, quiet product backgrounds; roughly 15%. |
-| Ink red | #731E2B | Headlines, wordmark, primary buttons and rules; roughly 8%. Use paper text on filled buttons. |
-| Gamosa vermilion | #A52C37 | Reserved accent token for small cultural details; never a large background. |
-| Morning mist | #DFE5DE | Hero photograph frame, heritage panel, account panel; roughly 12%. |
-| Aged bamboo | #46564C | Supporting editorial text and footer; roughly 5%, varying by page. |
-| Fired clay | #B8785E | Decorative numerals only; avoid small essential text. |
-| Tea-leaf ink | #292E29 | Commerce text. |
-| Quiet grey | #62675E | Secondary text on paper. |
-| Paper edge | #D8D9D0 | Dividers and subtle borders; never the sole focus indicator. |
+| Tea-room paper | `#FBF8F1` | Primary canvas and text on deep colour; about 50–60% of a page. |
+| Gamosa cream | `#F4EBDD` | Tactile panels, product wells, account and cart surfaces; about 15–20%. |
+| Deep Assam red | `#5C171C` | Display headlines, primary actions, and the Assamese mark; about 8%. |
+| Heritage red | `#B12B2D` | Focus, active states, and tiny cultural signals; never a full-page field. |
+| River mist | `#78908C` | River Thread, hero fields, diagrams, and emotional emphasis. |
+| Aged indigo | `#31484A` | Footer, heritage fields, and supporting type; the cool counterweight to red. |
+| Tea-liquor amber | `#B87936` | Seeds, coordinates, numbering, and fine rules; use like a glint in the cup. |
+| Burnt clay | `#9D5F45` | Eyebrows and editorial metadata; not for essential small text on cream. |
+| Tea-leaf ink | `#202B29` | Primary commerce and body text. |
+| Quiet ink | `#5F6661` | Secondary copy. |
 
-Do not distribute the colours evenly. Red should be recognisable at a glance without taking over the page. No gradients, gold flourishes, decorative pseudo-script, or repeated ethnic wallpaper. The spare diamond rule is textile-inspired, not a claim to reproduce a specific traditional pattern.
+Never distribute these colours evenly. Avoid gradients, gold flourishes, stock luxury tropes, pseudo-script, and busy cultural patterns. A very low-opacity paper grain supplies tactility. River curves and the **চ** mark get one deliberate appearance per major viewport.
 
-## Typography, spacing, and layout
+## Typography, spacing, layout, and components
 
-The implementation uses a zero-download serif stack (Baskerville, Palatino Linotype, Book Antiqua, Georgia) for stories and a system sans stack (Segoe UI, Arial) for commerce. This keeps first paint fast. If a consistent licensed brand font is commissioned, self-host subset WOFF2 files with `font-display: swap` and tune fallback metrics before replacing the tokens.
+Display and story typography uses Cormorant Garamond 500/italic; commerce uses Manrope 400/500/600. Both load with `display=swap` and local fallbacks. Self-host subset WOFF2 files before launch if the brand requires zero third-party font requests. Calligraphic feeling is reserved for short emotional fragments; navigation, price, forms, variants, and checkout remain in Manrope.
 
-Hero type scales from 48�100px. Section headings use 35�56px; card titles 24px; body copy 14�15px with 1.6�1.8 line height. Small uppercase labels are brief navigational/editorial cues only. Avoid long all-caps paragraphs. Serif italics signal emotional phrases sparingly.
+Hero type scales from 54–108px, section headings from 40–72px, card titles from 24–31px, and body copy from 12–14px with 1.65–1.85 line height. Small uppercase labels are short geographic and editorial cues. A 4px spacing base yields 8, 12, 16, 24, 32, 48, 64, 80, and 100px rhythms. Gutters scale from 20px to 80px, and commerce containers cap near 1440px.
 
-Use a 4px spacing base: 8, 12, 16, 24, 32, 48, 64, 80. Page gutters fluidly scale from 20px to 80px. Main commerce containers cap at 1440px. Product grids use four columns on wide screens, two on tablets, and one on phones to preserve image and buying-control clarity. Story copy stays around 45�65 characters wide. Buttons are square, at least 44�48px tall; cards use flat framing and fine rules. Reduced-motion preferences disable animation.
+Buttons are square, 44–50px tall, deep red, and switch to aged indigo on hover. Cards are flat, with fine borders and no floating rounded blobs. Product grids run four columns on wide screens, two on tablet, and one on mobile. Keyboard focus uses a two-pixel Heritage Red outline with a five-pixel offset. Motion is subtle and disabled under `prefers-reduced-motion`.
 
-## Implemented pages
+## Page redesign
 
 | Surface | Composition and commerce purpose |
 | --- | --- |
-| Home `/` | Large editorial headline beside a framed tea photograph, place-of-origin strip, shoppable tea cabinet, Ahom/Charaideo memory panel, three-part everyday ritual. |
-| Catalog `/collections/all` | Clear introduction, paginated live Shopify products, product type, merchant notes or description, price, and quick add. |
-| Product `/products/:handle` | Large variant image, selected-variant price, available options, add-to-cart, story, tasting notes, brewing guidance, delivery/care disclosures. |
-| Cart `/cart` and drawer | Editable existing lines, discounts and gift cards, calm order summary, prominent checkout link, helpful empty state. |
-| Checkout entry | Uses Shopify's cart `checkoutUrl`; shipping/tax expectations appear beside the CTA. Hosted checkout itself is configured separately in Shopify. |
-| Contact `/pages/contact` | Warm invitation, direct email and telephone links, address and operating hours from existing content. No fake submission form. |
-| Sign in `/sign-in` | A welcoming tea-room panel plus one clear secure sign-in CTA. Existing authenticated visitors redirect to `/account`. `/account/login` retains the Customer Account flow. |
-| About `/pages/about-us` | Cultural-memory introduction and a measured sequence of brand story, Charaideo/Ahom inspiration, mission, vision, and founder. |
+| Home `/` | Stock-free River Thread hero with Assamese mark, abstract tea vessel, coordinate, shoppable tea cabinet, Ahom/Charaideo memory field, and three-part ritual. |
+| Catalog `/collections/all` | “Gardens in motion” vector composition, reserve index, paginated products, type/grade, notes, price, and quick add. |
+| Product `/products/:handle` | Mist-framed selected-variant image, Assam coordinate, price, variants, add-to-cart, merchant story, tasting notes, brewing guidance, and delivery/care. |
+| Cart `/cart` and drawer | River-basket composition, editable optimistic lines, discounts and gift cards, order summary, hosted-checkout handoff, and quiet empty state. |
+| Checkout entry | Uses the Shopify cart `checkoutUrl`; shipping and tax expectations appear beside the CTA. Hosted checkout branding is configured in Shopify. |
+| Contact `/pages/contact` | Deep-indigo hospitality composition, direct email and telephone links, address, hours, and a route back to shopping. |
+| Sign in `/sign-in` | A dark tea-room invitation balanced by one calm account panel and the existing Customer Account login handoff. |
+| About `/pages/about-us` | “Where the river remembers” composition followed by cultural memory, mission, vision, and founder chapters. |
 
-## React / Hydrogen structure
+## Production-ready Hydrogen structure
 
 ```text
-root.tsx ? PageLayout
-  Header ? Brand + HeaderMenu + SearchToggle + optimistic CartBadge
-  Aside.Provider ? cart / search / mobile menu dialogs
-  routes/_index.tsx ? deferred tea cabinet ? ProductItem
-  routes/collections.all.tsx ? pagination ? CatalogProductCard
-  routes/products.$handle.tsx ? ProductImage + ProductForm
-    ProductForm ? selected options + AddToCartButton ? CartForm
-  routes/cart.tsx ? CartMain ? CartLineItem + CartSummary
-  routes/pages.$handle.tsx ? static About / Contact + Shopify pages fallback
-  routes/sign-in.tsx ? existing Customer Account login
-  Footer ? Brand + shopping, policy and contact links
+root.tsx → PageLayout
+  Header → River Thread Brand + navigation + Account/Search/optimistic CartBadge
+  Aside.Provider → accessible cart, search, and mobile-menu dialogs
+  routes/_index.tsx → deferred tea cabinet → ProductItem
+  routes/collections.all.tsx → pagination → CatalogProductCard
+  routes/products.$handle.tsx → ProductImage + ProductForm
+    ProductForm → mapped variant options + AddToCartButton → CartForm
+  routes/cart.tsx → CartMain → optimistic CartLineItem + CartSummary
+  routes/pages.$handle.tsx → static About/Contact + Shopify-page fallback
+  routes/sign-in.tsx → Customer Account login handoff
+  Footer → brand, catalog links, policies, direct contact
 ```
 
-`Brand.tsx`, `ProductItem.tsx`, and `AddToCartButton.tsx` are executable examples, not pseudo-code. Use the existing server cart handler, variant URL state, pagination, account routes, and Shopify Money/Image components. The pending add button is disabled while its fetcher submits and renders a recoverable error. Drawers restore focus, constrain Tab navigation, and close on Escape. The header includes a skip link to the main content.
+The visual layer lives in `app/styles/identity.css`, loaded after legacy utilities. The River Thread CSS and vector assets are imported through Vite so production builds fingerprint them. Shopify functionality remains server-backed: `CartForm` handles add/update/remove/discount/gift-card actions, selected variants stay URL-addressable, `checkoutUrl` owns the checkout handoff, and Customer Account API owns authentication.
 
-The CSS entry in `root.tsx` loads existing `app.css` utilities first and the authoritative `identity.css` design layer second. New components use names scoped to their role (`tea-room-*`, `signin-*`, `catalog-card-*`); all palette and font decisions live in root tokens. This deliberately preserves existing blend-builder and ancillary-route styling. In a later cleanup, consolidate duplicated legacy selectors after a full visual regression pass; do not add another override layer.
+Product content contract:
 
-## Shopify content contract
+- `productType`: public tea type or grade shown on cards and PDP.
+- `custom.tasting_notes`: short, merchant-approved notes; expose the definition with Storefront `PUBLIC_READ` access.
+- `custom.brewing_suggestion`: concise brewing guidance; expose with Storefront `PUBLIC_READ` access.
+- Product descriptions, images, prices, variants, inventory, and availability remain merchant-owned Shopify data. Do not infer estate, harvest, organic status, flavour, or brewing temperature from a title.
 
-Set product type/grade in Shopify's `productType`. Populate `custom.tasting_notes` (single-line text, e.g. approved dot-separated notes) and `custom.brewing_suggestion` (multi-line text). Make definitions readable by the Storefront API. Missing notes are omitted; catalog cards fall back to the real product description. Missing brewing guidance points customers to pack instructions. Do not infer flavour, temperature, estate provenance, organic certification, or harvest dates from a product name.
+Use Hydrogen `Image` with explicit aspect ratios and responsive `sizes` to prevent layout shift. Cache shared navigation and stable collection content appropriately; never cache customer, account, or cart responses publicly. Keep non-critical recommendations deferred, preserve optimistic cart feedback, and return recoverable API errors beside the initiating control.
 
-Use actual catalog photography and live variant IDs, prices, currency and availability. Product descriptions remain merchant-owned HTML. The current home image is an external Unsplash tea photograph, a provisional atmosphere image without geographic attribution. Replace it with licensed brand photography from Assam before launch; capture the tea table, materials, hands, utensils and real gardens with accurate captions. Do not present generic scenery as Assam documentation.
+## Verification and release gate
 
-Generate types after changing queries with `npm run codegen`. `codegen.ts` validates Storefront queries against the schema shipped with the installed Hydrogen package. Customer Account declarations are left intact. Then run `npm run typecheck` and `npm run build`.
-
-Commerce follows the current official patterns: [CartForm](https://shopify.dev/docs/api/hydrogen/latest/components/cartform), [Customer Account login](https://shopify.dev/docs/storefronts/headless/building-with-the-customer-account-api/hydrogen), and [cart checkout URL](https://shopify.dev/docs/api/hydrogen/latest/utilities/cart/cartcreatedefault). Framework code matches the installed React Router 7 / Hydrogen 2026 dependencies rather than copying older Remix examples.
-
-## Release checks
-
-Use `npm run dev` for the Hydrogen CLI environment loader. The plain Vite preview initially returned HTTP 500 because `SESSION_SECRET` was not supplied to the worker. The Hydrogen CLI correctly loaded the local environment; Home, Catalog, a real product detail page, About, Contact, Cart, Sign in and Search subsequently returned HTTP 200 with the expected page content. Keep credentials in the local environment / Oxygen environment settings, never source or logs. An existing full environment logger in `server.ts` was removed.
-
-Before release, verify in a connected browser at 375px, 768px and 1440px: all routes; keyboard-only menus, search and cart; real tea images and copy; selected/sold-out variants; add, quantity update, remove; discount errors; account OAuth return; checkout handoff and a Shopify test order. Check hosted checkout brand settings separately. This implementation has not been deployed and a completed checkout is not claimed.
-
-Validation: Storefront GraphQL generation passed; TypeScript passed; production build passed; 11 existing tests passed. No connected browser was available, so responsive visual QA and actual cart/account/checkout interactions remain unverified. npm reported 23 dependency audit findings (5 low, 6 moderate, 12 high); dependency remediation was not included in this UI change.
+`npm run typecheck`, `npm run build`, and the 11 current domain tests pass. The production build fingerprints the imported River Thread SVGs. Local visual QA is still required at 375px, 768px, and 1440px because the installed Node 24 runtime could not start Miniflare in this workspace. Before release, verify keyboard-only drawers, real product imagery, sold-out and multi-variant products, add/update/remove, discount failures, account OAuth return, Shopify checkout handoff, and one test order. The storefront has not been deployed.

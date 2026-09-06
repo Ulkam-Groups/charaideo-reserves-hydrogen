@@ -99,10 +99,15 @@ export default function Product() {
 
   return (
     <div className="product">
-      <ProductImage image={selectedVariant?.image} />
+      <div className="product-gallery">
+        <div className="product-origin-tab">Assam / 26.98° N</div>
+        <ProductImage image={selectedVariant?.image} />
+        <p className="product-image-caption">Selected from the tea cabinet · packed with care</p>
+      </div>
       <div className="product-main">
-        <span className="eyebrow">The tea cabinet / {product.productType || "Our selection"}</span>
+        <div className="product-index"><span>Reserve / {product.productType || "Our selection"}</span><span>CR · TEA</span></div>
         <h1>{title}</h1>
+        {product.tastingNotes?.value && <p className="product-taste-line">{product.tastingNotes.value}</p>}
         <ProductPrice
           price={selectedVariant?.price}
           compareAtPrice={selectedVariant?.compareAtPrice}
@@ -112,7 +117,7 @@ export default function Product() {
           productOptions={productOptions}
           selectedVariant={selectedVariant}
         />
-        <div className="product-story"><h2>The character of this cup</h2><div dangerouslySetInnerHTML={{__html: descriptionHtml}} /></div>
+        <div className="product-story"><span className="eyebrow">The character of this cup</span><h2>A cup with<br /><em>a sense of place.</em></h2><div dangerouslySetInnerHTML={{__html: descriptionHtml}} /></div>
         {product.tastingNotes?.value && <details open><summary>Tasting notes</summary><p>{product.tastingNotes.value}</p></details>}
         <details open><summary>Your brewing ritual</summary><p>{product.brewingSuggestion?.value || 'Follow the brewing directions on your pack. Use freshly drawn water and adjust the steep to your taste.'}</p></details>
         <details><summary>Delivery & care</summary><p>Shipping is calculated at checkout. Keep your tea sealed, cool, and dry, away from strong aromas.</p></details>

@@ -28,14 +28,16 @@ export function Header({
 
   return (
     <header className="header header-solid">
-      <Brand />
-      <HeaderMenu
-        menu={menu}
-        viewport="desktop"
-        primaryDomainUrl={header.shop.primaryDomain.url}
-        publicStoreDomain={publicStoreDomain}
-      />
-      <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+      <div className="header-inner">
+        <Brand />
+        <HeaderMenu
+          menu={menu}
+          viewport="desktop"
+          primaryDomainUrl={header.shop.primaryDomain.url}
+          publicStoreDomain={publicStoreDomain}
+        />
+        <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+      </div>
     </header>
   );
 }
@@ -91,7 +93,7 @@ function HeaderCtas({
   return (
     <nav className="header-ctas" role="navigation">
       <HeaderMenuMobileToggle />
-      <NavLink prefetch="intent" to="/sign-in">
+      <NavLink className="header-action" prefetch="intent" to="/sign-in">
         <Suspense fallback="Account">
           <Await resolve={isLoggedIn} errorElement="Account">
             {() => 'Account'}
@@ -108,7 +110,7 @@ function HeaderMenuMobileToggle() {
   const {open} = useAside();
   return (
     <button
-      className="header-menu-mobile-toggle reset"
+      className="header-action header-menu-mobile-toggle reset"
       onClick={() => open('mobile')}
     >
       <span>Menu</span>
@@ -119,7 +121,7 @@ function HeaderMenuMobileToggle() {
 function SearchToggle() {
   const {open} = useAside();
   return (
-    <button className="reset" onClick={() => open('search')}>
+    <button className="header-action reset" onClick={() => open('search')}>
       Search
     </button>
   );
@@ -131,6 +133,7 @@ function CartBadge({count}: {count: number | null}) {
 
   return (
     <a
+      className="header-action header-cart"
       href="/cart"
       onClick={(e) => {
         e.preventDefault();
@@ -143,7 +146,10 @@ function CartBadge({count}: {count: number | null}) {
         } as CartViewPayload);
       }}
     >
-      Cart {count === null ? <span>&nbsp;</span> : count}
+      <span>Cart</span>
+      <span className="cart-count" aria-label={`${count ?? 0} items`}>
+        {count ?? '-'}
+      </span>
     </a>
   );
 }
@@ -180,18 +186,18 @@ const FALLBACK_HEADER_MENU = {
       id: 'gid://shopify/MenuItem/461609533496',
       resourceId: null,
       tags: [],
-      title: 'Contact',
+      title: 'About Us',
       type: 'HTTP',
-      url: '/pages/contact',
+      url: '/pages/about-us',
       items: [],
     },
     {
       id: 'gid://shopify/MenuItem/461609566264',
       resourceId: null,
       tags: [],
-      title: 'About Us',
+      title: 'Contact',
       type: 'HTTP',
-      url: '/pages/about-us',
+      url: '/pages/contact',
       items: [],
     },
   ],

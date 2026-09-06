@@ -5,6 +5,7 @@ import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
+import collectionThread from '../../river-thread-web/svg/products-garden-flow.svg?url';
 
 type CatalogProduct = CollectionItemFragment & {
   tastingNotes?: {value: string} | null;
@@ -72,12 +73,19 @@ export default function Collection() {
   return (
     <div className="collection catalog-page">
       <section className="catalog-hero">
-        <span className="eyebrow">Tea catalog</span>
-        <h1>The tea cabinet.</h1>
-        <p>
-          For strong mornings, unhurried afternoons, and conversations that last. Find a tea to make your own.
-        </p>
+        <div className="catalog-intro">
+          <span className="eyebrow">The reserve index / harvest · character · ritual</span>
+          <h1>Gardens<br /><em>in motion.</em></h1>
+          <p>For strong mornings, unhurried afternoons, and conversations that last. Find a tea to make your own.</p>
+        </div>
+        <img src={collectionThread} width="1600" height="600" alt="" />
       </section>
+
+      <div className="catalog-index" aria-label="Tea catalog guide">
+        <span><b>01</b> Single garden</span>
+        <span><b>02</b> Seasonal</span>
+        <span><b>03</b> Everyday Assam</span>
+      </div>
 
       <PaginatedResourceSection<CollectionItemFragment>
         connection={products}
