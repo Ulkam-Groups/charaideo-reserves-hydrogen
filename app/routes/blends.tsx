@@ -15,7 +15,6 @@ type BlendProduct = {
     nodes: Array<{
       id: string;
       availableForSale: boolean;
-      quantityAvailable: number | null;
     }>;
   };
 };
@@ -41,7 +40,6 @@ export async function loader({context}: Route.LoaderArgs) {
         pricePerGram: Number(product.metafields[3]?.value ?? 0),
         maxContributionGrams: Number(product.metafields[4]?.value ?? defaultBlendRules.maxGrams),
         availableForSale: variant.availableForSale,
-        quantityAvailable: variant.quantityAvailable,
         eligible: true,
       } satisfies BlendTea,
     ];
@@ -86,7 +84,6 @@ const BLEND_PRODUCTS_QUERY = `#graphql
           nodes {
             id
             availableForSale
-            quantityAvailable
           }
         }
       }
