@@ -58,13 +58,13 @@ export default function Homepage() {
 
       <section className="tea-selection">
         <div className="editorial-heading">
-          <div><span className="eyebrow">The tea cabinet</span><h2>Find your daily ritual.</h2></div>
+          <div><span className="eyebrow">Most poured / best sellers</span><h2>The teas people return to.</h2></div>
           <Link className="text-link" to="/collections/all">Explore all teas ↗</Link>
         </div>
         <Suspense fallback={<p className="loading-state">Opening the tea cabinet…</p>}>
           <Await resolve={data.recommendedProducts}>
             {(response: RecommendedProductsQuery | null) => response?.products.nodes.length ? (
-              <div className="recommended-products-grid">{response.products.nodes.map((product) => <ProductItem key={product.id} product={product} />)}</div>
+              <div className="recommended-products-grid">{response.products.nodes.map((product) => <ProductItem key={product.id} product={product} showVariants />)}</div>
             ) : <p>Our tea cabinet is being refreshed. <Link to="/collections/all">Explore the catalog →</Link></p>}
           </Await>
         </Suspense>
@@ -92,9 +92,18 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
     selectedOrFirstAvailableVariant { id availableForSale }
     priceRange { minVariantPrice { amount currencyCode } }
     featuredImage { id url altText width height }
+    variants(first: 20) {
+      nodes {
+        id
+        title
+        availableForSale
+        price { amount currencyCode }
+        selectedOptions { name value }
+      }
+    }
   }
   query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
     @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) { nodes { ...RecommendedProduct } }
+    products(first: 4, sortKey: BEST_SELLING) { nodes { ...RecommendedProduct } }
   }
 ` as const;

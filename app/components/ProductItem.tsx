@@ -1,38 +1,165 @@
 import {Link} from 'react-router';
 import {Image, Money} from '@shopify/hydrogen';
-import type {ProductItemFragment, CollectionItemFragment, RecommendedProductFragment} from 'storefrontapi.generated';
+import {useState} from 'react';
+import type {
+  ProductItemFragment,
+  CollectionItemFragment,
+  RecommendedProductFragment,
+} from 'storefrontapi.generated';
 import {useVariantUrl} from '~/lib/variants';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 
-type TeaProduct = (CollectionItemFragment | ProductItemFragment | RecommendedProductFragment) & {
+type CardVariant = RecommendedProductFragment['variants']['nodes'][number];
+
+type TeaProduct = (
+  | CollectionItemFragment
+  | ProductItemFragment
+  | RecommendedProductFragment
+) & {
   productType?: string;
   tastingNotes?: {value: string} | null;
-  selectedOrFirstAvailableVariant?: {id: string; availableForSale: boolean} | null;
+  selectedOrFirstAvailableVariant?: {
+    id: string;
+    availableForSale: boolean;
+  } | null;
+  variants?: {nodes: CardVariant[]};
 };
 
-export function ProductItem({product, loading = 'lazy'}: {product: TeaProduct; loading?: 'eager' | 'lazy'}) {
+export function ProductItem({
+  product,
+  loading = 'lazy',
+  showVariants = false,
+}: {
+  product: TeaProduct;
+  loading?: 'eager' | 'lazy';
+  showVariants?: boolean;
+}) {
   const url = useVariantUrl(product.handle);
   const {open} = useAside();
-  const variant = product.selectedOrFirstAvailableVariant;
+  const variants = product.variants?.nodes || [];
+  const firstAvailableVariant = variants.find((item) => item.availableForSale);
+  const [selectedVariantId, setSelectedVariantId] = useState(
+    firstAvailableVariant?.id || variants[0]?.id || '',
+  );
+  const selectedVariant =
+    variants.find((item) => item.id === selectedVariantId) ||
+    firstAvailableVariant ||
+    variants[0];
+  const fallbackVariant = product.selectedOrFirstAvailableVariant;
+  const cartVariant = selectedVariant || fallbackVariant;
+  const canAddToCart = Boolean(cartVariant?.availableForSale);
+  const showVariantChoices =
+    showVariants &&
+    (variants.length > 1 ||
+      (variants.length === 1 && variants[0].title !== 'Default Title'));
+  const cardDescription =
+    product.tastingNotes?.value ||
+    'A distinctive Assam cup, selected for an everyday ritual.';
 
   return (
-    <article className="catalog-card">
+    <article
+      className={`catalog-card${showVariants ? ' catalog-card--commerce' : ''}`}
+    >
       <Link className="catalog-card-image" prefetch="intent" to={url}>
-        {product.featuredImage ? <Image alt={product.featuredImage.altText || product.title} aspectRatio="4/5" data={product.featuredImage} loading={loading} sizes="(min-width: 1000px) 23vw, (min-width: 600px) 46vw, 90vw" /> : <div className="catalog-card-placeholder" aria-hidden />}
+        {product.featuredImage ? (
+          <Image
+            alt={product.featuredImage.altText || product.title}
+            aspectRatio="4/3"
+            data={product.featuredImage}
+            loading={loading}
+            sizes="(min-width: 1200px) 270px, (min-width: 700px) 31vw, 92vw"
+          />
+        ) : (
+          <div className="catalog-card-placeholder" aria-hidden />
+        )}
       </Link>
       <div className="catalog-card-body">
-        <div><p>{product.productType || 'The tea cabinet'}</p><h2><Link to={url}>{product.title}</Link></h2></div>
-        <p className="catalog-card-description">{product.tastingNotes?.value || 'A distinctive Assam cup, selected for an everyday ritual.'}</p>
+        <div className="catalog-card-heading">
+          <p>{product.productType || 'The tea cabinet'}</p>
+          <h2><Link to={url}>{product.title}</Link></h2>
+        </div>
+        <p className="catalog-card-description" title={cardDescription}>
+          {cardDescription}
+        </p>
+
+        {showVariantChoices ? (
+          <fieldset className="catalog-variant-picker">
+            <legend>Packet size</legend>
+            <div>
+              {variants.map((item) => {
+                const label = getPacketLabel(item);
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    disabled={!item.availableForSale}
+                    aria-pressed={item.id === selectedVariant?.id}
+                    aria-label={
+                      item.availableForSale
+                        ? `Select ${label}`
+                        : `${label}, out of stock`
+                    }
+                    title={!item.availableForSale ? 'Out of stock' : undefined}
+                    onClick={() => setSelectedVariantId(item.id)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        ) : showVariants ? (
+          <div className="catalog-card-availability">
+            <span>Availability</span>
+            <strong>{canAddToCart ? 'In stock' : 'Unavailable'}</strong>
+          </div>
+        ) : null}
+
         <div className="catalog-card-footer">
-          <Money data={product.priceRange.minVariantPrice} />
-          {variant ? (
-            <AddToCartButton disabled={!variant.availableForSale} lines={[{merchandiseId: variant.id, quantity: 1}]} onClick={() => open('cart')}>
-              {variant.availableForSale ? 'Add to cart +' : 'Sold out'}
+          {showVariants ? (
+            <div className="catalog-card-price">
+              <span>{showVariantChoices && selectedVariant
+                ? getPacketLabel(selectedVariant)
+                : 'Price'}</span>
+              <strong>
+                <Money
+                  data={
+                    selectedVariant?.price || product.priceRange.minVariantPrice
+                  }
+                />
+              </strong>
+            </div>
+          ) : (
+            <Money data={product.priceRange.minVariantPrice} />
+          )}
+
+          {cartVariant ? (
+            <AddToCartButton
+              disabled={!canAddToCart}
+              lines={
+                canAddToCart
+                  ? [{merchandiseId: cartVariant.id, quantity: 1}]
+                  : []
+              }
+              onClick={() => open('cart')}
+            >
+              {canAddToCart ? 'Add to cart' : 'Unavailable'}
             </AddToCartButton>
-          ) : <Link className="text-link" to={url}>Choose tea →</Link>}
+          ) : (
+            <Link className="text-link" to={url}>Choose tea →</Link>
+          )}
         </div>
       </div>
     </article>
   );
+}
+
+function getPacketLabel(variant: CardVariant) {
+  const packetOption = variant.selectedOptions.find((option) =>
+    /size|weight|pack/i.test(option.name),
+  );
+
+  return packetOption?.value || variant.title;
 }

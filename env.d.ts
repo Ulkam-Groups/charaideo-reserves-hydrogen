@@ -6,6 +6,12 @@ declare module 'virtual:react-router/server-build' {
   export * from '@react-router/dev/server-build';
 }
 declare global {
+  interface Env {
+    JUDGEME_SHOP_DOMAIN?: string;
+    JUDGEME_PUBLIC_API_TOKEN?: string;
+    JUDGEME_PRIVATE_API_TOKEN?: string;
+  }
+
   interface ExecutionContext {
     waitUntil(promise: Promise<unknown>): void;
     passThroughOnException(): void;

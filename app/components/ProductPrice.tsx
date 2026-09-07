@@ -8,13 +8,21 @@ export function ProductPrice({
   price?: MoneyV2;
   compareAtPrice?: MoneyV2 | null;
 }) {
+  const validCompareAtPrice =
+    price &&
+    compareAtPrice &&
+    price.currencyCode === compareAtPrice.currencyCode &&
+    Number(compareAtPrice.amount) > Number(price.amount)
+      ? compareAtPrice
+      : null;
+
   return (
     <div className="product-price">
-      {compareAtPrice ? (
+      {validCompareAtPrice ? (
         <div className="product-price-on-sale">
           {price ? <Money data={price} /> : null}
           <s>
-            <Money data={compareAtPrice} />
+            <Money data={validCompareAtPrice} />
           </s>
         </div>
       ) : price ? (

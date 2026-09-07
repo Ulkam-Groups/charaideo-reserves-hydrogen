@@ -1,22 +1,19 @@
 import type {Route} from './+types/collections.all';
-import {Link, useLoaderData} from 'react-router';
-import {getPaginationVariables, Image, Money} from '@shopify/hydrogen';
+import {Form, useLoaderData} from 'react-router';
+import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {AddToCartButton} from '~/components/AddToCartButton';
+import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
-import {useAside} from '~/components/Aside';
 import collectionThread from '../../river-thread-web/svg/products-garden-flow.svg?url';
 
-type CatalogProduct = CollectionItemFragment & {
-  tastingNotes?: {value: string} | null;
-  vendor?: string | null;
-  productType?: string | null;
-  description?: string | null;
-  selectedOrFirstAvailableVariant?: {
-    id: string;
-    availableForSale: boolean;
-  } | null;
-};
+const CATALOG_SORTS = {
+  featured: {sortKey: 'BEST_SELLING', reverse: false},
+  'price-low': {sortKey: 'PRICE', reverse: false},
+  'price-high': {sortKey: 'PRICE', reverse: true},
+  newest: {sortKey: 'CREATED_AT', reverse: true},
+} as const;
+
+type CatalogSort = keyof typeof CATALOG_SORTS;
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -45,17 +42,22 @@ export async function loader(args: Route.LoaderArgs) {
  */
 async function loadCriticalData({context, request}: Route.LoaderArgs) {
   const {storefront} = context;
+  const requestedSort = new URL(request.url).searchParams.get('sort');
+  const sort: CatalogSort =
+    requestedSort && requestedSort in CATALOG_SORTS
+      ? (requestedSort as CatalogSort)
+      : 'featured';
   const paginationVariables = getPaginationVariables(request, {
     pageBy: 8,
   });
 
   const [{products}] = await Promise.all([
     storefront.query(CATALOG_QUERY, {
-      variables: {...paginationVariables},
+      variables: {...paginationVariables, ...CATALOG_SORTS[sort]},
     }),
     // Add other queries here, so that they are loaded in parallel
   ]);
-  return {products};
+  return {products, sort};
 }
 
 /**
@@ -68,7 +70,7 @@ function loadDeferredData({context}: Route.LoaderArgs) {
 }
 
 export default function Collection() {
-  const {products} = useLoaderData<typeof loader>();
+  const {products, sort} = useLoaderData<typeof loader>();
 
   return (
     <div className="collection catalog-page">
@@ -87,84 +89,39 @@ export default function Collection() {
         <span><b>03</b> Everyday Assam</span>
       </div>
 
+      <div className="catalog-toolbar">
+        <div>
+          <span className="eyebrow">The tea cabinet</span>
+          <p><strong>{products.nodes.length}</strong> teas currently shown</p>
+        </div>
+        <Form method="get" className="catalog-sort-form">
+          <label htmlFor="catalog-sort">Sort the cabinet</label>
+          <div className="catalog-sort-control">
+            <select id="catalog-sort" name="sort" defaultValue={sort}>
+              <option value="featured">Featured</option>
+              <option value="newest">Newest</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+            </select>
+            <button type="submit">Apply</button>
+          </div>
+        </Form>
+      </div>
+
       <PaginatedResourceSection<CollectionItemFragment>
         connection={products}
         resourcesClassName="products-grid"
       >
         {({node: product, index}) => (
-          <CatalogProductCard
+          <ProductItem
             key={product.id}
-            product={product as CatalogProduct}
+            product={product}
             loading={index < 8 ? 'eager' : undefined}
+            showVariants
           />
         )}
       </PaginatedResourceSection>
     </div>
-  );
-}
-
-function CatalogProductCard({
-  product,
-  loading,
-}: {
-  product: CatalogProduct;
-  loading?: 'eager' | 'lazy';
-}) {
-  const {open} = useAside();
-  const image = product.featuredImage;
-  const variant = product.selectedOrFirstAvailableVariant;
-  const canAddToCart = Boolean(variant?.id && variant.availableForSale);
-
-  return (
-    <article className="catalog-card">
-      <Link className="catalog-card-image" to={`/products/${product.handle}`} prefetch="intent">
-        {image ? (
-          <Image
-            alt={image.altText || product.title}
-            aspectRatio="4/5"
-            data={image}
-            loading={loading}
-            sizes="(min-width: 900px) 28vw, (min-width: 640px) 45vw, 100vw"
-          />
-        ) : (
-          <div className="catalog-card-placeholder" aria-hidden />
-        )}
-      </Link>
-      <div className="catalog-card-body">
-        <div>
-          <p>{product.productType || product.vendor || 'Assam tea'}</p>
-          <h2>
-            <Link to={`/products/${product.handle}`} prefetch="intent">
-              {product.title}
-            </Link>
-          </h2>
-        </div>
-        <p className="catalog-card-description">{product.tastingNotes?.value || product.description || "Discover the story and character of this tea."}</p>
-        <div className="catalog-card-footer">
-          <strong>
-            <Money data={product.priceRange.minVariantPrice} />
-          </strong>
-          {variant ? (
-            <AddToCartButton
-              disabled={!canAddToCart}
-              onClick={() => open('cart')}
-              lines={
-                canAddToCart
-                  ? [
-                      {
-                        merchandiseId: variant.id,
-                        quantity: 1,
-                      },
-                    ]
-                  : []
-              }
-            >
-              {canAddToCart ? 'Add to cart' : 'Sold out'}
-            </AddToCartButton>
-          ) : null}
-        </div>
-      </div>
-    </article>
   );
 }
 
@@ -196,9 +153,19 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
         ...MoneyCollectionItem
       }
     }
-    selectedOrFirstAvailableVariant {
-      id
-      availableForSale
+    variants(first: 20) {
+      nodes {
+        id
+        title
+        availableForSale
+        price {
+          ...MoneyCollectionItem
+        }
+        selectedOptions {
+          name
+          value
+        }
+      }
     }
   }
 ` as const;
@@ -212,8 +179,10 @@ const CATALOG_QUERY = `#graphql
     $last: Int
     $startCursor: String
     $endCursor: String
+    $sortKey: ProductSortKeys
+    $reverse: Boolean
   ) @inContext(country: $country, language: $language) {
-    products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
+    products(first: $first, last: $last, before: $startCursor, after: $endCursor, sortKey: $sortKey, reverse: $reverse) {
       nodes {
         ...CollectionItem
       }
