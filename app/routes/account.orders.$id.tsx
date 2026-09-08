@@ -1,4 +1,4 @@
-import {redirect, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/account.orders.$id';
 import {Money, Image} from '@shopify/hydrogen';
 import type {
@@ -83,20 +83,22 @@ export default function OrderRoute() {
   } = useLoaderData<typeof loader>();
   return (
     <div className="account-order">
-      <h2>Order {order.name}</h2>
-      <p>Placed on {new Date(order.processedAt!).toDateString()}</p>
-      {order.confirmationNumber && (
-        <p>Confirmation: {order.confirmationNumber}</p>
-      )}
-      <br />
-      <div>
-        <table>
+      <Link className="account-back-link" to="/account/orders">← Back to orders</Link>
+      <header className="account-section-heading account-order-heading">
+        <span className="eyebrow">Order record</span>
+        <h2>Order {order.name}</h2>
+        <p>Placed {new Intl.DateTimeFormat('en-IN', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(order.processedAt!))}</p>
+        {order.confirmationNumber && <p className="account-confirmation">Confirmation · {order.confirmationNumber}</p>}
+      </header>
+      <div className="account-order-layout">
+        <div className="account-order-table-wrap">
+        <table className="account-order-table">
           <thead>
             <tr>
               <th scope="col">Product</th>
               <th scope="col">Price</th>
               <th scope="col">Quantity</th>
-              <th scope="col">Total</th>
+              <th scope="col">Discount</th>
             </tr>
           </thead>
           <tbody>
@@ -109,12 +111,7 @@ export default function OrderRoute() {
             {((discountValue && discountValue.amount) ||
               discountPercentage) && (
               <tr>
-                <th scope="row" colSpan={3}>
-                  <p>Discounts</p>
-                </th>
-                <th scope="row">
-                  <p>Discounts</p>
-                </th>
+                <th scope="row" colSpan={3}>Discounts</th>
                 <td>
                   {discountPercentage ? (
                     <span>-{discountPercentage}% OFF</span>
@@ -125,41 +122,28 @@ export default function OrderRoute() {
               </tr>
             )}
             <tr>
-              <th scope="row" colSpan={3}>
-                <p>Subtotal</p>
-              </th>
-              <th scope="row">
-                <p>Subtotal</p>
-              </th>
+              <th scope="row" colSpan={3}>Subtotal</th>
               <td>
                 <Money data={order.subtotal!} />
               </td>
             </tr>
             <tr>
-              <th scope="row" colSpan={3}>
-                Tax
-              </th>
-              <th scope="row">
-                <p>Tax</p>
-              </th>
+              <th scope="row" colSpan={3}>Tax</th>
               <td>
                 <Money data={order.totalTax!} />
               </td>
             </tr>
             <tr>
-              <th scope="row" colSpan={3}>
-                Total
-              </th>
-              <th scope="row">
-                <p>Total</p>
-              </th>
+              <th scope="row" colSpan={3}>Total</th>
               <td>
                 <Money data={order.totalPrice!} />
               </td>
             </tr>
           </tfoot>
         </table>
-        <div>
+        </div>
+        <div className="account-order-aside">
+          <section>
           <h3>Shipping Address</h3>
           {order?.shippingAddress ? (
             <address>
@@ -178,15 +162,15 @@ export default function OrderRoute() {
           ) : (
             <p>No shipping address defined</p>
           )}
+          </section>
+          <section>
           <h3>Status</h3>
-          <div>
-            <p>{fulfillmentStatus}</p>
-          </div>
+          <p className="account-status-pill">{fulfillmentStatus}</p>
+          </section>
         </div>
       </div>
-      <br />
-      <p>
-        <a target="_blank" href={order.statusPageUrl} rel="noreferrer">
+      <p className="account-order-external">
+        <a className="account-button account-button--primary" target="_blank" href={order.statusPageUrl} rel="noreferrer">
           View Order Status →
         </a>
       </p>
@@ -198,9 +182,9 @@ function OrderLineRow({lineItem}: {lineItem: OrderLineItemFullFragment}) {
   return (
     <tr key={lineItem.id}>
       <td>
-        <div>
+        <div className="account-order-product">
           {lineItem?.image && (
-            <div>
+            <div className="account-order-product-image">
               <Image data={lineItem.image} width={96} height={96} />
             </div>
           )}

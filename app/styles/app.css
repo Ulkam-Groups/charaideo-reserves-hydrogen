@@ -687,7 +687,7 @@ a:focus-visible {
   }
 }
 
-aside {
+.overlay aside {
   background: var(--color-light);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
   height: 100vh;
@@ -698,7 +698,7 @@ aside {
   transition: transform 200ms ease-in-out;
 }
 
-aside header {
+.overlay aside header {
   align-items: center;
   border-bottom: 1px solid var(--color-dark);
   display: flex;
@@ -707,11 +707,11 @@ aside header {
   padding: 0 20px;
 }
 
-aside header h3 {
+.overlay aside header h3 {
   margin: 0;
 }
 
-aside header .close {
+.overlay aside header .close {
   font-weight: bold;
   opacity: 0.8;
   text-decoration: none;
@@ -719,28 +719,28 @@ aside header .close {
   width: 20px;
 }
 
-aside header .close:hover {
+.overlay aside header .close:hover {
   opacity: 1;
 }
 
-aside header h2 {
+.overlay aside header h2 {
   margin-bottom: 0.6rem;
   margin-top: 0;
 }
 
-aside main {
+.overlay aside main {
   margin: 1rem;
 }
 
-aside p {
+.overlay aside p {
   margin: 0 0 0.25rem;
 }
 
-aside p:last-child {
+.overlay aside p:last-child {
   margin: 0;
 }
 
-aside li {
+.overlay aside li {
   margin-bottom: 0.125rem;
 }
 

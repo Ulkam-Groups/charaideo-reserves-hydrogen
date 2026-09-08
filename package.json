@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run typegen && shopify hydrogen dev",
     "dev:local": "vite --host 0.0.0.0",
-    "build": "npm run typegen && vite build",
+    "build": "npm run typegen && react-router build",
     "start": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "typegen": "react-router typegen",
