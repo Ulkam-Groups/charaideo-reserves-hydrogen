@@ -142,7 +142,7 @@ export default function OrderRoute() {
           </tfoot>
         </table>
         </div>
-        <aside className="account-order-aside">
+        <div className="account-order-aside">
           <section>
           <h3>Shipping Address</h3>
           {order?.shippingAddress ? (
@@ -167,7 +167,7 @@ export default function OrderRoute() {
           <h3>Status</h3>
           <p className="account-status-pill">{fulfillmentStatus}</p>
           </section>
-        </aside>
+        </div>
       </div>
       <p className="account-order-external">
         <a className="account-button account-button--primary" target="_blank" href={order.statusPageUrl} rel="noreferrer">

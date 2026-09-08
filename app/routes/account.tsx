@@ -57,7 +57,7 @@ export default function AccountLayout() {
 
 function AccountMenu() {
   return (
-    <aside className="account-sidebar">
+    <div className="account-sidebar">
       <span className="account-menu-label">Account cabinet</span>
       <nav className="account-menu" aria-label="Customer account">
       <NavLink to="/account/orders" className={accountLinkClass}>
@@ -72,7 +72,7 @@ function AccountMenu() {
       <Logout />
       </nav>
       <p className="account-sidebar-note">Your account details are kept private and used only to fulfil your tea orders.</p>
-    </aside>
+    </div>
   );
 }
 
