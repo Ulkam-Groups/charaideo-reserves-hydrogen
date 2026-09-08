@@ -87,44 +87,47 @@ export default function AccountProfile() {
 
   return (
     <div className="account-profile">
-      <h2>My profile</h2>
-      <br />
-      <Form method="PUT">
-        <legend>Personal information</legend>
-        <fieldset>
-          <label htmlFor="firstName">First name</label>
-          <input
-            id="firstName"
-            name="firstName"
-            type="text"
-            autoComplete="given-name"
-            placeholder="First name"
-            aria-label="First name"
-            defaultValue={customer.firstName ?? ''}
-            minLength={2}
-          />
-          <label htmlFor="lastName">Last name</label>
-          <input
-            id="lastName"
-            name="lastName"
-            type="text"
-            autoComplete="family-name"
-            placeholder="Last name"
-            aria-label="Last name"
-            defaultValue={customer.lastName ?? ''}
-            minLength={2}
-          />
+      <header className="account-section-heading">
+        <span className="eyebrow">Personal details</span>
+        <h2>My profile</h2>
+        <p>Keep your name current for correspondence and future orders.</p>
+      </header>
+      <Form method="PUT" className="account-form">
+        <fieldset className="account-form-card">
+          <legend>Personal information</legend>
+          <div className="account-form-grid">
+            <div className="account-field">
+              <label htmlFor="firstName">First name</label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                autoComplete="given-name"
+                placeholder="First name"
+                defaultValue={customer.firstName ?? ''}
+                minLength={2}
+              />
+            </div>
+            <div className="account-field">
+              <label htmlFor="lastName">Last name</label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                autoComplete="family-name"
+                placeholder="Last name"
+                defaultValue={customer.lastName ?? ''}
+                minLength={2}
+              />
+            </div>
+          </div>
         </fieldset>
         {action?.error ? (
-          <p>
-            <mark>
-              <small>{action.error}</small>
-            </mark>
-          </p>
-        ) : (
-          <br />
-        )}
-        <button type="submit" disabled={state !== 'idle'}>
+          <p className="account-form-message account-form-message--error" role="alert">{action.error}</p>
+        ) : action?.customer ? (
+          <p className="account-form-message account-form-message--success" role="status">Profile updated.</p>
+        ) : null}
+        <button className="account-button account-button--primary" type="submit" disabled={state !== 'idle'}>
           {state !== 'idle' ? 'Updating' : 'Update'}
         </button>
       </Form>

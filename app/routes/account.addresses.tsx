@@ -262,24 +262,27 @@ export default function Addresses() {
 
   return (
     <div className="account-addresses">
-      <h2>Addresses</h2>
-      <br />
-      <div>
-        <div>
-          <legend>Create address</legend>
+      <header className="account-section-heading">
+        <span className="eyebrow">Delivery book</span>
+        <h2>Addresses</h2>
+        <p>Save the places where you gather, gift, and share tea.</p>
+      </header>
+      <div className="account-address-layout">
+        <section className="account-address-new" aria-labelledby="new-address-title">
+          <h3 id="new-address-title">Add a new address</h3>
           <NewAddressForm key={addresses.nodes.length} />
-        </div>
-        <br />
-        <hr />
-        <br />
-        {!addresses.nodes.length ? (
-          <p>You have no addresses saved.</p>
-        ) : (
-          <ExistingAddresses
-            addresses={addresses}
-            defaultAddress={defaultAddress}
-          />
-        )}
+        </section>
+        <section className="account-address-saved" aria-labelledby="saved-addresses-title">
+          <h3 id="saved-addresses-title">Saved addresses</h3>
+          {!addresses.nodes.length ? (
+            <div className="account-empty account-empty--compact">
+              <span aria-hidden="true">◇</span>
+              <p>You have no saved delivery addresses yet.</p>
+            </div>
+          ) : (
+            <ExistingAddresses addresses={addresses} defaultAddress={defaultAddress} />
+          )}
+        </section>
       </div>
     </div>
   );
@@ -307,15 +310,14 @@ function NewAddressForm() {
       defaultAddress={null}
     >
       {({stateForMethod}) => (
-        <div>
-          <button
-            disabled={stateForMethod('POST') !== 'idle'}
-            formMethod="POST"
-            type="submit"
-          >
-            {stateForMethod('POST') !== 'idle' ? 'Creating' : 'Create'}
-          </button>
-        </div>
+        <button
+          className="account-button account-button--primary"
+          disabled={stateForMethod('POST') !== 'idle'}
+          formMethod="POST"
+          type="submit"
+        >
+          {stateForMethod('POST') !== 'idle' ? 'Creating' : 'Save address'}
+        </button>
       )}
     </AddressForm>
   );
@@ -326,8 +328,7 @@ function ExistingAddresses({
   defaultAddress,
 }: Pick<CustomerFragment, 'addresses' | 'defaultAddress'>) {
   return (
-    <div>
-      <legend>Existing addresses</legend>
+    <div className="account-address-list">
       {addresses.nodes.map((address) => (
         <AddressForm
           key={address.id}
@@ -336,8 +337,9 @@ function ExistingAddresses({
           defaultAddress={defaultAddress}
         >
           {({stateForMethod}) => (
-            <div>
+            <>
               <button
+                className="account-button account-button--primary"
                 disabled={stateForMethod('PUT') !== 'idle'}
                 formMethod="PUT"
                 type="submit"
@@ -345,13 +347,14 @@ function ExistingAddresses({
                 {stateForMethod('PUT') !== 'idle' ? 'Saving' : 'Save'}
               </button>
               <button
+                className="account-button account-button--quiet"
                 disabled={stateForMethod('DELETE') !== 'idle'}
                 formMethod="DELETE"
                 type="submit"
               >
                 {stateForMethod('DELETE') !== 'idle' ? 'Deleting' : 'Delete'}
               </button>
-            </div>
+            </>
           )}
         </AddressForm>
       ))}
@@ -376,141 +379,67 @@ export function AddressForm({
   const action = useActionData<ActionResponse>();
   const error = action?.error?.[addressId];
   const isDefaultAddress = defaultAddress?.id === addressId;
+  const fieldPrefix = `address-${String(addressId).replace(/[^a-zA-Z0-9]/g, '')}`;
+  const displayName = [address.firstName, address.lastName].filter(Boolean).join(' ');
   return (
-    <Form id={addressId}>
-      <fieldset>
+    <Form id={addressId} className="account-form account-address-form">
+      <fieldset className="account-form-card">
+        <legend>
+          {addressId === 'NEW_ADDRESS_ID' ? 'New address' : displayName || 'Delivery address'}
+          {isDefaultAddress && <span className="account-default-badge">Default</span>}
+        </legend>
         <input type="hidden" name="addressId" defaultValue={addressId} />
-        <label htmlFor="firstName">First name*</label>
-        <input
-          aria-label="First name"
-          autoComplete="given-name"
-          defaultValue={address?.firstName ?? ''}
-          id="firstName"
-          name="firstName"
-          placeholder="First name"
-          required
-          type="text"
-        />
-        <label htmlFor="lastName">Last name*</label>
-        <input
-          aria-label="Last name"
-          autoComplete="family-name"
-          defaultValue={address?.lastName ?? ''}
-          id="lastName"
-          name="lastName"
-          placeholder="Last name"
-          required
-          type="text"
-        />
-        <label htmlFor="company">Company</label>
-        <input
-          aria-label="Company"
-          autoComplete="organization"
-          defaultValue={address?.company ?? ''}
-          id="company"
-          name="company"
-          placeholder="Company"
-          type="text"
-        />
-        <label htmlFor="address1">Address line*</label>
-        <input
-          aria-label="Address line 1"
-          autoComplete="address-line1"
-          defaultValue={address?.address1 ?? ''}
-          id="address1"
-          name="address1"
-          placeholder="Address line 1*"
-          required
-          type="text"
-        />
-        <label htmlFor="address2">Address line 2</label>
-        <input
-          aria-label="Address line 2"
-          autoComplete="address-line2"
-          defaultValue={address?.address2 ?? ''}
-          id="address2"
-          name="address2"
-          placeholder="Address line 2"
-          type="text"
-        />
-        <label htmlFor="city">City*</label>
-        <input
-          aria-label="City"
-          autoComplete="address-level2"
-          defaultValue={address?.city ?? ''}
-          id="city"
-          name="city"
-          placeholder="City"
-          required
-          type="text"
-        />
-        <label htmlFor="zoneCode">State / Province*</label>
-        <input
-          aria-label="State/Province"
-          autoComplete="address-level1"
-          defaultValue={address?.zoneCode ?? ''}
-          id="zoneCode"
-          name="zoneCode"
-          placeholder="State / Province"
-          required
-          type="text"
-        />
-        <label htmlFor="zip">Zip / Postal Code*</label>
-        <input
-          aria-label="Zip"
-          autoComplete="postal-code"
-          defaultValue={address?.zip ?? ''}
-          id="zip"
-          name="zip"
-          placeholder="Zip / Postal Code"
-          required
-          type="text"
-        />
-        <label htmlFor="territoryCode">Country Code*</label>
-        <input
-          aria-label="territoryCode"
-          autoComplete="country"
-          defaultValue={address?.territoryCode ?? ''}
-          id="territoryCode"
-          name="territoryCode"
-          placeholder="Country"
-          required
-          type="text"
-          maxLength={2}
-        />
-        <label htmlFor="phoneNumber">Phone</label>
-        <input
-          aria-label="Phone Number"
-          autoComplete="tel"
-          defaultValue={address?.phoneNumber ?? ''}
-          id="phoneNumber"
-          name="phoneNumber"
-          placeholder="+16135551111"
-          pattern="^\+?[1-9]\d{3,14}$"
-          type="tel"
-        />
-        <div>
+        <div className="account-form-grid">
+          <AddressInput prefix={fieldPrefix} label="First name" name="firstName" autoComplete="given-name" defaultValue={address.firstName} required />
+          <AddressInput prefix={fieldPrefix} label="Last name" name="lastName" autoComplete="family-name" defaultValue={address.lastName} required />
+          <AddressInput prefix={fieldPrefix} label="Company" name="company" autoComplete="organization" defaultValue={address.company} />
+          <AddressInput prefix={fieldPrefix} label="Address line 1" name="address1" autoComplete="address-line1" defaultValue={address.address1} required wide />
+          <AddressInput prefix={fieldPrefix} label="Address line 2" name="address2" autoComplete="address-line2" defaultValue={address.address2} wide />
+          <AddressInput prefix={fieldPrefix} label="City" name="city" autoComplete="address-level2" defaultValue={address.city} required />
+          <AddressInput prefix={fieldPrefix} label="State / Province" name="zoneCode" autoComplete="address-level1" defaultValue={address.zoneCode} required />
+          <AddressInput prefix={fieldPrefix} label="Postal code" name="zip" autoComplete="postal-code" defaultValue={address.zip} required />
+          <AddressInput prefix={fieldPrefix} label="Country code" name="territoryCode" autoComplete="country" defaultValue={address.territoryCode} placeholder="IN" maxLength={2} required />
+          <AddressInput prefix={fieldPrefix} label="Phone" name="phoneNumber" autoComplete="tel" defaultValue={address.phoneNumber} placeholder="+91 98765 43210" pattern="^\+?[1-9]\d{3,14}$" type="tel" />
+        </div>
+        <label className="account-checkbox" htmlFor={`${fieldPrefix}-defaultAddress`}>
           <input
             defaultChecked={isDefaultAddress}
-            id="defaultAddress"
+            id={`${fieldPrefix}-defaultAddress`}
             name="defaultAddress"
             type="checkbox"
           />
-          <label htmlFor="defaultAddress">Set as default address</label>
-        </div>
+          <span>Set as default delivery address</span>
+        </label>
         {error ? (
-          <p>
-            <mark>
-              <small>{error}</small>
-            </mark>
-          </p>
-        ) : (
-          <br />
-        )}
-        {children({
-          stateForMethod: (method) => (formMethod === method ? state : 'idle'),
-        })}
+          <p className="account-form-message account-form-message--error" role="alert">{error}</p>
+        ) : null}
+        <div className="account-form-actions">
+          {children({stateForMethod: (method) => (formMethod === method ? state : 'idle')})}
+        </div>
       </fieldset>
     </Form>
+  );
+}
+
+function AddressInput({
+  prefix,
+  label,
+  name,
+  defaultValue,
+  wide = false,
+  ...inputProps
+}: {
+  prefix: string;
+  label: string;
+  name: string;
+  defaultValue?: string | null;
+  wide?: boolean;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'id' | 'name' | 'defaultValue'>) {
+  const id = `${prefix}-${name}`;
+  return (
+    <div className={`account-field${wide ? ' account-field--wide' : ''}`}>
+      <label htmlFor={id}>{label}{inputProps.required && <span aria-hidden="true"> *</span>}</label>
+      <input id={id} name={name} defaultValue={defaultValue ?? ''} type="text" {...inputProps} />
+    </div>
   );
 }

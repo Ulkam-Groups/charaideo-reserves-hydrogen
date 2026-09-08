@@ -396,8 +396,112 @@ button {cursor: pointer}
 .header-menu-mobile a {padding: 18px 0; border-bottom: 1px solid var(--thread); color: var(--assam-red); font: 500 34px/1 var(--serif)}
 .predictive-search input {width: calc(100% - 80px); min-height: 46px; border: 1px solid var(--thread); border-radius: 0; background: var(--gamosa-cream)}
 .predictive-search button {min-height: 46px; border: 0; background: var(--assam-red); color: var(--paper)}
-.page,.search,.account {max-width: 1200px; margin: 0 auto; padding: 70px var(--gutter) 100px}
-.page h1,.search h1,.account h1 {font-size: clamp(48px,6vw,82px); line-height: .9}
+.page,.search {max-width: 1200px; margin: 0 auto; padding: 70px var(--gutter) 100px}
+.page h1,.search h1 {font-size: clamp(48px,6vw,82px); line-height: .9}
+
+/* Customer account — a quiet private tea room */
+.account {width: 100%; max-width: none; margin: 0; padding: 0 0 110px; background: var(--paper)}
+.account-hero {position: relative; min-height: 290px; padding: 66px max(var(--gutter),calc((100vw - 1200px)/2)); overflow: hidden; border-bottom: 1px solid var(--thread); background: var(--gamosa-cream)}
+.account-hero::before,.account-hero::after {content: ''; position: absolute; pointer-events: none; left: 45%; width: 58%; height: 150px; border-top: 1px solid var(--river-mist); border-radius: 50%; opacity: .58}
+.account-hero::before {bottom: -82px; transform: rotate(-3deg)}
+.account-hero::after {bottom: -98px; border-color: var(--tea-liquor); transform: rotate(2deg)}
+.account-hero .eyebrow {position: relative; z-index: 1; margin-bottom: 14px}
+.account-hero h1 {position: relative; z-index: 1; max-width: 850px; margin: 0 0 18px; color: var(--assam-red); font-size: clamp(50px,6vw,78px); line-height: .88}
+.account-hero h1 em {color: var(--aged-indigo)}
+.account-hero > p {position: relative; z-index: 1; max-width: 530px; margin: 0; color: var(--quiet-ink); font-size: 12px; line-height: 1.75}
+.account-shell {display: grid; grid-template-columns: 220px minmax(0,1fr); gap: clamp(42px,6vw,90px); width: min(calc(100% - (var(--gutter) * 2)),1200px); margin: 0 auto; padding-top: 54px}
+.account-sidebar {align-self: start; position: sticky; top: calc(var(--header-height) + 28px); padding-top: 2px}
+.account-menu-label {display: block; margin-bottom: 13px; color: var(--burnt-clay); font: 600 8px/1.3 var(--sans); letter-spacing: .18em; text-transform: uppercase}
+.account-menu {display: grid; border-top: 1px solid var(--thread)}
+.account-menu-link,.account-logout button {display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 48px; margin: 0; padding: 0 4px; border: 0; border-bottom: 1px solid var(--thread); border-radius: 0; background: transparent; color: var(--aged-indigo); font: 500 11px/1 var(--sans); text-align: left; text-decoration: none}
+.account-menu-link span,.account-logout button span {color: var(--tea-liquor); font-size: 8px; letter-spacing: .12em}
+.account-menu-link:hover,.account-menu-link.is-active,.account-logout button:hover {background: transparent; color: var(--assam-red); text-decoration: none}
+.account-menu-link.is-active {padding-left: 12px; border-left: 2px solid var(--heritage-red); font-weight: 600}
+.account-menu-link.is-pending {opacity: .55}
+.account-logout {display: block; margin: 16px 0 0}
+.account-logout button {border: 0; color: var(--quiet-ink)}
+.account-sidebar-note {margin: 30px 0 0; color: var(--quiet-ink); font-size: 9px; line-height: 1.7}
+.account-panel {min-width: 0}
+.account-section-heading {margin-bottom: 34px}
+.account-section-heading--with-rule {padding-bottom: 30px; border-bottom: 1px solid var(--thread)}
+.account-section-heading .eyebrow {margin-bottom: 10px}
+.account-section-heading h2 {margin: 0 0 10px; font-size: clamp(38px,4.5vw,56px); line-height: .95}
+.account-section-heading > p {max-width: 570px; margin: 0; color: var(--quiet-ink); font-size: 11px; line-height: 1.75}
+.account-form {display: grid; gap: 18px; margin: 0}
+.account-form-card,.order-search-fieldset {min-width: 0; margin: 0; padding: clamp(24px,4vw,38px); border: 1px solid var(--thread); border-radius: 2px 28px 2px 28px; background: rgba(255,255,255,.72)}
+.account-form-card > legend,.order-search-legend {padding: 0 11px; color: var(--burnt-clay); font: 600 8px/1.3 var(--sans); letter-spacing: .17em; text-transform: uppercase}
+.account-form-card > legend {display: flex; align-items: center; gap: 10px}
+.account-form-grid {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 18px}
+.account-field {display: grid; align-content: start; gap: 7px; min-width: 0}
+.account-field--wide {grid-column: 1/-1}
+.account-field label {color: var(--aged-indigo); font: 600 8px/1.3 var(--sans); letter-spacing: .13em; text-transform: uppercase}
+.account-field label span {color: var(--heritage-red)}
+.account-field input {width: 100%; min-width: 0; height: 46px; margin: 0; padding: 0 14px; border: 1px solid rgba(49,72,74,.28); border-radius: 1px 11px 1px 11px; background: var(--pure-white); color: var(--leaf-ink); box-shadow: none; font: 500 11px/1 var(--sans)}
+.account-field input::placeholder {color: rgba(95,102,97,.58)}
+.account-field input:hover {border-color: rgba(49,72,74,.48)}
+.account-field input:focus {border-color: var(--tea-liquor); outline: 2px solid rgba(184,121,54,.18); outline-offset: 1px}
+.account-checkbox {display: flex; align-items: center; gap: 10px; width: fit-content; margin-top: 22px; color: var(--aged-indigo); font-size: 10px; cursor: pointer}
+.account-checkbox input {width: 17px; height: 17px; margin: 0; accent-color: var(--assam-red)}
+.account-form-actions,.order-search-buttons {display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2px}
+.account-button {display: inline-flex; align-items: center; justify-content: center; min-height: 43px; margin: 0; padding: 11px 19px; border: 1px solid var(--assam-red); border-radius: 2px 12px 2px 12px; font: 600 8px/1 var(--sans); letter-spacing: .12em; text-decoration: none; text-transform: uppercase}
+.account-button--primary {background: var(--assam-red); color: var(--paper)}
+.account-button--primary:hover {border-color: var(--aged-indigo); background: var(--aged-indigo); color: var(--paper); text-decoration: none}
+.account-button--quiet {background: transparent; color: var(--assam-red)}
+.account-button--quiet:hover {background: rgba(92,23,28,.06); color: var(--assam-red)}
+.account-button:disabled {cursor: wait; opacity: .55}
+.account-form-message {margin: 0; padding: 11px 14px; border-left: 2px solid; font-size: 10px}
+.account-form-message--error {border-color: var(--heritage-red); background: rgba(177,43,45,.07); color: var(--assam-red)}
+.account-form-message--success {border-color: var(--river-mist); background: rgba(120,144,140,.09); color: var(--aged-indigo)}
+.account-address-layout {display: grid; gap: 48px}
+.account-address-layout h3 {margin: 0 0 18px; color: var(--aged-indigo); font: 600 9px/1.3 var(--sans); letter-spacing: .16em; text-transform: uppercase}
+.account-address-list {display: grid; gap: 22px}
+.account-default-badge {padding: 4px 7px; border: 1px solid rgba(184,121,54,.55); color: var(--tea-liquor); font-size: 7px; letter-spacing: .12em}
+.account-empty {display: grid; justify-items: start; min-height: 230px; padding: clamp(28px,4vw,46px); border: 1px solid var(--thread); border-radius: 2px 28px 2px 28px; background: rgba(255,255,255,.68)}
+.account-empty--compact {min-height: 150px}
+.account-empty > span {color: var(--heritage-red); font-size: 24px}
+.account-empty h3 {margin: 13px 0 7px; color: var(--assam-red); font: 500 28px/1 var(--serif); letter-spacing: -.03em; text-transform: none}
+.account-empty p {max-width: 480px; margin: 0 0 20px; color: var(--quiet-ink); font-size: 11px}
+.order-search-form {margin: 0 0 26px}
+.order-search-fieldset {padding: 22px 24px}
+.order-search-inputs {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin: 2px 0 14px}
+.order-search-buttons {margin: 0}
+.account-orders-list > div {display: grid; gap: 18px}
+.account-order-cards {display: grid; gap: 14px}
+.account-orders-list > div > a {justify-self: start; color: var(--assam-red); font: 600 8px/1.4 var(--sans); letter-spacing: .1em; text-transform: uppercase}
+.account-order-card {display: grid; grid-template-columns: 95px minmax(0,1fr) 100px 110px; align-items: center; gap: 20px; padding: 23px 25px; border: 1px solid var(--thread); border-radius: 2px 22px 2px 22px; background: rgba(255,255,255,.72)}
+.account-order-card-index {display: grid; gap: 5px; padding-right: 20px; border-right: 1px solid var(--thread)}
+.account-order-card-index span,.account-order-card-total span {color: var(--burnt-clay); font: 600 7px/1 var(--sans); letter-spacing: .15em; text-transform: uppercase}
+.account-order-card-index strong {color: var(--assam-red); font: 500 22px/1 var(--serif)}
+.account-order-card-main p {margin: 0; color: var(--quiet-ink); font-size: 9px}
+.account-order-card-main .account-order-date {margin-bottom: 4px; color: var(--leaf-ink); font-size: 10px}
+.account-order-statuses {display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px}
+.account-order-statuses span,.account-status-pill {width: fit-content; padding: 5px 7px; border: 1px solid rgba(120,144,140,.45); color: var(--aged-indigo); font: 600 7px/1 var(--sans); letter-spacing: .1em; text-transform: capitalize}
+.account-order-card-total {display: grid; gap: 6px}
+.account-order-card-total > div {color: var(--aged-indigo); font: 600 12px/1 var(--sans)}
+.account-order-link,.account-back-link {color: var(--assam-red); font: 600 8px/1.4 var(--sans); letter-spacing: .09em; text-decoration: none; text-transform: uppercase}
+.account-order-link {justify-self: end}
+.account-order-link:hover,.account-back-link:hover {color: var(--heritage-red); text-decoration: none}
+.account-back-link {display: inline-block; margin-bottom: 28px}
+.account-order-heading {margin-bottom: 30px}
+.account-confirmation {margin-top: 5px!important; color: var(--burnt-clay)!important; font-size: 9px!important; letter-spacing: .06em}
+.account-order-layout {display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 26px; align-items: start}
+.account-order-table-wrap {min-width: 0; overflow-x: auto; border: 1px solid var(--thread); border-radius: 2px 24px 2px 24px; background: rgba(255,255,255,.72)}
+.account-order-table {width: 100%; min-width: 620px; border-collapse: collapse}
+.account-order-table th,.account-order-table td {padding: 16px; border-bottom: 1px solid var(--thread); color: var(--leaf-ink); font-size: 10px; text-align: left; vertical-align: middle}
+.account-order-table thead th {color: var(--burnt-clay); font-size: 7px; letter-spacing: .15em; text-transform: uppercase}
+.account-order-table tfoot th {color: var(--aged-indigo); text-align: right}
+.account-order-table tfoot tr:last-child th,.account-order-table tfoot tr:last-child td {border-bottom: 0; color: var(--assam-red); font-weight: 600}
+.account-order-product {display: flex; align-items: center; gap: 12px; min-width: 220px}
+.account-order-product p {margin: 0; color: var(--assam-red); font: 500 16px/1.1 var(--serif)}
+.account-order-product small {color: var(--quiet-ink); font-size: 8px}
+.account-order-product-image {flex: 0 0 66px; width: 66px; height: 66px; overflow: hidden; border-radius: 1px 12px 1px 12px; background: var(--gamosa-cream)}
+.account-order-product-image img {width: 100%; height: 100%; object-fit: cover}
+.account-order-aside {display: grid; gap: 12px}
+.account-order-aside section {padding: 22px; border: 1px solid var(--thread); border-radius: 2px 20px 2px 20px; background: var(--gamosa-cream)}
+.account-order-aside h3 {margin: 0 0 12px; color: var(--burnt-clay); font: 600 8px/1.3 var(--sans); letter-spacing: .15em; text-transform: uppercase}
+.account-order-aside p,.account-order-aside address {margin: 0; color: var(--quiet-ink); font-size: 9px; font-style: normal; line-height: 1.7}
+.account-order-aside address p + p {margin-top: 5px}
+.account-order-external {margin: 24px 0 0}
 .footer {margin-top: auto; background: var(--aged-indigo); color: var(--gamosa-cream)}
 .footer-accent {height: 2px; background: var(--tea-liquor)}
 .footer-inner {display: grid; grid-template-columns: 1.4fr .7fr .7fr 1fr; gap: 45px; max-width: 1480px; margin: 0 auto; padding: 75px var(--gutter)}
@@ -445,6 +549,17 @@ button {cursor: pointer}
   .product-gallery {justify-self: center; max-width: 500px}
   .product-main {position: static; max-width: 620px; margin-inline: auto}
   .product-information,.product-reviews {grid-template-columns: 1fr; gap: 42px}
+  .account-shell {grid-template-columns: 1fr; gap: 38px}
+  .account-sidebar {position: static}
+  .account-menu {grid-template-columns: repeat(4,minmax(0,1fr)); border-bottom: 1px solid var(--thread)}
+  .account-menu-link,.account-logout button {justify-content: center; gap: 8px; border-left: 0; border-bottom: 0}
+  .account-menu-link.is-active {padding-left: 4px; border-left: 0; border-bottom: 2px solid var(--heritage-red)}
+  .account-logout {margin: 0}
+  .account-sidebar-note {display: none}
+  .account-order-card {grid-template-columns: 88px minmax(0,1fr) 90px}
+  .account-order-link {grid-column: 2/-1; justify-self: start}
+  .account-order-layout {grid-template-columns: 1fr}
+  .account-order-aside {grid-template-columns: repeat(2,minmax(0,1fr))}
   .signin-page {grid-template-columns: 1fr}
   .signin-story,.signin-panel {min-height: 620px}
   .footer-inner {grid-template-columns: repeat(2,1fr)}
@@ -504,6 +619,25 @@ button {cursor: pointer}
   .product-information,.product-reviews {padding: 58px 20px}
   .product-reviews {padding-bottom: 0}
   .product-reviews-empty,.product-rating-panel {min-height: 0; padding: 26px 22px}
+  .account {padding-bottom: 75px}
+  .account-hero {min-height: 250px; padding: 48px 20px}
+  .account-hero h1 {font-size: clamp(46px,14vw,64px)}
+  .account-shell {width: calc(100% - 40px); padding-top: 36px}
+  .account-menu {grid-template-columns: repeat(3,minmax(0,1fr))}
+  .account-menu-link,.account-logout button {min-height: 44px; font-size: 9px}
+  .account-menu-link span {display: none}
+  .account-logout {grid-column: 1/-1; border-top: 1px solid var(--thread)}
+  .account-section-heading {margin-bottom: 26px}
+  .account-form-card,.order-search-fieldset {padding: 22px 18px; border-radius: 2px 20px 2px 20px}
+  .account-form-grid,.order-search-inputs {grid-template-columns: 1fr}
+  .account-field--wide {grid-column: auto}
+  .account-button {width: 100%}
+  .account-address-layout {gap: 38px}
+  .account-order-card {grid-template-columns: 72px minmax(0,1fr); gap: 15px; padding: 20px 18px}
+  .account-order-card-index {padding-right: 12px}
+  .account-order-card-total {grid-column: 2}
+  .account-order-link {grid-column: 2}
+  .account-order-aside {grid-template-columns: 1fr}
   .cart-header {min-height: 450px}
   .cart-details {grid-template-columns: 1fr}
   .cart-line-inner {grid-template-columns: 100px 1fr; gap: 15px}

@@ -64,6 +64,11 @@ export default function Orders() {
 
   return (
     <div className="orders">
+      <header className="account-section-heading account-section-heading--with-rule">
+        <span className="eyebrow">Tea journeys</span>
+        <h2>Your orders</h2>
+        <p>Follow recent selections from our cabinet to your table.</p>
+      </header>
       <OrderSearchForm currentFilters={filters} />
       <OrdersTable orders={orders} filters={filters} />
     </div>
@@ -80,9 +85,9 @@ function OrdersTable({
   const hasFilters = !!(filters.name || filters.confirmationNumber);
 
   return (
-    <div className="acccount-orders" aria-live="polite">
+    <div className="account-orders-list" aria-live="polite">
       {orders?.nodes.length ? (
-        <PaginatedResourceSection connection={orders}>
+        <PaginatedResourceSection connection={orders} resourcesClassName="account-order-cards">
           {({node: order}) => <OrderItem key={order.id} order={order} />}
         </PaginatedResourceSection>
       ) : (
@@ -94,22 +99,19 @@ function OrdersTable({
 
 function EmptyOrders({hasFilters = false}: {hasFilters?: boolean}) {
   return (
-    <div>
+    <div className="account-empty">
+      <span aria-hidden="true">◇</span>
       {hasFilters ? (
         <>
-          <p>No orders found matching your search.</p>
-          <br />
-          <p>
-            <Link to="/account/orders">Clear filters →</Link>
-          </p>
+          <h3>No matching journeys.</h3>
+          <p>Try a different order or confirmation number.</p>
+          <Link className="text-link" to="/account/orders">Clear filters →</Link>
         </>
       ) : (
         <>
-          <p>You haven&apos;t placed any orders yet.</p>
-          <br />
-          <p>
-            <Link to="/collections">Start Shopping →</Link>
-          </p>
+          <h3>Your tea shelf is waiting.</h3>
+          <p>You haven&apos;t placed an order yet. Begin with a reserve selected for your daily ritual.</p>
+          <Link className="account-button account-button--primary" to="/collections/all">Explore the collection</Link>
         </>
       )}
     </div>
@@ -156,33 +158,26 @@ function OrderSearchForm({
       aria-label="Search orders"
     >
       <fieldset className="order-search-fieldset">
-        <legend className="order-search-legend">Filter Orders</legend>
+        <legend className="order-search-legend">Find an order</legend>
 
         <div className="order-search-inputs">
-          <input
-            type="search"
-            name={ORDER_FILTER_FIELDS.NAME}
-            placeholder="Order #"
-            aria-label="Order number"
-            defaultValue={currentFilters.name || ''}
-            className="order-search-input"
-          />
-          <input
-            type="search"
-            name={ORDER_FILTER_FIELDS.CONFIRMATION_NUMBER}
-            placeholder="Confirmation #"
-            aria-label="Confirmation number"
-            defaultValue={currentFilters.confirmationNumber || ''}
-            className="order-search-input"
-          />
+          <div className="account-field">
+            <label htmlFor="order-number">Order number</label>
+            <input id="order-number" type="search" name={ORDER_FILTER_FIELDS.NAME} placeholder="e.g. 1042" defaultValue={currentFilters.name || ''} className="order-search-input" />
+          </div>
+          <div className="account-field">
+            <label htmlFor="confirmation-number">Confirmation number</label>
+            <input id="confirmation-number" type="search" name={ORDER_FILTER_FIELDS.CONFIRMATION_NUMBER} placeholder="Enter confirmation number" defaultValue={currentFilters.confirmationNumber || ''} className="order-search-input" />
+          </div>
         </div>
 
         <div className="order-search-buttons">
-          <button type="submit" disabled={isSearching}>
+          <button className="account-button account-button--primary" type="submit" disabled={isSearching}>
             {isSearching ? 'Searching' : 'Search'}
           </button>
           {hasFilters && (
             <button
+              className="account-button account-button--quiet"
               type="button"
               disabled={isSearching}
               onClick={() => {
@@ -202,21 +197,24 @@ function OrderSearchForm({
 function OrderItem({order}: {order: OrderItemFragment}) {
   const fulfillmentStatus = flattenConnection(order.fulfillments)[0]?.status;
   return (
-    <>
-      <fieldset>
-        <Link to={`/account/orders/${btoa(order.id)}`}>
-          <strong>#{order.number}</strong>
-        </Link>
-        <p>{new Date(order.processedAt).toDateString()}</p>
-        {order.confirmationNumber && (
-          <p>Confirmation: {order.confirmationNumber}</p>
-        )}
-        <p>{order.financialStatus}</p>
-        {fulfillmentStatus && <p>{fulfillmentStatus}</p>}
+    <article className="account-order-card">
+      <div className="account-order-card-index">
+        <span>Order</span>
+        <strong>#{order.number}</strong>
+      </div>
+      <div className="account-order-card-main">
+        <p className="account-order-date">Placed {new Intl.DateTimeFormat('en-IN', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(order.processedAt))}</p>
+        {order.confirmationNumber && <p>Confirmation · {order.confirmationNumber}</p>}
+        <div className="account-order-statuses">
+          <span>{order.financialStatus}</span>
+          {fulfillmentStatus && <span>{fulfillmentStatus}</span>}
+        </div>
+      </div>
+      <div className="account-order-card-total">
+        <span>Total</span>
         <Money data={order.totalPrice} />
-        <Link to={`/account/orders/${btoa(order.id)}`}>View Order →</Link>
-      </fieldset>
-      <br />
-    </>
+      </div>
+      <Link className="account-order-link" to={`/account/orders/${btoa(order.id)}`}>View details <span aria-hidden="true">→</span></Link>
+    </article>
   );
 }

@@ -36,62 +36,54 @@ export async function loader({context}: Route.LoaderArgs) {
 
 export default function AccountLayout() {
   const {customer} = useLoaderData<typeof loader>();
-
-  const heading = customer
-    ? customer.firstName
-      ? `Welcome, ${customer.firstName}`
-      : `Welcome to your account.`
-    : 'Account Details';
+  const customerName = customer?.firstName || 'tea lover';
 
   return (
-    <div className="account">
-      <h1>{heading}</h1>
-      <br />
-      <AccountMenu />
-      <br />
-      <br />
-      <Outlet context={{customer}} />
-    </div>
+    <main className="account">
+      <header className="account-hero">
+        <span className="eyebrow">Your private tea room</span>
+        <h1>Welcome, <em>{customerName}.</em></h1>
+        <p>Orders, addresses, and the details that make every delivery feel considered.</p>
+      </header>
+      <div className="account-shell">
+        <AccountMenu />
+        <section className="account-panel">
+          <Outlet context={{customer}} />
+        </section>
+      </div>
+    </main>
   );
 }
 
 function AccountMenu() {
-  function isActiveStyle({
-    isActive,
-    isPending,
-  }: {
-    isActive: boolean;
-    isPending: boolean;
-  }) {
-    return {
-      fontWeight: isActive ? 'bold' : undefined,
-      color: isPending ? 'grey' : 'black',
-    };
-  }
-
   return (
-    <nav role="navigation">
-      <NavLink to="/account/orders" style={isActiveStyle}>
-        Orders &nbsp;
+    <aside className="account-sidebar">
+      <span className="account-menu-label">Account cabinet</span>
+      <nav className="account-menu" aria-label="Customer account">
+      <NavLink to="/account/orders" className={accountLinkClass}>
+        <span aria-hidden="true">01</span> Orders
       </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/profile" style={isActiveStyle}>
-        &nbsp; Profile &nbsp;
+      <NavLink to="/account/profile" className={accountLinkClass}>
+        <span aria-hidden="true">02</span> Profile
       </NavLink>
-      &nbsp;|&nbsp;
-      <NavLink to="/account/addresses" style={isActiveStyle}>
-        &nbsp; Addresses &nbsp;
+      <NavLink to="/account/addresses" className={accountLinkClass}>
+        <span aria-hidden="true">03</span> Addresses
       </NavLink>
-      &nbsp;|&nbsp;
       <Logout />
-    </nav>
+      </nav>
+      <p className="account-sidebar-note">Your account details are kept private and used only to fulfil your tea orders.</p>
+    </aside>
   );
+}
+
+function accountLinkClass({isActive, isPending}: {isActive: boolean; isPending: boolean}) {
+  return `account-menu-link${isActive ? ' is-active' : ''}${isPending ? ' is-pending' : ''}`;
 }
 
 function Logout() {
   return (
     <Form className="account-logout" method="POST" action="/account/logout">
-      &nbsp;<button type="submit">Sign out</button>
+      <button type="submit"><span aria-hidden="true">↗</span> Sign out</button>
     </Form>
   );
 }
