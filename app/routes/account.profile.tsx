@@ -122,6 +122,34 @@ export default function AccountProfile() {
             </div>
           </div>
         </fieldset>
+        <fieldset className="account-form-card account-contact-card">
+          <legend>Account contact</legend>
+          <div className="account-form-grid">
+            <div className="account-field">
+              <label htmlFor="accountEmail">Email address</label>
+              <input
+                id="accountEmail"
+                type="email"
+                value={customer.emailAddress?.emailAddress ?? 'Not provided'}
+                readOnly
+                aria-readonly="true"
+              />
+            </div>
+            <div className="account-field">
+              <label htmlFor="accountPhone">Phone number</label>
+              <input
+                id="accountPhone"
+                type="tel"
+                value={customer.phoneNumber?.phoneNumber ?? 'Not provided'}
+                readOnly
+                aria-readonly="true"
+              />
+            </div>
+          </div>
+          <p className="account-field-note">
+            Contact and sign-in details are protected by Shopify Customer Accounts.
+          </p>
+        </fieldset>
         {action?.error ? (
           <p className="account-form-message account-form-message--error" role="alert">{action.error}</p>
         ) : action?.customer ? (
