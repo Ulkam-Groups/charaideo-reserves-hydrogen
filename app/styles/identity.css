@@ -17,6 +17,17 @@
   --sans: Manrope, 'Helvetica Neue', Arial, sans-serif;
   --gutter: clamp(20px, 5vw, 80px);
   --header-height: 70px;
+  --type-label: .6875rem;
+  --type-caption: .75rem;
+  --type-small: .8125rem;
+  --type-body: .9375rem;
+  --type-body-large: 1rem;
+  --type-button: .75rem;
+  --type-card-title: clamp(1.55rem,1.7vw,1.9rem);
+  --type-section-title: clamp(2.5rem,4vw,3.75rem);
+  --type-page-title: clamp(3.25rem,5.5vw,4.8rem);
+  --type-hero-title: clamp(4rem,6.5vw,5.75rem);
+  --type-home-hero: clamp(3.5rem,5.25vw,4.9rem);
   --color-dark: var(--leaf-ink);
   --color-light: var(--paper);
   --color-brand: var(--assam-red);
@@ -656,4 +667,139 @@ button {cursor: pointer}
 
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after {scroll-behavior: auto!important; transition-duration: .01ms!important; animation-duration: .01ms!important; animation-iteration-count: 1!important}
+}
+
+/* Unified editorial-commerce type scale */
+body {font-size: var(--type-body); line-height: 1.65}
+.eyebrow {font-size: var(--type-label); line-height: 1.4}
+.fine-print {font-size: var(--type-caption); line-height: 1.65}
+
+.header-menu-item {font-size: var(--type-small); line-height: 1}
+.header-action {font-size: var(--type-caption)!important; line-height: 1!important}
+.cart-count {font-size: .625rem}
+.button,.button.primary,.button.secondary,.catalog-card-footer button,.product-form > form button,.account-button {font-size: var(--type-button); line-height: 1.15}
+.text-link,.quiet-link {font-size: var(--type-small); line-height: 1.4}
+
+.tea-room-copy h1 {font-size: var(--type-home-hero); line-height: .9}
+.tea-room-copy > p {font-size: var(--type-body-large); line-height: 1.75}
+.hero-footnote {font-size: var(--type-caption)}
+.hero-plate p {font-size: var(--type-small); line-height: 1.65}
+.tea-room-image figcaption,.origin-strip {font-size: var(--type-label); line-height: 1.45}
+.editorial-heading h2,.ritual-section > h2,.heritage-note h2 {font-size: var(--type-section-title); line-height: .98}
+.catalog-card::before {font-size: var(--type-label)}
+.catalog-card-body > div:first-child > p {font-size: var(--type-label); line-height: 1.4}
+.catalog-card h2,:is(.catalog-page .catalog-card,.catalog-card--commerce) h2 {font-size: var(--type-card-title); line-height: 1.04}
+.catalog-card-description,:is(.catalog-page .catalog-card,.catalog-card--commerce) .catalog-card-description {font-size: var(--type-small); line-height: 1.55}
+.catalog-card-footer > div,.catalog-card-footer strong {font-size: var(--type-small); line-height: 1.2}
+.catalog-card-footer button {font-size: var(--type-label)}
+.heritage-seal span {font-size: var(--type-label)}
+.ritual-grid h3 {font-size: 1.85rem; line-height: 1.05}
+.ritual-grid p {font-size: var(--type-body); line-height: 1.7}
+
+.catalog-hero h1 {font-size: var(--type-page-title); line-height: .88}
+.catalog-hero p {font-size: var(--type-body); line-height: 1.75}
+.catalog-index {font-size: var(--type-label); line-height: 1.4}
+.catalog-index b {font-size: 1.25rem}
+.catalog-toolbar p {font-size: var(--type-caption)}
+.catalog-toolbar p strong {font-size: 1.35rem}
+.catalog-sort-form label {font-size: var(--type-label)}
+.catalog-sort-form select {font-size: var(--type-small); line-height: 1}
+.catalog-sort-form button {font-size: var(--type-label); line-height: 1}
+.catalog-variant-picker legend {font-size: var(--type-label); line-height: 1.25}
+.catalog-variant-picker button {font-size: var(--type-caption); line-height: 1}
+.catalog-card-availability span,.catalog-card-availability strong,.catalog-card-price > span {font-size: var(--type-label); line-height: 1.2}
+.catalog-card-price strong {font-size: 1rem; line-height: 1}
+
+.product-origin-tab {font-size: var(--type-label); line-height: 1}
+.product-image-caption {font-size: var(--type-label); line-height: 1.4}
+.product-index {font-size: var(--type-label); line-height: 1.3}
+.product-main h1 {font-size: clamp(2.75rem,4.2vw,3.8rem); line-height: .94}
+.product-review-summary {font-size: var(--type-caption); line-height: 1.35}
+.product-taste-line {font-size: 1rem!important; line-height: 1.6!important}
+.product-price {font-size: 1.25rem!important; line-height: 1!important}
+.product-options h5 {font-size: var(--type-label); line-height: 1.25}
+.product-options-item,.product-options-item:disabled {font-size: var(--type-small); line-height: 1}
+.product-assurances {font-size: var(--type-caption); line-height: 1.55}
+.product-story h2,.product-reviews-heading h2 {font-size: var(--type-section-title); line-height: .96}
+.product-story div,.product-information-sections details p {font-size: var(--type-body); line-height: 1.75}
+.product-information-sections summary {font-size: var(--type-caption); line-height: 1.4}
+.product-reviews-heading > p,.product-reviews-empty p,.product-rating-panel p {font-size: var(--type-small); line-height: 1.7}
+.product-reviews-empty-rating,.product-review-card-topline,.product-review-card footer {font-size: var(--type-caption); line-height: 1.4}
+.product-review-card h3 {font-size: 1.625rem; line-height: 1.05}
+.product-review-card > p {font-size: var(--type-body); line-height: 1.7}
+.product-review-card footer span {font-size: .625rem}
+
+.about-story-visual figcaption,.about-story-timeline span,.about-purpose-cards small,.about-founder > strong {font-size: var(--type-label); line-height: 1.4}
+.about-story-copy > h1 {font-size: clamp(2.9rem,4.6vw,4.25rem); line-height: .98}
+.about-story-intro {font-size: var(--type-body); line-height: 1.75}
+.about-story-copy blockquote p {font-size: var(--type-body); line-height: 1.7}
+.about-story-timeline h2 {font-size: 1.45rem; line-height: 1.1}
+.about-story-timeline p {font-size: var(--type-small); line-height: 1.7}
+.about-purpose-heading h2,.about-founder h2 {font-size: var(--type-section-title); line-height: 1}
+.about-purpose-cards h3 {font-size: 1.65rem; line-height: 1.05}
+.about-purpose-cards p {font-size: var(--type-small); line-height: 1.7}
+.about-founder > p:first-of-type,.about-founder > p:last-of-type {font-size: var(--type-small); line-height: 1.7}
+.about-founder h3 {font-size: 1.75rem; line-height: 1.05}
+.founder-linkedin {font-size: var(--type-caption); line-height: 1}
+
+.content-hero h1,.cart-header h1 {font-size: var(--type-page-title); line-height: .9}
+.content-hero p {font-size: var(--type-body-large); line-height: 1.75}
+.content-body > p {font-size: clamp(1.55rem,2.5vw,2.25rem); line-height: 1.4}
+.content-section-grid article > span {font-size: var(--type-label); line-height: 1.3}
+.content-section-grid h2 {font-size: 2rem; line-height: 1.05}
+.content-section-grid p {font-size: var(--type-body); line-height: 1.75}
+
+.cart-line-inner strong {font-size: 1.6rem; line-height: 1.05}
+.cart-line-quantity small {font-size: var(--type-caption)}
+.cart-summary-page h4,.cart-summary-aside h4 {font-size: 1.75rem; line-height: 1.05}
+.cart-summary-page form button,.cart-summary-aside form button {font-size: var(--type-caption)}
+.cart-main > div:not([hidden]) p {font-size: 1.75rem; line-height: 1.3}
+
+.signin-story h1 {font-size: var(--type-hero-title); line-height: .86}
+.signin-story p,.signin-panel > p:not(.fine-print) {font-size: var(--type-body); line-height: 1.75}
+.signin-panel h2 {font-size: var(--type-section-title); line-height: 1}
+.overlay aside h3 {font-size: var(--type-caption); line-height: 1.3}
+.page h1,.search h1 {font-size: var(--type-page-title); line-height: .94}
+
+.account-hero h1 {font-size: clamp(3rem,5vw,4.25rem); line-height: .92}
+.account-hero > p {font-size: var(--type-small); line-height: 1.7}
+.account-menu-label,.account-form-card > legend,.order-search-legend,.account-field label,.account-address-layout h3,.account-order-card-index span,.account-order-card-total span,.account-order-aside h3,.footer h3 {font-size: var(--type-label); line-height: 1.35}
+.account-menu-link,.account-logout button {font-size: var(--type-small); line-height: 1.2}
+.account-menu-link span,.account-logout button span {font-size: .625rem}
+.account-sidebar-note,.account-field-note {font-size: var(--type-caption); line-height: 1.65}
+.account-section-heading h2 {font-size: clamp(2.35rem,4vw,3.25rem); line-height: .98}
+.account-section-heading > p {font-size: var(--type-small); line-height: 1.7}
+.account-field input {font-size: var(--type-small); line-height: 1}
+.account-checkbox {font-size: var(--type-small); line-height: 1.4}
+.account-form-message {font-size: var(--type-small); line-height: 1.5}
+.account-default-badge {font-size: .625rem}
+.account-empty h3 {font-size: 1.85rem; line-height: 1.05}
+.account-empty p {font-size: var(--type-small); line-height: 1.7}
+.account-orders-list > div > a:not(.account-button),.account-order-link,.account-back-link {font-size: var(--type-label); line-height: 1.4}
+.account-order-card-index strong {font-size: 1.45rem}
+.account-order-card-main p {font-size: var(--type-caption); line-height: 1.5}
+.account-order-card-main .account-order-date {font-size: var(--type-small)}
+.account-order-statuses span,.account-status-pill {font-size: .625rem; line-height: 1.1}
+.account-order-card-total > div {font-size: var(--type-body)}
+.account-confirmation {font-size: var(--type-caption)!important; line-height: 1.5}
+.account-order-table th,.account-order-table td {font-size: var(--type-small); line-height: 1.5}
+.account-order-table thead th {font-size: var(--type-label)}
+.account-order-product p {font-size: 1.125rem; line-height: 1.15}
+.account-order-product small {font-size: var(--type-label)}
+.account-order-aside p,.account-order-aside address {font-size: var(--type-caption); line-height: 1.65}
+
+.footer-brand p,.footer-contact p,.footer-contact a,.footer-column a,.footer-menu a,.footer-bottom {font-size: var(--type-small); line-height: 1.6}
+
+@media (max-width: 640px) {
+  :root {
+    --type-body: .9375rem;
+    --type-body-large: .9375rem;
+    --type-card-title: clamp(1.5rem,7vw,1.75rem);
+    --type-section-title: clamp(2.25rem,11vw,3rem);
+    --type-page-title: clamp(2.75rem,13vw,3.75rem);
+    --type-hero-title: clamp(3.25rem,15vw,4.5rem);
+    --type-home-hero: clamp(3rem,13vw,4rem);
+  }
+  .header-action {font-size: var(--type-label)!important}
+  .tea-room-copy h1,.catalog-hero h1,.content-hero h1,.cart-header h1,.about-story-copy > h1,.product-main h1,.account-hero h1 {line-height: .94}
 }
