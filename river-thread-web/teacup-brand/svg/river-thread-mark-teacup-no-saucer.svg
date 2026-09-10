@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="2080"
+     height="1488"
+     viewBox="34 72 260 186"
+     fill="none"
+     role="img"
+     aria-labelledby="title desc"
+     shape-rendering="geometricPrecision">
+  <title id="title">Charaideo Reserves cup-only mark</title>
+  <desc id="desc">The original Assamese Cha and river thread with a circular top-view cup of Assam tea and no saucer.</desc>
+
+  <!-- Original Assamese Cha path, unchanged. -->
+  <path
+    d="M71.92 87.248 C90.44 80.432 100.648 70.424 100.648 52.768 C100.648 26.8 76.808 -0.2 49.809 -0.2 C31.721 -0.2 21.081 10.208 21.081 26.401 L21.081 122.992 L-4.256 122.992 L-4.256 136.624 L115.976 136.624 L115.976 122.992 L35.744 122.992 L35.744 117.24 C35.744 105.137 43.192 98.088 54.464 93.832 L71.92 87.248 Z M35.312 89.576 C35.744 87.68 36.376 76.176 36.376 56.193 L36.376 26.8 C36.376 19.152 40.432 14.032 50.008 14.032 C64.705 14.032 84.921 32.552 84.921 53.001 C84.921 61.28 81.296 68.096 66.6 73.416 L52.768 78.537 C43.425 81.928 38.504 86.816 36.176 89.576 L35.312 89.576 Z"
+    transform="translate(109.14 247.2) scale(1 -1)"
+    fill="#5C171C"/>
+
+  <!-- Original river thread, unchanged. -->
+  <path
+    d="M44.6 230.4 C111.8 185.6 176.2 286.4 282.6 213.6"
+    stroke="#78908C"
+    stroke-width="7.56"
+    stroke-linecap="round"/>
+
+  <!-- Cup-only treatment: no saucer or surrounding ring. -->
+  <path
+    d="M273 101 H281 C288 101 291.5 104 291.5 108.5 C291.5 113 288 116 281 116 H273"
+    stroke="#5C171C"
+    stroke-width="1.9"
+    stroke-linecap="round"
+    stroke-linejoin="round"/>
+  <circle cx="255" cy="108.5" r="19" fill="#B87936" stroke="#5C171C" stroke-width="1.9"/>
+  <path
+    d="M246.5 104.2 C251 100.6 259.4 99.9 265.7 102.2"
+    stroke="#FFF8EA"
+    stroke-width="0.75"
+    stroke-linecap="round"
+    opacity="0.62"/>
+</svg>

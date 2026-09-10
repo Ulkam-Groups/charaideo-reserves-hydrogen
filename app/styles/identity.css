@@ -521,7 +521,7 @@ button {cursor: pointer}
 .footer {margin-top: auto; background: var(--aged-indigo); color: var(--gamosa-cream)}
 .footer-accent {height: 2px; background: var(--tea-liquor)}
 .footer-inner {display: grid; grid-template-columns: 1.4fr .7fr .7fr 1fr; gap: 45px; max-width: 1480px; margin: 0 auto; padding: 75px var(--gutter)}
-.footer .wordmark {filter: brightness(0) invert(1); opacity: .9}
+.footer .wordmark {filter: none; opacity: .96}
 .footer-brand p,.footer-contact p,.footer-contact a,.footer-column a,.footer-menu a,.footer-bottom {color: rgba(244,235,221,.65); font-size: 11px}
 .footer h3 {margin: 0 0 20px; color: var(--tea-liquor); font: 600 8px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase}
 .footer-column,.footer-contact {display: flex; flex-direction: column; gap: 10px}

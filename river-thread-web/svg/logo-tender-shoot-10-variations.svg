@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="875" viewBox="0 0 1600 875"
+     role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision">
+  <title id="title">Tender Shoot logo variations</title>
+  <desc id="desc">Ten color and opacity studies for a separate tea stem behind the original Charaideo Assamese mark.</desc>
+
+  <defs>
+    <g id="original-mark">
+      <path
+        d="M71.92 87.248 C90.44 80.432 100.648 70.424 100.648 52.768 C100.648 26.8 76.808 -0.2 49.809 -0.2 C31.721 -0.2 21.081 10.208 21.081 26.401 L21.081 122.992 L-4.256 122.992 L-4.256 136.624 L115.976 136.624 L115.976 122.992 L35.744 122.992 L35.744 117.24 C35.744 105.137 43.192 98.088 54.464 93.832 L71.92 87.248 Z M35.312 89.576 C35.744 87.68 36.376 76.176 36.376 56.193 L36.376 26.8 C36.376 19.152 40.432 14.032 50.008 14.032 C64.705 14.032 84.921 32.552 84.921 53.001 C84.921 61.28 81.296 68.096 66.6 73.416 L52.768 78.537 C43.425 81.928 38.504 86.816 36.176 89.576 L35.312 89.576 Z"
+        transform="translate(109.14 247.2) scale(1 -1)" fill="#5C171C"/>
+      <path d="M44.6 230.4 C111.8 185.6 176.2 286.4 282.6 213.6"
+            fill="none" stroke="#78908C" stroke-width="7.56" stroke-linecap="round"/>
+      <path d="M240.6 107.2 C260.2 82 282.6 98.8 271.4 129.6 C251.8 132.4 240.6 124 240.6 107.2 Z"
+            fill="#B87936"/>
+    </g>
+    <style>
+      .card{fill:#FFFCF5;stroke:#D8D2C8;stroke-width:1}
+      .num{font:600 11px Manrope,Arial,sans-serif;letter-spacing:2.4px;fill:#B12B2D}
+      .name{font:500 24px 'Cormorant Garamond','Times New Roman',serif;fill:#5C171C}
+      .spec{font:500 10px Manrope,Arial,sans-serif;letter-spacing:1.2px;fill:#68716F}
+    </style>
+  </defs>
+
+  <rect width="1600" height="875" fill="#F6F0E4"/>
+  <text x="40" y="48" class="num">TENDER SHOOT / TEN CONTROLLED STUDIES</text>
+  <text x="40" y="88" class="name" font-size="35">The same mark. A confident stem with leaves held softly in the background.</text>
+  <path d="M40 111 C350 82 606 138 963 102 C1173 82 1376 91 1560 108" fill="none" stroke="#78908C" stroke-width="1.4" opacity=".65"/>
+
+  <!-- 01 · Aged indigo -->
+  <g transform="translate(40 140)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">01</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#78908C" stroke-width="8" stroke-linecap="round" opacity=".1"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#78908C" stroke-width="3.4" stroke-linecap="round" opacity=".72"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#78908C" opacity=".23"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#78908C" opacity=".17"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Aged indigo</text>
+    <text x="20" y="269" class="spec">STEM 72% + SOFT DEPTH · LEAVES 23/17%</text>
+    <text x="20" y="292" class="spec">CALM · CLOSEST TO THE RIVER</text>
+  </g>
+
+  <!-- 02 · Tea garden -->
+  <g transform="translate(350 140)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">02</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#66755D" stroke-width="8" stroke-linecap="round" opacity=".11"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#66755D" stroke-width="3.5" stroke-linecap="round" opacity=".82"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#66755D" opacity=".27"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#66755D" opacity=".2"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Tea garden</text>
+    <text x="20" y="269" class="spec">STEM 82% + SOFT DEPTH · LEAVES 27/20%</text>
+    <text x="20" y="292" class="spec">FRESH · MOST BOTANICAL</text>
+  </g>
+
+  <!-- 03 · Bamboo smoke -->
+  <g transform="translate(660 140)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">03</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C233 183 234 148 237 113" fill="none" stroke="#8A8562" stroke-width="8.4" stroke-linecap="round" opacity=".1"/>
+      <path d="M234 219 C233 183 234 148 237 113" fill="none" stroke="#8A8562" stroke-width="3.8" stroke-linecap="round" opacity=".76"/>
+      <path d="M237 142 C246 131 257 130 266 136 C259 146 249 151 237 142 Z" fill="#8A8562" opacity=".24"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Bamboo smoke</text>
+    <text x="20" y="269" class="spec">STEM 76% + SOFT DEPTH · SINGLE LEAF 24%</text>
+    <text x="20" y="292" class="spec">EARTHY · QUIETLY NORTH EASTERN</text>
+  </g>
+
+  <!-- 04 · Tea liquor -->
+  <g transform="translate(970 140)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">04</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#B87936" stroke-width="8" stroke-linecap="round" opacity=".11"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#B87936" stroke-width="3.4" stroke-linecap="round" opacity=".8"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#B87936" opacity=".24"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#B87936" opacity=".16"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Tea liquor</text>
+    <text x="20" y="269" class="spec">STEM 80% + SOFT DEPTH · LEAVES 24/16%</text>
+    <text x="20" y="292" class="spec">WARM · TIES TO THE GOLD SEED</text>
+  </g>
+
+  <!-- 05 · Clay earth -->
+  <g transform="translate(1280 140)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">05</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#A55D43" stroke-width="8" stroke-linecap="round" opacity=".1"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#A55D43" stroke-width="3.5" stroke-linecap="round" opacity=".68"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#A55D43" opacity=".22"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#A55D43" opacity=".15"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Clay earth</text>
+    <text x="20" y="269" class="spec">STEM 68% + SOFT DEPTH · LEAVES 22/15%</text>
+    <text x="20" y="292" class="spec">TACTILE · WARM ASSAM SOIL</text>
+  </g>
+
+  <!-- 06 · Gamosa red -->
+  <g transform="translate(40 495)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">06</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#B12B2D" stroke-width="7" stroke-linecap="round" opacity=".08"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#B12B2D" stroke-width="3.1" stroke-linecap="round" opacity=".62"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#B12B2D" opacity=".18"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#B12B2D" opacity=".12"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Gamosa red</text>
+    <text x="20" y="269" class="spec">STEM 62% + SOFT DEPTH · LEAVES 18/12%</text>
+    <text x="20" y="292" class="spec">CULTURAL · TONAL WITH THE LETTER</text>
+  </g>
+
+  <!-- 07 · Deep teal -->
+  <g transform="translate(350 495)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">07</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#31484A" stroke-width="7.8" stroke-linecap="round" opacity=".1"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#31484A" stroke-width="3.3" stroke-linecap="round" opacity=".84"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#31484A" opacity=".2"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#31484A" opacity=".14"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Deep teal</text>
+    <text x="20" y="269" class="spec">STEM 84% + SOFT DEPTH · LEAVES 20/14%</text>
+    <text x="20" y="292" class="spec">MODERN · STRONG AT SMALL SCALE</text>
+  </g>
+
+  <!-- 08 · Indigo and gold -->
+  <g transform="translate(660 495)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">08</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#78908C" stroke-width="8" stroke-linecap="round" opacity=".1"/>
+      <path d="M234 219 C232 184 233 149 236 116" fill="none" stroke="#78908C" stroke-width="3.4" stroke-linecap="round" opacity=".78"/>
+      <path d="M236 143 C244 130 255 127 264 132 C258 144 248 150 236 143 Z" fill="#B87936" opacity=".27"/>
+      <path d="M235 164 C227 153 217 151 210 157 C216 167 225 171 235 164 Z" fill="#78908C" opacity=".16"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Indigo + gold</text>
+    <text x="20" y="269" class="spec">STEM 78% + SOFT DEPTH · GOLD LEAF 27%</text>
+    <text x="20" y="292" class="spec">LAYERED · CLOSEST TO BRAND PALETTE</text>
+  </g>
+
+  <!-- 09 · Mist silhouette -->
+  <g transform="translate(970 495)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">09</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M229 221 C227 185 229 148 235 110 C243 149 244 187 241 221 C240 230 231 230 229 221 Z" fill="#78908C" opacity=".09"/>
+      <path d="M232 220 C230 186 231 150 235 114 C241 150 242 186 239 220 C238 226 233 226 232 220 Z" fill="#78908C" opacity=".58"/>
+      <path d="M236 143 C244 131 254 128 262 133 C257 143 247 149 236 143 Z" fill="#78908C" opacity=".16"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Mist silhouette</text>
+    <text x="20" y="269" class="spec">TAPERED STEM 58% + DEPTH · LEAF 16%</text>
+    <text x="20" y="292" class="spec">SOFT · READS AS A DISTANT SHADOW</text>
+  </g>
+
+  <!-- 10 · Burgundy shadow -->
+  <g transform="translate(1280 495)">
+    <rect class="card" width="280" height="315"/>
+    <text x="20" y="29" class="num">10</text>
+    <svg x="30" y="42" width="220" height="158" viewBox="34 72 260 186">
+      <path d="M234 221 C232 185 233 147 236 110" fill="none" stroke="#5C171C" stroke-width="8.5" stroke-linecap="round" opacity=".07"/>
+      <path d="M234 221 C232 185 233 147 236 110" fill="none" stroke="#5C171C" stroke-width="3.6" stroke-linecap="round" opacity=".72"/>
+      <path d="M236 140 C243 131 252 129 259 134 C254 142 246 146 236 140 Z" fill="#5C171C" opacity=".13"/>
+      <use href="#original-mark"/>
+    </svg>
+    <text x="20" y="242" class="name">Burgundy shadow</text>
+    <text x="20" y="269" class="spec">STEM 72% + SOFT DEPTH · MICRO LEAF 13%</text>
+    <text x="20" y="292" class="spec">TONAL · THE MOST DISCREET</text>
+  </g>
+</svg>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="2080"
+     height="1488"
+     viewBox="34 72 260 186"
+     fill="none"
+     role="img"
+     aria-labelledby="title desc"
+     shape-rendering="geometricPrecision">
+  <title id="title">Animated Charaideo Reserves tea cup mark</title>
+  <desc id="desc">The Assamese Cha settles into place, the river draws across, and a cup of Assam tea appears with a quiet ripple.</desc>
+
+  <style>
+    .cha {
+      animation: cha-arrive 800ms cubic-bezier(.22,.75,.28,1) both;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .river {
+      stroke-dasharray: 300;
+      stroke-dashoffset: 300;
+      animation: river-draw 1250ms cubic-bezier(.45,0,.2,1) 180ms both;
+    }
+    .cup {
+      animation: cup-arrive 650ms cubic-bezier(.2,.8,.3,1) 720ms both;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .tea-ripple {
+      animation: tea-ripple 4800ms ease-out 1600ms infinite;
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .tea-glint {
+      animation: glint-breathe 4800ms ease-in-out 1600ms infinite;
+    }
+
+    @keyframes cha-arrive {
+      from {opacity: 0; transform: translateY(4px)}
+      to {opacity: 1; transform: translateY(0)}
+    }
+    @keyframes river-draw {
+      to {stroke-dashoffset: 0}
+    }
+    @keyframes cup-arrive {
+      from {opacity: 0; transform: scale(.86) translateY(2px)}
+      to {opacity: 1; transform: scale(1) translateY(0)}
+    }
+    @keyframes tea-ripple {
+      0%, 70%, 100% {opacity: 0; transform: scale(.35)}
+      76% {opacity: .38}
+      90% {opacity: 0; transform: scale(1)}
+    }
+    @keyframes glint-breathe {
+      0%, 65%, 100% {opacity: .52}
+      78% {opacity: .9}
+      90% {opacity: .52}
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cha, .river, .cup, .tea-ripple, .tea-glint {
+        animation: none;
+        opacity: 1;
+        stroke-dashoffset: 0;
+        transform: none;
+      }
+      .tea-ripple {opacity: 0}
+    }
+  </style>
+
+  <g class="cha">
+    <path
+      d="M71.92 87.248 C90.44 80.432 100.648 70.424 100.648 52.768 C100.648 26.8 76.808 -0.2 49.809 -0.2 C31.721 -0.2 21.081 10.208 21.081 26.401 L21.081 122.992 L-4.256 122.992 L-4.256 136.624 L115.976 136.624 L115.976 122.992 L35.744 122.992 L35.744 117.24 C35.744 105.137 43.192 98.088 54.464 93.832 L71.92 87.248 Z M35.312 89.576 C35.744 87.68 36.376 76.176 36.376 56.193 L36.376 26.8 C36.376 19.152 40.432 14.032 50.008 14.032 C64.705 14.032 84.921 32.552 84.921 53.001 C84.921 61.28 81.296 68.096 66.6 73.416 L52.768 78.537 C43.425 81.928 38.504 86.816 36.176 89.576 L35.312 89.576 Z"
+      transform="translate(109.14 247.2) scale(1 -1)"
+      fill="#5C171C"/>
+  </g>
+
+  <path class="river"
+    d="M44.6 230.4 C111.8 185.6 176.2 286.4 282.6 213.6"
+    stroke="#78908C"
+    stroke-width="7.56"
+    stroke-linecap="round"/>
+
+  <g class="cup">
+    <path
+      d="M273 101 H281 C288 101 291.5 104 291.5 108.5 C291.5 113 288 116 281 116 H273"
+      stroke="#5C171C"
+      stroke-width="1.9"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+    <circle cx="255" cy="108.5" r="19" fill="#B87936" stroke="#5C171C" stroke-width="1.9"/>
+    <circle class="tea-ripple" cx="255" cy="108.5" r="12.5" stroke="#FFF8EA" stroke-width="0.8" opacity="0"/>
+    <path class="tea-glint"
+      d="M246.5 104.2 C251 100.6 259.4 99.9 265.7 102.2"
+      stroke="#FFF8EA"
+      stroke-width="0.75"
+      stroke-linecap="round"
+      opacity="0.52"/>
+  </g>
+</svg>

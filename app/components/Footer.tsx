@@ -18,7 +18,7 @@ export function Footer({
       <div className="footer-accent" aria-hidden="true" />
       <div className="footer-inner">
         <section className="footer-brand">
-          <Brand />
+          <Brand variant="light" />
           <p>
             A place. A people. A pot of tea.
             Bringing Assam back to the table.

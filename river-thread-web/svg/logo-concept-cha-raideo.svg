@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360"
+     role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision">
+  <title id="title">Charaideo Reserves Assamese hybrid wordmark</title>
+  <desc id="desc">The Assamese word Cha flowing into raideo, accented by a tea leaf and river thread.</desc>
+  <g fill="none">
+    <text x="72" y="214" fill="#5C171C" font-family="'Noto Serif Bengali','Nirmala UI','Vrinda',serif"
+          font-size="190" font-weight="500">চা</text>
+    <path d="M252 85 C270 59 297 52 319 63 C305 87 279 99 252 85 Z" fill="#B87936"/>
+    <text x="271" y="202" fill="#31484A" font-family="'Cormorant Garamond','Times New Roman',serif"
+          font-size="132" font-weight="500" letter-spacing="-3">raideo</text>
+    <text x="711" y="240" fill="#B12B2D" font-family="Manrope,Arial,sans-serif"
+          font-size="23" font-weight="600" letter-spacing="12">RESERVES</text>
+    <path d="M70 277 C307 228 559 316 1088 253" stroke="#78908C" stroke-width="6"
+          stroke-linecap="round"/>
+  </g>
+</svg>
