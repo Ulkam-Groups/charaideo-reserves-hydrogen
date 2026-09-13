@@ -2,6 +2,7 @@ import {useLoaderData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle.$articleHandle';
 import {Image} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {sanitizeStorefrontHtml} from '~/lib/html.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [{title: `Hydrogen | ${data?.article.title ?? ''} article`}];
@@ -51,7 +52,10 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
     },
   );
 
-  const article = blog.articleByHandle;
+  const article = {
+    ...blog.articleByHandle,
+    contentHtml: sanitizeStorefrontHtml(blog.articleByHandle.contentHtml),
+  };
 
   return {article};
 }

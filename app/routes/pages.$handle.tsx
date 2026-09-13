@@ -4,6 +4,7 @@ import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import aboutHeritage from '../../river-thread-web/svg/about-heritage.svg?url';
 import contactThread from '../../river-thread-web/svg/contact-hospitality.svg?url';
 import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
+import {sanitizeStorefrontHtml} from '~/lib/html.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
   const description =
@@ -63,7 +64,7 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
   redirectIfHandleIsLocalized(request, {handle: params.handle, data: page});
 
   return {
-    page,
+    page: {...page, body: sanitizeStorefrontHtml(page.body)},
     isStaticPage: false,
   };
 }

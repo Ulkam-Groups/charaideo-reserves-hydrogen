@@ -3,6 +3,7 @@ import type {Route} from './+types/cart';
 import type {CartQueryDataReturn} from '@shopify/hydrogen';
 import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
+import {safeLocalRedirect} from '~/lib/redirect';
 import cartThread from '../../river-thread-web/svg/cart-basket.svg?url';
 
 export const meta: Route.MetaFunction = () => {
@@ -78,8 +79,8 @@ export async function action({request, context}: Route.ActionArgs) {
   const headers = cartId ? cart.setCartId(result.cart.id) : new Headers();
   const {cart: cartResult, errors, warnings} = result;
 
-  const redirectTo = formData.get('redirectTo') ?? null;
-  if (typeof redirectTo === 'string') {
+  const redirectTo = safeLocalRedirect(formData.get('redirectTo'), '');
+  if (redirectTo) {
     status = 303;
     headers.set('Location', redirectTo);
   }

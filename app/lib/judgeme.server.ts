@@ -1,7 +1,9 @@
 const JUDGEME_API_BASE = 'https://api.judge.me/api/v1';
 const MAX_FILTERABLE_PRODUCT_ID = 2_147_483_647;
 const REVIEWS_PER_PAGE = 100;
-const MAX_STORE_REVIEW_PAGES = 5;
+const MAX_STORE_REVIEW_PAGES = 1;
+const REVIEW_CACHE_TTL_MS = 15 * 60 * 1000;
+const EMPTY_REVIEW_CACHE_TTL_MS = 60 * 1000;
 
 type RawReview = {
   id?: number;
@@ -44,20 +46,107 @@ export type ProductReviewsResult = {
   provider: 'Judge.me';
 };
 
+type ReviewCacheEntry = {
+  expiresAt: number;
+  value: Promise<ProductReviewsResult>;
+};
+
+const reviewCache = new Map<string, ReviewCacheEntry>();
+
 export async function getJudgeMeProductReviews({
   shopDomain,
   privateApiToken,
   shopifyProductGid,
+  cache,
 }: {
   shopDomain?: string;
   privateApiToken?: string;
   shopifyProductGid: string;
+  cache?: Pick<Cache, 'match' | 'put'>;
 }): Promise<ProductReviewsResult> {
   if (!shopDomain || !privateApiToken) return emptyResult();
 
   const externalProductId = shopifyProductGid.split('/').pop();
   if (!externalProductId || !/^\d+$/.test(externalProductId)) return emptyResult();
 
+  const cacheKey = `${shopDomain.toLowerCase()}:${externalProductId}`;
+  const cached = reviewCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+  const entry: ReviewCacheEntry = {
+    expiresAt: Date.now() + EMPTY_REVIEW_CACHE_TTL_MS,
+    value: getCachedOrLoadReviews({
+      cache,
+      cacheKey,
+      shopDomain,
+      privateApiToken,
+      externalProductId,
+    }),
+  };
+  reviewCache.set(cacheKey, entry);
+  void entry.value.then((result) => {
+    entry.expiresAt =
+      Date.now() +
+      (result.reviews.length ? REVIEW_CACHE_TTL_MS : EMPTY_REVIEW_CACHE_TTL_MS);
+  });
+  return entry.value;
+}
+
+async function getCachedOrLoadReviews({
+  cache,
+  cacheKey,
+  shopDomain,
+  privateApiToken,
+  externalProductId,
+}: {
+  cache?: Pick<Cache, 'match' | 'put'>;
+  cacheKey: string;
+  shopDomain: string;
+  privateApiToken: string;
+  externalProductId: string;
+}) {
+  const persistentCacheKey = new Request(
+    `https://judgeme-cache.internal/reviews/${encodeURIComponent(cacheKey)}`,
+  );
+  if (cache) {
+    try {
+      const response = await cache.match(persistentCacheKey);
+      if (response) return (await response.json()) as ProductReviewsResult;
+    } catch {
+      // Cache availability must not affect product rendering.
+    }
+  }
+
+  const result = await loadJudgeMeProductReviews({
+    shopDomain,
+    privateApiToken,
+    externalProductId,
+  });
+  if (cache) {
+    const ttlSeconds = result.reviews.length ? 900 : 60;
+    try {
+      await cache.put(
+        persistentCacheKey,
+        Response.json(result, {
+          headers: {'Cache-Control': `public, max-age=${ttlSeconds}`},
+        }),
+      );
+    } catch {
+      // The in-memory cache still protects this isolate if edge cache fails.
+    }
+  }
+  return result;
+}
+
+async function loadJudgeMeProductReviews({
+  shopDomain,
+  privateApiToken,
+  externalProductId,
+}: {
+  shopDomain: string;
+  privateApiToken: string;
+  externalProductId: string;
+}): Promise<ProductReviewsResult> {
   try {
     const product = await judgeMeFetch<ProductResponse>('/products/-1', {
       shop_domain: shopDomain,
@@ -87,6 +176,10 @@ export async function getJudgeMeProductReviews({
     // Reviews are non-critical. Provider or network failures must not break commerce.
     return emptyResult();
   }
+}
+
+export function clearJudgeMeReviewCacheForTests() {
+  reviewCache.clear();
 }
 
 async function getProductFilteredReviews(

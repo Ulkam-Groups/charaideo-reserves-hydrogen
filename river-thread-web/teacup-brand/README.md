@@ -21,6 +21,13 @@ a pale river thread, a gold reserve accent, and the original tea-liquor cup.
 The Hydrogen storefront still points to the original assets. This folder is a
 review-ready alternative and can be integrated page by page after approval.
 
+## Pouch concepts
+
+`packaging-variations/` contains five minimalist front-panel directions for a
+130 mm × 210 mm flat-bottom stand-up pouch with zipper. The concepts use only
+River Mist, Gamosa Cream, and Assam Red and are documented in that folder's
+README and manifest.
+
 Regenerate the SVG set from the repository root with:
 
 ```shell

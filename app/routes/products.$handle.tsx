@@ -14,6 +14,7 @@ import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {getJudgeMeProductReviews} from '~/lib/judgeme.server';
+import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {ProductReviews} from '~/components/ProductReviews';
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -62,7 +63,10 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   redirectIfHandleIsLocalized(request, {handle, data: product});
 
   return {
-    product,
+    product: {
+      ...product,
+      descriptionHtml: sanitizeStorefrontHtml(product.descriptionHtml),
+    },
   };
 }
 
@@ -77,6 +81,7 @@ function loadDeferredData(
 ) {
   return {
     judgeMeReviews: getJudgeMeProductReviews({
+      cache: context.reviewsCache,
       shopDomain: context.env.JUDGEME_SHOP_DOMAIN,
       privateApiToken: context.env.JUDGEME_PRIVATE_API_TOKEN,
       shopifyProductGid,

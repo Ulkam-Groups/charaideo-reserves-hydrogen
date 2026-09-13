@@ -48,7 +48,11 @@ export default async function handleRequest(
       nonce,
       signal: request.signal,
       onError(error) {
-        console.error(error);
+        console.error(JSON.stringify({
+          level: 'error',
+          scope: 'ssr',
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        }));
         responseStatusCode = 500;
       },
     },
