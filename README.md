@@ -2,45 +2,57 @@
 
 This repository contains the customer-facing Hydrogen storefront. Products are
 loaded through Shopify's Storefront API, and cart operations use Hydrogen's cart
-handler. Checkout can be initiated through Shiprocket Fastrr when configured.
+handler. The Razorpay branch uses Magic Checkout for payment and address collection.
 
-## Shiprocket Fastrr checkout
+## Razorpay Magic Checkout test branch
 
-Set `PUBLIC_FASTRR_SELLER_DOMAIN` to the exact seller domain configured by
-Shiprocket (domain only, without `https://`), in the local environment and the
-deployed storefront environment. Checkout remains disabled until it is set.
+Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `SHOPIFY_ADMIN_API_TOKEN` as
+server-side Oxygen secrets. The custom Shopify app
+token needs `read_draft_orders`, `write_draft_orders`, and `read_orders`, plus permission to mark
+drafts paid. Keep this branch on Razorpay test keys until a full test order has
+been reconciled in Shopify Admin. `RAZORPAY_WEBHOOK_SECRET` is only needed when
+a public webhook receiver is available; private PR testing uses the checkout
+callback, which verifies the Razorpay signature and payment/order status on the
+server before synchronizing Shopify. The webhook URL is
+`https://<public-storefront>/webhooks/razorpay-test` with `payment.captured` and
+`payment.pending` enabled in Razorpay Test Mode. Do not register a private Oxygen
+preview URL as a webhook; Razorpay cannot authenticate to it.
+`RAZORPAY_CUSTOM_SHIPPING_READY` defaults to false and keeps both purchase
+buttons disabled until shipping and COD are configured and verified for this
+custom platform integration.
 
-When configured, the storefront loads Shiprocket's CSS on every page and its
-Shopify script after React hydration to prevent third-party DOM changes from
-breaking Hydrogen hydration. Cart checkout sends variant IDs, quantities, the first applicable
-discount code, URL UTM parameters, and cart attributes. The product page's
-Buy now action sends the selected variant with `type: 'product'`. If the vendor
-script is unavailable, checkout displays an error instead of opening Shopify's
-checkout URL. Carts with applied gift cards cannot proceed until the gift card
-is removed, because the supplied Fastrr API has no gift card parameter. Cart
-permalinks now create a cart and open `/cart` rather than redirecting to Shopify
-Checkout.
+Cart and Buy now create a Shopify draft from server-side product data, then a
+Razorpay order with Magic Checkout line items. Razorpay's script loads only when
+checkout is opened. After checkout, the server verifies the signature, fetches
+the Razorpay order and payment, and completes the Shopify draft only when the
+payment is captured or a COD order is placed. The signed webhook retries the
+same synchronization if the browser callback is lost. Applied cart discount
+codes and gift cards are rejected until their totals can be reconciled in this
+custom checkout.
 
-Before enabling this in production, test one product and one cart order with
-Shiprocket's configured seller domain and confirm the resulting Shopify orders,
-discounts, and analytics. The vendor script may use additional origins that
-must be added to the Content Security Policy after checking its live network
-requests.
+Razorpay's custom ecommerce documentation describes a public shipping-info API
+when Shipping Service type is API. This merchant account also shows a Shiprocket
+shipping option under Custom E-Commerce Platform, with dashboard-managed
+serviceability and shipping/COD fees. Connect and configure that option, then
+verify with a real Test Mode order whether it removes the shipping API requirement.
+The Shiprocket logistics connection is separate from the removed Fastrr checkout.
+Also verify COD status, shipping/tax totals, inventory, and duplicate webhook
+behavior with actual Test Mode orders; local tests cannot verify those systems.
 
 ## Checkout policy
 
 Only ordinary Shopify products can be purchased. The former custom tea blend
-builder and Draft Order checkout endpoint are retired:
+builder and its Draft Order checkout endpoint are retired:
 
 - `/blends` redirects to `/collections/all`.
 - `/api/blend-checkout` returns `410 Gone` and cannot create a Draft Order.
 - `/api/admin/teas` returns `404 Not Found`; it must not be re-enabled without
   Shopify session-token authentication and server-side authorization.
 
-The custom `orders/create` subscription and all custom inventory mutations are
-removed. A temporary signed no-op route remains only to acknowledge deliveries
-that were already in flight when the subscription was retired; Shopify remains
-the sole source of ordinary product inventory changes.
+The custom Shopify `orders/create` subscription and all custom inventory
+mutations remain removed. Its temporary signed no-op route only acknowledges
+deliveries already in flight. Magic Checkout uses a separate narrowly scoped
+draft order flow and leaves Shopify as the inventory source.
 
 ## Local development
 

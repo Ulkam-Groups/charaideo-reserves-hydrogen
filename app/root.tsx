@@ -1,4 +1,4 @@
-import {Analytics, getShopAnalytics, Script, useNonce} from '@shopify/hydrogen';
+import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
 import {
   Links,
   Meta,
@@ -14,6 +14,7 @@ import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import riverThread from '../river-thread-web/river-thread-calligraphy.css?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
+import {razorpayConfigured} from '~/lib/razorpay.server';
 
 export function links() {
   return [
@@ -59,7 +60,7 @@ export async function loader({context}: Route.LoaderArgs) {
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
-    fastrrSellerDomain: env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null,
+    magicCheckoutReady: razorpayConfigured(env),
     shop: getShopAnalytics({
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID || '0',
@@ -78,14 +79,8 @@ export default function App() {
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
-        {data.fastrrSellerDomain && (
-          <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css" />
-        )}
       </head>
       <body>
-        {data.fastrrSellerDomain && (
-          <input type="hidden" id="sellerDomain" value={data.fastrrSellerDomain} readOnly />
-        )}
         <Analytics.Provider
           cart={data.cart}
           consent={data.consent}
@@ -95,12 +90,6 @@ export default function App() {
             <Outlet />
           </PageLayout>
         </Analytics.Provider>
-        {data.fastrrSellerDomain && (
-          <Script
-            waitForHydration
-            src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js"
-          />
-        )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>

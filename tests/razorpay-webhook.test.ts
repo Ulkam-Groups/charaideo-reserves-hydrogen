@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {action} from '../app/routes/webhooks.razorpay-test.ts';
 
 const secret = 'test-webhook-secret';
-const body = JSON.stringify({event: 'payment.captured'});
+const body = JSON.stringify({event: 'order.paid'});
 
 async function signatureFor(message: string) {
   const key = await crypto.subtle.importKey(
@@ -35,4 +35,9 @@ test('Razorpay test webhook verifies the unmodified raw body before acknowledgin
 
 test('Razorpay test webhook stays unavailable without a configured secret', async () => {
   assert.equal((await send(body, await signatureFor(body), false)).status, 503);
+});
+
+test('signed payment event requires a payment entity before synchronization', async () => {
+  const malformed = JSON.stringify({event: 'payment.captured'});
+  assert.equal((await send(malformed, await signatureFor(malformed))).status, 400);
 });

@@ -8,7 +8,7 @@ import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 import type {ProductFragment} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
-import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {openMagicCheckout} from '~/lib/razorpay.client';
 import {useState} from 'react';
 
 export function ProductForm({
@@ -21,8 +21,10 @@ export function ProductForm({
   const navigate = useNavigate();
   const {open} = useAside();
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
-  const buyNowVariantId = selectedVariant && fastrrVariantId(selectedVariant.id);
+  const buyNowVariantId = selectedVariant?.id;
   const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutStatus, setCheckoutStatus] = useState('');
+  const [opening, setOpening] = useState(false);
   return (
     <div className="product-form">
       {productOptions.map((option) => {
@@ -131,29 +133,30 @@ export function ProductForm({
         <button
           type="button"
           className="button secondary product-buy-now"
-          disabled={!rootData?.fastrrSellerDomain}
-          onClick={() => {
-            const utmParams = new URLSearchParams(
-              [...new URLSearchParams(window.location.search)].filter(([key]) =>
-                key.startsWith('utm_'),
-              ),
-            ).toString();
-            if (!startFastrrCheckout({
-              type: 'product',
-              products: [{variantId: buyNowVariantId, quantity: 1}],
-              ...(utmParams ? {utmParams} : {}),
-            })) {
-              setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
-            } else {
-              setCheckoutError('');
+          disabled={!rootData?.magicCheckoutReady || opening}
+          onClick={async () => {
+            setOpening(true);
+            setCheckoutError('');
+            setCheckoutStatus('');
+            try {
+              await openMagicCheckout({source: 'product', variantId: buyNowVariantId}, {
+                onSuccess: setCheckoutStatus,
+                onError: setCheckoutError,
+                onClose: () => setOpening(false),
+              });
+            } catch (error) {
+              setCheckoutError(error instanceof Error ? error.message : 'Checkout could not be started.');
+            } finally {
+              setOpening(false);
             }
           }}
         >
-          Buy now
+          {opening ? 'Opening checkout…' : 'Buy now'}
         </button>
       )}
-      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
+      {!rootData?.magicCheckoutReady && <p role="status">Checkout is being configured.</p>}
       {checkoutError && <p role="alert">{checkoutError}</p>}
+      {checkoutStatus && <p role="status">{checkoutStatus}</p>}
     </div>
   );
 }

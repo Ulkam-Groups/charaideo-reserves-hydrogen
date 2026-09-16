@@ -1,8 +1,9 @@
 import type {Route} from './+types/webhooks.razorpay-test';
+import {synchronizeConfirmedOrder} from '../lib/razorpay.server.ts';
 
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
-/** Receives signed Test Mode events while the checkout integration is being built. */
+/** Signed webhook fallback for captured prepaid and placed COD orders. */
 export async function action({request, context}: Route.ActionArgs) {
   if (request.method !== 'POST') {
     return new Response('Method not allowed', {
@@ -52,6 +53,19 @@ export async function action({request, context}: Route.ActionArgs) {
 
   if (!payload || typeof payload !== 'object' || !('event' in payload) || typeof payload.event !== 'string') {
     return new Response('Missing event', {status: 400});
+  }
+
+  if (payload.event === 'payment.captured' || payload.event === 'payment.pending') {
+    const entity = (payload as {payload?: {payment?: {entity?: {id?: unknown; order_id?: unknown}}}}).payload?.payment?.entity;
+    if (typeof entity?.id !== 'string' || typeof entity.order_id !== 'string') {
+      return new Response('Missing payment', {status: 400});
+    }
+    try {
+      await synchronizeConfirmedOrder(context.env, entity.order_id, entity.id);
+    } catch (error) {
+      console.error(JSON.stringify({scope: 'razorpay-webhook-sync', event: payload.event, eventId: request.headers.get('x-razorpay-event-id'), errorName: error instanceof Error ? error.name : 'UnknownError'}));
+      return new Response('Order synchronization pending', {status: 503});
+    }
   }
 
   // No customer or payment details are written to application logs.

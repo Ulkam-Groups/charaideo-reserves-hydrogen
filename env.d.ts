@@ -10,7 +10,8 @@ declare global {
     RAZORPAY_KEY_ID?: string;
     RAZORPAY_KEY_SECRET?: string;
     RAZORPAY_WEBHOOK_SECRET?: string;
-    PUBLIC_FASTRR_SELLER_DOMAIN?: string;
+    RAZORPAY_CUSTOM_SHIPPING_READY?: string;
+    SHOPIFY_ADMIN_API_TOKEN?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
     JUDGEME_PRIVATE_API_TOKEN?: string;

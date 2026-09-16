@@ -37,6 +37,12 @@ type Pages = {
   "/webhooks/razorpay-test": {
     params: {};
   };
+  "/api/razorpay-confirm": {
+    params: {};
+  };
+  "/api/razorpay-create": {
+    params: {};
+  };
   "/collections/:handle": {
     params: {
       "handle": string;
@@ -144,7 +150,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/webhooks/razorpay-test" | "/collections/:handle" | "/account/authorize" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/webhooks/razorpay-test" | "/api/razorpay-confirm" | "/api/razorpay-create" | "/collections/:handle" | "/account/authorize" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
@@ -165,6 +171,14 @@ type RouteFiles = {
   "routes/webhooks.razorpay-test.ts": {
     id: "routes/webhooks.razorpay-test";
     page: "/webhooks/razorpay-test";
+  };
+  "routes/api.razorpay-confirm.ts": {
+    id: "routes/api.razorpay-confirm";
+    page: "/api/razorpay-confirm";
+  };
+  "routes/api.razorpay-create.ts": {
+    id: "routes/api.razorpay-create";
+    page: "/api/razorpay-create";
   };
   "routes/collections.$handle.tsx": {
     id: "routes/collections.$handle";
@@ -295,6 +309,8 @@ type RouteModules = {
   "routes/blogs.$blogHandle._index": typeof import("./app/routes/blogs.$blogHandle._index.tsx");
   "routes/webhooks.orders-create": typeof import("./app/routes/webhooks.orders-create.ts");
   "routes/webhooks.razorpay-test": typeof import("./app/routes/webhooks.razorpay-test.ts");
+  "routes/api.razorpay-confirm": typeof import("./app/routes/api.razorpay-confirm.ts");
+  "routes/api.razorpay-create": typeof import("./app/routes/api.razorpay-create.ts");
   "routes/collections.$handle": typeof import("./app/routes/collections.$handle.tsx");
   "routes/account_.authorize": typeof import("./app/routes/account_.authorize.tsx");
   "routes/api.blend-checkout": typeof import("./app/routes/api.blend-checkout.ts");
