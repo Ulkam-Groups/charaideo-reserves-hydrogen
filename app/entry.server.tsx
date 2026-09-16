@@ -15,7 +15,8 @@ export default async function handleRequest(
   context: HydrogenRouterContextProvider,
 ) {
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
-    styleSrc: ['https://fonts.googleapis.com'],
+    styleSrc: ['https://fonts.googleapis.com', 'https://fastrr-boost-ui.pickrr.com'],
+    scriptSrc: ['https://fastrr-boost-ui.pickrr.com'],
     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     imgSrc: [
       "'self'",

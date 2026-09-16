@@ -146,7 +146,7 @@ export default function Product() {
           <ul className="product-assurances" aria-label="Purchase information">
             <li><span aria-hidden="true">◇</span> Packed fresh in Assam</li>
             <li><span aria-hidden="true">◇</span> Shipping calculated at checkout</li>
-            <li><span aria-hidden="true">◇</span> Secure Shopify checkout</li>
+            <li><span aria-hidden="true">◇</span> Secure checkout</li>
           </ul>
         </div>
       </section>

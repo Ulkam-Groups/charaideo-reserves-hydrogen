@@ -1,9 +1,30 @@
 # Charaideo Reserves Hydrogen storefront
 
 This repository contains the customer-facing Hydrogen storefront. Products are
-loaded through Shopify's Storefront API, cart operations use Hydrogen's cart
-handler, and customers complete payment through the standard Shopify-hosted
-checkout.
+loaded through Shopify's Storefront API, and cart operations use Hydrogen's cart
+handler. Checkout can be initiated through Shiprocket Fastrr when configured.
+
+## Shiprocket Fastrr checkout
+
+Set `PUBLIC_FASTRR_SELLER_DOMAIN` to the exact seller domain configured by
+Shiprocket (domain only, without `https://`), in the local environment and the
+deployed storefront environment. Checkout remains disabled until it is set.
+
+When configured, the storefront loads Shiprocket's Shopify script and CSS on
+every page. Cart checkout sends variant IDs, quantities, the first applicable
+discount code, URL UTM parameters, and cart attributes. The product page's
+Buy now action sends the selected variant with `type: 'product'`. If the vendor
+script is unavailable, checkout displays an error instead of opening Shopify's
+checkout URL. Carts with applied gift cards cannot proceed until the gift card
+is removed, because the supplied Fastrr API has no gift card parameter. Cart
+permalinks now create a cart and open `/cart` rather than redirecting to Shopify
+Checkout.
+
+Before enabling this in production, test one product and one cart order with
+Shiprocket's configured seller domain and confirm the resulting Shopify orders,
+discounts, and analytics. The vendor script may use additional origins that
+must be added to the Content Security Policy after checking its live network
+requests.
 
 ## Checkout policy
 

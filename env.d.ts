@@ -7,6 +7,7 @@ declare module 'virtual:react-router/server-build' {
 }
 declare global {
   interface Env {
+    PUBLIC_FASTRR_SELLER_DOMAIN?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
     JUDGEME_PRIVATE_API_TOKEN?: string;

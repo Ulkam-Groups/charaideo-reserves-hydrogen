@@ -123,7 +123,6 @@ export const CART_QUERY_FRAGMENT = `#graphql
         ...Money
       }
     }
-    checkoutUrl
     totalQuantity
     buyerIdentity {
       countryCode

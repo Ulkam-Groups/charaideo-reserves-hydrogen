@@ -3,7 +3,7 @@ import type {Route} from './+types/cart.$lines';
 import {parseCartPermalink} from '~/lib/storefront-input';
 
 /**
- * Automatically creates a new cart based on the URL and redirects straight to checkout.
+ * Automatically creates a new cart based on the URL and opens the cart page.
  * Expected URL structure:
  * ```js
  * /cart/<variant_id>:<quantity>
@@ -52,12 +52,7 @@ export async function loader({request, context, params}: Route.LoaderArgs) {
   // Update cart id in cookie
   const headers = cart.setCartId(cartResult.id);
 
-  // redirect to checkout
-  if (cartResult.checkoutUrl) {
-    return redirect(cartResult.checkoutUrl, {headers});
-  } else {
-    throw new Error('No checkout URL found');
-  }
+  return redirect('/cart', {headers});
 }
 
 export default function Component() {

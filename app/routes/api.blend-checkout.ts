@@ -2,7 +2,7 @@ const retired = () =>
   Response.json(
     {
       error:
-        'Custom blend checkout is no longer available. Use the standard product cart and Shopify Checkout.',
+        'Custom blend checkout is no longer available. Use the standard product cart.',
     },
     {
       status: 410,
