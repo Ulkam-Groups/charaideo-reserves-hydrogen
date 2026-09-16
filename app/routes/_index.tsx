@@ -20,8 +20,8 @@ async function loadCriticalData({context}: Route.LoaderArgs) {
 }
 
 function loadDeferredData({context}: Route.LoaderArgs) {
-  const recommendedProducts = context.storefront.query(RECOMMENDED_PRODUCTS_QUERY).catch((error: Error) => {
-    console.error(error);
+  const recommendedProducts = context.storefront.query(RECOMMENDED_PRODUCTS_QUERY).catch(() => {
+    console.error('Recommended products query failed.');
     return null;
   });
   return {recommendedProducts};

@@ -1,65 +1,66 @@
-# Assam Tea - Hydrogen storefront
+# Charaideo Reserves Hydrogen storefront
 
-## What is implemented
+This repository contains the customer-facing Hydrogen storefront. Products are
+loaded through Shopify's Storefront API, and cart operations use Hydrogen's cart
+handler. Checkout can be initiated through Shiprocket Fastrr when configured.
 
-This is a Hydrogen storefront for individual, inventory-bearing teas and custom tea boxes. The blend engine limits a recipe to 1–10 teas, uses 5g increments, validates global and per-tea weight caps, and calculates the price from individual ingredient gram prices. A configured packaging charge can be included server-side.
+## Shiprocket Fastrr checkout
 
-The app is designed for real-shop local development and production deployment against Shopify. Storefront data, customer-account flows, and checkout redirects all use Shopify-hosted services, while product creation and inventory adjustments are executed only from secure server-side Admin API calls. No Admin token is exposed to browser code.
+Set `PUBLIC_FASTRR_SELLER_DOMAIN` to the exact seller domain configured by
+Shiprocket (domain only, without `https://`), in the local environment and the
+deployed storefront environment. Checkout remains disabled until it is set.
 
-Custom blends use a server-created Shopify Draft Order and redirect to Shopify Checkout. This keeps the custom tea box price trustworthy and avoids building a custom checkout. Ingredient details are attached to the draft-order line and the order webhook deducts only the individual ingredient inventory (one Shopify inventory unit = one gram) after an order is created.
+When configured, the storefront loads Shiprocket's CSS on every page and its
+Shopify script after React hydration to prevent third-party DOM changes from
+breaking Hydrogen hydration. Cart checkout sends variant IDs, quantities, the first applicable
+discount code, URL UTM parameters, and cart attributes. The product page's
+Buy now action sends the selected variant with `type: 'product'`. If the vendor
+script is unavailable, checkout displays an error instead of opening Shopify's
+checkout URL. Carts with applied gift cards cannot proceed until the gift card
+is removed, because the supplied Fastrr API has no gift card parameter. Cart
+permalinks now create a cart and open `/cart` rather than redirecting to Shopify
+Checkout.
 
-## Shopify configuration required
+Before enabling this in production, test one product and one cart order with
+Shiprocket's configured seller domain and confirm the resulting Shopify orders,
+discounts, and analytics. The vendor script may use additional origins that
+must be added to the Content Security Policy after checking its live network
+requests.
 
-1. Create a custom app for the real store and install it. Give it the scopes in `shopify.app.toml`; copy its Admin API access token into `SHOPIFY_ADMIN_API_TOKEN`.
-2. Create a Storefront API token and set `PUBLIC_STORE_DOMAIN`, `PUBLIC_STOREFRONT_API_TOKEN`, and `PRIVATE_STOREFRONT_API_TOKEN`.
-3. Enable Customer Account API in Shopify Admin (Settings → Customer accounts). Configure its return URLs for localhost and your Oxygen domain. The UI includes a save flow; production customer identity must be passed from the Customer Account session before enabling it.
-4. Select the inventory location and put its GID in `SHOPIFY_LOCATION_ID`. Set the custom-app webhook secret in `SHOPIFY_WEBHOOK_SECRET`.
-5. In Shopify Admin, configure each tea product with metafields below. Its variant inventory quantity is grams.
+## Checkout policy
 
-| Metafield | Type | Example |
-| --- | --- | --- |
-| `tea.blend_eligible` | boolean | `true` |
-| `tea.max_contribution_g` | number_integer | `50` |
-| `tea.price_per_gram` | number_decimal | `1.25` |
-| `tea.origin` | single_line_text_field | `Hapjan` |
-| `tea.category` | single_line_text_field | `Black` |
-| `tea.blend_min_g` | number_integer (store config / metaobject) | `50` |
-| `tea.blend_max_g` | number_integer (store config / metaobject) | `200` |
+Only ordinary Shopify products can be purchased. The former custom tea blend
+builder and Draft Order checkout endpoint are retired:
 
-For initial operation, set `BLEND_MIN_GRAMS`, `BLEND_MAX_GRAMS`, `BLEND_MAX_ITEMS`, `BLEND_INCREMENT_GRAMS`, and `PACKAGING_PRICE` in Oxygen secrets; the server has safe defaults (25g, 200g, 10 teas, 5g, 0). Move these global values into an Admin metaobject as the next configuration refinement.
+- `/blends` redirects to `/collections/all`.
+- `/api/blend-checkout` returns `410 Gone` and cannot create a Draft Order.
+- `/api/admin/teas` returns `404 Not Found`; it must not be re-enabled without
+  Shopify session-token authentication and server-side authorization.
 
-## Local development against the real store
+The custom `orders/create` subscription and all custom inventory mutations are
+removed. A temporary signed no-op route remains only to acknowledge deliveries
+that were already in flight when the subscription was retired; Shopify remains
+the sole source of ordinary product inventory changes.
 
-Copy `.env.example` to `.env`, fill in real values, then install packages and run the Shopify-aware local app:
+## Local development
+
+Copy `.env.example` to `.env`, use development-store credentials, and run:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-`npm run dev` runs the Hydrogen dev workflow against the configured Shopify store, so loaders query the actual shop and server-side actions mutate the real shop. Do not use production tokens in browser-visible variables. `npm run dev:local` is useful for UI-only work but does not register a webhook tunnel.
+Never commit `.env` or expose private Storefront/Admin credentials through a
+`PUBLIC_` browser variable.
 
-### Secure product configuration API
-
-`POST /api/admin/teas` is server-side only and calls the live Admin GraphQL API. It requires `Authorization: Bearer $ADMIN_INTERNAL_TOKEN`; it accepts `id` (optional), `title`, `price`, `sku`, `blendEligible`, `maxContributionGrams`, and `pricePerGram`. In production, replace this temporary internal-token gate with Shopify app/session authentication before exposing a staff interface. The Admin token itself is never returned or used by browser code.
-
-## Deploy to Oxygen
-
-Set all values from `.env` in the Hydrogen/Oxygen environment-variable UI (or via the Shopify CLI), then run:
+## Verification
 
 ```powershell
-npm run build
 npm test
 npm run typecheck
-npm run deploy:oxygen
+npm run build
 ```
 
-Set the deployed domain as the app URL and webhook destination. Send a test order, confirm the signed `orders/create` webhook succeeds, and inspect the order metafield `tea.inventory_adjusted_at` before enabling live sales.
-
-## Tests
-
-```powershell
-pnpm test
-```
-
-The tests cover increment, distinct-item, total/min/max, per-item maximum, pricing, and ingredient inventory calculations.
+Before production, complete the prioritized checklist in
+[`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).

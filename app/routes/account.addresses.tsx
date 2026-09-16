@@ -4,7 +4,7 @@ import type {
   CustomerFragment,
 } from 'customer-accountapi.generated';
 import {
-  data,
+  data as routeData,
   Form,
   useActionData,
   useNavigation,
@@ -17,6 +17,7 @@ import {
   DELETE_ADDRESS_MUTATION,
   CREATE_ADDRESS_MUTATION,
 } from '~/graphql/customer-account/CustomerAddressMutations';
+import {requireCustomerAuthStatus} from '~/lib/customer-auth.server';
 
 export type ActionResponse = {
   addressId?: string | null;
@@ -32,13 +33,14 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader({context}: Route.LoaderArgs) {
-  context.customerAccount.handleAuthStatus();
+  await requireCustomerAuthStatus(context.customerAccount);
 
   return {};
 }
 
 export async function action({request, context}: Route.ActionArgs) {
   const {customerAccount} = context;
+  let submittedAddressId = '';
 
   try {
     const form = await request.formData();
@@ -49,11 +51,12 @@ export async function action({request, context}: Route.ActionArgs) {
     if (!addressId) {
       throw new Error('You must provide an address id.');
     }
+    submittedAddressId = addressId;
 
     // this will ensure redirecting to login never happen for mutatation
     const isLoggedIn = await customerAccount.isLoggedIn();
     if (!isLoggedIn) {
-      return data(
+      return routeData(
         {error: {[addressId]: 'Unauthorized'}},
         {
           status: 401,
@@ -105,7 +108,14 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (data?.customerAddressCreate?.userErrors?.length) {
-            throw new Error(data?.customerAddressCreate?.userErrors[0].message);
+            return routeData(
+              {
+                error: {
+                  [addressId]: data.customerAddressCreate.userErrors[0].message,
+                },
+              },
+              {status: 400},
+            );
           }
 
           if (!data?.customerAddressCreate?.customerAddress) {
@@ -117,20 +127,10 @@ export async function action({request, context}: Route.ActionArgs) {
             createdAddress: data?.customerAddressCreate?.customerAddress,
             defaultAddress,
           };
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            return data(
-              {error: {[addressId]: error.message}},
-              {
-                status: 400,
-              },
-            );
-          }
-          return data(
-            {error: {[addressId]: error}},
-            {
-              status: 400,
-            },
+        } catch {
+          return routeData(
+            {error: {[addressId]: 'Unable to create this address right now.'}},
+            {status: 400},
           );
         }
       }
@@ -155,7 +155,14 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (data?.customerAddressUpdate?.userErrors?.length) {
-            throw new Error(data?.customerAddressUpdate?.userErrors[0].message);
+            return routeData(
+              {
+                error: {
+                  [addressId]: data.customerAddressUpdate.userErrors[0].message,
+                },
+              },
+              {status: 400},
+            );
           }
 
           if (!data?.customerAddressUpdate?.customerAddress) {
@@ -167,20 +174,10 @@ export async function action({request, context}: Route.ActionArgs) {
             updatedAddress: address,
             defaultAddress,
           };
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            return data(
-              {error: {[addressId]: error.message}},
-              {
-                status: 400,
-              },
-            );
-          }
-          return data(
-            {error: {[addressId]: error}},
-            {
-              status: 400,
-            },
+        } catch {
+          return routeData(
+            {error: {[addressId]: 'Unable to update this address right now.'}},
+            {status: 400},
           );
         }
       }
@@ -203,7 +200,14 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (data?.customerAddressDelete?.userErrors?.length) {
-            throw new Error(data?.customerAddressDelete?.userErrors[0].message);
+            return routeData(
+              {
+                error: {
+                  [addressId]: data.customerAddressDelete.userErrors[0].message,
+                },
+              },
+              {status: 400},
+            );
           }
 
           if (!data?.customerAddressDelete?.deletedAddressId) {
@@ -211,26 +215,16 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           return {error: null, deletedAddress: addressId};
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            return data(
-              {error: {[addressId]: error.message}},
-              {
-                status: 400,
-              },
-            );
-          }
-          return data(
-            {error: {[addressId]: error}},
-            {
-              status: 400,
-            },
+        } catch {
+          return routeData(
+            {error: {[addressId]: 'Unable to delete this address right now.'}},
+            {status: 400},
           );
         }
       }
 
       default: {
-        return data(
+        return routeData(
           {error: {[addressId]: 'Method not allowed'}},
           {
             status: 405,
@@ -238,20 +232,15 @@ export async function action({request, context}: Route.ActionArgs) {
         );
       }
     }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      return data(
-        {error: error.message},
-        {
-          status: 400,
-        },
-      );
-    }
-    return data(
-      {error},
+  } catch {
+    return routeData(
       {
-        status: 400,
+        error: {
+          [submittedAddressId]:
+            'Unable to update this address right now. Please try again.',
+        },
       },
+      {status: 400},
     );
   }
 }

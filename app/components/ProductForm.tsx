@@ -1,4 +1,4 @@
-import {Link, useNavigate} from 'react-router';
+import {Link, useNavigate, useRouteLoaderData} from 'react-router';
 import {type MappedProductOptions} from '@shopify/hydrogen';
 import type {
   Maybe,
@@ -7,6 +7,9 @@ import type {
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 import type {ProductFragment} from 'storefrontapi.generated';
+import type {loader as rootLoader} from '~/root';
+import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {useState} from 'react';
 
 export function ProductForm({
   productOptions,
@@ -17,6 +20,9 @@ export function ProductForm({
 }) {
   const navigate = useNavigate();
   const {open} = useAside();
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const buyNowVariantId = selectedVariant && fastrrVariantId(selectedVariant.id);
+  const [checkoutError, setCheckoutError] = useState('');
   return (
     <div className="product-form">
       {productOptions.map((option) => {
@@ -121,6 +127,33 @@ export function ProductForm({
       >
         {selectedVariant?.availableForSale ? 'Add to cart' : 'Sold out'}
       </AddToCartButton>
+      {selectedVariant?.availableForSale && buyNowVariantId && (
+        <button
+          type="button"
+          className="button secondary product-buy-now"
+          disabled={!rootData?.fastrrSellerDomain}
+          onClick={() => {
+            const utmParams = new URLSearchParams(
+              [...new URLSearchParams(window.location.search)].filter(([key]) =>
+                key.startsWith('utm_'),
+              ),
+            ).toString();
+            if (!startFastrrCheckout({
+              type: 'product',
+              products: [{variantId: buyNowVariantId, quantity: 1}],
+              ...(utmParams ? {utmParams} : {}),
+            })) {
+              setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
+            } else {
+              setCheckoutError('');
+            }
+          }}
+        >
+          Buy now
+        </button>
+      )}
+      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
+      {checkoutError && <p role="alert">{checkoutError}</p>}
     </div>
   );
 }

@@ -20,11 +20,6 @@ type Pages = {
       "articleHandle": string;
     };
   };
-  "/api/:version/graphql.json": {
-    params: {
-      "version": string;
-    };
-  };
   "/sitemap/:type/:page.xml": {
     params: {
       "type": string;
@@ -141,29 +136,16 @@ type Pages = {
       "*": string;
     };
   };
-  "/graphiql": {
-    params: {};
-  };
-  "/subrequest-profiler": {
-    params: {};
-  };
-  "/.well-known/appspecific/com.chrome.devtools.json": {
-    params: {};
-  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/api/:version/graphql.json" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*" | "/graphiql" | "/subrequest-profiler" | "/.well-known/appspecific/com.chrome.devtools.json";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
     page: "/blogs/:blogHandle/:articleHandle";
-  };
-  "routes/api.$version.[graphql.json].tsx": {
-    id: "routes/api.$version.[graphql.json]";
-    page: "/api/:version/graphql.json";
   };
   "routes/sitemap.$type.$page[.xml].tsx": {
     id: "routes/sitemap.$type.$page[.xml]";
@@ -297,32 +279,11 @@ type RouteFiles = {
     id: "routes/$";
     page: "/*";
   };
-  "../../../../..//workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/layout.jsx": {
-    id: "/workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/layout";
-    page: "/graphiql" | "/subrequest-profiler" | "/.well-known/appspecific/com.chrome.devtools.json" | "/";
-  };
-  "../../../../..//workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/routes/graphiql.jsx": {
-    id: "vite/virtual-routes/routes/graphiql";
-    page: "/graphiql";
-  };
-  "../../../../..//workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/routes/subrequest-profiler.jsx": {
-    id: "vite/virtual-routes/routes/subrequest-profiler";
-    page: "/subrequest-profiler";
-  };
-  "../../../../..//workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/routes/[.]well-known.appspecific.com[.]chrome[.]devtools[.]json.jsx": {
-    id: "vite/virtual-routes/routes/[.]well-known.appspecific.com[.]chrome[.]devtools[.]json";
-    page: "/.well-known/appspecific/com.chrome.devtools.json";
-  };
-  "../../../../..//workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/routes/index.jsx": {
-    id: "vite/virtual-routes/routes/index";
-    page: "/";
-  };
 };
 
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "routes/blogs.$blogHandle.$articleHandle": typeof import("./app/routes/blogs.$blogHandle.$articleHandle.tsx");
-  "routes/api.$version.[graphql.json]": typeof import("./app/routes/api.$version.[graphql.json].tsx");
   "routes/sitemap.$type.$page[.xml]": typeof import("./app/routes/sitemap.$type.$page[.xml].tsx");
   "routes/blogs.$blogHandle._index": typeof import("./app/routes/blogs.$blogHandle._index.tsx");
   "routes/webhooks.orders-create": typeof import("./app/routes/webhooks.orders-create.ts");
@@ -356,9 +317,4 @@ type RouteModules = {
   "routes/cart": typeof import("./app/routes/cart.tsx");
   "routes/cart.$lines": typeof import("./app/routes/cart.$lines.tsx");
   "routes/$": typeof import("./app/routes/$.tsx");
-  "/workspace/charaideo-reserves/charaideo-reserves-hydrogen/node_modules/@shopify/hydrogen/dist/vite/virtual-routes/layout": unknown;
-  "vite/virtual-routes/routes/graphiql": unknown;
-  "vite/virtual-routes/routes/subrequest-profiler": unknown;
-  "vite/virtual-routes/routes/[.]well-known.appspecific.com[.]chrome[.]devtools[.]json": unknown;
-  "vite/virtual-routes/routes/index": unknown;
 };

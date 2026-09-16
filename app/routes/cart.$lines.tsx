@@ -1,8 +1,9 @@
 import {redirect} from 'react-router';
 import type {Route} from './+types/cart.$lines';
+import {parseCartPermalink} from '~/lib/storefront-input';
 
 /**
- * Automatically creates a new cart based on the URL and redirects straight to checkout.
+ * Automatically creates a new cart based on the URL and opens the cart page.
  * Expected URL structure:
  * ```js
  * /cart/<variant_id>:<quantity>
@@ -23,27 +24,21 @@ export async function loader({request, context, params}: Route.LoaderArgs) {
   const {cart} = context;
   const {lines} = params;
   if (!lines) return redirect('/cart');
-  const linesMap = lines.split(',').map((line) => {
-    const lineDetails = line.split(':');
-    const variantId = lineDetails[0];
-    const quantity = parseInt(lineDetails[1], 10);
-
-    return {
-      merchandiseId: `gid://shopify/ProductVariant/${variantId}`,
-      quantity,
-    };
-  });
-
   const url = new URL(request.url);
-  const searchParams = new URLSearchParams(url.search);
-
-  const discount = searchParams.get('discount');
-  const discountArray = discount ? [discount] : [];
+  let cartInput;
+  try {
+    cartInput = parseCartPermalink(lines, url.searchParams.get('discount'));
+  } catch {
+    throw new Response('Invalid cart link.', {
+      status: 400,
+      headers: {'Cache-Control': 'no-store'},
+    });
+  }
 
   // create a cart
   const result = await cart.create({
-    lines: linesMap,
-    discountCodes: discountArray,
+    lines: cartInput.lines,
+    discountCodes: cartInput.discountCodes,
   });
 
   const cartResult = result.cart;
@@ -57,12 +52,7 @@ export async function loader({request, context, params}: Route.LoaderArgs) {
   // Update cart id in cookie
   const headers = cart.setCartId(cartResult.id);
 
-  // redirect to checkout
-  if (cartResult.checkoutUrl) {
-    return redirect(cartResult.checkoutUrl, {headers});
-  } else {
-    throw new Error('No checkout URL found');
-  }
+  return redirect('/cart', {headers});
 }
 
 export default function Component() {

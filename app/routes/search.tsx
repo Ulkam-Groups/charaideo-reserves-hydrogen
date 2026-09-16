@@ -1,5 +1,6 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/search';
+import {normalizePredictiveSearch} from '~/lib/storefront-input';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {SearchForm} from '~/components/SearchForm';
 import {SearchResults} from '~/components/SearchResults';
@@ -25,9 +26,9 @@ export async function loader({request, context}: Route.LoaderArgs) {
       ? predictiveSearch({request, context})
       : regularSearch({request, context});
 
-  searchPromise.catch((error: Error) => {
-    console.error(error);
-    return {term: '', result: null, error: error.message};
+  searchPromise.catch(() => {
+    console.error('Storefront search failed.');
+    return {term: '', result: null, error: 'Search is temporarily unavailable.'};
   });
 
   return await searchPromise;
@@ -387,8 +388,10 @@ async function predictiveSearch({
 >): Promise<PredictiveSearchReturn> {
   const {storefront} = context;
   const url = new URL(request.url);
-  const term = String(url.searchParams.get('q') || '').trim();
-  const limit = Number(url.searchParams.get('limit') || 10);
+  const {term, limit} = normalizePredictiveSearch(
+    url.searchParams.get('q'),
+    url.searchParams.get('limit'),
+  );
   const type = 'predictive';
 
   if (!term) return {type, term, result: getEmptyPredictiveSearchResult()};

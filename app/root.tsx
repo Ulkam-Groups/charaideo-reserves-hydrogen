@@ -1,4 +1,4 @@
-import {useNonce} from '@shopify/hydrogen';
+import {Analytics, getShopAnalytics, Script, useNonce} from '@shopify/hydrogen';
 import {
   Links,
   Meta,
@@ -13,6 +13,7 @@ import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import riverThread from '../river-thread-web/river-thread-calligraphy.css?url';
+import {buildAnalyticsConsent} from '~/lib/analytics';
 
 export function links() {
   return [
@@ -46,17 +47,23 @@ export async function loader({context}: Route.LoaderArgs) {
       },
       cache: storefront.CacheLong(),
     })
-    .catch((error: Error) => {
-      console.error(error);
+    .catch(() => {
+      console.error('Footer query failed.');
       return null;
     });
 
   return {
     cart: cart.get(),
+    consent: buildAnalyticsConsent(env),
     footer,
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
+    fastrrSellerDomain: env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null,
+    shop: getShopAnalytics({
+      storefront,
+      publicStorefrontId: env.PUBLIC_STOREFRONT_ID || '0',
+    }),
   };
 }
 
@@ -71,11 +78,29 @@ export default function App() {
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
         <Links />
+        {data.fastrrSellerDomain && (
+          <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css" />
+        )}
       </head>
       <body>
-        <PageLayout {...data}>
-          <Outlet />
-        </PageLayout>
+        {data.fastrrSellerDomain && (
+          <input type="hidden" id="sellerDomain" value={data.fastrrSellerDomain} readOnly />
+        )}
+        <Analytics.Provider
+          cart={data.cart}
+          consent={data.consent}
+          shop={data.shop}
+        >
+          <PageLayout {...data}>
+            <Outlet />
+          </PageLayout>
+        </Analytics.Provider>
+        {data.fastrrSellerDomain && (
+          <Script
+            waitForHydration
+            src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js"
+          />
+        )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>

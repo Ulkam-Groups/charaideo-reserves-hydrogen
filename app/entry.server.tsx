@@ -15,12 +15,29 @@ export default async function handleRequest(
   context: HydrogenRouterContextProvider,
 ) {
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
-    styleSrc: ['https://fonts.googleapis.com'],
+    styleSrc: ['https://fonts.googleapis.com', 'https://fastrr-boost-ui.pickrr.com'],
+    scriptSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://sr-cdn.shiprocket.in',
+      'https://otpless.com',
+    ],
+    connectSrc: [
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://sr-cdn.shiprocket.in',
+      'https://uptime2.fastrr.com',
+      'https://cred.club',
+      'https://tez.google.com',
+    ],
+    frameSrc: ['https://fastrr-boost-ui.pickrr.com'],
     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     imgSrc: [
       "'self'",
       'https://cdn.shopify.com',
       'https://shopify.com',
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://sr-cdn.shiprocket.in',
       'https://images.unsplash.com',
       'data:',
     ],
@@ -48,7 +65,11 @@ export default async function handleRequest(
       nonce,
       signal: request.signal,
       onError(error) {
-        console.error(error);
+        console.error(JSON.stringify({
+          level: 'error',
+          scope: 'ssr',
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        }));
         responseStatusCode = 500;
       },
     },

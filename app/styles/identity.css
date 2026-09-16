@@ -234,6 +234,7 @@ button {cursor: pointer}
 .product-price-on-sale {align-items: center}
 .product-form {padding: 18px 0; border-block: 1px solid var(--thread)}
 .product-form > form,.product-form > form button {width: 100%; max-width: none}
+.product-buy-now {width: 100%; margin-top: 10px}
 .product-options h5 {margin: 0 0 9px; color: var(--burnt-clay); font: 600 8px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase}
 .product-options-grid {display: flex; flex-wrap: wrap; gap: 8px}
 .product-options-item,.product-options-item:disabled {min-width: 62px; min-height: 40px; padding: 8px 13px; border: 1px solid var(--thread)!important; border-radius: 2px 10px 2px 10px; background: var(--pure-white)!important; color: var(--aged-indigo)!important; font: 600 10px/1 var(--sans)}

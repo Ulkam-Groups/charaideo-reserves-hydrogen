@@ -9,6 +9,7 @@ import {
   useOutletContext,
 } from 'react-router';
 import type {Route} from './+types/account.profile';
+import {requireCustomerAuthStatus} from '~/lib/customer-auth.server';
 
 export type ActionResponse = {
   error: string | null;
@@ -20,7 +21,7 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader({context}: Route.LoaderArgs) {
-  context.customerAccount.handleAuthStatus();
+  await requireCustomerAuthStatus(context.customerAccount);
 
   return {};
 }
@@ -69,9 +70,12 @@ export async function action({request, context}: Route.ActionArgs) {
       error: null,
       customer: data?.customerUpdate?.customer,
     };
-  } catch (error: any) {
+  } catch {
     return data(
-      {error: error.message, customer: null},
+      {
+        error: 'Unable to update your profile right now. Please try again.',
+        customer: null,
+      },
       {
         status: 400,
       },

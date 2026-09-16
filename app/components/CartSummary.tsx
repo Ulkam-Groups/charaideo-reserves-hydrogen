@@ -1,8 +1,10 @@
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {CartLayout} from '~/components/CartMain';
 import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
-import {useEffect, useRef} from 'react';
-import {useFetcher} from 'react-router';
+import {useEffect, useRef, useState} from 'react';
+import {useFetcher, useRouteLoaderData} from 'react-router';
+import type {loader as rootLoader} from '~/root';
+import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -28,19 +30,65 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
       </dl>
       <CartDiscounts discountCodes={cart?.discountCodes} />
       <CartGiftCard giftCardCodes={cart?.appliedGiftCards} />
-      <CartCheckoutActions checkoutUrl={cart?.checkoutUrl} />
+      <CartCheckoutActions cart={cart} />
     </div>
   );
 }
 
-function CartCheckoutActions({checkoutUrl}: {checkoutUrl?: string}) {
-  if (!checkoutUrl) return null;
+function CartCheckoutActions({cart}: {cart: CartSummaryProps['cart']}) {
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const [checkoutError, setCheckoutError] = useState('');
+  if (!cart?.lines?.nodes?.length) return null;
+
+  const products = cart.lines.nodes.map((line) => ({
+    variantId: fastrrVariantId(line.merchandise.id),
+    quantity: line.quantity,
+  }));
+  const canUseFastrr = Boolean(
+    rootData?.fastrrSellerDomain &&
+      products.length > 0 &&
+      products.every((product) => product.variantId && product.quantity > 0) &&
+      !cart.isOptimistic &&
+      !cart.appliedGiftCards?.length,
+  );
+
+  function handleCheckout() {
+    if (!canUseFastrr) return;
+    const couponCode = cart?.discountCodes?.find((code) => code.applicable)?.code;
+    const cartAttributes = Object.fromEntries(
+      (cart?.attributes ?? [])
+        .filter((attribute): attribute is {key: string; value: string} =>
+          typeof attribute.value === 'string',
+        )
+        .map(({key, value}) => [key, value]),
+    );
+    const utmParams = new URLSearchParams(
+      [...new URLSearchParams(window.location.search)].filter(([key]) =>
+        key.startsWith('utm_'),
+      ),
+    ).toString();
+
+    if (!startFastrrCheckout({
+      type: 'cart',
+      products: products.map(({variantId, quantity}) => ({variantId: variantId!, quantity})),
+      ...(couponCode ? {couponCode} : {}),
+      ...(utmParams ? {utmParams} : {}),
+      ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
+    })) {
+      setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
+    } else {
+      setCheckoutError('');
+    }
+  }
 
   return (
     <div>
-      <a className="button primary checkout-button" href={checkoutUrl} target="_self">
+      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseFastrr}>
         <p>Continue to Checkout &rarr;</p>
-      </a>
+      </button>
+      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
+      {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}
+      {checkoutError && <p role="alert">{checkoutError}</p>}
       <p className="fine-print">Shipping and applicable taxes calculated at checkout.</p>
     </div>
   );
