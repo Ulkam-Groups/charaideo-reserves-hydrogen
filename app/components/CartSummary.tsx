@@ -5,6 +5,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useFetcher, useRouteLoaderData} from 'react-router';
 import type {loader as rootLoader} from '~/root';
 import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {useAside} from '~/components/Aside';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -14,6 +15,31 @@ type CartSummaryProps = {
 export function CartSummary({cart, layout}: CartSummaryProps) {
   const className =
     layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
+
+  if (layout === 'aside') {
+    return (
+      <div aria-label="Cart summary" className={className}>
+        <details className="cart-drawer-offers">
+          <summary>Have a discount code?</summary>
+          <div className="cart-drawer-offers-content">
+            <CartDiscounts discountCodes={cart?.discountCodes} />
+            {!!cart?.appliedGiftCards?.length && (
+              <CartGiftCard giftCardCodes={cart.appliedGiftCards} showInput={false} />
+            )}
+          </div>
+        </details>
+        <div className="cart-drawer-footer">
+          <dl className="cart-subtotal">
+            <dt>Subtotal</dt>
+            <dd>
+              {cart?.cost?.subtotalAmount ? <Money data={cart.cost.subtotalAmount} /> : '-'}
+            </dd>
+          </dl>
+          <CartCheckoutActions cart={cart} layout={layout} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div aria-labelledby="cart-summary" className={className}>
@@ -30,13 +56,14 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
       </dl>
       <CartDiscounts discountCodes={cart?.discountCodes} />
       <CartGiftCard giftCardCodes={cart?.appliedGiftCards} />
-      <CartCheckoutActions cart={cart} />
+      <CartCheckoutActions cart={cart} layout={layout} />
     </div>
   );
 }
 
-function CartCheckoutActions({cart}: {cart: CartSummaryProps['cart']}) {
+function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; layout: CartLayout}) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const {close} = useAside();
   const [checkoutError, setCheckoutError] = useState('');
   if (!cart?.lines?.nodes?.length) return null;
 
@@ -78,6 +105,7 @@ function CartCheckoutActions({cart}: {cart: CartSummaryProps['cart']}) {
       setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
     } else {
       setCheckoutError('');
+      if (layout === 'aside') close();
     }
   }
 
@@ -166,15 +194,17 @@ function UpdateDiscountForm({
 
 function CartGiftCard({
   giftCardCodes,
+  showInput = true,
 }: {
   giftCardCodes: CartApiQueryFragment['appliedGiftCards'] | undefined;
+  showInput?: boolean;
 }) {
   const giftCardCodeInput = useRef<HTMLInputElement>(null);
   const giftCardAddFetcher = useFetcher({key: 'gift-card-add'});
 
   useEffect(() => {
-    if (giftCardAddFetcher.data) {
-      giftCardCodeInput.current!.value = '';
+    if (giftCardAddFetcher.data && giftCardCodeInput.current) {
+      giftCardCodeInput.current.value = '';
     }
   }, [giftCardAddFetcher.data]);
 
@@ -197,7 +227,7 @@ function CartGiftCard({
         </dl>
       )}
 
-      <AddGiftCardForm fetcherKey="gift-card-add">
+      {showInput && <AddGiftCardForm fetcherKey="gift-card-add">
         <div>
           <input
             type="text"
@@ -211,7 +241,7 @@ function CartGiftCard({
             Apply
           </button>
         </div>
-      </AddGiftCardForm>
+      </AddGiftCardForm>}
     </div>
   );
 }
