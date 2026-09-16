@@ -7,6 +7,9 @@ declare module 'virtual:react-router/server-build' {
 }
 declare global {
   interface Env {
+    RAZORPAY_KEY_ID?: string;
+    RAZORPAY_KEY_SECRET?: string;
+    RAZORPAY_WEBHOOK_SECRET?: string;
     PUBLIC_FASTRR_SELLER_DOMAIN?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
