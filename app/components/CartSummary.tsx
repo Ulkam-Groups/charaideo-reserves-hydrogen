@@ -84,7 +84,7 @@ function CartCheckoutActions({cart}: {cart: CartSummaryProps['cart']}) {
   return (
     <div>
       <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseFastrr}>
-        <p>Continue to Checkout &rarr;</p>
+        <span>Checkout with Shiprocket &rarr;</span>
       </button>
       {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
       {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}

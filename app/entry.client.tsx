@@ -19,7 +19,7 @@ if (!window.location.origin.includes('webcache.googleusercontent.com')) {
       {
         onRecoverableError(error, info) {
           console.error(error);
-          if (window.location.hostname.endsWith('.myshopify.dev')) {
+          if (info.componentStack) {
             console.error('Hydration component stack:', info.componentStack);
           }
         },

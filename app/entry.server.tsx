@@ -27,6 +27,7 @@ export default async function handleRequest(
       'https://fastrr-boost-ui.pickrr.com',
       'https://sr-cdn.shiprocket.in',
       'https://uptime2.fastrr.com',
+      'https://events.pickrr.com',
       'https://cred.club',
       'https://tez.google.com',
     ],
