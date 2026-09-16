@@ -22,6 +22,7 @@ export async function action({request, context}: Route.ActionArgs) {
   let input: {source?: unknown; variantId?: unknown};
   try { input = await request.json(); } catch { return new Response('Invalid JSON', {status: 400}); }
 
+  let stage = 'validate';
   try {
     let lineItems: Array<{variantId: string; quantity: number}>;
     let note: string;
@@ -37,6 +38,7 @@ export async function action({request, context}: Route.ActionArgs) {
       }
       note = `Hydrogen cart ${cart.id}`;
     } else if (input.source === 'product' && typeof input.variantId === 'string' && /^gid:\/\/shopify\/ProductVariant\/\d+$/.test(input.variantId)) {
+      stage = 'shopify-variant';
       const result = await context.storefront.query(VARIANT_QUERY, {variables: {id: input.variantId}}) as {node?: {id: string; availableForSale: boolean}};
       if (!result.node?.availableForSale) return Response.json({error: 'This product is no longer available.'}, {status: 422});
       lineItems = [{variantId: result.node.id, quantity: 1}];
@@ -45,13 +47,16 @@ export async function action({request, context}: Route.ActionArgs) {
       return new Response('Invalid checkout source', {status: 400});
     }
 
+    stage = 'shopify-draft';
     const draft = await createDraft(context.env, {lineItems, note});
+    stage = 'draft-pricing';
     const amount = paise(draft.totalPriceSet.shopMoney.amount);
     if (amount < 100) return Response.json({error: 'Order amount is too low.'}, {status: 422});
     const magicItems = draftToMagicItems(draft);
     if (magicItems.reduce((sum, item) => sum + item.offer_price * item.quantity, 0) !== amount) {
       return Response.json({error: 'The Shopify total needs review before Magic Checkout can charge this cart.'}, {status: 422});
     }
+    stage = 'razorpay-order';
     const order = await razorpayApi<MagicOrder>(context.env, '/orders', {
       amount,
       currency: 'INR',
@@ -68,7 +73,8 @@ export async function action({request, context}: Route.ActionArgs) {
       headers: {'Cache-Control': 'no-store', 'Set-Cookie': await context.session.commit()},
     });
   } catch (error) {
-    console.error(JSON.stringify({scope: 'razorpay-create', errorName: error instanceof Error ? error.name : 'UnknownError'}));
-    return Response.json({error: 'Checkout could not be started. Please try again.'}, {status: 502});
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(JSON.stringify({scope: 'razorpay-create', stage, errorName: error instanceof Error ? error.name : 'UnknownError', errorMessage: message.slice(0, 500)}));
+    return Response.json({error: `Checkout could not be started at ${stage}. Please contact us if this persists.`, stage}, {status: 502});
   }
 }
