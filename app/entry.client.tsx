@@ -16,6 +16,14 @@ if (!window.location.origin.includes('webcache.googleusercontent.com')) {
           <HydratedRouter />
         </NonceProvider>
       </StrictMode>,
+      {
+        onRecoverableError(error, info) {
+          console.error(error);
+          if (window.location.hostname.endsWith('.myshopify.dev')) {
+            console.error('Hydration component stack:', info.componentStack);
+          }
+        },
+      },
     );
   });
 }
