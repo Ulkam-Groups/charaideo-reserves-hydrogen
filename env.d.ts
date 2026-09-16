@@ -12,6 +12,8 @@ declare global {
     RAZORPAY_WEBHOOK_SECRET?: string;
     RAZORPAY_CUSTOM_SHIPPING_READY?: string;
     SHOPIFY_ADMIN_API_TOKEN?: string;
+    SHOPIFY_ADMIN_CLIENT_ID?: string;
+    SHOPIFY_ADMIN_CLIENT_SECRET?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
     JUDGEME_PRIVATE_API_TOKEN?: string;

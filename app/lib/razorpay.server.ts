@@ -43,7 +43,32 @@ type MagicAddress = {
 type GraphQLResult<T> = {data?: T; errors?: Array<{message: string}>};
 
 export function razorpayConfigured(env: Env) {
-  return Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET && env.SHOPIFY_ADMIN_API_TOKEN && env.RAZORPAY_CUSTOM_SHIPPING_READY === 'true');
+  const hasAdminAccess = env.SHOPIFY_ADMIN_API_TOKEN || (env.SHOPIFY_ADMIN_CLIENT_ID && env.SHOPIFY_ADMIN_CLIENT_SECRET);
+  return Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET && hasAdminAccess && env.RAZORPAY_CUSTOM_SHIPPING_READY === 'true');
+}
+
+let adminGrantCache: {shop: string; clientId: string; clientSecret: string; token: string; expiresAt: number} | undefined;
+
+async function shopifyAdminToken(env: Env, shop: string) {
+  if (env.SHOPIFY_ADMIN_API_TOKEN) return env.SHOPIFY_ADMIN_API_TOKEN;
+  const clientId = env.SHOPIFY_ADMIN_CLIENT_ID;
+  const clientSecret = env.SHOPIFY_ADMIN_CLIENT_SECRET;
+  if (!clientId || !clientSecret) throw new Error('Shopify Admin API credentials are not configured');
+  if (adminGrantCache?.shop === shop && adminGrantCache.clientId === clientId && adminGrantCache.clientSecret === clientSecret && Date.now() < adminGrantCache.expiresAt) {
+    return adminGrantCache.token;
+  }
+  const response = await fetch(`https://${shop}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret}),
+  });
+  if (!response.ok) throw new Error(`Shopify Admin token request returned ${response.status}`);
+  const grant = await response.json() as {access_token?: unknown; expires_in?: unknown};
+  if (typeof grant.access_token !== 'string' || !grant.access_token || typeof grant.expires_in !== 'number' || grant.expires_in <= 60) {
+    throw new Error('Shopify Admin token response is invalid');
+  }
+  adminGrantCache = {shop, clientId, clientSecret, token: grant.access_token, expiresAt: Date.now() + (grant.expires_in - 60) * 1000};
+  return grant.access_token;
 }
 
 export async function razorpayApi<T>(env: Env, path: string, body?: unknown): Promise<T> {
@@ -63,10 +88,10 @@ export async function razorpayApi<T>(env: Env, path: string, body?: unknown): Pr
 
 export async function shopifyAdmin<T>(env: Env, query: string, variables: Record<string, unknown>): Promise<T> {
   const shop = env.PUBLIC_STORE_DOMAIN;
-  const token = env.SHOPIFY_ADMIN_API_TOKEN;
-  if (!shop || !/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i.test(shop) || !token) {
+  if (!shop || !/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i.test(shop)) {
     throw new Error('Shopify Admin API is not configured');
   }
+  const token = await shopifyAdminToken(env, shop);
   const response = await fetch(`https://${shop}/admin/api/${ADMIN_VERSION}/graphql.json`, {
     method: 'POST',
     headers: {'Content-Type': 'application/json', 'X-Shopify-Access-Token': token},

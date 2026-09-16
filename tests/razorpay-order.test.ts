@@ -1,11 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {draftIdFromReceipt, paymentKind, razorpayConfigured, receiptFromDraftId, synchronizeConfirmedOrder, verifyCheckoutSignature} from '../app/lib/razorpay.server.ts';
+import {draftIdFromReceipt, paymentKind, razorpayConfigured, receiptFromDraftId, shopifyAdmin, synchronizeConfirmedOrder, verifyCheckoutSignature} from '../app/lib/razorpay.server.ts';
 
 test('private preview checkout can use server confirmation without a public webhook', () => {
   const env = {RAZORPAY_KEY_ID: 'rzp_test_123', RAZORPAY_KEY_SECRET: 'secret', SHOPIFY_ADMIN_API_TOKEN: 'token', RAZORPAY_CUSTOM_SHIPPING_READY: 'true'} as Env;
   assert.equal(razorpayConfigured(env), true);
   assert.equal(razorpayConfigured({...env, RAZORPAY_CUSTOM_SHIPPING_READY: 'false'}), false);
+});
+
+test('new Shopify custom app credentials are exchanged for an Admin API token', async () => {
+  const env = {PUBLIC_STORE_DOMAIN: 'store.myshopify.com', SHOPIFY_ADMIN_CLIENT_ID: 'client-for-test', SHOPIFY_ADMIN_CLIENT_SECRET: 'private-test-secret'} as Env;
+  assert.equal(razorpayConfigured({...env, RAZORPAY_KEY_ID: 'rzp_test_123', RAZORPAY_KEY_SECRET: 'secret', RAZORPAY_CUSTOM_SHIPPING_READY: 'true'}), true);
+  const originalFetch = globalThis.fetch;
+  const calls: string[] = [];
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    calls.push(url);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      assert.equal(new URLSearchParams(String(init?.body)).get('grant_type'), 'client_credentials');
+      return Response.json({access_token: 'admin-test-token', expires_in: 86399});
+    }
+    assert.equal((init?.headers as Record<string, string>)['X-Shopify-Access-Token'], 'admin-test-token');
+    return Response.json({data: {shop: {id: 'gid://shopify/Shop/1'}}});
+  };
+  try {
+    assert.deepEqual(await shopifyAdmin(env, '{ shop { id } }', {}), {shop: {id: 'gid://shopify/Shop/1'}});
+    assert.deepEqual(await shopifyAdmin(env, '{ shop { id } }', {}), {shop: {id: 'gid://shopify/Shop/1'}});
+    assert.equal(calls.filter((url) => url.endsWith('/admin/oauth/access_token')).length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('checkout signature verifies the server-side order and payment pair', async () => {
