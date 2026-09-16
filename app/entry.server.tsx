@@ -16,12 +16,24 @@ export default async function handleRequest(
 ) {
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     styleSrc: ['https://fonts.googleapis.com', 'https://fastrr-boost-ui.pickrr.com'],
-    scriptSrc: ['https://fastrr-boost-ui.pickrr.com'],
+    scriptSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://sr-cdn.shiprocket.in',
+    ],
+    connectSrc: [
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://sr-cdn.shiprocket.in',
+    ],
+    frameSrc: ['https://fastrr-boost-ui.pickrr.com'],
     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     imgSrc: [
       "'self'",
       'https://cdn.shopify.com',
       'https://shopify.com',
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://sr-cdn.shiprocket.in',
       'https://images.unsplash.com',
       'data:',
     ],

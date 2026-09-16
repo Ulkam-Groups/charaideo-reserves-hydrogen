@@ -10,8 +10,9 @@ Set `PUBLIC_FASTRR_SELLER_DOMAIN` to the exact seller domain configured by
 Shiprocket (domain only, without `https://`), in the local environment and the
 deployed storefront environment. Checkout remains disabled until it is set.
 
-When configured, the storefront loads Shiprocket's Shopify script and CSS on
-every page. Cart checkout sends variant IDs, quantities, the first applicable
+When configured, the storefront loads Shiprocket's CSS on every page and its
+Shopify script after React hydration to prevent third-party DOM changes from
+breaking Hydrogen hydration. Cart checkout sends variant IDs, quantities, the first applicable
 discount code, URL UTM parameters, and cart attributes. The product page's
 Buy now action sends the selected variant with `type: 'product'`. If the vendor
 script is unavailable, checkout displays an error instead of opening Shopify's

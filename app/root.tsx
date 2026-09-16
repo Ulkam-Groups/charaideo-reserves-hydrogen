@@ -1,4 +1,4 @@
-import {Analytics, getShopAnalytics, useNonce} from '@shopify/hydrogen';
+import {Analytics, getShopAnalytics, Script, useNonce} from '@shopify/hydrogen';
 import {
   Links,
   Meta,
@@ -79,10 +79,7 @@ export default function App() {
         <Meta />
         <Links />
         {data.fastrrSellerDomain && (
-          <>
-            <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css" />
-            <script src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js" defer nonce={nonce} />
-          </>
+          <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css" />
         )}
       </head>
       <body>
@@ -98,6 +95,12 @@ export default function App() {
             <Outlet />
           </PageLayout>
         </Analytics.Provider>
+        {data.fastrrSellerDomain && (
+          <Script
+            waitForHydration
+            src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js"
+          />
+        )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
