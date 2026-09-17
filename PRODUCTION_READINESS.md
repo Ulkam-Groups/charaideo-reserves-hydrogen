@@ -1,9 +1,10 @@
 # Production readiness and security backlog
 
-Reviewed: 2026-09-13
+Reviewed: 2026-09-17 (`main` branch)
 
 This is the prioritized release checklist for the Charaideo Reserves Hydrogen
-storefront. A checked local control is not proof that its production deployment
+storefront on `main`. The experimental Razorpay branch is outside this release
+checklist. A checked local control is not proof that its production deployment
 or Shopify Admin configuration has been verified.
 
 ## Current security disposition
@@ -21,8 +22,8 @@ Implemented and locally verified:
 - [x] Removed all Admin API scopes. This storefront uses Storefront and Customer
   Account APIs only.
 - [x] Added Hydrogen analytics, Shopify consent integration, and the privacy
-  banner. `PUBLIC_CHECKOUT_DOMAIN` remains the Shopify-hosted checkout domain
-  and is also used for CSP and consent.
+  banner. `PUBLIC_CHECKOUT_DOMAIN` remains configured for Shopify analytics,
+  consent, and CSP; this branch initiates checkout through Shiprocket Fastrr.
 - [x] Awaited Customer Account auth status on profile, address, and account
   fallback routes.
 - [x] Removed the redundant manual Storefront API proxy. Hydrogen's
@@ -36,6 +37,13 @@ Implemented and locally verified:
 - [x] Kept Judge.me below the critical render path and added request coalescing,
   Oxygen caching, short negative caching, and a one-page fallback limit.
 - [x] Added regression coverage for these controls.
+
+Checkout code present on `main`, pending live verification:
+
+- [x] Product Buy now and cart checkout call Fastrr with Shopify variant IDs.
+  The seller domain gates both actions, and vendor script failures show an error.
+- [ ] Verify the seller configuration, vendor script, checkout totals, and
+  resulting Shopify order on the production-like deployment.
 
 Explicitly deferred by the owner:
 
@@ -61,16 +69,34 @@ Explicitly deferred by the owner:
 - [ ] Document exploitability and compensating controls for each residual
   advisory.
 
-### Shopify checkout and environment
+### Release deployment
+
+- [ ] Verify the exact release commit passes tests, typecheck, production build,
+  and the dependency decision before merging. The current Oxygen workflow
+  deploys on every push after `npm ci` without those checks.
+- [ ] Confirm the target Oxygen environment, rollback deployment, and person
+  responsible for authorizing the production merge.
+
+### Shiprocket Fastrr checkout and environment
 
 - [ ] Verify production store/checkout domains, Storefront tokens/ID, Customer
-  Account configuration, and privacy-banner regions in Shopify Admin/Oxygen.
-- [ ] Run a development-store product -> cart -> Shopify-hosted checkout test
-  covering quantity, inventory, discounts, gift cards if enabled, market,
-  taxes, shipping, test payment, cancellation, and sold-out behavior.
-- [ ] Confirm totals and inventory come only from Shopify product/variant data.
-- [ ] Verify checkout and analytics cookies persist across storefront and
-  checkout domains.
+  Account configuration, privacy-banner regions, and
+  `PUBLIC_FASTRR_SELLER_DOMAIN` in Shopify Admin/Oxygen and Shiprocket.
+- [ ] On the exact release deployment, confirm the Fastrr CSS loads and its
+  Shopify script initializes after hydration on product and cart pages. Record
+  any CSP-blocked vendor origins and allow only the origins actually required.
+- [ ] Test Buy now and cart checkout through Fastrr with one and multiple
+  variants, quantity changes, an applicable discount code, cart attributes,
+  UTM parameters, sold-out products, script failure, and an empty cart.
+- [ ] Confirm gift-card carts stay blocked with a clear message until the
+  vendor flow can apply their balance correctly.
+- [ ] Place test prepaid and COD orders, if enabled, and reconcile product,
+  discount, shipping, tax, payment status, customer details, and inventory in
+  the final Shopify orders. Test cancellation and refund handling as well.
+- [ ] Confirm Shopify product/variant prices and availability are authoritative
+  and that the Fastrr order total matches the final Shopify order.
+- [ ] Verify checkout/analytics consent and attribution across the Hydrogen,
+  Shiprocket, and Shopify domains used by the actual order flow.
 
 ### Webhook retirement
 
@@ -89,10 +115,18 @@ implement them before any future public-app distribution.
 
 ### CI and regression prevention
 
+The CI workflow now gates Oxygen pushes on formatting/lint, TypeScript,
+unit/integration tests, a production build, and mock.shop Playwright catalog,
+cart, Fastrr-launch, and cart-cookie tests. Fastrr is stubbed and all external
+browser requests are blocked. Customer Account Playwright tests are present but
+run only when a dedicated test deployment and session are configured; see
+`tests/README.md`. Dependency audit, secret scan, lockfile integrity, and branch
+protection still need separate gates.
+
 - [ ] Add CI jobs for formatting/lint, TypeScript, unit/integration tests,
   production build, dependency audit, secret scan, and lockfile integrity.
 - [ ] Make every required CI job block merge and production deployment.
-- [ ] Add Playwright coverage for catalog -> PDP -> cart -> hosted checkout,
+- [ ] Add Playwright coverage for catalog -> PDP -> cart -> Fastrr launch,
   login/logout, profile/address updates, and cart-cookie persistence.
 - [ ] Test Storefront and Customer Account GraphQL partial failures (`200` with
   `errors`/`userErrors`), timeouts, and session expiry.
@@ -109,8 +143,8 @@ implement them before any future public-app distribution.
 
 - [ ] Connect centralized error/performance monitoring and uptime checks.
 - [ ] Confirm request IDs and release identifiers reach redacted persisted logs.
-- [ ] Alert on checkout failures, 5xx/429 rates, Customer Account failures,
-  Storefront latency, Judge.me quota/failures, and webhook retries.
+- [ ] Alert on Fastrr launch/order reconciliation failures, 5xx/429 rates,
+  Customer Account failures, Storefront latency, and Judge.me quota/failures.
 - [ ] Define deployment approval, rollback, incident response, Shopify outage,
   credential rotation, recovery objectives, and support ownership.
 - [ ] Back up business-owned configuration and test restoration.
@@ -128,7 +162,8 @@ implement them before any future public-app distribution.
 ### Performance
 
 - [ ] Establish LCP, INP, CLS, server latency, error rate, bundle size, cache-hit
-  ratio, and third-party call budgets; alert or fail CI on regression.
+  ratio, and third-party call budgets, including the Fastrr script; alert or
+  fail CI on regression.
 - [ ] Run coordinated load/failure tests for Shopify and Judge.me latency,
   quota exhaustion, timeouts, malformed responses, and partial API errors.
 - [ ] Audit image transforms/dimensions, lazy loading, critical fonts, route
