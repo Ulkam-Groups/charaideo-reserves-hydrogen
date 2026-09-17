@@ -13,7 +13,9 @@ exchanges these for a short-lived Admin API token. A legacy admin-created custom
 app can instead use `SHOPIFY_ADMIN_API_TOKEN`. This is distinct from Hydrogen's
 `PRIVATE_STOREFRONT_API_TOKEN`. The app needs `write_draft_orders`,
 `read_orders`, and `read_products` (the draft response includes variant details),
-plus permission to mark drafts paid. Keep this branch on Razorpay test keys until a full test order has
+plus permission to mark drafts paid. After adding scopes in the Dev Dashboard,
+release a new app version and approve the added access on the installed store;
+then redeploy Oxygen to refresh the cached Admin token. Keep this branch on Razorpay test keys until a full test order has
 been reconciled in Shopify Admin. `RAZORPAY_WEBHOOK_SECRET` is only needed when
 a public webhook receiver is available; private PR testing uses the checkout
 callback, which verifies the Razorpay signature and payment/order status on the
