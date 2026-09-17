@@ -4,7 +4,7 @@ import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
 import {useEffect, useRef, useState} from 'react';
 import {useFetcher, useRouteLoaderData} from 'react-router';
 import type {loader as rootLoader} from '~/root';
-import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {openMagicCheckout} from '~/lib/razorpay.client';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -38,57 +38,44 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
 function CartCheckoutActions({cart}: {cart: CartSummaryProps['cart']}) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutStatus, setCheckoutStatus] = useState('');
+  const [opening, setOpening] = useState(false);
   if (!cart?.lines?.nodes?.length) return null;
 
-  const products = cart.lines.nodes.map((line) => ({
-    variantId: fastrrVariantId(line.merchandise.id),
-    quantity: line.quantity,
-  }));
-  const canUseFastrr = Boolean(
-    rootData?.fastrrSellerDomain &&
-      products.length > 0 &&
-      products.every((product) => product.variantId && product.quantity > 0) &&
-      !cart.isOptimistic &&
-      !cart.appliedGiftCards?.length,
+  const canCheckout = Boolean(
+    rootData?.magicCheckoutReady &&
+      !cart.isOptimistic && !opening &&
+      !cart.appliedGiftCards?.length &&
+      !cart.discountCodes?.some((code) => code.applicable),
   );
 
-  function handleCheckout() {
-    if (!canUseFastrr) return;
-    const couponCode = cart?.discountCodes?.find((code) => code.applicable)?.code;
-    const cartAttributes = Object.fromEntries(
-      (cart?.attributes ?? [])
-        .filter((attribute): attribute is {key: string; value: string} =>
-          typeof attribute.value === 'string',
-        )
-        .map(({key, value}) => [key, value]),
-    );
-    const utmParams = new URLSearchParams(
-      [...new URLSearchParams(window.location.search)].filter(([key]) =>
-        key.startsWith('utm_'),
-      ),
-    ).toString();
-
-    if (!startFastrrCheckout({
-      type: 'cart',
-      products: products.map(({variantId, quantity}) => ({variantId: variantId!, quantity})),
-      ...(couponCode ? {couponCode} : {}),
-      ...(utmParams ? {utmParams} : {}),
-      ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
-    })) {
-      setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
-    } else {
-      setCheckoutError('');
+  async function handleCheckout() {
+    if (!canCheckout) return;
+    setOpening(true);
+    setCheckoutError('');
+    setCheckoutStatus('');
+    try {
+      await openMagicCheckout({source: 'cart'}, {
+        onSuccess: setCheckoutStatus,
+        onError: setCheckoutError,
+        onClose: () => setOpening(false),
+      });
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error.message : 'Checkout could not be started.');
+    } finally {
+      setOpening(false);
     }
   }
 
   return (
     <div>
-      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseFastrr}>
-        <p>Continue to Checkout &rarr;</p>
+      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canCheckout}>
+        <p>{opening ? 'Opening checkout…' : 'Continue to Checkout →'}</p>
       </button>
-      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
-      {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}
+      {!rootData?.magicCheckoutReady && <p role="status">Checkout is being configured.</p>}
+      {(!!cart.appliedGiftCards?.length || cart.discountCodes?.some((code) => code.applicable)) && <p role="status">Remove gift cards and discount codes to use this checkout.</p>}
       {checkoutError && <p role="alert">{checkoutError}</p>}
+      {checkoutStatus && <p role="status">{checkoutStatus}</p>}
       <p className="fine-print">Shipping and applicable taxes calculated at checkout.</p>
     </div>
   );
