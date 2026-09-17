@@ -12,6 +12,7 @@ import {action as addressAction} from '../../app/routes/account.addresses';
 function request(method: string, body: Record<string, string>) {
   return new Request('https://store.example/account', {
     method,
+    headers: {Origin: 'https://store.example'},
     body: new URLSearchParams(body),
   });
 }

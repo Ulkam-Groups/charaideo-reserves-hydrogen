@@ -1,6 +1,28 @@
 import {expect, test} from '@playwright/test';
 import {isolateCheckout} from './fastrr-guard';
 
+test('storefront CSP permits configured checkout and third-party assets', async ({
+  page,
+  context,
+}) => {
+  await isolateCheckout(context);
+  const response = await page.goto('/collections/all');
+  const csp = response?.headers()['content-security-policy'] ?? '';
+  for (const origin of [
+    'https://fastrr-boost-ui.pickrr.com',
+    'https://sr-cdn.shiprocket.in',
+    'https://otpless.com',
+    'https://uptime2.fastrr.com',
+    'https://fonts.googleapis.com',
+    'https://fonts.gstatic.com',
+    'https://images.unsplash.com',
+  ]) {
+    expect(csp).toContain(origin);
+  }
+  await expect(page.locator('script[src*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(1);
+  await expect(page.locator('link[href*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(1);
+});
+
 test('catalog to product to cart launches Fastrr with Shopify variant IDs', async ({
   page,
   context,

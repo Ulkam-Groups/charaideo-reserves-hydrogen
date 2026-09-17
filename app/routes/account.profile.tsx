@@ -10,6 +10,7 @@ import {
 } from 'react-router';
 import type {Route} from './+types/account.profile';
 import {requireCustomerAuthStatus} from '~/lib/customer-auth.server';
+import {readProtectedForm} from '~/lib/protected-write.server';
 
 export type ActionResponse = {
   error: string | null;
@@ -29,11 +30,8 @@ export async function loader({context}: Route.LoaderArgs) {
 export async function action({request, context}: Route.ActionArgs) {
   const {customerAccount} = context;
 
-  if (request.method !== 'PUT') {
-    return data({error: 'Method not allowed'}, {status: 405});
-  }
-
-  const form = await request.formData();
+  const form = await readProtectedForm(request, {methods: ['PUT'], maxBytes: 16 * 1024});
+  if (form instanceof Response) return form;
 
   try {
     const customer: CustomerUpdateInput = {};

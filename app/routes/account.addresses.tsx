@@ -18,6 +18,7 @@ import {
   CREATE_ADDRESS_MUTATION,
 } from '~/graphql/customer-account/CustomerAddressMutations';
 import {requireCustomerAuthStatus} from '~/lib/customer-auth.server';
+import {readProtectedForm} from '~/lib/protected-write.server';
 
 export type ActionResponse = {
   addressId?: string | null;
@@ -42,9 +43,13 @@ export async function action({request, context}: Route.ActionArgs) {
   const {customerAccount} = context;
   let submittedAddressId = '';
 
-  try {
-    const form = await request.formData();
+  const form = await readProtectedForm(request, {
+    methods: ['POST', 'PUT', 'DELETE'],
+    maxBytes: 16 * 1024,
+  });
+  if (form instanceof Response) return form;
 
+  try {
     const addressId = form.has('addressId')
       ? String(form.get('addressId'))
       : null;

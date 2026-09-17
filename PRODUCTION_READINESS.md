@@ -1,11 +1,11 @@
 # Production readiness and security backlog
 
-Reviewed: 2026-09-17 (`main` branch)
+Reviewed: 2026-09-17 (`prodReady` branch, PR #11 targeting `main`)
 
 This is the prioritized release checklist for the Charaideo Reserves Hydrogen
-storefront on `main`. The experimental Razorpay branch is outside this release
-checklist. A checked local control is not proof that its production deployment
-or Shopify Admin configuration has been verified.
+storefront intended for `main`. The experimental Razorpay branch is outside
+this release checklist. A checked local control is not proof that its
+production deployment or Shopify Admin configuration has been verified.
 
 ## Current security disposition
 
@@ -72,8 +72,10 @@ Explicitly deferred by the owner:
 ### Release deployment
 
 - [ ] Verify the exact release commit passes tests, typecheck, production build,
-  and the dependency decision before merging. The current Oxygen workflow
-  deploys on every push after `npm ci` without those checks.
+  and the dependency decision before merging. The Oxygen workflow now gates
+  push deployments on formatting/lint, TypeScript, unit/integration tests,
+  storefront Playwright, and the production build; the dependency decision
+  remains open.
 - [ ] Confirm the target Oxygen environment, rollback deployment, and person
   responsible for authorizing the production merge.
 
@@ -115,28 +117,45 @@ implement them before any future public-app distribution.
 
 ### CI and regression prevention
 
-The CI workflow now gates Oxygen pushes on formatting/lint, TypeScript,
-unit/integration tests, a production build, and mock.shop Playwright catalog,
-cart, Fastrr-launch, and cart-cookie tests. Fastrr is stubbed and all external
-browser requests are blocked. Customer Account Playwright tests are present but
-run only when a dedicated test deployment and session are configured; see
-`tests/README.md`. Dependency audit, secret scan, lockfile integrity, and branch
-protection still need separate gates.
+Local verification on 2026-09-17: 27 unit tests, 12 route integration tests,
+and all 7 storefront Playwright tests passed (the new CSP case was rerun after
+the other six); formatting/lint, TypeScript, and
+the production build also passed. The browser tests use mock.shop for fictional
+Storefront API products and carts. They fulfill the Fastrr script locally,
+record `buyDirect` calls, and block other off-host browser requests. They do
+not verify a live Fastrr checkout or a resulting Shopify order.
 
-- [ ] Add CI jobs for formatting/lint, TypeScript, unit/integration tests,
-  production build, dependency audit, secret scan, and lockfile integrity.
-- [ ] Make every required CI job block merge and production deployment.
-- [ ] Add Playwright coverage for catalog -> PDP -> cart -> Fastrr launch,
-  login/logout, profile/address updates, and cart-cookie persistence.
-- [ ] Test Storefront and Customer Account GraphQL partial failures (`200` with
-  `errors`/`userErrors`), timeouts, and session expiry.
+- [x] Add CI jobs for formatting/lint, TypeScript, unit/integration tests,
+  storefront Playwright, and the production build. Formatting currently checks
+  tests and test configuration; lint covers app and tests.
+- [x] Require those five jobs before the workflow's Oxygen push deployment.
+- [x] Add mocked Playwright coverage for catalog -> PDP -> cart -> Fastrr
+  launch, cart-cookie persistence, empty cart, missing/throwing vendor script,
+  quantity, and UTM parameters.
+- [x] Add route integration tests for simulated Storefront and Customer Account
+  GraphQL errors, `userErrors`, timeouts, and session expiry. These inject
+  client results; they do not exercise actual HTTP 200 responses from Shopify.
+- [ ] Add dependency audit, secret scan, and lockfile integrity CI gates.
+- [ ] Configure branch protection so required checks block merging PRs. The
+  workflow gates push deployments, but branch protection is separate.
+- [ ] Configure and run Customer Account Playwright tests for login/logout and
+  profile/address updates against a dedicated test deployment. The job is
+  skipped on PR events and on pushes while `E2E_ACCOUNT_BASE_URL` is unset;
+  see `tests/README.md`. A skipped job is not a passing test.
+- [ ] Verify real Storefront and Customer Account HTTP 200 partial failures,
+  timeouts, and session expiry in a controlled test environment.
 
 ### Abuse controls
 
 - [ ] Add Oxygen/edge rate limits and alerts for search, cart permalinks,
   account writes, and anomalous Judge.me traffic.
-- [ ] Add strict content-type, request-size, and CSRF/origin checks to every
-  future cookie-authenticated custom write endpoint.
+- [x] Added a shared same-origin, Fetch Metadata, form content-type, and streamed
+  request-size guard to the current cart, profile, address, and logout actions.
+  Use `readProtectedForm` before parsing or mutating data in every future
+  cookie-backed browser write action. The Shopify webhook uses HMAC instead of
+  browser-origin checks. Local unit, route integration, and mocked browser
+  coverage verify the existing flows; verify the same guards on the deployed
+  custom domain before production traffic.
 - [ ] Verify production session and cart cookie flags on the custom domain.
 
 ### Monitoring and response
