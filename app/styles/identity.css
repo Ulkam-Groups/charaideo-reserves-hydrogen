@@ -370,17 +370,71 @@ button {cursor: pointer}
 .cart-line-quantity {display: flex; align-items: center; gap: 8px; margin-top: 20px}
 .cart-line-quantity small {font-size: 9px; letter-spacing: .08em; text-transform: uppercase}
 .cart-line-quantity button {min-width: 34px; min-height: 34px; border: 1px solid var(--thread); background: transparent; color: var(--aged-indigo)}
-.cart-line-quantity form:last-child button {width: auto; padding-inline: 10px; border: 0; color: var(--assam-red); text-decoration: underline}
+.cart-line-quantity > form:last-child button {width: auto; padding-inline: 10px; border: 0; color: var(--assam-red); text-decoration: underline}
 .cart-summary-page,.cart-summary-aside {padding: 28px; background: var(--gamosa-cream); border: 1px solid var(--thread)}
 .cart-summary-page h4,.cart-summary-aside h4 {margin: 0 0 25px; font-size: 32px}
 .cart-subtotal {display: flex; justify-content: space-between; padding: 18px 0; border-block: 1px solid var(--thread); color: var(--aged-indigo)}
 .cart-summary-page input,.cart-summary-aside input {width: calc(100% - 72px); min-height: 44px; padding: 10px; background: var(--paper); border: 1px solid var(--thread); border-radius: 0}
 .cart-summary-page form button,.cart-summary-aside form button {min-height: 44px; background: transparent; border: 0; color: var(--assam-red); font-size: 10px; text-transform: uppercase}
 .checkout-button {width: 100%; margin-top: 20px}
-.checkout-button p {font: inherit}
 .cart-main > div[hidden] + .cart-details:empty {display: none}
-.cart-main > div:not([hidden]) {min-height: 300px; padding: 55px 0; color: var(--quiet-ink)}
-.cart-main > div:not([hidden]) p {font: 500 30px/1.25 var(--serif); color: var(--assam-red)}
+.cart-main > div:not([hidden]):not(.cart-details) {min-height: 300px; padding: 55px 0; color: var(--quiet-ink)}
+.cart-main > div:not([hidden]):not(.cart-details) p {font: 500 30px/1.25 var(--serif); color: var(--assam-red)}
+.cart-quantity-stepper {display: inline-flex; align-items: center; border: 1px solid var(--thread)}
+.cart-quantity-stepper form {margin: 0}
+.cart-quantity-value {min-width: 30px; text-align: center; font-size: var(--type-small)}
+.cart-quantity-stepper button {border: 0}
+.overlay--cart {--aside-width: 460px}
+.overlay--cart aside {display: flex; flex-direction: column; background: var(--paper)}
+.overlay--cart aside header {flex: none; padding: 0 24px; border-bottom: 1px solid var(--thread)}
+.overlay--cart aside header h3 {color: var(--assam-red); font: 500 1.6rem/1 var(--serif); letter-spacing: -.02em; text-transform: none}
+.overlay--cart aside header h3 span {font: 600 var(--type-small)/1 var(--sans); letter-spacing: 0}
+.overlay--cart aside header .close {color: var(--assam-red); font-size: 1.6rem}
+.overlay--cart aside main {display: flex; flex: 1; min-height: 0; margin: 0}
+.overlay--cart .close-outside {width: max(0px, calc(100% - var(--aside-width)))}
+.cart-main--aside {display: flex; flex: 1; flex-direction: column; min-height: 0; height: auto; max-height: none; margin: 0; overflow: hidden}
+.cart-main--aside.with-discount {max-height: none}
+.cart-main--aside .cart-details {display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; gap: 0}
+.cart-main--aside .cart-lines-wrap {flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 10px 24px 22px}
+.cart-main--aside .cart-line {margin: 0; padding: 22px 0; border-bottom: 1px solid var(--thread)}
+.cart-main--aside .cart-line-inner {grid-template-columns: 96px minmax(0,1fr); gap: 18px}
+.cart-main--aside .cart-line-inner > div {min-width: 0}
+.cart-main--aside .cart-line-inner img {width: 96px; height: 112px; margin: 0; object-fit: contain; background: var(--gamosa-cream)}
+.cart-main--aside .cart-line-inner strong {display: block; color: var(--assam-red); font-size: 1.5rem; line-height: 1.05; overflow-wrap: anywhere}
+.cart-main--aside .cart-line-inner p {margin: 0 0 7px}
+.cart-main--aside .cart-line-inner ul {margin: 6px 0 0}
+.cart-main--aside .cart-line-inner small {color: var(--quiet-ink); font-size: var(--type-caption)}
+.cart-main--aside .cart-line-quantity {justify-content: space-between; gap: 10px; margin-top: 14px}
+.cart-main--aside .cart-line-quantity button {min-width: 34px; min-height: 34px}
+.cart-main--aside .cart-line-quantity > form:last-child button {padding: 0; color: var(--assam-red); font-size: var(--type-caption)}
+.cart-main--aside .cart-summary-aside {flex: none; position: static; width: 100%; margin: 0; padding: 0; border: 0; background: var(--paper)}
+.cart-drawer-offers {border-top: 1px solid var(--thread)}
+.cart-drawer-offers summary {display: flex; align-items: center; justify-content: space-between; padding: 13px 24px; cursor: pointer; color: var(--aged-indigo); font-size: var(--type-small); list-style: none}
+.cart-drawer-offers summary::-webkit-details-marker {display: none}
+.cart-drawer-offers summary::after {content: '+'; color: var(--assam-red); font-size: 1.25rem; line-height: 1}
+.cart-drawer-offers[open] summary::after {content: '−'}
+.cart-drawer-offers-content {max-height: 24vh; padding: 0 24px 16px; overflow-y: auto}
+.cart-drawer-offers-content form > div {display: flex; align-items: center; gap: 8px}
+.cart-drawer-offers-content input {flex: 1; min-width: 0; width: auto}
+.cart-drawer-offers-content form button {flex: none}
+.cart-drawer-footer {padding: 18px 24px 20px; background: var(--assam-red); color: var(--paper)}
+.cart-drawer-footer .cart-subtotal {justify-content: space-between; gap: 10px; padding: 0 0 15px; border: 0; color: var(--paper); font-weight: 600}
+.cart-drawer-footer .cart-subtotal dt,.cart-drawer-footer .cart-subtotal dd {margin: 0}
+.cart-drawer-footer .cart-subtotal dd {white-space: nowrap}
+.cart-drawer-footer .checkout-button {justify-content: center; min-height: 54px; margin: 0; border: 1px solid var(--paper); border-radius: 999px; background: var(--paper); color: var(--assam-red); font-size: var(--type-button); letter-spacing: .07em}
+.cart-drawer-footer .checkout-button:hover {border-color: var(--gamosa-cream); background: var(--gamosa-cream); color: var(--assam-red)}
+.cart-drawer-footer .checkout-button:disabled {opacity: .55; cursor: not-allowed}
+.cart-drawer-footer .fine-print {margin: 10px 0 0; color: var(--paper); font-size: var(--type-caption); line-height: 1.4; white-space: normal}
+.cart-drawer-footer [role="status"],.cart-drawer-footer [role="alert"] {color: var(--paper); font-size: var(--type-caption)}
+@media (max-width: 480px) {
+  .overlay--cart aside header {padding-inline: 18px}
+  .cart-main--aside .cart-lines-wrap {padding-inline: 18px}
+  .cart-main--aside .cart-line-inner {grid-template-columns: 80px minmax(0,1fr); gap: 12px}
+  .cart-main--aside .cart-line-inner img {width: 80px; height: 96px}
+  .cart-main--aside .cart-line-inner strong {font-size: 1.3rem}
+  .cart-drawer-offers summary,.cart-drawer-footer {padding-inline: 18px}
+  .cart-drawer-offers-content {padding-inline: 18px}
+}
 
 /* Sign in */
 .signin-page {display: grid; grid-template-columns: 1.15fr .85fr; min-height: calc(100vh - var(--header-height)); padding: 0}
@@ -754,7 +808,7 @@ body {font-size: var(--type-body); line-height: 1.65}
 .cart-line-quantity small {font-size: var(--type-caption)}
 .cart-summary-page h4,.cart-summary-aside h4 {font-size: 1.75rem; line-height: 1.05}
 .cart-summary-page form button,.cart-summary-aside form button {font-size: var(--type-caption)}
-.cart-main > div:not([hidden]) p {font-size: 1.75rem; line-height: 1.3}
+.cart-main > div:not([hidden]):not(.cart-details) p {font-size: 1.75rem; line-height: 1.3}
 
 .signin-story h1 {font-size: var(--type-hero-title); line-height: .86}
 .signin-story p,.signin-panel > p:not(.fine-print) {font-size: var(--type-body); line-height: 1.75}

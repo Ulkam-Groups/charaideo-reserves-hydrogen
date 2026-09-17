@@ -64,7 +64,7 @@ export function Aside({
       ref={panel}
       aria-label={typeof heading === "string" ? heading : type}
       aria-modal
-      className={`overlay ${expanded ? 'expanded' : ''}`}
+      className={`overlay overlay--${type} ${expanded ? 'expanded' : ''}`}
       role="dialog"
     >
       <button className="close-outside" tabIndex={-1} aria-label="Close panel" onClick={close} />
