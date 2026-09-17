@@ -25,7 +25,7 @@ test('accepts same-origin form posts and keeps duplicate form fields', async () 
 });
 
 test('requires an exact origin or same-origin referer and rejects conflicting headers', async () => {
-  const cases = [
+  const cases: Array<Record<string, string>> = [
     {Origin: 'https://other.store.example'},
     {Origin: 'https://store.example.evil.test'},
     {Origin: 'null'},
