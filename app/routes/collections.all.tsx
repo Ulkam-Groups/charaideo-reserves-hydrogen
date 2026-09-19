@@ -5,6 +5,7 @@ import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
 import collectionThread from '../../river-thread-web/svg/products-garden-flow.svg?url';
+import {measureStorefront} from '~/lib/monitoring.server';
 
 const CATALOG_SORTS = {
   featured: {sortKey: 'BEST_SELLING', reverse: false},
@@ -52,9 +53,11 @@ async function loadCriticalData({context, request}: Route.LoaderArgs) {
   });
 
   const [{products}] = await Promise.all([
-    storefront.query(CATALOG_QUERY, {
-      variables: {...paginationVariables, ...CATALOG_SORTS[sort]},
-    }),
+    measureStorefront(context.monitor, 'catalog', () =>
+      storefront.query(CATALOG_QUERY, {
+        variables: {...paginationVariables, ...CATALOG_SORTS[sort]},
+      }),
+    ),
     // Add other queries here, so that they are loaded in parallel
   ]);
   return {products, sort};

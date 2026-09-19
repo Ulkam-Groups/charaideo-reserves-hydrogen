@@ -81,7 +81,10 @@ test('global security headers are applied without weakening CSP', () => {
   applySecurityHeaders(response, new URL('https://store.example/products/tea'));
 
   assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
-  assert.equal(response.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+  assert.equal(
+    response.headers.get('referrer-policy'),
+    'strict-origin-when-cross-origin',
+  );
   assert.match(response.headers.get('permissions-policy') ?? '', /camera=\(\)/);
   assert.match(response.headers.get('strict-transport-security') ?? '', /max-age=/);
   assert.equal(response.headers.get('content-security-policy'), "default-src 'self'");
@@ -94,11 +97,7 @@ test('Admin API scopes remain empty for the customer storefront', async () => {
 });
 
 test('protected account routes use the awaited auth guard', async () => {
-  for (const route of [
-    'account.profile.tsx',
-    'account.addresses.tsx',
-    'account.$.tsx',
-  ]) {
+  for (const route of ['account.profile.tsx', 'account.addresses.tsx', 'account.$.tsx']) {
     const source = await readFile(
       new URL(`../app/routes/${route}`, import.meta.url),
       'utf8',

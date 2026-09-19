@@ -1,13 +1,100 @@
 name: Storefront 1000176591
-on: [push]
+on: [push, pull_request]
 
 permissions:
   contents: read
   deployments: write
 
 jobs:
+  formatting-lint:
+    name: Formatting and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+
+  typescript:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  tests:
+    name: Unit and integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:integration
+
+  playwright:
+    name: Playwright storefront
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  playwright-account:
+    name: Playwright account (configured test environment)
+    if: github.event_name == 'push' && vars.E2E_ACCOUNT_BASE_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Load test account session
+        env:
+          STORAGE_STATE_B64: ${{ secrets.E2E_ACCOUNT_STORAGE_STATE_B64 }}
+        run: printf '%s' "$STORAGE_STATE_B64" | base64 --decode > "$RUNNER_TEMP/account-state.json"
+      - run: npm run test:e2e:account
+        env:
+          E2E_ACCOUNT_BASE_URL: ${{ vars.E2E_ACCOUNT_BASE_URL }}
+          E2E_ACCOUNT_STORAGE_STATE: ${{ runner.temp }}/account-state.json
+          E2E_ACCOUNT_ALLOW_WRITES: ${{ vars.E2E_ACCOUNT_ALLOW_WRITES }}
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
   deploy:
     name: Deploy to Oxygen
+    if: github.event_name == 'push'
+    needs: [formatting-lint, typescript, tests, playwright, build]
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -35,22 +122,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Debug show repo and config
-        run: |
-          echo "--- Git branch/status ---"
-          git branch --show-current || true
-          git status --porcelain --branch || true
-          echo "--- List root files ---"
-          ls -la
-          echo "--- Show vite.config.ts ---"
-          if [ -f "vite.config.ts" ]; then sed -n '1,200p' vite.config.ts; else echo "vite.config.ts not found"; fi
-          echo "--- Node & npm versions ---"
-          node -v || true
-          npm -v || true
-          echo "--- ls app dir ---"
-          ls -la app || true
-
       - name: Build and Publish to Oxygen
         run: npx shopify hydrogen deploy
         env:
           SHOPIFY_HYDROGEN_DEPLOYMENT_TOKEN: ${{ secrets.OXYGEN_DEPLOYMENT_TOKEN_1000176591 }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE: ${{ github.sha }}

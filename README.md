@@ -62,5 +62,44 @@ npm run typecheck
 npm run build
 ```
 
+## Sentry monitoring
+
+Set `SENTRY_ENABLED=true` and `SENTRY_DSN` in the Oxygen environment to the public DSN for the
+`ulkam-group/javascript-react-router` project. The value is exposed to the
+browser by design; do not use a Sentry auth token here. Monitoring is disabled
+unless `SENTRY_ENABLED` is exactly `true` and a valid DSN is present. When disabled,
+the browser does not download the Sentry SDK. Set `SENTRY_ENABLED=false` and
+redeploy the Oxygen environment to pause monitoring without changing code.
+The disabled flag removes Sentry collection on requests, but Oxygen still bundles
+the server SDK in the worker, so it does not guarantee identical cold-start time.
+The SDK sends fixed event names and bounded tags, not
+request URLs, customer records, GraphQL variables, or Judge.me credentials.
+Set `SENTRY_ENVIRONMENT=preview` in branch environments and
+`SENTRY_ENVIRONMENT=production` in production so alerts can exclude test traffic.
+
+The storefront emits request counts and duration by status and route group,
+Storefront query latency and failures, Customer Account mutation/query failures,
+Judge.me quota/timeouts, Fastrr launch results, and browser hydration errors.
+Hydration events carry a page-load incident ID and safe same-origin script frames.
+React #423 recovery events are suppressed when a #418 mismatch was already reported.
+For readable production frames, add `SENTRY_AUTH_TOKEN` as a **GitHub Actions secret**
+with permission to upload source maps to the `ulkam-group/javascript-react-router`
+project. The deploy workflow passes the commit SHA as `SENTRY_RELEASE`; its build
+uploads client source maps and removes the map files before Oxygen receives assets.
+Keep this token out of Oxygen variables and browser code. Deployments built outside
+that workflow still report errors, but may show minified frames.
+In Sentry, create email alerts for `fastrr.launch.failure`,
+`customer_account.mutation.failure`, `judgeme.reviews.failure` with
+`reason:quota`, and `storefront.http.failure`. Use metric monitors for the
+5xx/429 share of `storefront.request.count` and p95 of
+`storefront.query.duration`; set thresholds after collecting baseline traffic.
+The free plan's single uptime monitor can check the public storefront homepage
+once it is live.
+
+A successful Fastrr `buyDirect` call means the vendor script accepted a launch
+request. It does not prove that payment completed or that an order reached
+Shopify. Order reconciliation requires a Fastrr order reference and a matching
+Shopify order event or feed before an alert can be truthful.
+
 Before production, complete the prioritized checklist in
 [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).

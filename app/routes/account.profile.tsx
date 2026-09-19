@@ -10,6 +10,7 @@ import {
 } from 'react-router';
 import type {Route} from './+types/account.profile';
 import {requireCustomerAuthStatus} from '~/lib/customer-auth.server';
+import {readProtectedForm} from '~/lib/protected-write.server';
 
 export type ActionResponse = {
   error: string | null;
@@ -29,12 +30,10 @@ export async function loader({context}: Route.LoaderArgs) {
 export async function action({request, context}: Route.ActionArgs) {
   const {customerAccount} = context;
 
-  if (request.method !== 'PUT') {
-    return data({error: 'Method not allowed'}, {status: 405});
-  }
+  const form = await readProtectedForm(request, {methods: ['PUT'], maxBytes: 16 * 1024});
+  if (form instanceof Response) return form;
 
-  const form = await request.formData();
-
+  let failureReason = 'exception';
   try {
     const customer: CustomerUpdateInput = {};
     const validInputKeys = ['firstName', 'lastName'] as const;
@@ -59,10 +58,12 @@ export async function action({request, context}: Route.ActionArgs) {
     );
 
     if (errors?.length) {
+      failureReason = 'graphql';
       throw new Error(errors[0].message);
     }
 
     if (!data?.customerUpdate?.customer) {
+      failureReason = 'missing_result';
       throw new Error('Customer profile update failed.');
     }
 
@@ -70,7 +71,8 @@ export async function action({request, context}: Route.ActionArgs) {
       error: null,
       customer: data?.customerUpdate?.customer,
     };
-  } catch {
+  } catch (error) {
+    context.monitor?.failure('customer_account.mutation.failure', {operation: 'profile', reason: failureReason}, error);
     return data(
       {
         error: 'Unable to update your profile right now. Please try again.',

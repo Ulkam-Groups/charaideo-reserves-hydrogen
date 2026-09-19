@@ -5,6 +5,7 @@ import {
   clearJudgeMeReviewCacheForTests,
   getJudgeMeProductReviews,
 } from '../app/lib/judgeme.server.ts';
+import type {Monitor} from '../app/lib/monitoring.server.ts';
 
 test('Judge.me reviews coalesce and cache requests for a product', async () => {
   clearJudgeMeReviewCacheForTests();
@@ -44,6 +45,32 @@ test('Judge.me reviews coalesce and cache requests for a product', async () => {
     assert.deepEqual(concurrent, first);
     assert.deepEqual(cached, first);
     assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+    clearJudgeMeReviewCacheForTests();
+  }
+});
+
+test('Judge.me quota failure is classified without sending its token', async () => {
+  clearJudgeMeReviewCacheForTests();
+  const originalFetch = globalThis.fetch;
+  const failures: Array<{name: string; tags: Record<string, unknown>}> = [];
+  globalThis.fetch = (async () => new Response('', {status: 429})) as typeof fetch;
+  try {
+    const result = await getJudgeMeProductReviews({
+      shopDomain: 'store.myshopify.com',
+      privateApiToken: 'private-token',
+      shopifyProductGid: 'gid://shopify/Product/321',
+      monitor: {
+        failure(name, tags) {
+          failures.push({name, tags: tags ?? {}});
+        },
+      } as Monitor,
+    });
+    assert.deepEqual(result.reviews, []);
+    assert.deepEqual(failures, [
+      {name: 'judgeme.reviews.failure', tags: {reason: 'quota'}},
+    ]);
   } finally {
     globalThis.fetch = originalFetch;
     clearJudgeMeReviewCacheForTests();

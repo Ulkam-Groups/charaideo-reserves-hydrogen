@@ -6,6 +6,7 @@ import {
   type HydrogenRouterContextProvider,
 } from '@shopify/hydrogen';
 import type {EntryContext} from 'react-router';
+import {monitoringEnabled, sentryIngestOrigin} from '~/lib/monitoring.server';
 
 export default async function handleRequest(
   request: Request,
@@ -14,6 +15,9 @@ export default async function handleRequest(
   reactRouterContext: EntryContext,
   context: HydrogenRouterContextProvider,
 ) {
+  const sentryOrigin = monitoringEnabled(context.env?.SENTRY_ENABLED)
+    ? sentryIngestOrigin(context.env?.SENTRY_DSN)
+    : null;
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     styleSrc: ['https://fonts.googleapis.com', 'https://fastrr-boost-ui.pickrr.com'],
     scriptSrc: [
@@ -24,6 +28,7 @@ export default async function handleRequest(
       'https://otpless.com',
     ],
     connectSrc: [
+      ...(sentryOrigin ? [sentryOrigin] : []),
       'https://fastrr-boost-ui.pickrr.com',
       'https://sr-cdn.shiprocket.in',
       'https://uptime2.fastrr.com',
@@ -66,6 +71,7 @@ export default async function handleRequest(
       nonce,
       signal: request.signal,
       onError(error) {
+        context.monitor?.failure('storefront.ssr.failure', {}, error);
         console.error(JSON.stringify({
           level: 'error',
           scope: 'ssr',

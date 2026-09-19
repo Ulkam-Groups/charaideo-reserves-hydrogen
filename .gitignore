@@ -4,4 +4,7 @@ build
 .wrangler
 
 .shopify
+/test-results
+/playwright-report
+/.playwright-browsers
 /river-thread-web

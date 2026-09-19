@@ -11,6 +11,9 @@ declare global {
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
     JUDGEME_PRIVATE_API_TOKEN?: string;
+    SENTRY_DSN?: string;
+    SENTRY_ENABLED?: string;
+    SENTRY_ENVIRONMENT?: string;
   }
 
   interface ExecutionContext {

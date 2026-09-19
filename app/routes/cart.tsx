@@ -4,6 +4,7 @@ import type {CartQueryDataReturn} from '@shopify/hydrogen';
 import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
 import {safeLocalRedirect} from '~/lib/redirect';
+import {readProtectedForm} from '~/lib/protected-write.server';
 import cartThread from '../../river-thread-web/svg/cart-basket.svg?url';
 
 export const meta: Route.MetaFunction = () => {
@@ -15,7 +16,8 @@ export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;
 export async function action({request, context}: Route.ActionArgs) {
   const {cart} = context;
 
-  const formData = await request.formData();
+  const formData = await readProtectedForm(request, {methods: ['POST'], maxBytes: 64 * 1024});
+  if (formData instanceof Response) return formData;
 
   const {action, inputs} = CartForm.getFormInput(formData);
 

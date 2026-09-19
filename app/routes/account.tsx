@@ -21,6 +21,7 @@ export async function loader({context}: Route.LoaderArgs) {
   });
 
   if (errors?.length || !data?.customer) {
+    context.monitor?.failure('customer_account.query.failure', {operation: 'details', reason: errors?.length ? 'graphql' : 'missing_result'});
     throw new Error('Customer not found');
   }
 

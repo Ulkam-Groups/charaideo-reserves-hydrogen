@@ -1,8 +1,9 @@
 import {createHydrogenContext} from '@shopify/hydrogen';
 import {AppSession} from '~/lib/session';
 import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
+import type {Monitor} from '~/lib/monitoring.server';
 
-type AdditionalContextType = {reviewsCache: Cache};
+type AdditionalContextType = {reviewsCache: Cache; monitor: Monitor | null};
 
 declare global {
   interface HydrogenAdditionalContext extends AdditionalContextType {}
@@ -16,6 +17,7 @@ export async function createHydrogenRouterContext(
   request: Request,
   env: Env,
   executionContext: ExecutionContext,
+  monitor: Monitor | null = null,
 ) {
   /**
    * Open a cache instance in the worker and a custom session instance.
@@ -43,7 +45,7 @@ export async function createHydrogenRouterContext(
         queryFragment: CART_QUERY_FRAGMENT,
       },
     },
-    {reviewsCache: cache},
+    {reviewsCache: cache, monitor},
   );
 
   return hydrogenContext;

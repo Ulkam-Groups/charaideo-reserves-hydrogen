@@ -13,6 +13,7 @@ import type {
   RegularSearchQuery,
   PredictiveSearchQuery,
 } from 'storefrontapi.generated';
+import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = () => {
   return [{title: `Search | Charaideo Reserves`}];
@@ -231,9 +232,15 @@ async function regularSearch({
     errors,
     ...items
   }: {errors?: Array<{message: string}>} & RegularSearchQuery =
-    await storefront.query(SEARCH_QUERY, {
-      variables: {...variables, term},
-    });
+    await measureStorefront(context.monitor, 'search', () =>
+      storefront.query(SEARCH_QUERY, {
+        variables: {...variables, term},
+      }),
+    );
+
+  if (errors?.length) {
+    context.monitor?.failure('storefront.query.failure', {operation: 'search', reason: 'graphql'});
+  }
 
   if (!items) {
     throw new Error('No search data returned from Shopify API');
@@ -401,16 +408,19 @@ async function predictiveSearch({
     predictiveSearch: items,
     errors,
   }: PredictiveSearchQuery & {errors?: Array<{message: string}>} =
-    await storefront.query(PREDICTIVE_SEARCH_QUERY, {
-      variables: {
-        // customize search options as needed
-        limit,
-        limitScope: 'EACH',
-        term,
-      },
-    });
+    await measureStorefront(context.monitor, 'predictive_search', () =>
+      storefront.query(PREDICTIVE_SEARCH_QUERY, {
+        variables: {
+          // customize search options as needed
+          limit,
+          limitScope: 'EACH',
+          term,
+        },
+      }),
+    );
 
   if (errors) {
+    context.monitor?.failure('storefront.query.failure', {operation: 'predictive_search', reason: 'graphql'});
     throw new Error(
       `Shopify API errors: ${errors.map(({message}: {message: string}) => message).join(', ')}`,
     );

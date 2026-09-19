@@ -1,0 +1,39 @@
+import {fileURLToPath} from 'node:url';
+import {defineConfig} from 'vite';
+import {hydrogen} from '@shopify/hydrogen/vite';
+import {oxygen} from '@shopify/mini-oxygen/vite';
+import {reactRouter} from '@react-router/dev/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+// Isolated test runtime. Its only storefront is Shopify's public mock.shop.
+export default defineConfig({
+  plugins: [
+    hydrogen(),
+    oxygen({
+      env: {
+        PUBLIC_STORE_DOMAIN: 'mock.shop',
+        PUBLIC_STOREFRONT_API_TOKEN: '',
+        PRIVATE_STOREFRONT_API_TOKEN: '',
+        PUBLIC_STOREFRONT_ID: '0',
+        PUBLIC_FASTRR_SELLER_DOMAIN: 'e2e.invalid',
+        PUBLIC_CHECKOUT_DOMAIN: 'checkout.invalid',
+        SENTRY_ENABLED: 'false',
+        SENTRY_DSN: 'https://public@o1.ingest.sentry.io/123',
+        SESSION_SECRET: 'playwright-test-session-secret-32-characters',
+      },
+    }),
+    reactRouter(),
+    tsconfigPaths(),
+  ],
+  resolve: {alias: {'~': fileURLToPath(new URL('./app', import.meta.url))}},
+  build: {assetsInlineLimit: 0},
+  ssr: {
+    optimizeDeps: {
+      include: [
+        'react-router > set-cookie-parser',
+        'react-router > cookie',
+        'react-router',
+      ],
+    },
+  },
+});
