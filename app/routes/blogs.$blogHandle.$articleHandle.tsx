@@ -1,6 +1,7 @@
 import {useLoaderData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle.$articleHandle';
 import {Image} from '@shopify/hydrogen';
+import {formatDateLongUS} from '~/lib/formatDate';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 
@@ -73,11 +74,7 @@ export default function Article() {
   const {article} = useLoaderData<typeof loader>();
   const {title, image, contentHtml, author} = article;
 
-  const publishedDate = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(article.publishedAt));
+  const publishedDate = formatDateLongUS(article.publishedAt);
 
   return (
     <div className="article">

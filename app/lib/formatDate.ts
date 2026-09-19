@@ -29,3 +29,15 @@ export function formatDateShort(value: string): string {
   if (Number.isNaN(date.getTime())) return '';
   return `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
 }
+
+/**
+ * Format a date string as "Month D, YYYY" (e.g. "September 19, 2026").
+ * Matches the visual output of Intl.DateTimeFormat('en-US', {year:'numeric',month:'long',day:'numeric'})
+ * but uses UTC components so output is identical on the server and browser,
+ * regardless of ICU data version or locale configuration.
+ */
+export function formatDateLongUS(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${MONTHS_LONG[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+}
