@@ -1,43 +1,24 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/policies.$handle';
-import {type Shop} from '@shopify/hydrogen/storefront-api-types';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
-
-type SelectedPolicies = keyof Pick<
-  Shop,
-  'privacyPolicy' | 'shippingPolicy' | 'termsOfService' | 'refundPolicy'
->;
-
-const POLICY_LINKS = [
-  {handle: 'privacy-policy', title: 'Privacy Policy', field: 'privacyPolicy'},
-  {handle: 'refund-policy', title: 'Refund Policy', field: 'refundPolicy'},
-  {handle: 'shipping-policy', title: 'Shipping Policy', field: 'shippingPolicy'},
-  {handle: 'terms-of-service', title: 'Terms of Service', field: 'termsOfService'},
-] as const;
+import {getPolicyPage, POLICY_PAGES} from '~/lib/policies';
 
 export const meta: Route.MetaFunction = ({data}) => [
   {title: `${data?.policy.title ?? 'Policy'} | Charaideo Reserves`},
 ];
 
 export async function loader({params, context}: Route.LoaderArgs) {
-  const selected = POLICY_LINKS.find(({handle}) => handle === params.handle);
+  const selected = getPolicyPage(params.handle);
   if (!selected) throw new Response('Could not find the policy', {status: 404});
 
-  const policyName = selected.field as SelectedPolicies;
-  const data = await context.storefront.query(POLICY_CONTENT_QUERY, {
-    variables: {
-      privacyPolicy: false,
-      shippingPolicy: false,
-      termsOfService: false,
-      refundPolicy: false,
-      [policyName]: true,
-      language: context.storefront.i18n?.language,
-    },
-  });
+  const {shop} = await context.storefront.query(POLICY_CONTENT_QUERY);
+  const publishedPolicy = shop?.[selected.field];
+  const title = publishedPolicy?.title || selected.title;
+  const body = publishedPolicy?.body?.trim()
+    ? publishedPolicy.body
+    : selected.fallbackBody;
 
-  const policy = data.shop?.[policyName];
-  if (!policy) throw new Response('Could not find the policy', {status: 404});
-  return {policy: {...policy, body: sanitizeStorefrontHtml(policy.body)}};
+  return {policy: {handle: selected.handle, title, body: sanitizeStorefrontHtml(body)}};
 }
 
 export default function Policy() {
@@ -55,7 +36,7 @@ export default function Policy() {
       <div className="policy-layout">
         <nav className="policy-nav" aria-label="Store policies">
           <span className="eyebrow">Browse policies</span>
-          {POLICY_LINKS.map(({handle, title}) => (
+          {POLICY_PAGES.map(({handle, title}) => (
             <Link key={handle} aria-current={policy.handle === handle ? 'page' : undefined} to={`/policies/${handle}`}>
               {title}
             </Link>
@@ -75,26 +56,12 @@ export default function Policy() {
 }
 
 const POLICY_CONTENT_QUERY = `#graphql
-  fragment Policy on ShopPolicy {
-    body
-    handle
-    id
-    title
-    url
-  }
-  query Policy(
-    $country: CountryCode
-    $language: LanguageCode
-    $privacyPolicy: Boolean!
-    $refundPolicy: Boolean!
-    $shippingPolicy: Boolean!
-    $termsOfService: Boolean!
-  ) @inContext(language: $language, country: $country) {
+  query Policy {
     shop {
-      privacyPolicy @include(if: $privacyPolicy) { ...Policy }
-      shippingPolicy @include(if: $shippingPolicy) { ...Policy }
-      termsOfService @include(if: $termsOfService) { ...Policy }
-      refundPolicy @include(if: $refundPolicy) { ...Policy }
+      privacyPolicy { title body }
+      refundPolicy { title body }
+      shippingPolicy { title body }
+      termsOfService { title body }
     }
   }
 ` as const;
