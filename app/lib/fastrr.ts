@@ -1,3 +1,5 @@
+import {recordFastrrLaunch} from './monitoring-signals.ts';
+
 export type FastrrProduct = {variantId: string; quantity: number};
 
 export type FastrrCheckoutInput = {
@@ -23,12 +25,15 @@ export function fastrrVariantId(gid: string): string | null {
 
 export function startFastrrCheckout(input: FastrrCheckoutInput): boolean {
   if (typeof window === 'undefined' || !window.shiprocketCheckoutEvents?.buyDirect) {
+    recordFastrrLaunch(input.type, 'missing');
     return false;
   }
   try {
     window.shiprocketCheckoutEvents.buyDirect(input);
+    recordFastrrLaunch(input.type, 'requested');
     return true;
   } catch {
+    recordFastrrLaunch(input.type, 'threw');
     return false;
   }
 }

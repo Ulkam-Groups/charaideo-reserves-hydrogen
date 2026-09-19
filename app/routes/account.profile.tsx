@@ -33,6 +33,7 @@ export async function action({request, context}: Route.ActionArgs) {
   const form = await readProtectedForm(request, {methods: ['PUT'], maxBytes: 16 * 1024});
   if (form instanceof Response) return form;
 
+  let failureReason = 'exception';
   try {
     const customer: CustomerUpdateInput = {};
     const validInputKeys = ['firstName', 'lastName'] as const;
@@ -57,10 +58,12 @@ export async function action({request, context}: Route.ActionArgs) {
     );
 
     if (errors?.length) {
+      failureReason = 'graphql';
       throw new Error(errors[0].message);
     }
 
     if (!data?.customerUpdate?.customer) {
+      failureReason = 'missing_result';
       throw new Error('Customer profile update failed.');
     }
 
@@ -69,6 +72,7 @@ export async function action({request, context}: Route.ActionArgs) {
       customer: data?.customerUpdate?.customer,
     };
   } catch {
+    context.monitor?.failure('customer_account.mutation.failure', {operation: 'profile', reason: failureReason});
     return data(
       {
         error: 'Unable to update your profile right now. Please try again.',

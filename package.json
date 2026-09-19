@@ -20,6 +20,8 @@
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@sentry/browser": "^10.75.0",
+    "@sentry/core": "^10.75.0",
     "@shopify/hydrogen": "^2026.4.5",
     "@shopify/mini-oxygen": "^4.2.2",
     "headroom-ai": "^0.37.0",

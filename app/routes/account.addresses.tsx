@@ -113,6 +113,7 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (data?.customerAddressCreate?.userErrors?.length) {
+            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_create'});
             return routeData(
               {
                 error: {
@@ -133,6 +134,7 @@ export async function action({request, context}: Route.ActionArgs) {
             defaultAddress,
           };
         } catch {
+          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_create'});
           return routeData(
             {error: {[addressId]: 'Unable to create this address right now.'}},
             {status: 400},
@@ -160,6 +162,7 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (data?.customerAddressUpdate?.userErrors?.length) {
+            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_update'});
             return routeData(
               {
                 error: {
@@ -180,6 +183,7 @@ export async function action({request, context}: Route.ActionArgs) {
             defaultAddress,
           };
         } catch {
+          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_update'});
           return routeData(
             {error: {[addressId]: 'Unable to update this address right now.'}},
             {status: 400},
@@ -205,6 +209,7 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (data?.customerAddressDelete?.userErrors?.length) {
+            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_delete'});
             return routeData(
               {
                 error: {
@@ -221,6 +226,7 @@ export async function action({request, context}: Route.ActionArgs) {
 
           return {error: null, deletedAddress: addressId};
         } catch {
+          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_delete'});
           return routeData(
             {error: {[addressId]: 'Unable to delete this address right now.'}},
             {status: 400},

@@ -1,3 +1,5 @@
+import type {Monitor} from './monitoring.server';
+
 const JUDGEME_API_BASE = 'https://api.judge.me/api/v1';
 const MAX_FILTERABLE_PRODUCT_ID = 2_147_483_647;
 const REVIEWS_PER_PAGE = 100;
@@ -58,11 +60,13 @@ export async function getJudgeMeProductReviews({
   privateApiToken,
   shopifyProductGid,
   cache,
+  monitor,
 }: {
   shopDomain?: string;
   privateApiToken?: string;
   shopifyProductGid: string;
   cache?: Pick<Cache, 'match' | 'put'>;
+  monitor?: Monitor | null;
 }): Promise<ProductReviewsResult> {
   if (!shopDomain || !privateApiToken) return emptyResult();
 
@@ -81,6 +85,7 @@ export async function getJudgeMeProductReviews({
       shopDomain,
       privateApiToken,
       externalProductId,
+      monitor,
     }),
   };
   reviewCache.set(cacheKey, entry);
@@ -98,12 +103,14 @@ async function getCachedOrLoadReviews({
   shopDomain,
   privateApiToken,
   externalProductId,
+  monitor,
 }: {
   cache?: Pick<Cache, 'match' | 'put'>;
   cacheKey: string;
   shopDomain: string;
   privateApiToken: string;
   externalProductId: string;
+  monitor?: Monitor | null;
 }) {
   const persistentCacheKey = new Request(
     `https://judgeme-cache.internal/reviews/${encodeURIComponent(cacheKey)}`,
@@ -121,6 +128,7 @@ async function getCachedOrLoadReviews({
     shopDomain,
     privateApiToken,
     externalProductId,
+    monitor,
   });
   if (cache) {
     const ttlSeconds = result.reviews.length ? 900 : 60;
@@ -142,10 +150,12 @@ async function loadJudgeMeProductReviews({
   shopDomain,
   privateApiToken,
   externalProductId,
+  monitor,
 }: {
   shopDomain: string;
   privateApiToken: string;
   externalProductId: string;
+  monitor?: Monitor | null;
 }): Promise<ProductReviewsResult> {
   try {
     const product = await judgeMeFetch<ProductResponse>('/products/-1', {
@@ -172,7 +182,14 @@ async function loadJudgeMeProductReviews({
         .map(toPublicReview)
         .filter((review): review is ProductReview => review !== null),
     };
-  } catch {
+  } catch (error) {
+    const reason =
+      error instanceof Error && /\(429\)/.test(error.message)
+        ? 'quota'
+        : error instanceof Error && error.name === 'TimeoutError'
+          ? 'timeout'
+          : 'upstream';
+    monitor?.failure('judgeme.reviews.failure', {reason});
     // Reviews are non-critical. Provider or network failures must not break commerce.
     return emptyResult();
   }

@@ -5,6 +5,7 @@ import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
 import type {ProductItemFragment} from 'storefrontapi.generated';
+import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
@@ -36,10 +37,12 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   }
 
   const [{collection}] = await Promise.all([
-    storefront.query(COLLECTION_QUERY, {
-      variables: {handle, ...paginationVariables},
-      // Add other queries here, so that they are loaded in parallel
-    }),
+    measureStorefront(context.monitor, 'collection', () =>
+      storefront.query(COLLECTION_QUERY, {
+        variables: {handle, ...paginationVariables},
+        // Add other queries here, so that they are loaded in parallel
+      }),
+    ),
   ]);
 
   if (!collection) {

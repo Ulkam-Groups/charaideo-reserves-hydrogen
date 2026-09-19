@@ -16,6 +16,7 @@ import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {getJudgeMeProductReviews} from '~/lib/judgeme.server';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {ProductReviews} from '~/components/ProductReviews';
+import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
@@ -49,9 +50,11 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   }
 
   const [{product}] = await Promise.all([
-    storefront.query(PRODUCT_QUERY, {
-      variables: {handle, selectedOptions: getSelectedProductOptions(request)},
-    }),
+    measureStorefront(context.monitor, 'product', () =>
+      storefront.query(PRODUCT_QUERY, {
+        variables: {handle, selectedOptions: getSelectedProductOptions(request)},
+      }),
+    ),
     // Add other queries here, so that they are loaded in parallel
   ]);
 
@@ -85,6 +88,7 @@ function loadDeferredData(
       shopDomain: context.env.JUDGEME_SHOP_DOMAIN,
       privateApiToken: context.env.JUDGEME_PRIVATE_API_TOKEN,
       shopifyProductGid,
+      monitor: context.monitor,
     }),
   };
 }

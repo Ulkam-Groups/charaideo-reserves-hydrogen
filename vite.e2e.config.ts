@@ -17,6 +17,8 @@ export default defineConfig({
         PUBLIC_STOREFRONT_ID: '0',
         PUBLIC_FASTRR_SELLER_DOMAIN: 'e2e.invalid',
         PUBLIC_CHECKOUT_DOMAIN: 'checkout.invalid',
+        SENTRY_ENABLED: 'false',
+        SENTRY_DSN: 'https://public@o1.ingest.sentry.io/123',
         SESSION_SECRET: 'playwright-test-session-secret-32-characters',
       },
     }),

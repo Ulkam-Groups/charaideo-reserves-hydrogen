@@ -1,6 +1,28 @@
 import {expect, test} from '@playwright/test';
 import {isolateCheckout} from './fastrr-guard';
 
+test('disabled Sentry flag omits browser SDK and ingest requests', async ({
+  page,
+  context,
+}) => {
+  await isolateCheckout(context);
+  const sentryRequests: string[] = [];
+  await context.route(/sentry\.io/, async (route) => {
+    sentryRequests.push(route.request().url());
+    await route.abort();
+  });
+  page.on('request', (request) => {
+    if (request.url().includes('monitoring.client-')) sentryRequests.push(request.url());
+  });
+  const response = await page.goto('/collections/all');
+  expect(response?.status()).toBe(200);
+  await expect(page.locator('meta[name="sentry-dsn"]')).toHaveCount(0);
+  expect(response?.headers()['content-security-policy']).not.toContain(
+    'ingest.sentry.io',
+  );
+  expect(sentryRequests).toEqual([]);
+});
+
 test('storefront CSP permits configured checkout and third-party assets', async ({
   page,
   context,

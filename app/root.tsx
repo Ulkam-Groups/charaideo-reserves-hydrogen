@@ -14,6 +14,7 @@ import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import riverThread from '../river-thread-web/river-thread-calligraphy.css?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
+import {measureStorefront, monitoringEnabled, sentryIngestOrigin} from '~/lib/monitoring.server';
 
 export function links() {
   return [
@@ -33,12 +34,12 @@ export async function loader({context}: Route.LoaderArgs) {
   const {cart, customerAccount, env, storefront} = context;
   const publicStoreDomain = env.PUBLIC_STORE_DOMAIN;
 
-  const header = await storefront.query(HEADER_QUERY, {
-    variables: {
-      headerMenuHandle: 'main-menu',
-    },
-    cache: storefront.CacheLong(),
-  });
+  const header = await measureStorefront(context.monitor, 'header', () =>
+    storefront.query(HEADER_QUERY, {
+      variables: {headerMenuHandle: 'main-menu'},
+      cache: storefront.CacheLong(),
+    }),
+  );
 
   const footer = storefront
     .query(FOOTER_QUERY, {
@@ -60,6 +61,10 @@ export async function loader({context}: Route.LoaderArgs) {
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
     fastrrSellerDomain: env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null,
+    sentryDsn: monitoringEnabled(env.SENTRY_ENABLED) && sentryIngestOrigin(env.SENTRY_DSN)
+      ? env.SENTRY_DSN
+      : null,
+    sentryEnvironment: env.SENTRY_ENVIRONMENT?.trim() || 'production',
     shop: getShopAnalytics({
       storefront,
       publicStorefrontId: env.PUBLIC_STOREFRONT_ID || '0',
@@ -76,6 +81,8 @@ export default function App() {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
+        {data.sentryDsn && <meta name="sentry-dsn" content={data.sentryDsn} />}
+        {data.sentryDsn && <meta name="sentry-environment" content={data.sentryEnvironment} />}
         <Meta />
         <Links />
         {data.fastrrSellerDomain && (
