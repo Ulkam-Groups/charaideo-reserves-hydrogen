@@ -8,20 +8,22 @@ type SelectedPolicies = keyof Pick<
   'privacyPolicy' | 'shippingPolicy' | 'termsOfService' | 'refundPolicy'
 >;
 
-export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.policy.title ?? ''}`}];
-};
+const POLICY_LINKS = [
+  {handle: 'privacy-policy', title: 'Privacy Policy', field: 'privacyPolicy'},
+  {handle: 'refund-policy', title: 'Refund Policy', field: 'refundPolicy'},
+  {handle: 'shipping-policy', title: 'Shipping Policy', field: 'shippingPolicy'},
+  {handle: 'terms-of-service', title: 'Terms of Service', field: 'termsOfService'},
+] as const;
+
+export const meta: Route.MetaFunction = ({data}) => [
+  {title: `${data?.policy.title ?? 'Policy'} | Charaideo Reserves`},
+];
 
 export async function loader({params, context}: Route.LoaderArgs) {
-  if (!params.handle) {
-    throw new Response('No handle was passed in', {status: 404});
-  }
+  const selected = POLICY_LINKS.find(({handle}) => handle === params.handle);
+  if (!selected) throw new Response('Could not find the policy', {status: 404});
 
-  const policyName = params.handle.replace(
-    /-([a-z])/g,
-    (_: unknown, m1: string) => m1.toUpperCase(),
-  ) as SelectedPolicies;
-
+  const policyName = selected.field as SelectedPolicies;
   const data = await context.storefront.query(POLICY_CONTENT_QUERY, {
     variables: {
       privacyPolicy: false,
@@ -34,32 +36,44 @@ export async function loader({params, context}: Route.LoaderArgs) {
   });
 
   const policy = data.shop?.[policyName];
-
-  if (!policy) {
-    throw new Response('Could not find the policy', {status: 404});
-  }
-
+  if (!policy) throw new Response('Could not find the policy', {status: 404});
   return {policy: {...policy, body: sanitizeStorefrontHtml(policy.body)}};
 }
 
 export default function Policy() {
   const {policy} = useLoaderData<typeof loader>();
-
   return (
-    <div className="policy">
-      <br />
-      <br />
-      <div>
-        <Link to="/policies">← Back to Policies</Link>
+    <div className="policy-page">
+      <header className="policy-hero">
+        <div className="policy-hero-inner">
+          <Link className="policy-back" to="/policies">← All policies</Link>
+          <span className="eyebrow">Charaideo Reserves / Information</span>
+          <h1>{policy.title}</h1>
+          <p>Details for shopping with Charaideo Reserves.</p>
+        </div>
+      </header>
+      <div className="policy-layout">
+        <nav className="policy-nav" aria-label="Store policies">
+          <span className="eyebrow">Browse policies</span>
+          {POLICY_LINKS.map(({handle, title}) => (
+            <Link key={handle} aria-current={policy.handle === handle ? 'page' : undefined} to={`/policies/${handle}`}>
+              {title}
+            </Link>
+          ))}
+        </nav>
+        <article className="policy-content">
+          <div className="policy-body" dangerouslySetInnerHTML={{__html: policy.body}} />
+          <div className="policy-help">
+            <h2>Need help?</h2>
+            <p>Contact us if you have a question about this policy or an order.</p>
+            <Link to="/pages/contact">Contact Charaideo Reserves →</Link>
+          </div>
+        </article>
       </div>
-      <br />
-      <h1>{policy.title}</h1>
-      <div dangerouslySetInnerHTML={{__html: policy.body}} />
     </div>
   );
 }
 
-// NOTE: https://shopify.dev/docs/api/storefront/latest/objects/Shop
 const POLICY_CONTENT_QUERY = `#graphql
   fragment Policy on ShopPolicy {
     body
@@ -77,18 +91,10 @@ const POLICY_CONTENT_QUERY = `#graphql
     $termsOfService: Boolean!
   ) @inContext(language: $language, country: $country) {
     shop {
-      privacyPolicy @include(if: $privacyPolicy) {
-        ...Policy
-      }
-      shippingPolicy @include(if: $shippingPolicy) {
-        ...Policy
-      }
-      termsOfService @include(if: $termsOfService) {
-        ...Policy
-      }
-      refundPolicy @include(if: $refundPolicy) {
-        ...Policy
-      }
+      privacyPolicy @include(if: $privacyPolicy) { ...Policy }
+      shippingPolicy @include(if: $shippingPolicy) { ...Policy }
+      termsOfService @include(if: $termsOfService) { ...Policy }
+      refundPolicy @include(if: $refundPolicy) { ...Policy }
     }
   }
 ` as const;

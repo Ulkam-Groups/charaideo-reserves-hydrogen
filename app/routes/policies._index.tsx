@@ -8,9 +8,9 @@ export async function loader({context}: Route.LoaderArgs) {
   const shopPolicies = data.shop;
   const policies: PolicyItemFragment[] = [
     shopPolicies?.privacyPolicy,
+    shopPolicies?.refundPolicy,
     shopPolicies?.shippingPolicy,
     shopPolicies?.termsOfService,
-    shopPolicies?.refundPolicy,
     shopPolicies?.subscriptionPolicy,
   ].filter((policy): policy is PolicyItemFragment => policy != null);
 
@@ -25,13 +25,21 @@ export default function Policies() {
   const {policies} = useLoaderData<typeof loader>();
 
   return (
-    <div className="policies">
-      <h1>Policies</h1>
-      <div>
-        {policies.map((policy) => (
-          <fieldset key={policy.id}>
-            <Link to={`/policies/${policy.handle}`}>{policy.title}</Link>
-          </fieldset>
+    <div className="policies-page">
+      <header className="policy-hero">
+        <div className="policy-hero-inner">
+          <span className="eyebrow">Charaideo Reserves / Information</span>
+          <h1>Store policies</h1>
+          <p>Information about ordering, delivery, returns, and how we handle your data.</p>
+        </div>
+      </header>
+      <div className="policies-list">
+        {policies.map((policy, index) => (
+          <Link key={policy.id} to={`/policies/${policy.handle}`}>
+            <span>{String(index + 1).padStart(2, '0')}</span>
+            <strong>{policy.title}</strong>
+            <span aria-hidden="true">→</span>
+          </Link>
         ))}
       </div>
     </div>

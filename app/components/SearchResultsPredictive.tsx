@@ -105,8 +105,8 @@ function SearchResultsPredictiveArticles({
                   <Image
                     alt={article.image.altText ?? ''}
                     src={article.image.url}
-                    width={50}
-                    height={50}
+                    width={72}
+                    height={72}
                   />
                 )}
                 <div>
@@ -146,8 +146,8 @@ function SearchResultsPredictiveCollections({
                   <Image
                     alt={collection.image.altText ?? ''}
                     src={collection.image.url}
-                    width={50}
-                    height={50}
+                    width={72}
+                    height={72}
                   />
                 )}
                 <div>
@@ -222,8 +222,8 @@ function SearchResultsPredictiveProducts({
                   <Image
                     alt={image.altText ?? ''}
                     src={image.url}
-                    width={50}
-                    height={50}
+                    width={72}
+                    height={72}
                   />
                 )}
                 <div>

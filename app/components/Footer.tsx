@@ -35,10 +35,10 @@ export function Footer({
         <FooterColumn
           title="Products"
           links={[
-            {label: 'BP-BOP Tea', to: '/collections/all'},
-            {label: 'BOPSM Tea', to: '/collections/all'},
-            {label: 'CTC Tea', to: '/collections/all'},
-            {label: 'Spiced Tea', to: '/collections/all'},
+            {label: 'Orthodox Black Tea', to: '/collections/all'},
+            {label: 'Green Tea', to: '/collections/all'},
+            {label: 'Single Grade CTC', to: '/collections/all'},
+            {label: 'Speciality Tea', to: '/collections/all'},
           ]}
         />
         <section className="footer-contact">
