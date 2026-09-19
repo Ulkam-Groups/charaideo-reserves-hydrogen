@@ -1,6 +1,7 @@
 import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/account.orders.$id';
 import {Money, Image} from '@shopify/hydrogen';
+import {formatDateLong} from '~/lib/formatDate';
 import type {
   OrderLineItemFullFragment,
   OrderQuery,
@@ -87,7 +88,7 @@ export default function OrderRoute() {
       <header className="account-section-heading account-order-heading">
         <span className="eyebrow">Order record</span>
         <h2>Order {order.name}</h2>
-        <p>Placed {new Intl.DateTimeFormat('en-IN', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(order.processedAt!))}</p>
+        <p>Placed {formatDateLong(order.processedAt!)}</p>
         {order.confirmationNumber && <p className="account-confirmation">Confirmation · {order.confirmationNumber}</p>}
       </header>
       <div className="account-order-layout">
