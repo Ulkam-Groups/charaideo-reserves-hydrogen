@@ -2,6 +2,8 @@ import * as Sentry from '@sentry/browser';
 import {metrics} from '@sentry/core';
 import {hydrationDiagnostic, installMonitoringRecorder} from './monitoring-signals';
 
+declare const __SENTRY_RELEASE__: string;
+
 export function initBrowserMonitoring() {
   const dsn = document.querySelector<HTMLMetaElement>('meta[name="sentry-dsn"]')?.content;
   if (!dsn) {
@@ -22,6 +24,7 @@ export function initBrowserMonitoring() {
   Sentry.init({
     dsn,
     environment: document.querySelector<HTMLMetaElement>('meta[name="sentry-environment"]')?.content || 'production',
+    release: __SENTRY_RELEASE__ || undefined,
     defaultIntegrations: false,
     integrations: [],
     sendDefaultPii: false,
@@ -36,7 +39,8 @@ export function initBrowserMonitoring() {
   });
   installMonitoringRecorder((signal) => {
     if (signal.kind === 'hydration') {
-      Sentry.captureMessage('storefront.hydration.failure', {
+      Sentry.captureEvent({
+        message: 'storefront.hydration.failure',
         level: 'error',
         fingerprint: ['storefront.hydration.failure', signal.diagnostic.reactErrorCode, signal.diagnostic.routeGroup],
         tags: {
@@ -48,8 +52,16 @@ export function initBrowserMonitoring() {
           hydration: {
             componentStack: signal.diagnostic.componentStack,
             scriptStack: signal.diagnostic.scriptStack,
+            incidentId: signal.diagnostic.incidentId,
           },
         },
+        ...(signal.diagnostic.frames.length ? {
+          exception: {values: [{
+            type: 'HydrationError',
+            value: `React hydration #${signal.diagnostic.reactErrorCode}`,
+            stacktrace: {frames: signal.diagnostic.frames},
+          }]},
+        } : {}),
       });
       return;
     }
@@ -64,7 +76,7 @@ export function initBrowserMonitoring() {
     }
   });
   window.addEventListener('error', (event) => {
-    const diagnostic = hydrationDiagnostic(event.error, undefined, window.location.pathname);
+    const diagnostic = hydrationDiagnostic(event.error, undefined, window.location.pathname, window.location.origin);
     try {
       Sentry.captureMessage('storefront.browser.error', {
         level: 'error',
@@ -78,7 +90,7 @@ export function initBrowserMonitoring() {
   });
   window.addEventListener('unhandledrejection', (event) => {
     try {
-      const diagnostic = hydrationDiagnostic(event.reason, undefined, window.location.pathname);
+      const diagnostic = hydrationDiagnostic(event.reason, undefined, window.location.pathname, window.location.origin);
       Sentry.captureMessage('storefront.browser.unhandled_rejection', {
         level: 'error',
         fingerprint: ['storefront.browser.unhandled_rejection', diagnostic.errorName, diagnostic.routeGroup],

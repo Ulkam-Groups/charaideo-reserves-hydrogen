@@ -28,7 +28,7 @@ if (!window.location.origin.includes('webcache.googleusercontent.com')) {
       {
         onRecoverableError(error, info) {
           if (monitoringEnabled) {
-            recordHydrationFailure(error, info.componentStack, window.location.pathname);
+            recordHydrationFailure(error, info.componentStack, window.location.pathname, window.location.origin);
           }
           console.error(error);
           if (info.componentStack) {

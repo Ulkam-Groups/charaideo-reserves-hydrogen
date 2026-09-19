@@ -37,6 +37,7 @@
     "@playwright/test": "^1.63.0",
     "@react-router/dev": "~7.16.0",
     "@react-router/fs-routes": "~7.16.0",
+    "@sentry/vite-plugin": "^5.4.0",
     "@shopify/cli": "^3.84.2",
     "@shopify/hydrogen-codegen": "^0.3.3",
     "@types/node": "^22.15.3",

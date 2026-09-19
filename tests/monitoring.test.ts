@@ -55,7 +55,7 @@ test('browser signals are buffered only while enabled and cannot interrupt check
   assert.equal(hydration.diagnostic.errorName, 'Error');
   assert.equal(hydration.diagnostic.routeGroup, 'products');
   assert.equal(hydration.diagnostic.componentStack, 'html > App');
-  assert.match(hydration.diagnostic.scriptStack, /monitoring\.test\.ts/);
+  assert.equal(hydration.diagnostic.scriptStack, 'unavailable');
   installMonitoringRecorder(() => {
     throw new Error('monitoring unavailable');
   });
@@ -73,15 +73,62 @@ test('hydration diagnostics include useful frames without URL, query, or custome
     error,
     '\n    at html (https://shop.example/products/private?email=secret@example.com)\n    at CartAside (https://shop.example/cart?token=private)',
     '/products/customer-private',
+    'https://shop.example',
   );
   assert.equal(diagnostic.reactErrorCode, '423');
   assert.equal(diagnostic.routeGroup, 'products');
   assert.equal(diagnostic.componentStack, 'html > CartAside');
   assert.match(diagnostic.scriptStack, /entry\.client-abc\.js:28:15415/);
+  assert.deepEqual(diagnostic.frames, [
+    {
+      filename: 'https://shop.example/assets/entry.client-abc.js',
+      abs_path: 'https://shop.example/assets/entry.client-abc.js',
+      function: 'hydrate',
+      lineno: 28,
+      colno: 15415,
+      in_app: true,
+    },
+  ]);
   assert.doesNotMatch(
     JSON.stringify(diagnostic),
-    /private|secret@example\.com|shop\.example/,
+    /private|secret@example\.com|customer=/,
   );
+});
+
+test('hydration recovery is suppressed after the first mismatch on a page', () => {
+  const received: unknown[] = [];
+  installMonitoringRecorder(null);
+  prepareMonitoringSignals();
+  installMonitoringRecorder((signal) => received.push(signal));
+  recordHydrationFailure(
+    new Error('https://react.dev/errors/418'),
+    '\n    at App',
+    '/',
+    'https://shop.example',
+  );
+  recordHydrationFailure(
+    new Error('https://react.dev/errors/423'),
+    undefined,
+    '/',
+    'https://shop.example',
+  );
+  assert.equal(received.length, 1);
+  assert.match(JSON.stringify(received[0]), /"reactErrorCode":"418"/);
+  installMonitoringRecorder(null);
+});
+
+test('structured frames reject third-party scripts and URLs with private paths', () => {
+  const error = new Error('private');
+  error.stack =
+    'Error: private\n    at external (https://other.example/assets/remote.js:1:2)\n    at path (https://shop.example/account/private.js:3:4)';
+  const diagnostic = hydrationDiagnostic(
+    error,
+    undefined,
+    '/account/customer',
+    'https://shop.example',
+  );
+  assert.deepEqual(diagnostic.frames, []);
+  assert.doesNotMatch(JSON.stringify(diagnostic), /customer|remote\.js|private\.js/);
 });
 
 test('Sentry ingest accepts only HTTPS Sentry hosts', () => {

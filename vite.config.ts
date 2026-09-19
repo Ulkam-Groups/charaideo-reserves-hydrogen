@@ -4,9 +4,30 @@ import {hydrogen} from '@shopify/hydrogen/vite';
 import {oxygen} from '@shopify/mini-oxygen/vite';
 import {reactRouter} from '@react-router/dev/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import {sentryVitePlugin} from '@sentry/vite-plugin';
+
+const sentryRelease = process.env.SENTRY_RELEASE || '';
+const uploadSentryMaps = Boolean(process.env.SENTRY_AUTH_TOKEN && sentryRelease);
 
 export default defineConfig({
-  plugins: [hydrogen(), oxygen(), reactRouter(), tsconfigPaths()],
+  plugins: [
+    hydrogen(),
+    oxygen(),
+    reactRouter(),
+    tsconfigPaths(),
+    ...(uploadSentryMaps ? [sentryVitePlugin({
+      org: 'ulkam-group',
+      project: 'javascript-react-router',
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      release: {name: sentryRelease},
+      sourcemaps: {
+        assets: './build/client/assets/**/*.js',
+        filesToDeleteAfterUpload: './build/client/assets/**/*.js.map',
+      },
+      telemetry: false,
+    })] : []),
+  ],
+  define: {'__SENTRY_RELEASE__': JSON.stringify(sentryRelease)},
   resolve: {
     alias: {
       // Vite's native tsconfig path resolver does not cover JavaScript
@@ -18,6 +39,7 @@ export default defineConfig({
     // Allow a strict Content-Security-Policy
     // without inlining assets as base64:
     assetsInlineLimit: 0,
+    sourcemap: uploadSentryMaps ? 'hidden' : false,
   },
   ssr: {
     optimizeDeps: {
