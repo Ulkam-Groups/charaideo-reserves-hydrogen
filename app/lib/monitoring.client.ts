@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/browser';
 import {metrics} from '@sentry/core';
-import {installMonitoringRecorder} from './monitoring-signals';
+import {hydrationDiagnostic, installMonitoringRecorder} from './monitoring-signals';
 
 export function initBrowserMonitoring() {
   const dsn = document.querySelector<HTMLMetaElement>('meta[name="sentry-dsn"]')?.content;
@@ -36,32 +36,55 @@ export function initBrowserMonitoring() {
   });
   installMonitoringRecorder((signal) => {
     if (signal.kind === 'hydration') {
-      Sentry.captureMessage('storefront.hydration.failure', 'error');
+      Sentry.captureMessage('storefront.hydration.failure', {
+        level: 'error',
+        fingerprint: ['storefront.hydration.failure', signal.diagnostic.reactErrorCode, signal.diagnostic.routeGroup],
+        tags: {
+          reactErrorCode: signal.diagnostic.reactErrorCode,
+          errorName: signal.diagnostic.errorName,
+          routeGroup: signal.diagnostic.routeGroup,
+        },
+        contexts: {
+          hydration: {
+            componentStack: signal.diagnostic.componentStack,
+            scriptStack: signal.diagnostic.scriptStack,
+          },
+        },
+      });
       return;
     }
     metrics.count('fastrr.launch.count', 1, {attributes: {source: signal.source, result: signal.result}});
     if (signal.result !== 'requested') {
       Sentry.captureMessage('fastrr.launch.failure', {
         level: 'error',
-        tags: {source: signal.source, result: signal.result},
+        fingerprint: ['fastrr.launch.failure', signal.source, signal.result],
+        tags: {source: signal.source, result: signal.result, routeGroup: signal.diagnostic?.routeGroup || 'unknown', errorName: signal.diagnostic?.errorName || 'none'},
+        contexts: signal.diagnostic ? {diagnostic: {scriptStack: signal.diagnostic.scriptStack}} : undefined,
       });
     }
   });
   window.addEventListener('error', (event) => {
-    const knownNames = ['Error', 'TypeError', 'ReferenceError', 'RangeError', 'SyntaxError'];
-    const errorName = knownNames.includes(event.error?.name) ? event.error.name : 'OtherError';
+    const diagnostic = hydrationDiagnostic(event.error, undefined, window.location.pathname);
     try {
       Sentry.captureMessage('storefront.browser.error', {
         level: 'error',
-        tags: {errorName},
+        fingerprint: ['storefront.browser.error', diagnostic.errorName, diagnostic.reactErrorCode, diagnostic.routeGroup],
+        tags: {errorName: diagnostic.errorName, reactErrorCode: diagnostic.reactErrorCode, routeGroup: diagnostic.routeGroup},
+        contexts: {diagnostic: {scriptStack: diagnostic.scriptStack}},
       });
     } catch {
       // Browser monitoring must not cause another application error.
     }
   });
-  window.addEventListener('unhandledrejection', () => {
+  window.addEventListener('unhandledrejection', (event) => {
     try {
-      Sentry.captureMessage('storefront.browser.unhandled_rejection', 'error');
+      const diagnostic = hydrationDiagnostic(event.reason, undefined, window.location.pathname);
+      Sentry.captureMessage('storefront.browser.unhandled_rejection', {
+        level: 'error',
+        fingerprint: ['storefront.browser.unhandled_rejection', diagnostic.errorName, diagnostic.routeGroup],
+        tags: {errorName: diagnostic.errorName, reactErrorCode: diagnostic.reactErrorCode, routeGroup: diagnostic.routeGroup},
+        contexts: {diagnostic: {scriptStack: diagnostic.scriptStack}},
+      });
     } catch {
       // Browser monitoring must not cause another application error.
     }

@@ -96,6 +96,7 @@ export async function action({request, context}: Route.ActionArgs) {
     switch (request.method) {
       case 'POST': {
         // handle new address creation
+        let failureReason = 'exception';
         try {
           const {data, errors} = await customerAccount.mutate(
             CREATE_ADDRESS_MUTATION,
@@ -109,11 +110,12 @@ export async function action({request, context}: Route.ActionArgs) {
           );
 
           if (errors?.length) {
+            failureReason = 'graphql';
             throw new Error(errors[0].message);
           }
 
           if (data?.customerAddressCreate?.userErrors?.length) {
-            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_create'});
+            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_create', errorCount: data.customerAddressCreate.userErrors.length});
             return routeData(
               {
                 error: {
@@ -125,6 +127,7 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (!data?.customerAddressCreate?.customerAddress) {
+            failureReason = 'missing_result';
             throw new Error('Customer address create failed.');
           }
 
@@ -133,8 +136,8 @@ export async function action({request, context}: Route.ActionArgs) {
             createdAddress: data?.customerAddressCreate?.customerAddress,
             defaultAddress,
           };
-        } catch {
-          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_create'});
+        } catch (error) {
+          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_create', reason: failureReason}, error);
           return routeData(
             {error: {[addressId]: 'Unable to create this address right now.'}},
             {status: 400},
@@ -144,6 +147,7 @@ export async function action({request, context}: Route.ActionArgs) {
 
       case 'PUT': {
         // handle address updates
+        let failureReason = 'exception';
         try {
           const {data, errors} = await customerAccount.mutate(
             UPDATE_ADDRESS_MUTATION,
@@ -158,11 +162,12 @@ export async function action({request, context}: Route.ActionArgs) {
           );
 
           if (errors?.length) {
+            failureReason = 'graphql';
             throw new Error(errors[0].message);
           }
 
           if (data?.customerAddressUpdate?.userErrors?.length) {
-            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_update'});
+            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_update', errorCount: data.customerAddressUpdate.userErrors.length});
             return routeData(
               {
                 error: {
@@ -174,6 +179,7 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (!data?.customerAddressUpdate?.customerAddress) {
+            failureReason = 'missing_result';
             throw new Error('Customer address update failed.');
           }
 
@@ -182,8 +188,8 @@ export async function action({request, context}: Route.ActionArgs) {
             updatedAddress: address,
             defaultAddress,
           };
-        } catch {
-          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_update'});
+        } catch (error) {
+          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_update', reason: failureReason}, error);
           return routeData(
             {error: {[addressId]: 'Unable to update this address right now.'}},
             {status: 400},
@@ -193,6 +199,7 @@ export async function action({request, context}: Route.ActionArgs) {
 
       case 'DELETE': {
         // handles address deletion
+        let failureReason = 'exception';
         try {
           const {data, errors} = await customerAccount.mutate(
             DELETE_ADDRESS_MUTATION,
@@ -205,11 +212,12 @@ export async function action({request, context}: Route.ActionArgs) {
           );
 
           if (errors?.length) {
+            failureReason = 'graphql';
             throw new Error(errors[0].message);
           }
 
           if (data?.customerAddressDelete?.userErrors?.length) {
-            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_delete'});
+            context.monitor?.count('customer_account.mutation.user_error', {operation: 'address_delete', errorCount: data.customerAddressDelete.userErrors.length});
             return routeData(
               {
                 error: {
@@ -221,12 +229,13 @@ export async function action({request, context}: Route.ActionArgs) {
           }
 
           if (!data?.customerAddressDelete?.deletedAddressId) {
+            failureReason = 'missing_result';
             throw new Error('Customer address delete failed.');
           }
 
           return {error: null, deletedAddress: addressId};
-        } catch {
-          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_delete'});
+        } catch (error) {
+          context.monitor?.failure('customer_account.mutation.failure', {operation: 'address_delete', reason: failureReason}, error);
           return routeData(
             {error: {[addressId]: 'Unable to delete this address right now.'}},
             {status: 400},

@@ -32,8 +32,8 @@ export function startFastrrCheckout(input: FastrrCheckoutInput): boolean {
     window.shiprocketCheckoutEvents.buyDirect(input);
     recordFastrrLaunch(input.type, 'requested');
     return true;
-  } catch {
-    recordFastrrLaunch(input.type, 'threw');
+  } catch (error) {
+    recordFastrrLaunch(input.type, 'threw', error);
     return false;
   }
 }

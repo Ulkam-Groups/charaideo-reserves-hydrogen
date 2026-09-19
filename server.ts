@@ -13,7 +13,7 @@ export default {
     executionContext: ExecutionContext,
   ): Promise<Response> {
     const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
-    const monitor = createMonitorIfEnabled(env.SENTRY_ENABLED, env.SENTRY_DSN, env.SENTRY_ENVIRONMENT);
+    const monitor = createMonitorIfEnabled(env.SENTRY_ENABLED, env.SENTRY_DSN, env.SENTRY_ENVIRONMENT, requestId);
     const started = monitor ? performance.now() : 0;
     const routeGroup = monitor ? classifyRoute(new URL(request.url).pathname) : 'other';
     let stage = 'context';
@@ -69,7 +69,7 @@ export default {
 
       return response;
     } catch (error) {
-      monitor?.failure('storefront.request.exception', {stage});
+      monitor?.failure('storefront.request.exception', {stage, routeGroup}, error);
       console.error(JSON.stringify({
         level: 'error',
         scope: 'request',
@@ -89,7 +89,7 @@ export default {
       if (monitor) {
         monitor.count('storefront.request.count', {status, method: request.method, routeGroup});
         if (status === 429 || status >= 500) {
-          monitor.failure('storefront.http.failure', {status, routeGroup});
+          monitor.failure('storefront.http.failure', {status, routeGroup, method: request.method});
         }
         monitor.duration('storefront.request.duration', performance.now() - started, {
           status,

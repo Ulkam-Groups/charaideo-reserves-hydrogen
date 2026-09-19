@@ -71,7 +71,7 @@ export default async function handleRequest(
       nonce,
       signal: request.signal,
       onError(error) {
-        context.monitor?.failure('storefront.ssr.failure');
+        context.monitor?.failure('storefront.ssr.failure', {}, error);
         console.error(JSON.stringify({
           level: 'error',
           scope: 'ssr',

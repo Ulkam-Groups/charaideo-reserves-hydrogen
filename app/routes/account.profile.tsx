@@ -71,8 +71,8 @@ export async function action({request, context}: Route.ActionArgs) {
       error: null,
       customer: data?.customerUpdate?.customer,
     };
-  } catch {
-    context.monitor?.failure('customer_account.mutation.failure', {operation: 'profile', reason: failureReason});
+  } catch (error) {
+    context.monitor?.failure('customer_account.mutation.failure', {operation: 'profile', reason: failureReason}, error);
     return data(
       {
         error: 'Unable to update your profile right now. Please try again.',

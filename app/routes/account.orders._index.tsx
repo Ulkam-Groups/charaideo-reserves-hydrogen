@@ -52,7 +52,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
   });
 
   if (errors?.length || !data?.customer) {
-    context.monitor?.failure('customer_account.query.failure', {operation: 'orders'});
+    context.monitor?.failure('customer_account.query.failure', {operation: 'orders', reason: errors?.length ? 'graphql' : 'missing_result'});
     throw Error('Customer orders not found');
   }
 

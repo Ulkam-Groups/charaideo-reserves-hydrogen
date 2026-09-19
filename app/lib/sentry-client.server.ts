@@ -1,9 +1,9 @@
 import {Scope, ServerRuntimeClient, createTransport, metrics} from '@sentry/core';
-import {monitoringEnabled, sentryIngestOrigin, type Monitor} from './monitoring.server.ts';
+import {monitoringEnabled, safeErrorStack, safeErrorTags, sentryIngestOrigin, type Monitor} from './monitoring.server.ts';
 
 type Tags = Record<string, string | number | boolean>;
 
-export function createMonitor(dsn?: string, environment?: string): Monitor | null {
+export function createMonitor(dsn?: string, environment?: string, requestId?: string): Monitor | null {
   if (!sentryIngestOrigin(dsn)) return null;
 
   const client = new ServerRuntimeClient({
@@ -40,6 +40,9 @@ export function createMonitor(dsn?: string, environment?: string): Monitor | nul
   });
   const scope = new Scope();
   scope.setClient(client);
+  if (requestId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+    scope.setTag('requestId', requestId);
+  }
 
   return {
     count(name: string, tags: Tags = {}) {
@@ -60,10 +63,13 @@ export function createMonitor(dsn?: string, environment?: string): Monitor | nul
         // Monitoring must not affect the storefront.
       }
     },
-    failure(name: string, tags: Tags = {}) {
+    failure(name: string, tags: Tags = {}, error?: unknown) {
       try {
         const eventScope = scope.clone();
-        eventScope.setTags(tags);
+        const diagnosticTags = error === undefined ? tags : {...tags, ...safeErrorTags(error)};
+        eventScope.setTags(diagnosticTags);
+        if (error !== undefined) eventScope.setContext('diagnostic', {scriptStack: safeErrorStack(error)});
+        eventScope.setFingerprint([name, ...['operation', 'stage', 'reason', 'status', 'routeGroup', 'upstreamStatus'].map((key) => String(diagnosticTags[key] ?? ''))]);
         eventScope.captureMessage(name, 'error');
         metrics.count(name, 1, {attributes: tags, scope});
       } catch {
@@ -80,10 +86,10 @@ export function createMonitor(dsn?: string, environment?: string): Monitor | nul
   };
 }
 
-export function createMonitorIfEnabled(enabled: string | undefined, dsn?: string, environment?: string) {
+export function createMonitorIfEnabled(enabled: string | undefined, dsn?: string, environment?: string, requestId?: string) {
   if (!monitoringEnabled(enabled)) return null;
   try {
-    return createMonitor(dsn, environment);
+    return createMonitor(dsn, environment, requestId);
   } catch {
     return null;
   }

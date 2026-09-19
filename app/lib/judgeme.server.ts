@@ -189,7 +189,7 @@ async function loadJudgeMeProductReviews({
         : error instanceof Error && error.name === 'TimeoutError'
           ? 'timeout'
           : 'upstream';
-    monitor?.failure('judgeme.reviews.failure', {reason});
+    monitor?.failure('judgeme.reviews.failure', {reason}, error);
     // Reviews are non-critical. Provider or network failures must not break commerce.
     return emptyResult();
   }

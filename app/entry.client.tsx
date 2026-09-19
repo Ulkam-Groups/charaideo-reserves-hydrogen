@@ -4,7 +4,8 @@ import {hydrateRoot} from 'react-dom/client';
 import {NonceProvider} from '@shopify/hydrogen';
 import {prepareMonitoringSignals, recordHydrationFailure, installMonitoringRecorder} from '~/lib/monitoring-signals';
 
-if (document.querySelector('meta[name="sentry-dsn"]')) {
+const monitoringEnabled = Boolean(document.querySelector('meta[name="sentry-dsn"]'));
+if (monitoringEnabled) {
   prepareMonitoringSignals();
   void import('~/lib/monitoring.client')
     .then(({initBrowserMonitoring}) => initBrowserMonitoring())
@@ -26,7 +27,9 @@ if (!window.location.origin.includes('webcache.googleusercontent.com')) {
       </StrictMode>,
       {
         onRecoverableError(error, info) {
-          recordHydrationFailure();
+          if (monitoringEnabled) {
+            recordHydrationFailure(error, info.componentStack, window.location.pathname);
+          }
           console.error(error);
           if (info.componentStack) {
             console.error('Hydration component stack:', info.componentStack);
