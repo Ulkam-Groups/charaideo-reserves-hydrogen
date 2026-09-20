@@ -142,6 +142,7 @@ export default function Homepage() {
     [t, r] = xe.useState(""),
     [A, u] = xe.useState(!1),
     [l, i] = xe.useState(""),
+    [submitting, setSubmitting] = xe.useState(!1),
     [o, c] = xe.useState({ visible: !1, message: "" }),
     p = xe.useRef(null),
     z = () => {
@@ -178,21 +179,45 @@ export default function Homepage() {
       c({ visible: !0, message: a });
       window.setTimeout(() => c({ visible: !1, message: "" }), 3800);
     },
-    g = (a) => {
-      if ((a.preventDefault(), !l || !l.includes("@"))) {
+    submitWaitlist = async (email) => {
+      if (submitting) return !1;
+      setSubmitting(!0);
+      try {
+        const response = await fetch('/api/waitlist', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, consent: true}),
+        });
+        if (!response.ok) {
+          const result = await response.json().catch(() => null);
+          throw new Error(result?.error || 'Unable to join the list. Please try again.');
+        }
+        return !0;
+      } catch (error) {
+        q(error instanceof Error ? error.message : 'Unable to join the list. Please try again.');
+        return !1;
+      } finally {
+        setSubmitting(!1);
+      }
+    },
+    g = async (a) => {
+      a.preventDefault();
+      if (!l || !l.includes("@")) {
         q("Please enter a valid email");
         return;
       }
+      if (!(await submitWaitlist(l))) return;
       E();
       i("");
-      r(l);
       q("You're on the list — first 100 pouches reserved for early access");
     },
-    Z = (a) => {
-      if ((a.preventDefault(), !t || !t.includes("@"))) {
+    Z = async (a) => {
+      a.preventDefault();
+      if (!t || !t.includes("@")) {
         q("Please enter a valid email");
         return;
       }
+      if (!(await submitWaitlist(t))) return;
       q("You're on the list — first 100 pouches reserved for early access");
       r("");
     },
@@ -1312,6 +1337,7 @@ export default function Homepage() {
                   }),
                   f("button", {
                     type: "submit",
+                    disabled: submitting,
                     className:
                       "h-[48px] px-7 rounded-full bg-[#FFFEF8] text-[#132A1F] text-[13px] tracking-[0.06em] uppercase font-[600] hover:bg-white transition",
                     children: "Join Reserve List",
@@ -1413,18 +1439,9 @@ export default function Homepage() {
                   ],
                 }),
                 y("form", {
-                  action: "/contact#contact_form",
-                  method: "post",
                   onSubmit: g,
                   className: "mt-8",
                   children: [
-                    f("input", { type: "hidden", name: "form_type", value: "customer" }),
-                    f("input", { type: "hidden", name: "utf8", value: "✓" }),
-                    f("input", {
-                      type: "hidden",
-                      name: "contact[tags]",
-                      value: "waitlist, chapter-1, first-100",
-                    }),
                     f("label", {
                       htmlFor: "waitlist-email",
                       className:
@@ -1449,6 +1466,7 @@ export default function Homepage() {
                         }),
                         f("button", {
                           type: "submit",
+                          disabled: submitting,
                           className:
                             "w-full h-[52px] rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.06em] uppercase font-[600] inline-flex items-center justify-center hover:bg-black transition",
                           children: "Reserve My Access for Chapter I",

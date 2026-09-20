@@ -1,11 +1,12 @@
 import type {Route} from './+types/api.waitlist';
+import {saveWaitlistSubscriber, WaitlistError} from '~/lib/waitlist.server';
 
-export async function action({request}: Route.ActionArgs) {
+export async function action({request, context}: Route.ActionArgs) {
   if (request.method !== 'POST') {
     return Response.json({error: 'Method not allowed'}, {status: 405});
   }
 
-  let body: {email?: unknown; tags?: unknown};
+  let body: {email?: unknown; consent?: unknown};
   try {
     body = await request.json();
   } catch {
@@ -16,10 +17,18 @@ export async function action({request}: Route.ActionArgs) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return Response.json({error: 'Valid email required'}, {status: 400});
   }
+  if (body.consent !== true) {
+    return Response.json({error: 'Email consent required'}, {status: 400});
+  }
 
-  // TODO: Forward {email, tags: ['waitlist', 'chapter-1', 'first-100']}
-  // to Klaviyo and create/tag the Shopify customer after credentials and
-  // consent requirements are configured. The approved homepage currently
-  // shows a client-side confirmation only; no address is persisted yet.
-  return Response.json({error: 'Waitlist integration is not configured'}, {status: 501});
+  try {
+    await saveWaitlistSubscriber(email, context.env);
+    return Response.json({ok: true}, {headers: {'Cache-Control': 'no-store'}});
+  } catch (error) {
+    console.error('Waitlist signup failed', error instanceof WaitlistError ? error.message : 'Unexpected error');
+    return Response.json(
+      {error: error instanceof WaitlistError ? error.message : 'Unable to save your email'},
+      {status: error instanceof WaitlistError ? error.status : 502},
+    );
+  }
 }
