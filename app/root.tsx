@@ -1,4 +1,5 @@
 import {Analytics, getShopAnalytics, Script, useNonce} from '@shopify/hydrogen';
+import {useEffect} from 'react';
 import {
   Links,
   Meta,
@@ -6,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useLocation,
 } from 'react-router';
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
@@ -33,6 +35,8 @@ export function links() {
 export async function loader({context}: Route.LoaderArgs) {
   const {cart, customerAccount, env, storefront} = context;
   const publicStoreDomain = env.PUBLIC_STORE_DOMAIN;
+  const chatShopDomain =
+    env.PUBLIC_SHOPIFY_CHAT_SHOP?.trim() || 'charaideoreserves.myshopify.com';
 
   const header = await measureStorefront(context.monitor, 'header', () =>
     storefront.query(HEADER_QUERY, {
@@ -60,6 +64,7 @@ export async function loader({context}: Route.LoaderArgs) {
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
+    chatShopDomain,
     fastrrSellerDomain: env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null,
     sentryDsn: monitoringEnabled(env.SENTRY_ENABLED) && sentryIngestOrigin(env.SENTRY_DSN)
       ? env.SENTRY_DSN
@@ -72,9 +77,31 @@ export async function loader({context}: Route.LoaderArgs) {
   };
 }
 
+function ShopifyChatScript() {
+  useEffect(() => {
+    if (document.querySelector('script[data-shopify-chat-script]')) return;
+
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.defer = true;
+    script.src = 'https://cdn.shopify.com/storefront/web-components/chat.js';
+    script.dataset.shopifyChatScript = 'true';
+    document.body.appendChild(script);
+  }, []);
+
+  return null;
+}
+
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const nonce = useNonce();
+  const {pathname} = useLocation();
+  const showChat = !(
+    pathname === '/account' ||
+    pathname.startsWith('/account/') ||
+    pathname === '/policies' ||
+    pathname.startsWith('/policies/')
+  );
 
   return (
     <html lang="en">
@@ -110,6 +137,12 @@ export default function App() {
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
+        {showChat && (
+          <shopify-store store-domain={data.chatShopDomain}>
+            <shopify-chat />
+          </shopify-store>
+        )}
+        {showChat && <ShopifyChatScript />}
       </body>
     </html>
   );

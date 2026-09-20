@@ -29,6 +29,8 @@ export default async function handleRequest(
     ],
     connectSrc: [
       ...(sentryOrigin ? [sentryOrigin] : []),
+      'https://cdn.shopify.com',
+      'https://messaging-api.shopifyapps.com',
       'https://fastrr-boost-ui.pickrr.com',
       'https://sr-cdn.shiprocket.in',
       'https://uptime2.fastrr.com',
@@ -36,7 +38,10 @@ export default async function handleRequest(
       'https://cred.club',
       'https://tez.google.com',
     ],
-    frameSrc: ['https://fastrr-boost-ui.pickrr.com'],
+    frameSrc: [
+      'https://fastrr-boost-ui.pickrr.com',
+      'https://storefront-agent-server.shopify.ai',
+    ],
     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     imgSrc: [
       "'self'",
