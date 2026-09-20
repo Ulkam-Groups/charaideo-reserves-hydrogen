@@ -16,12 +16,25 @@ export async function loader({request, context}: Route.LoaderArgs) {
     `/agent/buyer-claims${requestUrl.search}`,
     `https://${storeDomain}`,
   );
-  const headers = new Headers({
-    Accept: 'text/html',
-    'Sec-Shopify-Storefront-Origin': requestUrl.origin,
-  });
-  const language = request.headers.get('accept-language');
-  if (language) headers.set('Accept-Language', language);
+  const headers = new Headers();
+  for (const name of [
+    'accept',
+    'accept-language',
+    'origin',
+    'referer',
+    'user-agent',
+    'sec-fetch-dest',
+    'sec-fetch-mode',
+    'sec-fetch-site',
+    'sec-ch-ua',
+    'sec-ch-ua-mobile',
+    'sec-ch-ua-platform',
+  ]) {
+    const value = request.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+  if (!headers.has('accept')) headers.set('Accept', 'text/html');
+  headers.set('Sec-Shopify-Storefront-Origin', requestUrl.origin);
 
   let upstream: Response;
   try {

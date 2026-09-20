@@ -4,7 +4,14 @@ import {loader} from '../app/routes/agent.buyer-claims.ts';
 
 const request = new Request(
   'https://preview.myshopify.dev/agent/buyer-claims?desktop=1',
-  {headers: {Cookie: 'hydrogen_session=private'}},
+  {
+    headers: {
+      Cookie: 'hydrogen_session=private',
+      Authorization: 'Bearer private',
+      'User-Agent': 'Test Browser',
+      Referer: 'https://preview.myshopify.dev/',
+    },
+  },
 );
 const context = {env: {PUBLIC_STORE_DOMAIN: 'f5a7fq-re.myshopify.com'}};
 
@@ -31,6 +38,9 @@ test('buyer claims route proxies only the configured Shopify store', async () =>
       'https://preview.myshopify.dev',
     );
     assert.equal(forwardedHeaders?.has('Cookie'), false);
+    assert.equal(forwardedHeaders?.has('Authorization'), false);
+    assert.equal(forwardedHeaders?.get('User-Agent'), 'Test Browser');
+    assert.equal(forwardedHeaders?.get('Referer'), 'https://preview.myshopify.dev/');
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
     assert.equal(await response.text(), 'claims');
