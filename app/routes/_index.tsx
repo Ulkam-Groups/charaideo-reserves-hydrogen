@@ -20,7 +20,7 @@ export const links = () => [{rel: 'stylesheet', href: artifactStylesheet}];
 type ChapterProduct = {
   title: string;
   handle: string;
-  totalInventory: number | null;
+  variants: {nodes: {availableForSale: boolean; currentlyNotInStock: boolean}[]};
   estate?: {value: string} | null;
   flush?: {value: string} | null;
   grade?: {value: string} | null;
@@ -94,7 +94,9 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
         nodes {
           title
           handle
-          totalInventory
+          variants(first: 50) {
+            nodes { availableForSale currentlyNotInStock }
+          }
         }
       }
     }
@@ -1354,52 +1356,6 @@ export default function Homepage() {
               ],
             }),
           ],
-        }),
-      }),
-      f("section", {
-        className: "bg-[#132A1F] border-t border-[#FFFEF8]/[0.06] py-8",
-        children: f("div", {
-          className: "mx-auto max-w-[1280px] px-6 md:px-8",
-          children: y("div", {
-            className:
-              "flex items-center gap-4 rounded-[16px] bg-[#FFFEF8]/[0.06] border border-[#FFFEF8]/10 px-4 py-3",
-            children: [
-              f("a", {
-                href: "#",
-                target: "_blank",
-                rel: "noopener",
-                className: "shrink-0",
-                children: f("img", {
-                  src: logoUrl,
-                  alt: "Charaideo Reserves",
-                  className: "h-[32px] w-[32px] rounded-full bg-[#FFFEF8] object-contain p-1",
-                }),
-              }),
-              y("div", {
-                className: "flex flex-col min-w-0",
-                children: [
-                  f("span", {
-                    className: "text-[10px] tracking-[0.14em] uppercase text-[#FFFEF8]/40",
-                    children: "Hydrogen Source",
-                  }),
-                  f("a", {
-                    href: "#",
-
-                    className: "text-[13px] leading-[1.4] text-[#FFFEF8] hover:text-white truncate",
-                    children: "Charaideo Reserves",
-                  }),
-                ],
-              }),
-              f("a", {
-                href: "#",
-                target: "_blank",
-                rel: "noopener",
-                className:
-                  "ml-auto hidden md:inline-flex h-8 px-4 rounded-full bg-[#FFFEF8] text-[#132A1F] text-[11px] tracking-[0.06em] uppercase font-[600] items-center hover:bg-white transition",
-                children: "View product",
-              }),
-            ],
-          }),
         }),
       }),
       A &&

@@ -46,9 +46,10 @@ the sole source of ordinary product inventory changes.
 
 The homepage reads the Shopify collections titled `Chapter I`, `Chapter II`,
 and `Chapter III`. Publish those collections and their products to the Hydrogen
-storefront. A chapter stays sealed or Coming Soon while every product in its
-collection has zero or unknown `totalInventory`. When any product has positive
-inventory, the chapter card opens and links to `/collections/<handle>`. Clicking
+storefront. A chapter stays sealed or Coming Soon while every product variant
+in its collection is unavailable or marked out of stock for backorders. When a
+variant becomes available with stock, the chapter card opens and links to
+`/collections/<handle>`. Clicking
 the sealed Chapter I card opens its waitlist modal. Chapter I also reveals the
 estate name and traceability rows from the first stocked product. Use the product
 metafields `custom.estate`, `custom.flush`, `custom.grade`, `custom.pluck_date`,

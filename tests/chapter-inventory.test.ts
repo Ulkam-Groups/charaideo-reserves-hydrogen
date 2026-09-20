@@ -5,18 +5,28 @@ import {
   selectStockedChapterProduct,
 } from '../app/lib/chapter-inventory.ts';
 
-test('five zero-inventory products keep Chapter I sealed', () => {
+const soldOut = {availableForSale: false, currentlyNotInStock: false};
+const backorder = {availableForSale: true, currentlyNotInStock: true};
+const inStock = {availableForSale: true, currentlyNotInStock: false};
+
+test('five zero-stock products keep Chapter I sealed, including backorders', () => {
   assert.equal(
-    selectStockedChapterProduct(Array.from({length: 5}, () => ({totalInventory: 0}))),
+    selectStockedChapterProduct([
+      ...Array.from({length: 4}, () => ({variants: {nodes: [soldOut]}})),
+      {variants: {nodes: [backorder]}},
+    ]),
     null,
   );
 });
 
 test('adding stock to any product opens its collection', () => {
-  const stocked = {totalInventory: 12, handle: 'chapter-one-tea'};
+  const stocked = {variants: {nodes: [soldOut, inStock]}, handle: 'chapter-one-tea'};
   assert.equal(
     selectStockedChapterProduct([
-      ...Array.from({length: 4}, () => ({totalInventory: 0, handle: 'sealed'})),
+      ...Array.from({length: 4}, () => ({
+        variants: {nodes: [soldOut]},
+        handle: 'sealed',
+      })),
       stocked,
     ]),
     stocked,
@@ -25,7 +35,7 @@ test('adding stock to any product opens its collection', () => {
 
 test('empty chapters remain Coming Soon and collections match their titles', () => {
   const collections = [
-    {title: 'Chapter I', handle: 'chapter-i', products: [{totalInventory: 0}]},
+    {title: 'Chapter I', handle: 'chapter-i', products: [{variants: {nodes: [soldOut]}}]},
     {title: 'Chapter II', handle: 'chapter-ii', products: []},
   ];
   assert.equal(findChapterCollection(collections, 'chapter i')?.handle, 'chapter-i');

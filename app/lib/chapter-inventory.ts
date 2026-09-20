@@ -1,8 +1,14 @@
-/** A chapter opens only when at least one product in its collection has stock. */
-export function selectStockedChapterProduct<T extends {totalInventory: number | null}>(
+type StockStatus = {availableForSale: boolean; currentlyNotInStock: boolean};
+
+/** Ignore backorders: they are purchasable despite having no stock on hand. */
+export function selectStockedChapterProduct<T extends {variants: {nodes: StockStatus[]}}>(
   products: T[],
 ): T | null {
-  return products.find((product) => (product.totalInventory ?? 0) > 0) ?? null;
+  return products.find((product) =>
+    product.variants.nodes.some((variant) =>
+      variant.availableForSale && !variant.currentlyNotInStock,
+    ),
+  ) ?? null;
 }
 
 export function findChapterCollection<T extends {title: string}>(
