@@ -8,7 +8,7 @@ import type {RecommendedProductsQuery} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = () => [
   {title: 'Charaideo Reserves | Assam tea, remembered'},
-  {name: 'description', content: 'Enter a modern Assamese tea room. Shop Assam-origin teas shaped by garden, ritual, hospitality, and cultural memory.'},
+  {name: 'description', content: "Explore the Reserve List of Assam's fine tea estates. Single-estate, single-harvest teas sourced directly from historic gardens in Assam."},
 ];
 
 export async function loader(args: Route.LoaderArgs) {
@@ -35,10 +35,10 @@ export default function Homepage() {
       <section className="tea-room-hero">
         <div className="tea-room-copy">
           <span className="eyebrow">26.98° N / Assam, North East India</span>
-          <h1>Tea remembers<br />where it<br /><em>comes from.</em></h1>
-          <p>Charaideo Reserves is a modern tea room shaped by Assam-its gardens, its Ahom memory, and the instinct to make room for one more cup.</p>
+          <h1>The Reserve List of Assam&apos;s <em>Fine Tea Estates.</em></h1>
+          <p>Single-estate, single-harvest teas - sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.</p>
           <div className="hero-actions">
-            <Link className="button primary" to="/collections/all">Enter the tea room <span aria-hidden="true">↗</span></Link>
+            <Link className="button primary" to="/collections/all">Explore the Reserves <span aria-hidden="true">↗</span></Link>
             <Link className="quiet-link" to="/pages/about-us">Read our story</Link>
           </div>
           <div className="hero-footnote"><span className="tiny-diamond" aria-hidden="true">◇</span> From our home, to your table.</div>
@@ -54,11 +54,11 @@ export default function Homepage() {
         </figure>
       </section>
 
-      <div className="origin-strip"><span>ROOTED IN ASSAM</span><span aria-hidden="true">◇</span><span>POURED WITH PURPOSE</span><span aria-hidden="true">◇</span><span>SHARED WITH THE WORLD</span></div>
+      <div className="origin-strip"><span>ROOTED IN ASSAM</span><span aria-hidden="true">◇</span><span>RESERVED WITH PURPOSE</span><span aria-hidden="true">◇</span><span>SHARED WITH THE WORLD</span></div>
 
       <section className="tea-selection">
         <div className="editorial-heading">
-          <div><span className="eyebrow">Most poured / best sellers</span><h2>The teas people return to.</h2></div>
+          <div><span className="eyebrow">Most poured / best sellers</span><h2>The Reserves people return to.</h2><p>Each pouch is one estate, one harvest, fully traceable. No blends.</p></div>
           <Link className="text-link" to="/collections/all">Explore all teas ↗</Link>
         </div>
         <Suspense fallback={<p className="loading-state">Opening the tea cabinet…</p>}>
@@ -72,14 +72,14 @@ export default function Homepage() {
 
       <section className="heritage-note">
         <span className="eyebrow">More than a place of origin</span>
-        <div><h2>We bring tea to the world.<br /><em>And heritage back to the table.</em></h2><p>Our name carries the cultural memory of Charaideo and the Ahom legacy. Our spirit belongs to Assam: its tea gardens, its living traditions, and its instinct to make room for one more.</p><Link className="text-link" to="/pages/about-us">The story of Charaideo ↗</Link></div>
+        <div><h2>We keep the estate name <em>on the pouch.</em></h2><p>Assam&apos;s finest teas lose their name before they reach you — blended into &quot;Premium Assam Tea&quot;. We do the opposite. We source directly from one historic garden at a time, document its harvest, and release it as a permanent Chapter. For the drinker — you know the garden, the flush, the grade. For the garden — it finally gets its name and premium.</p><Link className="text-link" to="/pages/about-us">The story of Charaideo ↗</Link></div>
         <span className="heritage-seal" aria-hidden="true">চ<span>ASSAM</span>26.98°</span>
       </section>
 
       <section className="ritual-section"><span className="eyebrow">The art of taking a moment</span><h2>Nothing to hurry.<br /><em>Something to savour.</em></h2><div className="ritual-grid">{[
-        ['01','Choose with care','A bold morning cup or a gentler afternoon. Begin with what feels right.'],
-        ['02','Give it time','Fresh water. Your favourite cup. A few quiet minutes for the leaves to open.'],
-        ['03','Make room','For conversation, for company, or simply for yourself.'],
+        ['01','Choose with care','A bold morning black or a light afternoon green. Begin with the estate and harvest, not just flavour.'],
+        ['02','Give it time','Fresh water. Your favourite cup. Whole leaves need time to open — 3g, 85°C, 3 mins. Tasting notes on every pouch.'],
+        ['03','Make room','For one more cup. For conversation. Every pouch is traceable to its garden with QR — estate, pluck date, and brew guide.'],
       ].map(([number,title,copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}</div></section>
     </div>
   );
@@ -87,7 +87,7 @@ export default function Homepage() {
 
 const RECOMMENDED_PRODUCTS_QUERY = `#graphql
   fragment RecommendedProduct on Product {
-    id title handle productType
+    id title handle productType description
     tastingNotes: metafield(namespace: "custom", key: "tasting_notes") { value }
     selectedOrFirstAvailableVariant { id availableForSale }
     priceRange { minVariantPrice { amount currencyCode } }
