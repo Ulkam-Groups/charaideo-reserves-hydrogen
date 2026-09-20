@@ -53,9 +53,15 @@ export function ProductItem({
     showVariants &&
     (variants.length > 1 ||
       (variants.length === 1 && variants[0].title !== 'Default Title'));
+  const fullDescription =
+    product.description?.trim().replace(/\s+/g, ' ') ||
+    product.tastingNotes?.value?.trim().replace(/\s+/g, ' ') ||
+    '';
+  const descriptionCharacters = Array.from(fullDescription);
   const cardDescription =
-    product.tastingNotes?.value ||
-    'A distinctive Assam cup, selected for an everyday ritual.';
+    descriptionCharacters.length > 40
+      ? `${descriptionCharacters.slice(0, 40).join('').trimEnd()}...`
+      : fullDescription;
 
   return (
     <article
@@ -79,7 +85,7 @@ export function ProductItem({
           <p>{product.productType || 'The tea cabinet'}</p>
           <h2><Link to={url}>{product.title}</Link></h2>
         </div>
-        <p className="catalog-card-description" title={cardDescription}>
+        <p className="catalog-card-description" title={fullDescription}>
           {cardDescription}
         </p>
 
