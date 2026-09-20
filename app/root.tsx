@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useLocation,
 } from 'react-router';
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
@@ -27,13 +28,6 @@ export function links() {
     },
     {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
     {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
-    {
-      rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap',
-    },
-    {rel: 'stylesheet', href: stylesheet},
-    {rel: 'stylesheet', href: riverThread},
-    {rel: 'stylesheet', href: identity},
   ];
 }
 
@@ -88,6 +82,7 @@ export async function loader({context}: Route.LoaderArgs) {
 
 export default function App() {
   const data = useLoaderData<typeof loader>();
+  const isHomepage = useLocation().pathname === '/';
   const nonce = useNonce();
 
   return (
@@ -99,6 +94,14 @@ export default function App() {
         {data.sentryDsn && <meta name="sentry-environment" content={data.sentryEnvironment} />}
         <Meta />
         <Links />
+        {!isHomepage && (
+          <>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap" />
+            <link rel="stylesheet" href={stylesheet} />
+            <link rel="stylesheet" href={riverThread} />
+            <link rel="stylesheet" href={identity} />
+          </>
+        )}
         {data.fastrrSellerDomain && (
           <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css" />
         )}
@@ -112,9 +115,7 @@ export default function App() {
           consent={data.consent}
           shop={data.shop}
         >
-          <PageLayout {...data}>
-            <Outlet />
-          </PageLayout>
+          {isHomepage ? <Outlet /> : <PageLayout {...data}><Outlet /></PageLayout>}
         </Analytics.Provider>
         {data.fastrrSellerDomain && (
           <Script

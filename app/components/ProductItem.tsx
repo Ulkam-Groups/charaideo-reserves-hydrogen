@@ -4,18 +4,16 @@ import {useState} from 'react';
 import type {
   ProductItemFragment,
   CollectionItemFragment,
-  RecommendedProductFragment,
 } from 'storefrontapi.generated';
 import {useVariantUrl} from '~/lib/variants';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 
-type CardVariant = RecommendedProductFragment['variants']['nodes'][number];
+type CardVariant = CollectionItemFragment['variants']['nodes'][number];
 
 type TeaProduct = (
   | CollectionItemFragment
   | ProductItemFragment
-  | RecommendedProductFragment
 ) & {
   productType?: string;
   tastingNotes?: {value: string} | null;
