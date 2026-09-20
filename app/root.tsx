@@ -1,5 +1,4 @@
 import {Analytics, getShopAnalytics, Script, useNonce} from '@shopify/hydrogen';
-import {useEffect} from 'react';
 import {
   Links,
   Meta,
@@ -17,8 +16,15 @@ import riverThread from '../river-thread-web/river-thread-calligraphy.css?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {measureStorefront, monitoringEnabled, sentryIngestOrigin} from '~/lib/monitoring.server';
 
+const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
+
 export function links() {
   return [
+    {
+      rel: 'modulepreload',
+      href: SHOPIFY_CHAT_SCRIPT,
+      crossOrigin: 'anonymous',
+    },
     {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
     {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
     {
@@ -80,21 +86,6 @@ export async function loader({context}: Route.LoaderArgs) {
   };
 }
 
-function ShopifyChatScript() {
-  useEffect(() => {
-    if (document.querySelector('script[data-shopify-chat-script]')) return;
-
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.defer = true;
-    script.src = 'https://cdn.shopify.com/storefront/web-components/chat.js';
-    script.dataset.shopifyChatScript = 'true';
-    document.body.appendChild(script);
-  }, []);
-
-  return null;
-}
-
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const nonce = useNonce();
@@ -140,7 +131,13 @@ export default function App() {
         >
           <shopify-chat mode="standalone" />
         </shopify-store>
-        <ShopifyChatScript />
+        <script
+          type="module"
+          defer
+          crossOrigin="anonymous"
+          nonce={nonce}
+          src={SHOPIFY_CHAT_SCRIPT}
+        />
       </body>
     </html>
   );
