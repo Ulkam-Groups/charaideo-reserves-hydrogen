@@ -68,7 +68,10 @@ test('all four policy routes render when Shopify has no published policy records
   }
 
   const {policies} = await policiesLoader({context} as any);
-  assert.deepEqual(policies.map((policy) => policy.handle), handles);
+  assert.deepEqual(
+    policies.map((policy) => policy.handle),
+    handles,
+  );
 });
 
 test('each policy route displays its published Shopify title and body', async () => {
@@ -85,7 +88,9 @@ test('each policy route displays its published Shopify title and body', async ()
       context: {
         storefront: {
           query: async () => ({
-            shop: {[field]: {title: `Published ${handle}`, body: '<p>Merchant terms</p>'}},
+            shop: {
+              [field]: {title: `Published ${handle}`, body: '<p>Merchant terms</p>'},
+            },
           }),
         },
       },

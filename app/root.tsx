@@ -97,8 +97,6 @@ export default function App() {
   const nonce = useNonce();
   const {pathname} = useLocation();
   const showChat = !(
-    pathname === '/account' ||
-    pathname.startsWith('/account/') ||
     pathname === '/policies' ||
     pathname.startsWith('/policies/')
   );
