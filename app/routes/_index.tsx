@@ -36,7 +36,7 @@ export default function Homepage() {
         <div className="tea-room-copy">
           <span className="eyebrow">26.98° N / Assam, North East India</span>
           <h1>The Reserve List of Assam&apos;s <em>Fine Tea Estates.</em></h1>
-          <p>Single-estate, single-harvest teas — sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.</p>
+          <p>Single-estate, single-harvest teas - sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.</p>
           <div className="hero-actions">
             <Link className="button primary" to="/collections/all">Explore the Reserves <span aria-hidden="true">↗</span></Link>
             <Link className="quiet-link" to="/pages/about-us">Read our story</Link>
