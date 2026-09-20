@@ -9,7 +9,11 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       'shopify-store': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {'store-domain': string},
+        React.HTMLAttributes<HTMLElement> & {
+          'store-domain': string;
+          country?: string;
+          language?: string;
+        },
         HTMLElement
       >;
       'shopify-chat': React.DetailedHTMLProps<

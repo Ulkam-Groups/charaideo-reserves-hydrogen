@@ -7,7 +7,6 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-  useLocation,
 } from 'react-router';
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
@@ -35,8 +34,12 @@ export function links() {
 export async function loader({context}: Route.LoaderArgs) {
   const {cart, customerAccount, env, storefront} = context;
   const publicStoreDomain = env.PUBLIC_STORE_DOMAIN;
-  const chatShopDomain =
-    env.PUBLIC_SHOPIFY_CHAT_SHOP?.trim() || 'charaideoreserves.myshopify.com';
+  const configuredChatShop = env.PUBLIC_SHOPIFY_CHAT_SHOP?.trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/+$/, '');
+  const chatShopDomain = `https://${
+    configuredChatShop || 'charaideoreserves.myshopify.com'
+  }`;
 
   const header = await measureStorefront(context.monitor, 'header', () =>
     storefront.query(HEADER_QUERY, {
@@ -95,11 +98,6 @@ function ShopifyChatScript() {
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const nonce = useNonce();
-  const {pathname} = useLocation();
-  const showChat = !(
-    pathname === '/policies' ||
-    pathname.startsWith('/policies/')
-  );
 
   return (
     <html lang="en">
@@ -135,12 +133,14 @@ export default function App() {
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        {showChat && (
-          <shopify-store store-domain={data.chatShopDomain}>
-            <shopify-chat />
-          </shopify-store>
-        )}
-        {showChat && <ShopifyChatScript />}
+        <shopify-store
+          store-domain={data.chatShopDomain}
+          country="IN"
+          language="en"
+        >
+          <shopify-chat mode="standalone" />
+        </shopify-store>
+        <ShopifyChatScript />
       </body>
     </html>
   );
