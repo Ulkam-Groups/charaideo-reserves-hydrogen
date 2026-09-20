@@ -96,7 +96,7 @@ button {cursor: pointer}
 .tea-room-hero {display: grid; grid-template-columns: minmax(0,.9fr) minmax(500px,1.1fr); min-height: 690px; padding: 0 var(--gutter); border-bottom: 1px solid var(--thread)}
 .tea-room-copy {display: flex; flex-direction: column; justify-content: center; padding: 74px 6vw 70px 0}
 .tea-room-copy h1 {font-size: clamp(58px,6.5vw,104px); line-height: .83; margin: 0 0 34px; letter-spacing: -.062em}
-.tea-room-copy h1 em {display: inline-block; margin-top: 12px}
+.tea-room-copy h1 em {display: inline}
 .tea-room-copy > p {max-width: 450px; margin: 0 0 30px; color: var(--quiet-ink); font-size: 13px; line-height: 1.85}
 .hero-actions {display: flex; align-items: center; gap: 24px}
 .hero-footnote {display: flex; align-items: center; gap: 10px; margin-top: 54px; color: var(--quiet-ink); font-size: 10px; letter-spacing: .08em}
@@ -190,6 +190,7 @@ button {cursor: pointer}
 :is(.catalog-page .catalog-card,.catalog-card--commerce) h2 a {transition: color .2s ease}
 :is(.catalog-page .catalog-card,.catalog-card--commerce) h2 a:hover {color: var(--heritage-red); text-decoration: none}
 :is(.catalog-page .catalog-card,.catalog-card--commerce) .catalog-card-description {min-width: 0; margin: 0; overflow: hidden; color: var(--quiet-ink); font-size: 9px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap}
+.recommended-products-grid .catalog-card-description {display: block; min-height: 2.4em; white-space: normal}
 .catalog-variant-picker {min-width: 0; min-height: 43px; margin: 0; padding: 0; border: 0}
 .catalog-variant-picker legend {margin-bottom: 5px; color: var(--burnt-clay); font: 600 7px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase}
 .catalog-variant-picker > div {display: flex; flex-wrap: wrap; gap: 5px}

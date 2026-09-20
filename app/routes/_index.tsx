@@ -35,7 +35,7 @@ export default function Homepage() {
       <section className="tea-room-hero">
         <div className="tea-room-copy">
           <span className="eyebrow">26.98° N / Assam, North East India</span>
-          <h1>The Reserve<br />List of Assam&apos;s<br /><em>Fine Tea<br />Estates.</em></h1>
+          <h1>The Reserve List of Assam&apos;s <em>Fine Tea Estates.</em></h1>
           <p>Single-estate, single-harvest teas — sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.</p>
           <div className="hero-actions">
             <Link className="button primary" to="/collections/all">Explore the Reserves <span aria-hidden="true">↗</span></Link>
@@ -72,7 +72,7 @@ export default function Homepage() {
 
       <section className="heritage-note">
         <span className="eyebrow">More than a place of origin</span>
-        <div><h2>We keep the estate name<br /><em>on the pouch.</em></h2><p>Assam&apos;s finest teas lose their name before they reach you — blended into &quot;Premium Assam Tea&quot;. We do the opposite. We source directly from one historic garden at a time, document its harvest, and release it as a permanent Chapter. For the drinker — you know the garden, the flush, the grade. For the garden — it finally gets its name and premium.</p><Link className="text-link" to="/pages/about-us">The story of Charaideo ↗</Link></div>
+        <div><h2>We keep the estate name <em>on the pouch.</em></h2><p>Assam&apos;s finest teas lose their name before they reach you — blended into &quot;Premium Assam Tea&quot;. We do the opposite. We source directly from one historic garden at a time, document its harvest, and release it as a permanent Chapter. For the drinker — you know the garden, the flush, the grade. For the garden — it finally gets its name and premium.</p><Link className="text-link" to="/pages/about-us">The story of Charaideo ↗</Link></div>
         <span className="heritage-seal" aria-hidden="true">চ<span>ASSAM</span>26.98°</span>
       </section>
 
