@@ -4,7 +4,6 @@ import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
 import type {CollectionItemFragment} from 'storefrontapi.generated';
-import collectionThread from '../../river-thread-web/svg/products-garden-flow.svg?url';
 import {measureStorefront} from '~/lib/monitoring.server';
 
 const CATALOG_SORTS = {
@@ -79,17 +78,22 @@ export default function Collection() {
     <div className="collection catalog-page">
       <section className="catalog-hero">
         <div className="catalog-intro">
-          <span className="eyebrow">The reserve index / harvest · character · ritual</span>
-          <h1>Gardens<br /><em>in motion.</em></h1>
-          <p>For strong mornings, unhurried afternoons, and conversations that last. Find a tea to make your own.</p>
+          <span className="eyebrow">The Charaideo collection</span>
+          <h1>Tea with<br /><em>a sense of place.</em></h1>
+          <p>Discover Assam through everyday favourites and distinctive leaves. Find the tea that fits your moment.</p>
         </div>
-        <img src={collectionThread} width="1600" height="600" alt="" />
+        <div className="catalog-hero-art" aria-hidden="true">
+          <span className="catalog-hero-art-label">FROM ASSAM, WITH CARE</span>
+          <span className="catalog-hero-art-cup"><span /></span>
+          <span className="catalog-hero-art-caption">A good cup begins at the garden.</span>
+        </div>
       </section>
 
       <div className="catalog-index" aria-label="Tea catalog guide">
-        <span><b>01</b> Single garden</span>
-        <span><b>02</b> Seasonal</span>
-        <span><b>03</b> Everyday Assam</span>
+        <span><b>01</b> Orthodox Black Tea</span>
+        <span><b>02</b> Green Tea</span>
+        <span><b>03</b> Single Grade CTC</span>
+        <span><b>04</b> Speciality Tea</span>
       </div>
 
       <div className="catalog-toolbar">

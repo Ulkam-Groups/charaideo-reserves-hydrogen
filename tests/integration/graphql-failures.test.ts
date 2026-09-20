@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {loader as policiesLoader} from '../../app/routes/policies._index';
+import {loader as policyLoader} from '../../app/routes/policies.$handle';
 import {loader as accountLoader} from '../../app/routes/account';
 import {
   loader as profileLoader,
@@ -48,6 +49,55 @@ test('Storefront timeout propagates instead of rendering stale policy data', asy
   } as any);
   pending.reject(new DOMException('Timed out', 'TimeoutError'));
   await assert.rejects(result, {name: 'TimeoutError'});
+});
+
+test('all four policy routes render when Shopify has no published policy records', async () => {
+  const handles = [
+    'privacy-policy',
+    'refund-policy',
+    'shipping-policy',
+    'terms-of-service',
+  ];
+  const context = {storefront: {query: async () => ({shop: {}})}};
+
+  for (const handle of handles) {
+    const {policy} = await policyLoader({params: {handle}, context} as any);
+    assert.equal(policy.handle, handle);
+    assert.ok(policy.title);
+    assert.match(policy.body, /contact@ulkamgroup\.com/);
+  }
+
+  const {policies} = await policiesLoader({context} as any);
+  assert.deepEqual(
+    policies.map((policy) => policy.handle),
+    handles,
+  );
+});
+
+test('each policy route displays its published Shopify title and body', async () => {
+  const fields = {
+    'privacy-policy': 'privacyPolicy',
+    'refund-policy': 'refundPolicy',
+    'shipping-policy': 'shippingPolicy',
+    'terms-of-service': 'termsOfService',
+  } as const;
+
+  for (const [handle, field] of Object.entries(fields)) {
+    const {policy} = await policyLoader({
+      params: {handle},
+      context: {
+        storefront: {
+          query: async () => ({
+            shop: {
+              [field]: {title: `Published ${handle}`, body: '<p>Merchant terms</p>'},
+            },
+          }),
+        },
+      },
+    } as any);
+    assert.equal(policy.title, `Published ${handle}`);
+    assert.equal(policy.body, '<p>Merchant terms</p>');
+  }
 });
 
 test('Customer Account GraphQL 200 with errors rejects even when customer data exists', async () => {

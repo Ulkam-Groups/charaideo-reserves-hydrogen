@@ -6,7 +6,26 @@ declare module 'virtual:react-router/server-build' {
   export * from '@react-router/dev/server-build';
 }
 declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'shopify-store': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {'store-domain': string},
+        HTMLElement
+      >;
+      'shopify-chat': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          open?: boolean | string;
+          mode?: string;
+          'mode-switch'?: string;
+          'data-identity-fp'?: string;
+        },
+        HTMLElement
+      >;
+    }
+  }
+
   interface Env {
+    PUBLIC_SHOPIFY_CHAT_SHOP?: string;
     PUBLIC_FASTRR_SELLER_DOMAIN?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;

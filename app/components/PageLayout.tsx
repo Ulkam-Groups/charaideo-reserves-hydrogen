@@ -1,5 +1,5 @@
 import {Await, Link} from 'react-router';
-import {Suspense, useId} from 'react';
+import {Suspense} from 'react';
 import type {
   CartApiQueryFragment,
   FooterQuery,
@@ -71,35 +71,32 @@ function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
 }
 
 function SearchAside() {
-  const queriesDatalistId = useId();
   return (
     <Aside type="search" heading="SEARCH">
       <div className="predictive-search">
-        <br />
         <SearchFormPredictive>
-          {({fetchResults, goToSearch, inputRef}) => (
+          {({fetchResults, inputRef}) => (
             <>
               <input
+                aria-label="Search teas and pages"
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
-                placeholder="Search"
+                placeholder="Search teas, stories, and more"
                 ref={inputRef}
                 type="search"
-                list={queriesDatalistId}
               />
-              &nbsp;
-              <button onClick={goToSearch}>Search</button>
+              <button type="submit">Search</button>
             </>
           )}
         </SearchFormPredictive>
 
         <SearchResultsPredictive>
           {({items, total, term, state, closeSearch}) => {
-            const {articles, collections, pages, products, queries} = items;
+            const {articles, collections, pages, products} = items;
 
             if (state === 'loading' && term.current) {
-              return <div>Loading...</div>;
+              return <p className="predictive-search-status" role="status">Finding teas...</p>;
             }
 
             if (!total) {
@@ -108,10 +105,6 @@ function SearchAside() {
 
             return (
               <>
-                <SearchResultsPredictive.Queries
-                  queries={queries}
-                  queriesDatalistId={queriesDatalistId}
-                />
                 <SearchResultsPredictive.Products
                   products={products}
                   closeSearch={closeSearch}
@@ -134,13 +127,11 @@ function SearchAside() {
                 />
                 {term.current && total ? (
                   <Link
+                    className="predictive-search-all"
                     onClick={closeSearch}
-                    to={`${SEARCH_ENDPOINT}?q=${term.current}`}
+                    to={`${SEARCH_ENDPOINT}?q=${encodeURIComponent(term.current)}`}
                   >
-                    <p>
-                      View all results for <q>{term.current}</q>
-                      &nbsp; →
-                    </p>
+                    View all results for <q>{term.current}</q> <span aria-hidden="true">→</span>
                   </Link>
                 ) : null}
               </>
