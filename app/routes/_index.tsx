@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment -- The approved bundle was recovered without its TypeScript source. */
 // @ts-nocheck
 // Recovered from the supplied approved React artifact. Keep its render tree intact.
 import React from 'react';
@@ -147,43 +148,55 @@ export default function Homepage() {
     },
     d = (a) => {
       if (a) a.preventDefault();
-      (u(!0), z());
+      u(!0);
+      z();
     },
     E = () => {
       u(!1);
     };
-  (xe.useEffect(() => {
-    if (A) ((document.body.style.overflow = "hidden"), setTimeout(() => p.current?.focus(), 100));
-    else document.body.style.overflow = "";
+  xe.useEffect(() => {
+    if (A) {
+      document.body.style.overflow = "hidden";
+      setTimeout(() => p.current?.focus(), 100);
+    } else {
+      document.body.style.overflow = "";
+    }
     return () => {
       document.body.style.overflow = "";
     };
-  }, [A]),
-    xe.useEffect(() => {
-      let a = (P) => {
-        if (P.key === "Escape" && A) E();
-      };
-      return (window.addEventListener("keydown", a), () => window.removeEventListener("keydown", a));
-    }, [A]));
+  }, [A]);
+  xe.useEffect(() => {
+    let a = (P) => {
+      if (P.key === "Escape" && A) E();
+    };
+    window.addEventListener("keydown", a);
+    return () => window.removeEventListener("keydown", a);
+  }, [A]);
   let q = (a) => {
-      (c({ visible: !0, message: a }), window.setTimeout(() => c({ visible: !1, message: "" }), 3800));
+      c({ visible: !0, message: a });
+      window.setTimeout(() => c({ visible: !1, message: "" }), 3800);
     },
     g = (a) => {
       if ((a.preventDefault(), !l || !l.includes("@"))) {
         q("Please enter a valid email");
         return;
       }
-      (E(), i(""), r(l), q("You're on the list — first 100 pouches reserved for early access"));
+      E();
+      i("");
+      r(l);
+      q("You're on the list — first 100 pouches reserved for early access");
     },
     Z = (a) => {
       if ((a.preventDefault(), !t || !t.includes("@"))) {
         q("Please enter a valid email");
         return;
       }
-      (q("You're on the list — first 100 pouches reserved for early access"), r(""));
+      q("You're on the list — first 100 pouches reserved for early access");
+      r("");
     },
     s = () => {
-      (q("Search — Chapter I collection at #chapter-collection"), z());
+      q("Search — Chapter I collection at #chapter-collection");
+      z();
     },
     v = () => {
       q("Cart [0] — Chapter I opening soon, first 100 pouches");
@@ -293,9 +306,11 @@ export default function Homepage() {
                     {
                       href: a.href,
                       onClick: (P) => {
-                        if ((P.preventDefault(), a.label === "Home"))
-                          (window.scrollTo({ top: 0, behavior: "smooth" }), q("Home — Charaideo Reserves"));
-                        else if (a.targetId)
+                        P.preventDefault();
+                        if (a.label === "Home") {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                          q("Home — Charaideo Reserves");
+                        } else if (a.targetId)
                           document
                             .getElementById(a.targetId)
                             ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -368,9 +383,12 @@ export default function Homepage() {
                       {
                         href: a.id === "chapter-collection" ? "#chapter-collection" : "#",
                         onClick: (P) => {
-                          if ((P.preventDefault(), n(!1), a.label === "Home"))
-                            (window.scrollTo({ top: 0, behavior: "smooth" }), q("Home — Charaideo Reserves"));
-                          else if (a.id)
+                          P.preventDefault();
+                          n(!1);
+                          if (a.label === "Home") {
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                            q("Home — Charaideo Reserves");
+                          } else if (a.id)
                             document
                               .getElementById(a.id)
                               ?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -387,14 +405,16 @@ export default function Homepage() {
                   children: [
                     f("button", {
                       onClick: () => {
-                        (n(!1), v());
+                        n(!1);
+                        v();
                       },
                       className: "text-[13px] text-left",
                       children: "Cart [0]",
                     }),
                     f("button", {
                       onClick: (a) => {
-                        (n(!1), d(a));
+                        n(!1);
+                        d(a);
                       },
                       className:
                         "ml-auto h-9 px-5 rounded-full border border-[#132A1F] text-[12px] tracking-[0.06em] uppercase font-[500] inline-flex items-center",
