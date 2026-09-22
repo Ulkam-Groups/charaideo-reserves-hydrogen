@@ -1,13 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=General+Sans:wght@400;500;600&display=swap');
-.reserve-list-page{min-height:100vh;background:#fffef8;color:#132a1f;font-family:"General Sans",system-ui,sans-serif}
+.reserve-list-page{background:#fffef8;color:#132a1f;font-family:"General Sans",system-ui,sans-serif}
 .reserve-list-page h1,.reserve-list-page h2{font-family:"Fraunces",Georgia,serif;font-weight:500;letter-spacing:-.02em}
-.reserve-list-header{border-bottom:1px solid #e7ede0;background:#fffef8}
-.reserve-list-header-inner{max-width:1280px;margin:auto;padding:10px 32px;min-height:90px;display:flex;align-items:center;justify-content:space-between;gap:24px}
-.reserve-list-header img{display:block;width:auto;height:68px}
-.reserve-list-header nav{display:flex;flex-wrap:wrap;gap:32px;align-items:center}
-.reserve-list-header nav a{color:#5a6b62;text-decoration:none;font-size:14px}
-.reserve-list-header nav a:hover,.reserve-list-header nav a[aria-current]{color:#132a1f;text-decoration:underline;text-underline-offset:6px}
 .reserve-list-main{max-width:1000px;margin:0 auto;padding:60px 32px 96px}
+.reserve-list-eyebrow{text-align:center;color:#c4a484;text-transform:uppercase;letter-spacing:.18em;font-size:11px;font-weight:700;margin:0 0 15px}
 .reserve-list-main>h1{text-align:center;font-size:clamp(42px,6vw,64px);line-height:1;margin:0}
 .reserve-list-intro{text-align:center;color:#5a6b62;font-size:15px;margin:20px 0 34px}
 .reserve-list-tabs{display:flex;width:max-content;max-width:100%;margin:0 auto 48px;padding:4px;background:#f5f1e6;border:1px solid #e7ede0;border-radius:100px}
@@ -38,4 +33,6 @@
 .reserve-collection-card p{font-size:13px;color:#5a6b62;margin:0;line-height:1.5}
 .reserve-collection-view{display:inline-block;color:#5a6b62;font-size:11px;margin-top:13px}
 .reserve-empty{padding:28px;color:#5a6b62;font-size:14px}
-@media(max-width:650px){.reserve-list-header-inner{padding:12px 20px;align-items:flex-start;flex-direction:column}.reserve-list-header img{height:54px}.reserve-list-header nav{gap:18px}.reserve-list-header nav a{font-size:12px}.reserve-list-main{padding:52px 20px 72px}.reserve-list-tabs{margin-bottom:36px}.reserve-chapter-row{padding:20px 16px;align-items:flex-start;gap:10px}.reserve-chapter-content h2{font-size:15px}.reserve-view{padding:7px 10px;font-size:10px}.reserve-collection-grid{grid-template-columns:1fr}}
+.reserve-collection-note{text-align:center;margin:32px auto 0;color:#5a6b62;font-size:12px}
+.reserve-collection-note p:last-child{display:inline-block;border-top:1px solid #e7ede0;margin-top:12px;padding:16px 20px 0;color:#132a1f;font-size:11px}
+@media(max-width:650px){.reserve-list-main{padding:52px 20px 72px}.reserve-list-tabs{margin-bottom:36px}.reserve-chapter-row{padding:20px 16px;align-items:flex-start;gap:10px}.reserve-chapter-content h2{font-size:15px}.reserve-view{padding:7px 10px;font-size:10px}.reserve-collection-grid{grid-template-columns:1fr}}

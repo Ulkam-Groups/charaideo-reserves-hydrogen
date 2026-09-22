@@ -138,8 +138,7 @@ export default function Homepage() {
       window.removeEventListener('focus', checkInventory);
     };
   }, [revalidator]);
-  let [e, n] = xe.useState(!1),
-    [t, r] = xe.useState(""),
+  let [t, r] = xe.useState(""),
     [A, u] = xe.useState(!1),
     [l, i] = xe.useState(""),
     [submitting, setSubmitting] = xe.useState(!1),
@@ -220,25 +219,17 @@ export default function Homepage() {
       if (!(await submitWaitlist(t))) return;
       q("You're on the list — first 100 pouches reserved for early access");
       r("");
-    },
-    s = () => {
-      q("Search — Chapter I collection at #chapter-collection");
-      z();
-    },
-    v = () => {
-      q("Cart [0] — Chapter I opening soon, first 100 pouches");
     };
   return y("div", {
     className:
-      "min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#FFFEF8] text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
+      "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#FFFEF8] text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
     children: [
       f("style", {
         nonce,
         children: `
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=General+Sans:wght@400;500&display=swap');
-        * { font-family: "General Sans", system-ui, -apple-system, sans-serif; }
+        .revamp-home * { font-family: "General Sans", system-ui, -apple-system, sans-serif; }
         html, body { max-width: 100vw; overflow-x: hidden; }
-        h1,h2,h3,.serif { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.02em; }
+        .revamp-home h1,.revamp-home h2,.revamp-home h3,.revamp-home .serif { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.02em; }
         .blur-mystery {
           filter: blur(12px);
           background: #D8CAB3;
@@ -284,176 +275,6 @@ export default function Homepage() {
         className:
           "w-full max-w-[100vw] overflow-hidden bg-[#132A1F] text-[#FFFEF8] text-center py-[10px] text-[12px] tracking-[0.14em] uppercase font-[500]",
         children: isRevealed ? "Chapter I — Now Open — First 100 pouches only" : "Chapter I — Opening Soon — First 100 pouches only",
-      }),
-      y("header", {
-        className:
-          "sticky top-0 z-50 w-full max-w-[100vw] overflow-hidden bg-[#FFFEF8] border-b border-[#132A1F]/[0.06]",
-        children: [
-          y("div", {
-            className: "mx-auto max-w-[1280px] px-6 md:px-8 h-[90px] flex items-center justify-between",
-            children: [
-              y("div", {
-                className: "flex items-center gap-3 shrink-0",
-                children: [
-                  f("a", {
-                    href: "#",
-
-                    className: "flex items-center",
-                    children: f("img", {
-                      src: logoUrl,
-                      alt: "Charaideo Reserves",
-                      className: "h-[56px] md:h-[72px] w-auto object-contain",
-                      style: { display: "block" },
-                    }),
-                  }),
-                  f("a", {
-                    href: "#",
-
-                    className:
-                      "hidden md:inline text-[11px] tracking-[0.06em] uppercase text-[#132A1F]/50 hover:text-[#132A1F] max-w-[180px] leading-[1.2] truncate",
-                    children: "Charaideo Reserves",
-                  }),
-                ],
-              }),
-              f("nav", {
-                className: "hidden md:flex items-center gap-8",
-                children: [
-                  { label: "Home", active: !0, href: "#", targetId: null },
-                  {
-                    label: "Reserve List",
-                    active: !1,
-                    href: "/reserve-list",
-                    targetId: null,
-                  },
-                  { label: "About Us", active: !1, href: "#", targetId: "about" },
-                  { label: "Contact", active: !1, href: "#", targetId: "contact" },
-                ].map((a) =>
-                  f(
-                    "a",
-                    {
-                      href: a.href,
-                      onClick: (P) => {
-                        if (a.label === "Reserve List") return;
-                        P.preventDefault();
-                        if (a.label === "Home") {
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                          q("Home — Charaideo Reserves");
-                        } else if (a.targetId)
-                          document
-                            .getElementById(a.targetId)
-                            ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                      },
-                      className: `text-[13.5px] tracking-[0.02em] transition-colors ${a.active ? "text-[#132A1F] font-[500] underline underline-offset-[6px] decoration-[1.5px]" : "text-[#132A1F]/70 hover:text-[#132A1F] font-[400]"}`,
-                      children: a.label,
-                    },
-                    a.label,
-                  ),
-                ),
-              }),
-              y("div", {
-                className: "flex items-center gap-3 md:gap-4",
-                children: [
-                  f("button", {
-                    onClick: s,
-                    "aria-label": "Search",
-                    className:
-                      "w-9 h-9 rounded-full flex items-center justify-center text-[#132A1F] hover:bg-[#132A1F]/[0.06] transition",
-                    children: y("svg", {
-                      width: "18",
-                      height: "18",
-                      viewBox: "0 0 24 24",
-                      fill: "none",
-                      stroke: "currentColor",
-                      strokeWidth: "1.5",
-                      children: [
-                        f("circle", { cx: "11", cy: "11", r: "6" }),
-                        f("path", { d: "M20 20L16.5 16.5", strokeLinecap: "round" }),
-                      ],
-                    }),
-                  }),
-                  f("button", {
-                    onClick: v,
-                    className:
-                      "hidden md:flex text-[13.5px] tracking-[0.02em] text-[#132A1F]/80 hover:text-[#132A1F]",
-                    children: "Cart [0]",
-                  }),
-                  f("button", {
-                    onClick: d,
-                    "aria-label": "Join Reserve List - opens waitlist for Chapter I",
-                    className:
-                      "hidden md:inline-flex h-9 px-5 rounded-full border border-[#132A1F] text-[13px] tracking-[0.06em] uppercase font-[500] items-center justify-center hover:bg-[#132A1F] hover:text-[#FFFEF8] transition",
-                    children: "Join Reserve List",
-                  }),
-                  f("button", {
-                    onClick: () => n(!e),
-                    className:
-                      "md:hidden w-9 h-9 rounded-full flex items-center justify-center border border-[#132A1F]/20",
-                    children: f("span", { className: "text-[18px] leading-none", children: e ? "✕" : "☰" }),
-                  }),
-                ],
-              }),
-            ],
-          }),
-          e &&
-            y("div", {
-              className: "md:hidden bg-[#FFFEF8] border-t border-[#132A1F]/[0.06] px-6 py-6 space-y-5",
-              children: [
-                f("div", {
-                  className: "flex flex-col gap-4",
-                  children: [
-                    { label: "Home", id: null },
-                    { label: "Reserve List", id: "reserve-list" },
-                    { label: "About Us", id: "about" },
-                    { label: "Contact", id: "contact" },
-                  ].map((a) =>
-                    f(
-                      "a",
-                      {
-                        href: a.id === "reserve-list" ? "/reserve-list" : "#",
-                        onClick: (P) => {
-                          if (a.id === "reserve-list") return;
-                          P.preventDefault();
-                          n(!1);
-                          if (a.label === "Home") {
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                            q("Home — Charaideo Reserves");
-                          } else if (a.id)
-                            document
-                              .getElementById(a.id)
-                              ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        },
-                        className: "text-[15px] font-[500] tracking-[0.02em]",
-                        children: a.label,
-                      },
-                      a.label,
-                    ),
-                  ),
-                }),
-                y("div", {
-                  className: "flex gap-3 pt-2",
-                  children: [
-                    f("button", {
-                      onClick: () => {
-                        n(!1);
-                        v();
-                      },
-                      className: "text-[13px] text-left",
-                      children: "Cart [0]",
-                    }),
-                    f("button", {
-                      onClick: (a) => {
-                        n(!1);
-                        d(a);
-                      },
-                      className:
-                        "ml-auto h-9 px-5 rounded-full border border-[#132A1F] text-[12px] tracking-[0.06em] uppercase font-[500] inline-flex items-center",
-                      children: "Join Reserve List",
-                    }),
-                  ],
-                }),
-              ],
-            }),
-        ],
       }),
       f("section", {
         className: "relative bg-[#FFFEF8] overflow-hidden max-w-[100vw]",
@@ -1352,38 +1173,6 @@ export default function Homepage() {
               }),
             ],
           }),
-        }),
-      }),
-      f("footer", {
-        className:
-          "bg-[#132A1F] border-t border-[#FFFEF8]/[0.08] text-[#FFFEF8]/60 py-12 max-w-[100vw] overflow-hidden",
-        children: y("div", {
-          className: "mx-auto max-w-[1280px] px-6 md:px-8 flex flex-col md:flex-row justify-between gap-8",
-          children: [
-            y("div", {
-              className: "flex items-center gap-3",
-              children: [
-                f("img", {
-                  src: logoUrl,
-                  alt: "Charaideo",
-                  className: "h-[28px] w-auto brightness-[0] invert opacity-90",
-                }),
-                y("span", {
-                  className: "text-[12px] tracking-[0.14em] uppercase",
-                  children: ["© ", new Date().getFullYear(), " Charaideo Reserves"],
-                }),
-              ],
-            }),
-            y("div", {
-              className: "flex gap-8 text-[12px] tracking-[0.04em]",
-              children: [
-                f("a", { href: "#", className: "hover:text-[#FFFEF8]", children: "Privacy" }),
-                f("a", { href: "#", className: "hover:text-[#FFFEF8]", children: "Terms" }),
-                f("a", { href: "#", className: "hover:text-[#FFFEF8]", children: "Contact" }),
-                f("span", { children: "Assam, North East India" }),
-              ],
-            }),
-          ],
         }),
       }),
       A &&

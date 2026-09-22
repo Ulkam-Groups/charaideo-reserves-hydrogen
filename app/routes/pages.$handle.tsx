@@ -1,8 +1,6 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/pages.$handle';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import aboutHeritage from '../../river-thread-web/svg/about-heritage.svg?url';
-import contactThread from '../../river-thread-web/svg/contact-hospitality.svg?url';
 import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 
@@ -112,7 +110,6 @@ function StaticPage({page}: {page: StaticPageContent}) {
     return <AboutStoryPage page={page} />;
   }
 
-  const heroArt = contactThread;
   return (
     <div className={`content-page content-page-${page.handle}`}>
       <section className="content-hero">
@@ -126,7 +123,7 @@ function StaticPage({page}: {page: StaticPageContent}) {
             </Link>
           )}
         </div>
-        <img src={heroArt} width="1600" height="600" alt="" />
+        <div className="revamp-hero-art" aria-hidden="true"><span>Rooted in Assam.</span></div>
       </section>
 
       <section className="content-body">
@@ -155,12 +152,7 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
       <section className="about-story">
         <figure className="about-story-visual">
           <div className="about-story-frame">
-            <img
-              src={aboutHeritage}
-              width="1600"
-              height="600"
-              alt="Preserved heritage, carried forward - the Charaideo River Thread"
-            />
+            <div className="revamp-hero-art" aria-hidden="true"><span>One estate. One harvest.</span></div>
           </div>
           <figcaption>River Thread / Assam / 26.98° N</figcaption>
         </figure>

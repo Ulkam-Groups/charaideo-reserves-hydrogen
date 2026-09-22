@@ -6,14 +6,13 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-  useLocation,
 } from 'react-router';
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
 import {FOOTER_QUERY, HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
-import riverThread from '../river-thread-web/river-thread-calligraphy.css?url';
+import revamp from '~/styles/revamp.css?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {measureStorefront, monitoringEnabled, sentryIngestOrigin} from '~/lib/monitoring.server';
 
@@ -82,7 +81,6 @@ export async function loader({context}: Route.LoaderArgs) {
 
 export default function App() {
   const data = useLoaderData<typeof loader>();
-  const isHomepage = useLocation().pathname === '/';
   const nonce = useNonce();
 
   return (
@@ -94,14 +92,10 @@ export default function App() {
         {data.sentryDsn && <meta name="sentry-environment" content={data.sentryEnvironment} />}
         <Meta />
         <Links />
-        {!isHomepage && (
-          <>
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Manrope:wght@400;500;600&display=swap" />
-            <link rel="stylesheet" href={stylesheet} />
-            <link rel="stylesheet" href={riverThread} />
-            <link rel="stylesheet" href={identity} />
-          </>
-        )}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=General+Sans:wght@400;500;600&display=swap" />
+        <link rel="stylesheet" href={stylesheet} />
+        <link rel="stylesheet" href={identity} />
+        <link rel="stylesheet" href={revamp} />
         {data.fastrrSellerDomain && (
           <link rel="stylesheet" href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css" />
         )}
@@ -115,7 +109,7 @@ export default function App() {
           consent={data.consent}
           shop={data.shop}
         >
-          {isHomepage ? <Outlet /> : <PageLayout {...data}><Outlet /></PageLayout>}
+          <PageLayout {...data}><Outlet /></PageLayout>
         </Analytics.Provider>
         {data.fastrrSellerDomain && (
           <Script

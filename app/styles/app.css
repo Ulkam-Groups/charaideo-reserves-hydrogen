@@ -4,12 +4,12 @@
   --cart-aside-summary-height: 250px;
   --grid-item-width: 355px;
   --header-height: 64px;
-  --color-dark: #1a1a1a;
-  --color-light: #fffaf5;
-  --color-brand: #7c3f1d;
-  --color-brand-deep: #4e2a17;
-  --color-accent: #d7a15d;
-  --color-muted: #6f5d52;
+  --color-dark: #132a1f;
+  --color-light: #fffef8;
+  --color-brand: #132a1f;
+  --color-brand-deep: #132a1f;
+  --color-accent: #c4a484;
+  --color-muted: #5a6b62;
   --color-line: rgba(28, 20, 16, 0.08);
 }
 
@@ -24,7 +24,7 @@ html {
 body {
   margin: 0;
   font-family: Inter, 'Segoe UI', sans-serif;
-  background: linear-gradient(180deg, #fffaf5 0%, #f5efe7 100%);
+  background: linear-gradient(180deg, #fffef8 0%, #f5f1e6 100%);
   color: var(--color-dark);
 }
 
@@ -239,7 +239,7 @@ a:focus-visible {
   margin: 28px 0 8px;
   padding: 24px 28px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #4e2a17 0%, #7c3f1d 100%);
+  background: linear-gradient(135deg, #132a1f 0%, #132a1f 100%);
   color: var(--color-light);
 }
 
@@ -391,7 +391,7 @@ a:focus-visible {
 
 .catalog-card-image {
   display: block;
-  background: #efe2d3;
+  background: #e7ede0;
 }
 
 .catalog-card-image img {
@@ -404,7 +404,7 @@ a:focus-visible {
   aspect-ratio: 4 / 5;
   background:
     linear-gradient(135deg, rgba(124, 63, 29, 0.12), rgba(215, 161, 93, 0.18)),
-    #f2e7d9;
+    #f5f1e6;
 }
 
 .catalog-card-body {
@@ -1171,18 +1171,18 @@ button.reset:hover:not(:has(> *)) {
 * --------------------------------------------------
 */
 :root {
-  --cream: #fdf8f0;
-  --dark-brown: #2c1a0e;
+  --cream: #fffef8;
+  --dark-brown: #132a1f;
   --gamosa-red: #d42b2b;
-  --gold: #c9a84c;
-  --bg-base: #fdf8f0;
+  --gold: #c4a484;
+  --bg-base: #fffef8;
   --bg-elevated: #ffffff;
-  --bg-sunken: #f5ebd9;
-  --bg-hero: #2c1a0e;
-  --text-primary: #2c1a0e;
-  --text-secondary: #4a2e1a;
-  --text-muted: #7a5230;
-  --text-inverse: #fdf8f0;
+  --bg-sunken: #f5f1e6;
+  --bg-hero: #132a1f;
+  --text-primary: #132a1f;
+  --text-secondary: #132a1f;
+  --text-muted: #5a6b62;
+  --text-inverse: #fffef8;
   --border-subtle: rgba(212, 43, 43, 0.08);
   --border-default: rgba(212, 43, 43, 0.15);
   --border-strong: rgba(212, 43, 43, 0.25);
@@ -1243,7 +1243,7 @@ h4 {
 .content-hero::before,
 .catalog-hero::before,
 .home-hero::before {
-  background: linear-gradient(90deg, transparent, #d42b2b 15%, #c9a84c 35%, #fdf8f0 50%, #c9a84c 65%, #d42b2b 85%, transparent);
+  background: linear-gradient(90deg, transparent, #d42b2b 15%, #c4a484 35%, #fffef8 50%, #c4a484 65%, #d42b2b 85%, transparent);
 }
 
 .gamosa-accent {
@@ -1469,7 +1469,7 @@ h4 {
 .section-copy h2 span,
 .section-heading h2 span,
 .content-hero h1 span {
-  background: linear-gradient(135deg, #c9a84c, #e0c06e, #c9a84c);
+  background: linear-gradient(135deg, #c4a484, #d8cab3, #c4a484);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -1815,7 +1815,7 @@ h4 {
 }
 
 .catalog-card-description::after {
-  background: linear-gradient(90deg, #d42b2b, #c9a84c);
+  background: linear-gradient(90deg, #d42b2b, #c4a484);
   content: "";
   display: block;
   height: 2px;

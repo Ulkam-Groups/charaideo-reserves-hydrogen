@@ -20,25 +20,24 @@ export function Footer({
         <section className="footer-brand">
           <Brand variant="light" />
           <p>
-            A place. A people. A pot of tea.
-            Bringing Assam back to the table.
+            One estate, one harvest, fully traceable. No blends.
           </p>
         </section>
         <FooterColumn
-          title="Company"
+          title="Explore"
           links={[
-            {label: 'About Us', to: '/pages/about-us'},
-            {label: 'Catalog', to: '/collections/all'},
-            {label: 'Contact', to: '/pages/contact'},
+            {label: 'Reserve List', to: '/reserve-list'},
+            {label: 'Shop all teas', to: '/collections/all'},
+            {label: 'About Us', to: '/#about'},
+            {label: 'Contact', to: '/#contact'},
           ]}
         />
         <FooterColumn
-          title="Products"
+          title="Your visit"
           links={[
-            {label: 'Orthodox Black Tea', to: '/collections/all'},
-            {label: 'Green Tea', to: '/collections/all'},
-            {label: 'Single Grade CTC', to: '/collections/all'},
-            {label: 'Speciality Tea', to: '/collections/all'},
+            {label: 'Account', to: '/sign-in'},
+            {label: 'Search', to: '/search'},
+            {label: 'Cart', to: '/cart'},
           ]}
         />
         <section className="footer-contact">
@@ -56,8 +55,8 @@ export function Footer({
         />
       )}
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} Ulkam Group. All rights reserved.</p>
-        <p>Made with love in Assam.</p>
+        <p>© {new Date().getFullYear()} Charaideo Reserves. All rights reserved.</p>
+        <p>Rooted in Assam.</p>
       </div>
     </footer>
   );

@@ -5,7 +5,6 @@ import {CartForm} from '@shopify/hydrogen';
 import {CartMain} from '~/components/CartMain';
 import {safeLocalRedirect} from '~/lib/redirect';
 import {readProtectedForm} from '~/lib/protected-write.server';
-import cartThread from '../../river-thread-web/svg/cart-basket.svg?url';
 
 export const meta: Route.MetaFunction = () => {
   return [{title: `Your cart | Charaideo Reserves`}];
@@ -112,7 +111,7 @@ export default function Cart() {
     <div className="cart">
       <header className="cart-header">
         <div><span className="eyebrow">A little Assam, on its way</span><h1>Selected<br /><em>slowly.</em></h1></div>
-        <img src={cartThread} width="1600" height="600" alt="" />
+        <div className="revamp-hero-art revamp-cart-art" aria-hidden="true"><span>Tea, kept in reserve.</span></div>
       </header>
       <CartMain layout="page" cart={cart} />
     </div>

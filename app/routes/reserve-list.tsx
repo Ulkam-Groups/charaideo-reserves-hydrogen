@@ -1,7 +1,6 @@
 import {useState} from 'react';
 import {data, Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/reserve-list';
-import logoUrl from '~/assets/charaideo_logo_transparent.png';
 import {chapterState, hasInventory, partitionReserveCollections, type ReserveCollection} from '~/lib/reserve-list';
 import '~/assets/reserve-list.css';
 
@@ -91,18 +90,8 @@ export default function ReserveList() {
 
   return (
     <div className="reserve-list-page">
-      <header className="reserve-list-header">
-        <div className="reserve-list-header-inner">
-          <Link to="/" aria-label="Charaideo Reserves home"><img src={logoUrl} alt="Charaideo Reserves" /></Link>
-          <nav aria-label="Main navigation">
-            <Link to="/">Home</Link>
-            <Link to="/reserve-list" aria-current="page">Reserve List</Link>
-            <Link to="/#about">About Us</Link>
-            <Link to="/#contact">Contact</Link>
-          </nav>
-        </div>
-      </header>
       <main className="reserve-list-main">
+        <p className="reserve-list-eyebrow">Library • {chapters.length} chapters • Permanent</p>
         <h1>The Reserve List</h1>
         <p className="reserve-list-intro">Where the library lives.</p>
         <div className="reserve-list-tabs" role="tablist" aria-label="Reserve List sections">
@@ -141,6 +130,10 @@ export default function ReserveList() {
               <span className="reserve-collection-view">View collection →</span>
             </Link>)}
             {!others.length && <p className="reserve-empty">No other collections are listed yet.</p>}
+          </div>
+          <div className="reserve-collection-note">
+            <p>Collections can contain teas from different Chapters.</p>
+            <p>Chapter = where the tea comes from (estate). Collection = what kind of tea or curation it is.</p>
           </div>
         </section>
       </main>

@@ -44,7 +44,11 @@ export default function SearchPage() {
 
   return (
     <div className="search">
-      <h1>Search</h1>
+      <div className="search-intro">
+        <span className="eyebrow">The tea library</span>
+        <h1>Find your reserve.</h1>
+        <p>Search teas, stories, and collections from Assam.</p>
+      </div>
       <SearchForm>
         {({inputRef}) => (
           <>
@@ -55,12 +59,11 @@ export default function SearchPage() {
               ref={inputRef}
               type="search"
             />
-            &nbsp;
             <button type="submit">Search</button>
           </>
         )}
       </SearchForm>
-      {error && <p style={{color: 'red'}}>{error}</p>}
+      {error && <p className="search-error" role="alert">{error}</p>}
       {!term || !result?.total ? (
         <SearchResults.Empty />
       ) : (
