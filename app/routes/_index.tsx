@@ -5,7 +5,6 @@ import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
 import {useNonce} from '@shopify/hydrogen';
 import {useLoaderData, useRevalidator} from 'react-router';
-import logoUrl from '~/assets/charaideo_logo_transparent.png';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
@@ -130,18 +129,22 @@ function HeroBrandArtwork() {
         <path d="M12 285 C95 195 149 327 242 284 S386 157 453 206 S539 322 593 226" />
       </svg>
       <div className="hero-brand-symbols" aria-hidden="true">
-          <svg className="hero-brand-cha" viewBox="100 104 130 150" fill="none">
-                <path
-                  d="M71.92 87.248 C90.44 80.432 100.648 70.424 100.648 52.768 C100.648 26.8 76.808 -0.2 49.809 -0.2 C31.721 -0.2 21.081 10.208 21.081 26.401 L21.081 122.992 L-4.256 122.992 L-4.256 136.624 L115.976 136.624 L115.976 122.992 L35.744 122.992 L35.744 117.24 C35.744 105.137 43.192 98.088 54.464 93.832 L71.92 87.248 Z M35.312 89.576 C35.744 87.68 36.376 76.176 36.376 56.193 L36.376 26.8 C36.376 19.152 40.432 14.032 50.008 14.032 C64.705 14.032 84.921 32.552 84.921 53.001 C84.921 61.28 81.296 68.096 66.6 73.416 L52.768 78.537 C43.425 81.928 38.504 86.816 36.176 89.576 L35.312 89.576 Z"
-                  transform="translate(109.14 247.2) scale(1 -1)"
-                  fill="#5C171C"
-                  stroke="#5C171C"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              </svg>
-          <span className="hero-brand-cup"><i /><span className="hero-brand-ripple" /></span>
+        <svg className="hero-brand-cha" viewBox="100 104 130 150" fill="none">
+          <path
+            d="M577 622V551H172V532Q192 497 215.5 472.5Q239 448 273.0 435.5Q307 423 361 423H377Q415 423 435.5 418.0Q456 413 472 403Q517 375 517 306Q517 245 488.0 189.0Q459 133 415 95Q377 62 334.0 43.0Q291 24 238 24Q201 24 175.0 35.0Q149 46 132 63Q116 82 105.5 109.0Q95 136 95 191V551H-10V622ZM189 117Q207 96 244 96Q284 96 318.0 115.0Q352 134 379 162Q407 192 422.5 225.5Q438 259 438 296Q438 329 419.5 339.0Q401 349 368 349H363Q317 349 289.0 356.5Q261 364 235 377Q216 388 199.0 402.0Q182 416 170 433Q171 420 171.5 405.5Q172 391 172 378V205Q172 161 177.0 143.0Q182 125 189 117Z"
+            transform="matrix(0.204824531516 0 0 -0.228802675585 106.932245315162 252.891264214047)"
+            fill="#5C171C"
+            stroke="#5C171C"
+            strokeWidth="14"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span className="hero-brand-cup">
+          <i />
+          <span className="hero-brand-ripple" />
+          <span className="hero-brand-ripple hero-brand-ripple--trail" />
+        </span>
       </div>
     </div>
   );

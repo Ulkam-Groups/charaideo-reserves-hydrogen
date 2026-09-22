@@ -94,16 +94,6 @@ textarea {
   object-fit: contain;
   transform: none;
 }
-.wordmark-trademark {
-  position: absolute;
-  top: 14%;
-  left: 86%;
-  color: #132a1f;
-  font: 700 10px/1 var(--sans);
-}
-.wordmark--light .wordmark-trademark {
-  color: #fffef8;
-}
 .header-menu-desktop {
   gap: clamp(20px, 2.2vw, 36px);
 }

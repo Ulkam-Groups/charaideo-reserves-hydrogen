@@ -1,5 +1,6 @@
 import {Link} from 'react-router';
-import logo from '~/assets/charaideo_logo_transparent.png';
+import logoWordmark from '~/assets/charaideo-reserves-logo-wordmark-tm.svg';
+import wordmark from '~/assets/charaideo-reserves-wordmark-tm.svg';
 
 export function Brand({variant = 'default'}: {variant?: 'default' | 'light'}) {
   return (
@@ -8,10 +9,7 @@ export function Brand({variant = 'default'}: {variant?: 'default' | 'light'}) {
       className={`wordmark wordmark--${variant}`}
       aria-label="Charaideo Reserves home"
     >
-      <img src={logo} alt="" />
-      <span className="wordmark-trademark" aria-hidden="true">
-        ™
-      </span>
+      <img src={variant === 'light' ? wordmark : logoWordmark} alt="" />
     </Link>
   );
 }

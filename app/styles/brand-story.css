@@ -68,7 +68,7 @@
   flex: none;
   width: min(45%, 220px);
   aspect-ratio: 1;
-  margin-left: -22px;
+  margin-left: -8px;
   transform: translateY(-10px);
   border: 19px solid #fffef8;
   border-radius: 50%;
@@ -111,7 +111,11 @@
   border: 1px solid rgb(255 248 234 / 56%);
   border-radius: 50%;
   opacity: 0;
-  animation: hero-tea-ripple 6s ease-out 2.8s infinite;
+  animation: hero-tea-ripple 3.8s ease-out infinite;
+}
+
+.hero-brand-ripple--trail {
+  animation-delay: -1.9s;
 }
 
 @keyframes hero-river-draw {
@@ -127,20 +131,24 @@
 }
 
 @keyframes hero-tea-ripple {
-  0%,
-  45% {
+  0% {
     opacity: 0;
     transform: scale(0.4);
   }
 
-  55% {
+  12% {
     opacity: 0.48;
+    transform: scale(0.6);
   }
 
-  82%,
+  65% {
+    opacity: 0.32;
+    transform: scale(1.6);
+  }
+
   100% {
     opacity: 0;
-    transform: scale(2.1);
+    transform: scale(2.2);
   }
 }
 
@@ -160,7 +168,7 @@
 
   .hero-brand-cup {
     width: min(38%, 155px);
-    margin-left: -12px;
+    margin-left: 0;
     border-width: 13px;
   }
 

@@ -14,6 +14,7 @@ import {HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
+import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {
   measureStorefront,
@@ -25,6 +26,7 @@ const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/c
 
 export function links() {
   return [
+    {rel: 'icon', type: 'image/svg+xml', href: favicon},
     {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
     {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
   ];
