@@ -1,7 +1,11 @@
+import type {ProductItemFragment} from 'storefrontapi.generated';
+
 export type ReserveProduct = {
   title: string;
   handle: string;
-  variants: {nodes: {quantityAvailable: number | null}[]};
+  availableForSale: boolean;
+  featuredImage?: {url: string; altText: string | null; width: number; height: number} | null;
+  priceRange?: {minVariantPrice: ProductItemFragment['priceRange']['minVariantPrice']};
 };
 
 export type ReserveCollection = {
@@ -32,11 +36,11 @@ export function partitionReserveCollections(collections: ReserveCollection[]) {
   return {chapters, others};
 }
 
-export function hasInventory(product: ReserveProduct): boolean {
-  return product.variants.nodes.some((variant) => (variant.quantityAvailable ?? 0) > 0);
+export function isAvailableForSale(product: ReserveProduct): boolean {
+  return product.availableForSale;
 }
 
 export function chapterState(collection: ReserveCollection): 'open' | 'coming-soon' | 'locked' {
-  if (collection.products.some(hasInventory)) return 'open';
+  if (collection.products.some(isAvailableForSale)) return 'open';
   return collection.products.length ? 'coming-soon' : 'locked';
 }

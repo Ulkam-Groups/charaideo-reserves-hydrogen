@@ -123,8 +123,10 @@ function StaticPage({page}: {page: StaticPageContent}) {
             </Link>
           )}
         </div>
-        <div className="revamp-hero-art" aria-hidden="true">
-          <span>Rooted in Assam.</span>
+        <div className="revamp-hero-art contact-hero-art" aria-hidden="true">
+          <span className="contact-art-kicker">A note from Assam</span>
+          <span className="contact-art-heading">The conversation<br />starts here.</span>
+          <span className="contact-art-footer">Charaideo Reserves · Rupai Siding</span>
         </div>
       </section>
 
@@ -139,9 +141,10 @@ function StaticPage({page}: {page: StaticPageContent}) {
               <h2>{section.title}</h2>
               <p>
                 {section.eyebrow === 'Email' ? (
-                  <a href="mailto:contact@ulkamgroup.com">
-                    contact@ulkamgroup.com &#8599;
-                  </a>
+                  <>
+                    <a href="mailto:kamalika@ulkamgroup.com">kamalika@ulkamgroup.com &#8599;</a>
+                    <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com &#8599;</a>
+                  </>
                 ) : section.eyebrow === 'Phone' ? (
                   <a href="tel:+918431988910">{section.body} &#8599;</a>
                 ) : (

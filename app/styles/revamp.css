@@ -825,6 +825,216 @@ textarea {
 .about-purpose-icon {
   border-radius: 50%;
 }
+
+/* The legacy story and contact copy use the same visual language as the home page. */
+.content-page-about-us,
+.content-page-contact {
+  font-family: var(--sans);
+  color: #132a1f;
+  background: #fffef8;
+}
+.content-page-about-us :is(h1, h2, h3),
+.content-page-contact :is(h1, h2, h3) {
+  font-family: var(--serif);
+  font-weight: 500;
+  letter-spacing: -.025em;
+}
+.content-page-about-us .eyebrow,
+.content-page-contact .eyebrow {
+  color: #a27c55;
+  font: 600 11px/1.4 var(--sans);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.content-page-about-us .about-story {
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  max-width: 1440px;
+  min-height: 0;
+  margin: auto;
+  padding: clamp(56px, 7vw, 104px) clamp(24px, 5vw, 80px);
+  gap: clamp(36px, 5vw, 76px);
+  background: #fffef8;
+}
+.content-page-about-us .about-story-visual {top: calc(var(--header-height) + 24px)}
+.content-page-about-us .about-story-frame {
+  aspect-ratio: 4 / 5;
+  padding: 20px;
+  border: 1px solid #e7ede0;
+  border-radius: 24px;
+  background: #f5f1e6;
+}
+.content-page-about-us .about-story-frame .revamp-hero-art {
+  min-height: 0;
+  border: 0;
+  border-radius: 18px;
+  background: radial-gradient(circle at 50% 48%, #e7ede0 0 25%, transparent 25.5%), #f5f1e6;
+}
+.content-page-about-us .about-story-frame .revamp-hero-art span {
+  max-width: 290px;
+  font-size: clamp(38px, 5vw, 72px);
+  line-height: .96;
+}
+.content-page-about-us .about-story-visual figcaption {font-size: 11px; color: #5a6b62}
+.content-page-about-us .about-story-copy {
+  max-width: 690px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+.content-page-about-us .about-story-copy > h1 {
+  margin: 14px 0 22px;
+  padding: 0;
+  border: 0;
+  font-size: clamp(48px, 5.5vw, 78px);
+  line-height: .98;
+}
+.content-page-about-us .about-story-intro {
+  margin-bottom: 32px;
+  color: #5a6b62;
+  font-size: 17px;
+  line-height: 1.7;
+}
+.content-page-about-us .about-story-copy blockquote {
+  margin-bottom: 40px;
+  padding: 0;
+  border: 0;
+}
+.content-page-about-us .about-story-copy blockquote p {
+  color: #5a6b62;
+  font: 400 15px/1.8 var(--sans);
+}
+.content-page-about-us .about-story-timeline {
+  gap: 24px;
+  margin-bottom: 36px;
+  padding: 0;
+}
+.content-page-about-us .about-story-timeline::before,
+.content-page-about-us .about-story-timeline li::before {display: none}
+.content-page-about-us .about-story-timeline li {padding: 20px 0 0; border-top: 1px solid #e7ede0}
+.content-page-about-us .about-story-timeline span {font-size: 11px; color: #a27c55}
+.content-page-about-us .about-story-timeline h2 {margin: 8px 0; font-size: 24px}
+.content-page-about-us .about-story-timeline p {color: #5a6b62; font-size: 14px}
+.content-page-about-us .button.primary,
+.content-page-contact .button.primary {
+  min-height: 48px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #132a1f;
+  color: #fffef8;
+  font: 600 13px/1 var(--sans);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.content-page-about-us .button.primary:hover {background: #204134}
+.content-page-about-us .about-purpose {
+  padding: clamp(72px, 8vw, 112px) clamp(24px, 5vw, 80px);
+  background: #f5f1e6;
+}
+.content-page-about-us .about-purpose-heading h2,
+.content-page-about-us .about-founder h2 {font-size: clamp(38px, 4vw, 56px)}
+.content-page-about-us .about-purpose-cards {width: min(100%, 1040px)}
+.content-page-about-us .about-purpose-cards article {
+  min-height: 0;
+  padding: 34px;
+  border: 1px solid #e7ede0;
+  border-radius: 22px;
+  background: #fffef8;
+}
+.content-page-about-us .about-purpose-cards h3 {font-size: 27px}
+.content-page-about-us .about-purpose-cards p,
+.content-page-about-us .about-founder > p {color: #5a6b62; font-size: 14px}
+.content-page-about-us .about-founder {margin-top: clamp(72px, 8vw, 110px)}
+.content-page-about-us .about-story-more {
+  max-width: 1280px;
+  margin: auto;
+  padding: 80px clamp(24px, 5vw, 80px) 100px;
+}
+.content-page-about-us .about-story-more .content-section-grid article {padding: 28px}
+
+.content-page-contact .content-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(0, .9fr);
+  max-width: 1440px;
+  min-height: 520px;
+  margin: auto;
+  padding: clamp(56px, 7vw, 100px) clamp(24px, 5vw, 80px);
+  background: #fffef8 !important;
+  border: 0;
+}
+.content-page-contact .content-hero h1 {
+  margin: 14px 0 24px;
+  color: #132a1f;
+  font-size: clamp(48px, 6vw, 84px);
+  line-height: .98;
+}
+.content-page-contact .content-hero p {color: #5a6b62; font-size: 17px; line-height: 1.7}
+.content-page-contact .content-hero .button {margin-top: 32px; background: #132a1f; color: #fffef8}
+.content-page-contact .content-hero .contact-hero-art {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 390px;
+  padding: clamp(28px, 4vw, 52px);
+  border: 0;
+  border-radius: 24px;
+  background: radial-gradient(circle at 75% 35%, #345244 0 20%, transparent 20.5%), #132a1f;
+  color: #fffef8;
+  text-align: left;
+}
+.content-page-contact .contact-hero-art span {max-width: none; font-family: var(--sans)}
+.content-page-contact .contact-art-kicker,
+.content-page-contact .contact-art-footer {font-size: 11px; letter-spacing: .16em; text-transform: uppercase}
+.content-page-contact .contact-art-heading {
+  font-family: var(--serif) !important;
+  font-size: clamp(38px, 4.2vw, 60px) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.03em;
+}
+.content-page-contact .content-body {
+  max-width: 1440px;
+  margin: auto;
+  padding: 48px clamp(24px, 5vw, 80px) 100px;
+  gap: 42px;
+}
+.content-page-contact .content-body > p {max-width: 750px; color: #132a1f; font-size: clamp(24px, 2.8vw, 36px)}
+.content-page-contact .content-section-grid {gap: 0; border-top: 1px solid #e7ede0}
+.content-page-contact .content-section-grid article,
+.content-page-contact .content-section-grid article:nth-child(2n) {
+  min-height: 180px;
+  padding: 28px 28px 28px 0;
+  border: 0;
+  border-bottom: 1px solid #e7ede0;
+  border-radius: 0;
+  background: transparent;
+}
+.content-page-contact .content-section-grid article:nth-child(2n) {padding-left: 28px}
+.content-page-contact .content-section-grid article > span {font-size: 11px; color: #a27c55}
+.content-page-contact .content-section-grid h2 {margin: 20px 0 12px; font-size: 27px}
+.content-page-contact .content-section-grid p {display: grid; gap: 5px; color: #5a6b62; font-size: 15px}
+.content-page-contact .content-section-grid a {width: fit-content; color: #132a1f}
+
+@media (max-width: 900px) {
+  .content-page-about-us .about-story {grid-template-columns: 1fr}
+  .content-page-about-us .about-story-visual {position: static}
+  .content-page-about-us .about-story-frame {aspect-ratio: 5 / 3}
+  .content-page-about-us .about-story-frame .revamp-hero-art {min-height: 0}
+  .content-page-contact .content-hero {grid-template-columns: 1fr}
+}
+@media (max-width: 640px) {
+  .content-page-about-us .about-story {padding: 48px 20px 70px}
+  .content-page-about-us .about-story-frame {aspect-ratio: 1 / 1}
+  .content-page-about-us .about-purpose {padding: 72px 20px}
+  .content-page-about-us .about-purpose-cards {grid-template-columns: 1fr}
+  .content-page-about-us .about-story-more {padding: 70px 20px 90px}
+  .content-page-contact .content-hero {padding: 48px 20px}
+  .content-page-contact .content-hero .contact-hero-art {min-height: 310px}
+  .content-page-contact .content-body {padding: 32px 20px 80px}
+  .content-page-contact .content-section-grid {grid-template-columns: 1fr}
+  .content-page-contact .content-section-grid article:nth-child(2n) {padding-left: 0}
+}
 .page {
   max-width: 100%;
   margin: 0;

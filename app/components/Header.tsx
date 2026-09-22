@@ -57,8 +57,8 @@ export function HeaderMenu({
     <nav className={className} aria-label="Main navigation">
       <NavLink className="header-menu-item" end onClick={close} to="/">Home</NavLink>
       <NavLink className="header-menu-item" onClick={close} to="/reserve-list">Reserve List</NavLink>
-      <Link className="header-menu-item" onClick={close} to="/#about">About Us</Link>
-      <Link className="header-menu-item" onClick={close} to="/#contact">Contact</Link>
+      <NavLink className="header-menu-item" onClick={close} to="/pages/about-us">About Us</NavLink>
+      <NavLink className="header-menu-item" onClick={close} to="/pages/contact">Contact</NavLink>
       {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} to="/collections/all">Shop all teas</NavLink>}
       {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} to="/sign-in">Account</NavLink>}
       {viewport === 'mobile' && <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>}

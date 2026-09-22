@@ -6,15 +6,15 @@ import {
   type ReserveCollection,
 } from '../app/lib/reserve-list.ts';
 
-function collection(title: string, quantities: Array<number | null>): ReserveCollection {
+function collection(title: string, availability: boolean[]): ReserveCollection {
   return {
     title,
     handle: title.toLowerCase().replaceAll(' ', '-'),
     description: '',
-    products: quantities.map((quantity, index) => ({
+    products: availability.map((availableForSale, index) => ({
       title: `Product ${index}`,
       handle: `product-${index}`,
-      variants: {nodes: [{quantityAvailable: quantity}]},
+      availableForSale,
     })),
   };
 }
@@ -37,8 +37,8 @@ test('chapters are sorted numerically and separated from other collections', () 
   );
 });
 
-test('chapter state follows actual quantity, including zero and unknown inventory', () => {
-  assert.equal(chapterState(collection('Chapter I', [0, 0])), 'coming-soon');
+test('chapter state follows storefront sale availability', () => {
+  assert.equal(chapterState(collection('Chapter I', [false, false])), 'coming-soon');
   assert.equal(chapterState(collection('Chapter II', [])), 'locked');
-  assert.equal(chapterState(collection('Chapter III', [null, 2])), 'open');
+  assert.equal(chapterState(collection('Chapter III', [false, true])), 'open');
 });

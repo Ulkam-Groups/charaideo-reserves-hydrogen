@@ -3,12 +3,11 @@
 // Recovered from the supplied approved React artifact. Keep its render tree intact.
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
-import {useNonce} from '@shopify/hydrogen';
+import {Image, useNonce} from '@shopify/hydrogen';
 import {useLoaderData, useRevalidator} from 'react-router';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
-import {findChapterCollection, selectStockedChapterProduct} from '~/lib/chapter-inventory';
 
 export const meta: Route.MetaFunction = () => [
   {title: "Charaideo Reserves™ | The Reserve List of Assam's Fine Tea Estates"},
@@ -23,6 +22,8 @@ export const links = () => [
 type ChapterProduct = {
   title: string;
   handle: string;
+  availableForSale: boolean;
+  featuredImage: {url: string; altText: string | null; width: number; height: number} | null;
   variants: {nodes: {availableForSale: boolean; currentlyNotInStock: boolean}[]};
   estate?: {value: string} | null;
   flush?: {value: string} | null;
@@ -30,21 +31,47 @@ type ChapterProduct = {
   pluckDate?: {value: string} | null;
   leaf?: {value: string} | null;
 };
-type ChapterCollection = {title: string; handle: string; products: {nodes: ChapterProduct[]}};
+type ChapterCollection = {
+  title: string;
+  handle: string;
+  description: string;
+  image: {url: string; altText: string | null; width: number; height: number} | null;
+  products: {nodes: ChapterProduct[]};
+};
+
+const ROMAN_CHAPTER_VALUES: Record<string, number> = {
+  I: 1,
+  V: 5,
+  X: 10,
+  L: 50,
+  C: 100,
+  D: 500,
+  M: 1000,
+};
+
+function chapterSequence(title: string): number | null {
+  const match = /^chapter\s+([IVXLCDM]+|\d+)$/i.exec(title.trim());
+  if (!match) return null;
+  if (/^\d+$/.test(match[1])) return Number(match[1]);
+  const roman = match[1].toUpperCase();
+  return [...roman].reduce((total, character, index) => {
+    const value = ROMAN_CHAPTER_VALUES[character];
+    const next = ROMAN_CHAPTER_VALUES[roman[index + 1]] ?? 0;
+    return total + (value < next ? -value : value);
+  }, 0);
+}
 
 export async function loader({context}: Route.LoaderArgs) {
   let chapterProduct: ChapterProduct | null = null;
-  let chapterTwoProduct: ChapterProduct | null = null;
-  let chapterThreeProduct: ChapterProduct | null = null;
-  let chapterHandle: string | null = null;
-  let chapterTwoHandle: string | null = null;
-  let chapterThreeHandle: string | null = null;
+  let chapterCollections: ChapterCollection[] = [];
   try {
     const result = await context.storefront.query(CHAPTER_COLLECTIONS_QUERY, {
       cache: context.storefront.CacheNone(),
     }) as {collections: {nodes: {title: string; handle: string}[]}};
-    const titles = ['Chapter I', 'Chapter II', 'Chapter III'];
-    const summaries = titles.map((title) => findChapterCollection(result.collections.nodes, title));
+    const summaries = result.collections.nodes
+      .filter((collection) => chapterSequence(collection.title) !== null)
+      .sort((a, b) => chapterSequence(a.title)! - chapterSequence(b.title)!)
+      .slice(0, 3);
     const collections = await Promise.all(summaries.map(async (summary) => {
       if (!summary) return null;
       try {
@@ -57,10 +84,8 @@ export async function loader({context}: Route.LoaderArgs) {
         return null;
       }
     }));
-    [chapterHandle, chapterTwoHandle, chapterThreeHandle] = collections.map((collection) => collection?.handle ?? null);
-    chapterProduct = selectStockedChapterProduct(collections[0]?.products.nodes ?? []);
-    chapterTwoProduct = selectStockedChapterProduct(collections[1]?.products.nodes ?? []);
-    chapterThreeProduct = selectStockedChapterProduct(collections[2]?.products.nodes ?? []);
+    chapterCollections = collections.filter((collection): collection is ChapterCollection => collection !== null);
+    chapterProduct = chapterCollections[0]?.products.nodes.find((product) => product.availableForSale) ?? null;
     if (chapterProduct) {
       try {
         const detail = await context.storefront.query(CHAPTER_PRODUCT_DETAILS_QUERY, {
@@ -77,14 +102,14 @@ export async function loader({context}: Route.LoaderArgs) {
   }
 
   return Response.json(
-    {chapterProduct, chapterTwoProduct, chapterThreeProduct, chapterHandle, chapterTwoHandle, chapterThreeHandle},
+    {chapterProduct, chapterCollections},
     {headers: {'Cache-Control': 'no-store'}},
   );
 }
 
 const CHAPTER_COLLECTIONS_QUERY = `#graphql
   query ChapterCollectionList {
-    collections(first: 50) { nodes { title handle } }
+    collections(first: 50, sortKey: TITLE) { nodes { title handle } }
   }
 ` as const;
 
@@ -93,10 +118,15 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
     collection(handle: $handle) {
       title
       handle
+      description
+      image { url altText width height }
       products(first: 100) {
         nodes {
           title
           handle
+          availableForSale
+          featuredImage { url altText width height }
+          estate: metafield(namespace: "custom", key: "estate") { value }
           variants(first: 50) {
             nodes { availableForSale currentlyNotInStock }
           }
@@ -150,13 +180,161 @@ function HeroBrandArtwork() {
   );
 }
 
+function ChapterCollectionCard({
+  collection,
+  index,
+  onWaitlist,
+}: {
+  collection: ChapterCollection;
+  index: number;
+  onWaitlist: (event?: React.SyntheticEvent) => void;
+}) {
+  const products = collection.products.nodes;
+  const availableProducts = products.filter((product) => product.availableForSale);
+  const primaryProduct = availableProducts[0] ?? products[0] ?? null;
+  const variants = products.flatMap((product) => product.variants.nodes);
+  const stockedVariants = variants.filter(
+    (variant) => variant.availableForSale && !variant.currentlyNotInStock,
+  ).length;
+  const isOpen = availableProducts.length > 0;
+  const hasProducts = products.length > 0;
+  const canJoinWaitlist = index === 0 && hasProducts && !isOpen;
+  const status = isOpen ? 'Open' : hasProducts ? 'Coming soon' : 'Locked';
+  const inventoryLabel = variants.length
+    ? `${stockedVariants} of ${variants.length} ${variants.length === 1 ? 'variant' : 'variants'} in stock`
+    : `${availableProducts.length} ${availableProducts.length === 1 ? 'tea' : 'teas'} available`;
+  const href = `/collections/${collection.handle}`;
+  const activate = (event: React.SyntheticEvent) => {
+    if (isOpen) window.location.assign(href);
+    else if (canJoinWaitlist) onWaitlist(event);
+  };
+
+  return (
+    <article
+      className={`rounded-[24px] bg-[#FFFEF8] border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
+      role={isOpen ? 'link' : canJoinWaitlist ? 'button' : undefined}
+      tabIndex={isOpen || canJoinWaitlist ? 0 : undefined}
+      aria-label={isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? `Join waitlist for ${collection.title}` : `${collection.title}, ${status}`}
+      onClick={activate}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activate(event);
+        }
+      }}
+    >
+      <div className="relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center">
+        {products.length ? (
+          <ChapterProductArtwork
+            products={products}
+            collectionImage={collection.image}
+          />
+        ) : (
+          <ChapterComingSoonArtwork collectionTitle={collection.title} />
+        )}
+        <span className="absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F]">
+          {collection.title} · {status}
+        </span>
+      </div>
+      <div className="pt-5 px-1 pb-1 flex flex-col flex-1">
+        <h3 className="serif text-[18px] leading-tight">{collection.title}</h3>
+        {collection.description && <p className="mt-2 text-[12.5px] leading-[1.55] text-[#5A6B62]">{collection.description}</p>}
+        <p className="mt-2 text-[12.5px] leading-[1.5] text-[#5A6B62]">
+          {products.length} {products.length === 1 ? 'tea' : 'teas'} · {inventoryLabel}
+        </p>
+        {primaryProduct && <p className="mt-1 text-[11px] text-[#5A6B62]/70">{primaryProduct.title}</p>}
+        <div className="mt-4 flex-1 flex items-end">
+          <span className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${isOpen || canJoinWaitlist ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}>
+            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? `Join waitlist · ${collection.title} →` : hasProducts ? `${collection.title} · Coming soon` : 'No teas listed yet'}
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ChapterProductArtwork({
+  products,
+  collectionImage,
+}: {
+  products: ChapterProduct[];
+  collectionImage: ChapterCollection['image'];
+}) {
+  const displayProducts = products.slice(0, 2);
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pt-5">
+      <div
+        className="absolute w-[72%] aspect-[1.1/0.9]"
+        style={{background: '#E7EDE0', borderRadius: '58% 42% 38% 62% / 42% 58% 62% 48%', opacity: .95}}
+      />
+      <div className="relative z-10 flex items-center justify-center w-[78%] h-[82%] select-none">
+        {displayProducts.map((product, index) => {
+          const image = product.featuredImage || collectionImage;
+          return (
+            <div
+              key={product.handle}
+              className="absolute w-[48%] max-w-[150px] rounded-[12px] border border-[#132A1F]/10 bg-white p-[7px] shadow-[0_10px_26px_rgba(19,42,31,0.12)]"
+              style={{
+                transform: `translate(${index === 0 ? '-34%' : '34%'}, ${index === 0 ? '-8%' : '12%'}) rotate(${index === 0 ? '-4deg' : '5deg'})`,
+                zIndex: index + 1,
+              }}
+            >
+              <div className="h-[142px] overflow-hidden rounded-[8px] border border-[#132A1F]/[0.06] bg-[#F5F1E6] flex items-center justify-center">
+                {image ? (
+                  <Image
+                    data={image}
+                    alt={product.featuredImage?.altText || product.title}
+                    loading="lazy"
+                    sizes="150px"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="px-3 text-center text-[11px] leading-[1.35] text-[#132A1F]">{product.title}</span>
+                )}
+              </div>
+              <p className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-[#132A1F]">{product.title}</p>
+            </div>
+          );
+        })}
+        {products.length > 2 && (
+          <span className="absolute right-0 bottom-2 z-20 rounded-full bg-[#132A1F] px-3 py-1.5 text-[9px] font-[600] tracking-[0.08em] text-[#FFFEF8]">
+            +{products.length - 2} MORE
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) {
+  return (
+    <>
+      <div
+        className="absolute w-[68%] aspect-square opacity-60"
+        style={{background: '#E7EDE0', borderRadius: '62% 38% 52% 48% / 48% 62% 38% 52%'}}
+      />
+      <div className="relative z-10 flex flex-col items-center gap-2 text-center">
+        <span className="text-[10px] tracking-[0.20em] uppercase text-[#5A6B62] font-[600]">{collectionTitle}</span>
+        <span className="serif text-[22px] text-[#132A1F]/70">Coming Soon</span>
+        <span className="w-8 h-[1px] bg-[#132A1F]/15 mt-1" />
+      </div>
+    </>
+  );
+}
+
 export default function Homepage() {
   const nonce = useNonce();
-  const {chapterProduct, chapterTwoProduct, chapterThreeProduct, chapterHandle, chapterTwoHandle, chapterThreeHandle} = useLoaderData<typeof loader>();
+  const {chapterProduct, chapterCollections} = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
+  const firstChapter = chapterCollections[0] ?? null;
+  const firstChapterProduct = firstChapter?.products.nodes[0] ?? null;
+  const chapterOneHasProducts = Boolean(firstChapter?.products.nodes.length);
   const isRevealed = Boolean(chapterProduct);
-  const estateName = chapterProduct?.estate?.value || chapterProduct?.title || 'Chota Tingrai';
-  const chapterHref = chapterProduct && chapterHandle ? `/collections/${chapterHandle}` : '#chapter-collection';
+  const isChapterOneWaitlist = chapterOneHasProducts && !isRevealed;
+  const estateName = chapterProduct?.estate?.value || firstChapterProduct?.estate?.value || firstChapterProduct?.title || 'Revealed soon';
+  const chapterHref = chapterProduct && firstChapter ? `/collections/${firstChapter.handle}` : '#chapter-collection';
 
   React.useEffect(() => {
     const checkInventory = () => {
@@ -239,7 +417,7 @@ export default function Homepage() {
       if (!(await submitWaitlist(l))) return;
       E();
       i("");
-      q("You're on the list- first 100 pouches reserved for early access");
+      q(`You're on the list for ${firstChapter?.title ?? 'the next reserve'}`);
     },
     Z = async (a) => {
       a.preventDefault();
@@ -248,7 +426,7 @@ export default function Homepage() {
         return;
       }
       if (!(await submitWaitlist(t))) return;
-      q("You're on the list- first 100 pouches reserved for early access");
+      q(`You're on the list for ${firstChapter?.title ?? 'the next reserve'}`);
       r("");
     };
   return y("div", {
@@ -305,7 +483,11 @@ export default function Homepage() {
       f("div", {
         className:
           "w-full max-w-[100vw] overflow-hidden bg-[#132A1F] text-[#FFFEF8] text-center py-[10px] text-[12px] tracking-[0.14em] uppercase font-[500]",
-        children: isRevealed ? "Chapter I- Now Open- First 100 pouches only" : "Chapter I- Opening Soon- First 100 pouches only",
+        children: isRevealed
+          ? `${firstChapter?.title ?? 'Reserve'}- Now Open`
+          : isChapterOneWaitlist
+            ? `${firstChapter?.title ?? 'Reserve'}- Opening Soon`
+            : "The Reserve List- New chapters coming soon",
       }),
       f("section", {
         className: "relative bg-[#FFFEF8] overflow-hidden max-w-[100vw]",
@@ -514,293 +696,30 @@ export default function Homepage() {
                 f("div", {
                   className:
                     "hidden md:inline-flex h-[28px] px-4 rounded-full border border-[#132A1F]/20 text-[10px] tracking-[0.18em] uppercase font-[600] items-center text-[#132A1F]/70",
-                  children: "LIBRARY • 3 CHAPTERS • PERMANENT",
+                  children: `LIBRARY • ${chapterCollections.length} CHAPTERS • PERMANENT`,
                 }),
               ],
             }),
             f("div", {
               className:
                 "md:hidden mb-6 inline-flex h-[28px] px-4 rounded-full border border-[#132A1F]/20 text-[10px] tracking-[0.18em] uppercase font-[600] items-center text-[#132A1F]/70",
-              children: "LIBRARY • 3 CHAPTERS • PERMANENT",
+              children: `LIBRARY • ${chapterCollections.length} CHAPTERS • PERMANENT`,
             }),
-            y("div", {
+            f("div", {
               className: "grid grid-cols-1 md:grid-cols-3 gap-6",
-              children: [
-                y("div", {
-                  role: isRevealed ? "link" : "button",
-                  tabIndex: 0,
-                  "aria-label": isRevealed ? "Explore Chapter I collection" : "Join Waitlist- Chapter I",
-                  onClick: (event) => {
-                    if (isRevealed) window.location.assign(chapterHref);
-                    else d(event);
-                  },
-                  onKeyDown: (event) => {
-                    if (event.target !== event.currentTarget) return;
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      if (isRevealed) window.location.assign(chapterHref);
-                      else d(event);
-                    }
-                  },
-                  className:
-                    "rounded-[24px] bg-[#FFFEF8] border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col cursor-pointer",
-                  children: [
-                    y("div", {
-                      className:
-                        "relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center",
-                      children: [
-                        f("div", {
-                          className:
-                            "absolute w-[72%] aspect-[1.1/0.9] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-                          style: {
-                            background: "#E7EDE0",
-                            borderRadius: "58% 42% 38% 62% / 42% 58% 62% 48%",
-                            opacity: 0.95,
-                          },
-                        }),
-                        f("div", {
-                          className: "absolute top-4 left-4 z-10",
-                          children: f("span", {
-                            className:
-                              "inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F]",
-                            children: isRevealed ? "CHAPTER I- OPEN" : "CHAPTER I- SEALED",
-                          }),
-                        }),
-                        y("div", {
-                          className: "relative z-10 w-[62%] max-w-[200px] select-none",
-                          children: [
-                            f("div", {
-                              className:
-                                "relative bg-white/95 backdrop-blur-[1px] border border-white rounded-[14px] p-[10px] shadow-[0_10px_30px_rgba(19,42,31,0.10),0_1px_6px_rgba(19,42,31,0.06)]",
-                              style: { transform: "rotate(-1deg)" },
-                              children: y("div", {
-                                className:
-                                  "bg-white rounded-[10px] border border-[#132A1F]/[0.04] overflow-hidden",
-                                children: [
-                                  f("div", {
-                                    className: "px-3 pt-3 pb-1 text-center",
-                                    children: f("div", {
-                                      className:
-                                        "text-[8px] tracking-[0.20em] uppercase text-[#5A6B62] font-[600]",
-                                      children: "— Chapter I-",
-                                    }),
-                                  }),
-                                  y("div", {
-                                    className:
-                                      "mx-2 mt-1 h-[108px] rounded-[8px] bg-[#F5F1E6] relative overflow-hidden border border-[#132A1F]/[0.06] flex items-center justify-center",
-                                    children: [
-                                      f("div", {
-                                        className: "absolute inset-0 opacity-[0.9]",
-                                        style: {
-                                          background:
-                                            "radial-gradient(120% 80% at 30% 30%, #8CA88B 0%, #6B8E6A 18%, #4A6B4A 38%, #2F4A2E 68%)",
-                                        },
-                                      }),
-                                      y("svg", {
-                                        viewBox: "0 0 200 120",
-                                        className: "absolute inset-0 w-full h-full opacity-25",
-                                        children: [
-                                          f("ellipse", {
-                                            cx: "88",
-                                            cy: "58",
-                                            rx: "22",
-                                            ry: "9",
-                                            fill: "#132A1F",
-                                            opacity: "0.12",
-                                            transform: "rotate(-22 88 58)",
-                                          }),
-                                          f("ellipse", {
-                                            cx: "118",
-                                            cy: "72",
-                                            rx: "18",
-                                            ry: "7",
-                                            fill: "#132A1F",
-                                            opacity: "0.1",
-                                            transform: "rotate(18 118 72)",
-                                          }),
-                                        ],
-                                      }),
-                                      y("div", {
-                                        className: "relative z-10 flex flex-col items-center gap-1.5",
-                                        children: [
-                                          f("span", {
-                                            className: `${isRevealed ? '' : 'blur-mystery'} text-[12px]`,
-                                            children: estateName,
-                                          }),
-                                          f("div", {
-                                            className:
-                                              "text-[7px] tracking-[0.16em] uppercase text-[#132A1F]/40",
-                                            children: "Whole Leaf",
-                                          }),
-                                        ],
-                                      }),
-                                    ],
-                                  }),
-                                  f("div", {
-                                    className: "px-3 py-3 text-center",
-                                    children: y("div", {
-                                      className:
-                                        "text-[8.5px] tracking-[0.12em] uppercase text-[#132A1F]/60 leading-[1.3] font-[500]",
-                                      children: [
-                                        f("span", { className: "block", children: isRevealed ? "Now Open" : "Opening Soon" }),
-                                        f("span", {
-                                          className: "block mt-[1px] opacity-80",
-                                          children: "First 100 pouches",
-                                        }),
-                                      ],
-                                    }),
-                                  }),
-                                ],
-                              }),
-                            }),
-                            f("div", {
-                              className:
-                                "absolute -bottom-2 left-1/2 -translate-x-1/2 w-[70%] h-[14px] rounded-[100%] blur-[8px] bg-[rgba(19,42,31,0.12)]",
-                            }),
-                          ],
-                        }),
-                      ],
-                    }),
-                    y("div", {
-                      className: "pt-5 px-1 pb-1 flex flex-col flex-1",
-                      children: [
-                        f("h3", { className: "serif text-[18px] leading-tight", children: "Chapter I" }),
-                        f("p", {
-                          className: "mt-1.5 text-[12.5px] leading-[1.5] text-[#5A6B62]",
-                          children: isRevealed ? "First 100 pouches • Now Open" : "First 100 pouches • Opening Soon",
-                        }),
-                        f("div", {
-                          className: "mt-4 flex-1 flex items-end",
-                          children: f("span", {
-                            className:
-                              "w-full h-[42px] rounded-full border border-[#132A1F] text-[12px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center hover:bg-[#132A1F] hover:text-white transition",
-                            children: isRevealed ? "Explore Chapter I →" : "Join Waitlist- Chapter I →",
-                          }),
-                        }),
-                      ],
-                    }),
-                  ],
+              children: chapterCollections.map((collection, index) =>
+                f(ChapterCollectionCard, {
+                  key: collection.handle,
+                  collection,
+                  index,
+                  onWaitlist: d,
                 }),
-                y("div", {
-                  className:
-                    "rounded-[24px] bg-[#FFFEF8] border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col",
-                  children: [
-                    y("div", {
-                      className:
-                        "relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center border border-dashed border-[#132A1F]/15",
-                      children: [
-                        f("div", {
-                          className:
-                            "absolute w-[68%] aspect-square top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60",
-                          style: { background: "#E7EDE0", borderRadius: "62% 38% 52% 48% / 48% 62% 38% 52%" },
-                        }),
-                        y("div", {
-                          className: "relative z-10 flex flex-col items-center gap-2 text-center",
-                          children: [
-                            f("div", {
-                              className: "text-[10px] tracking-[0.20em] uppercase text-[#5A6B62] font-[600]",
-                              children: "Chapter II",
-                            }),
-                            f("div", {
-                              className: "serif text-[22px] text-[#132A1F]/70",
-                              children: chapterTwoProduct?.estate?.value || chapterTwoProduct?.title || "Coming Soon",
-                            }),
-                            f("div", { className: "w-8 h-[1px] bg-[#132A1F]/15 mt-1" }),
-                          ],
-                        }),
-                      ],
-                    }),
-                    y("div", {
-                      className: "pt-5 px-1 pb-1 flex flex-col flex-1",
-                      children: [
-                        f("h3", {
-                          className: "serif text-[18px] leading-tight text-[#132A1F]/60",
-                          children: "Chapter II",
-                        }),
-                        f("p", {
-                          className: "mt-1.5 text-[12.5px] leading-[1.5] text-[#5A6B62]/70",
-                          children: chapterTwoProduct ? "Now Open" : "Coming Soon • Locked",
-                        }),
-                        f("p", {
-                          className: "mt-1 text-[11px] text-[#5A6B62]/60",
-                          children: chapterTwoProduct ? "Chapter II reserve available" : "Locked until Chapter I closes",
-                        }),
-                        f("div", {
-                          className: "mt-4 flex-1 flex items-end",
-                          children: f(chapterTwoProduct ? "a" : "button", {
-                            href: chapterTwoProduct && chapterTwoHandle ? `/collections/${chapterTwoHandle}` : undefined,
-                            disabled: !chapterTwoProduct,
-                            className: `w-full h-[42px] rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center ${chapterTwoProduct ? 'border-[#132A1F] text-[#132A1F]' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`,
-                            children: chapterTwoProduct ? "Explore Chapter II →" : "Locked until Chapter I closes",
-                          }),
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-                y("div", {
-                  className:
-                    "rounded-[24px] bg-[#FFFEF8] border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col",
-                  children: [
-                    y("div", {
-                      className:
-                        "relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center border border-dashed border-[#132A1F]/15",
-                      children: [
-                        f("div", {
-                          className:
-                            "absolute w-[68%] aspect-square top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60",
-                          style: { background: "#E7EDE0", borderRadius: "52% 48% 38% 62% / 62% 42% 58% 48%" },
-                        }),
-                        y("div", {
-                          className: "relative z-10 flex flex-col items-center gap-2 text-center",
-                          children: [
-                            f("div", {
-                              className: "text-[10px] tracking-[0.20em] uppercase text-[#5A6B62] font-[600]",
-                              children: "Chapter III",
-                            }),
-                            f("div", {
-                              className: "serif text-[22px] text-[#132A1F]/70",
-                              children: chapterThreeProduct?.estate?.value || chapterThreeProduct?.title || "Coming Soon",
-                            }),
-                            f("div", { className: "w-8 h-[1px] bg-[#132A1F]/15 mt-1" }),
-                          ],
-                        }),
-                      ],
-                    }),
-                    y("div", {
-                      className: "pt-5 px-1 pb-1 flex flex-col flex-1",
-                      children: [
-                        f("h3", {
-                          className: "serif text-[18px] leading-tight text-[#132A1F]/60",
-                          children: "Chapter III",
-                        }),
-                        f("p", {
-                          className: "mt-1.5 text-[12.5px] leading-[1.5] text-[#5A6B62]/70",
-                          children: chapterThreeProduct ? "Now Open" : "Coming Soon • Locked",
-                        }),
-                        f("p", {
-                          className: "mt-1 text-[11px] text-[#5A6B62]/60",
-                          children: chapterThreeProduct ? "Chapter III reserve available" : "Locked until Chapter II closes",
-                        }),
-                        f("div", {
-                          className: "mt-4 flex-1 flex items-end",
-                          children: f(chapterThreeProduct ? "a" : "button", {
-                            href: chapterThreeProduct && chapterThreeHandle ? `/collections/${chapterThreeHandle}` : undefined,
-                            disabled: !chapterThreeProduct,
-                            className: `w-full h-[42px] rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center ${chapterThreeProduct ? 'border-[#132A1F] text-[#132A1F]' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`,
-                            children: chapterThreeProduct ? "Explore Chapter III →" : "Locked until Chapter II closes",
-                          }),
-                        }),
-                      ],
-                    }),
-                  ],
-                }),
-              ],
+              ),
             }),
           ],
         }),
       }),
-      f("section", {
+      chapterOneHasProducts && f("section", {
         id: "chapter-1",
         className: "bg-[#F5F1E6] py-12 md:py-20 scroll-mt-[96px] max-w-[100vw] overflow-hidden",
         children: f("div", {
@@ -811,13 +730,16 @@ export default function Homepage() {
             children: [
               f("div", {
                 className: "text-[11px] tracking-[0.22em] uppercase text-[#C4A484] font-[600]",
-                children: "Chapter I",
+                children: firstChapter?.title,
               }),
               y("h2", {
                 className: "serif mt-4 text-[36px] md:text-[52px] leading-[0.95]",
                 children: [
                   f("span", { className: "block", children: isRevealed ? "Now Open" : "Opening Soon" }),
-                  f("span", { className: "block", children: "First 100 pouches" }),
+                  f("span", {
+                    className: "block",
+                    children: `${firstChapter?.products.nodes.length ?? 0} ${(firstChapter?.products.nodes.length ?? 0) === 1 ? 'tea' : 'teas'}`,
+                  }),
                 ],
               }),
               y("div", {
@@ -829,20 +751,19 @@ export default function Homepage() {
               }),
               f("p", {
                 className: "mt-6 text-[15px] leading-[1.7] text-[#5A6B62] max-w-[520px] mx-auto",
-                children:
-                  "We begin where Assam's tea story began- with a garden whose leaves carry the weight of history. The first reserve is whole leaf, single-harvest, sealed in small batches for those who join early.",
+                children: firstChapter?.description || `${firstChapterProduct?.title ?? 'This reserve'} is listed in ${firstChapter?.title ?? 'the Reserve List'}.`,
               }),
               f("div", {
                 className: "mt-8 flex flex-wrap justify-center gap-2",
-                children: ["Single-estate", "Whole Leaf", "First 100 pouches"].map((a) =>
+                children: (firstChapter?.products.nodes ?? []).slice(0, 3).map((product) =>
                   f(
                     "span",
                     {
                       className:
                         "px-4 py-1.5 rounded-full bg-[#F5F1E6] border border-[#E7EDE0] text-[11px] tracking-[0.08em] uppercase",
-                      children: a,
+                      children: product.title,
                     },
-                    a,
+                    product.handle,
                   ),
                 ),
               }),
@@ -854,11 +775,11 @@ export default function Homepage() {
                     onClick: isRevealed ? undefined : d,
                     className:
                       "inline-flex h-[48px] px-8 rounded-full bg-[#132A1F] text-white text-[13px] tracking-[0.06em] uppercase font-[500] items-center justify-center hover:bg-black transition",
-                    children: isRevealed ? "Explore Chapter I" : "Reserve My Access for Chapter I",
+                    children: isRevealed ? `Explore ${firstChapter?.title}` : `Join waitlist · ${firstChapter?.title}`,
                   }),
                   f("div", {
                     className: "mt-3 text-[11px] text-[#5A6B62]",
-                    children: "No payment today. Invitation when Chapter opens.",
+                    children: `${firstChapter?.products.nodes.length ?? 0} ${(firstChapter?.products.nodes.length ?? 0) === 1 ? 'tea' : 'teas'} in this collection.`,
                   }),
                 ],
               }),
@@ -870,7 +791,7 @@ export default function Homepage() {
         id: "about",
         className: "bg-[#FFFEF8] py-16 md:py-28 max-w-[100vw] overflow-hidden scroll-mt-[96px]",
         children: y("div", {
-          className: "mx-auto max-w-[1280px] px-6 md:px-8 grid md:grid-cols-2 gap-12 md:gap-20 items-start",
+          className: `mx-auto max-w-[1280px] px-6 md:px-8 grid ${chapterOneHasProducts ? 'md:grid-cols-2' : ''} gap-12 md:gap-20 items-start`,
           children: [
             y("div", {
               children: [
@@ -894,12 +815,12 @@ export default function Homepage() {
                 }),
               ],
             }),
-            y("div", {
+            chapterOneHasProducts && y("div", {
               className: "rounded-[24px] border border-[#E7EDE0] bg-[#F5F1E6]/60 p-6 md:p-8",
               children: [
                 f("div", {
                   className: "text-[11px] tracking-[0.18em] uppercase text-[#5A6B62] font-[600] mb-6",
-                  children: "Traceability- Chapter I",
+                  children: `Traceability- ${firstChapter?.title}`,
                 }),
                 f("div", {
                   className: "space-y-4",
@@ -1005,11 +926,11 @@ export default function Homepage() {
             children: [
               f("h2", {
                 className: "serif text-[36px] md:text-[56px] leading-[0.92]",
-                children: "Be there when Chapter I opens.",
+                children: `Be there when ${firstChapter?.title ?? 'the next reserve'} opens.`,
               }),
               f("p", {
                 className: "mt-4 text-[14px] tracking-[0.06em] text-[#FFFEF8]/60",
-                children: "First 100 pouches only. Small batch. One garden.",
+                children: `${firstChapter?.products.nodes.length ?? 0} ${(firstChapter?.products.nodes.length ?? 0) === 1 ? 'tea' : 'teas'} listed. Small batch. One garden.`,
               }),
               y("form", {
                 onSubmit: Z,
@@ -1036,7 +957,7 @@ export default function Homepage() {
               }),
               f("div", {
                 className: "mt-4 text-[11px] text-[#FFFEF8]/40",
-                children: "Invitation only for Chapter I. No spam, unsubscribe anytime.",
+                children: `Invitation only for ${firstChapter?.title ?? 'the next reserve'}. No spam, unsubscribe anytime.`,
               }),
             ],
           }),
@@ -1073,19 +994,19 @@ export default function Homepage() {
                         "inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-4",
                       children: [
                         f("span", { className: "w-5 h-[1px] bg-[#C4A484]" }),
-                        "Reserve Access • First 100 Only",
+                        `Reserve Access • ${firstChapter?.products.nodes.length ?? 0} ${(firstChapter?.products.nodes.length ?? 0) === 1 ? 'Tea' : 'Teas'}`,
                       ],
                     }),
                     f("h3", {
                       id: "waitlist-title",
                       className: "serif text-[28px] md:text-[32px] leading-[0.95] tracking-[-0.02em]",
-                      children: "Join Waitlist- Chapter I",
+                      children: `Join Waitlist- ${firstChapter?.title}`,
                     }),
                     y("div", {
                       className:
                         "mt-4 flex flex-wrap items-center gap-2 text-[13px] leading-[1.6] text-[#5A6B62]",
                       children: [
-                        f("span", { children: "First 100 pouches • Opening Soon- Estate:" }),
+                        f("span", { children: `${firstChapterProduct?.title ?? 'Reserve'} • Opening Soon- Estate:` }),
                         f("span", { className: `${isRevealed ? '' : 'blur-mystery'} text-[13px]`, children: estateName }),
                       ],
                     }),
@@ -1104,7 +1025,7 @@ export default function Homepage() {
                       htmlFor: "waitlist-email",
                       className:
                         "block text-[11px] tracking-[0.14em] uppercase font-[600] text-[#5A6B62] mb-2.5",
-                      children: "Email for Chapter I access",
+                      children: `Email for ${firstChapter?.title} access`,
                     }),
                     y("div", {
                       className: "flex flex-col gap-3",
@@ -1127,14 +1048,14 @@ export default function Homepage() {
                           disabled: submitting,
                           className:
                             "w-full h-[52px] rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.06em] uppercase font-[600] inline-flex items-center justify-center hover:bg-black transition",
-                          children: "Reserve My Access for Chapter I",
+                          children: `Reserve My Access for ${firstChapter?.title}`,
                         }),
                       ],
                     }),
                     f("div", {
                       className: "mt-4 text-center text-[11px] leading-[1.5] text-[#5A6B62]/70",
                       children:
-                        "By joining, you agree to receive Chapter I opening invitation. No spam, unsubscribe anytime. First 100 pouches only.",
+                        `By joining, you agree to receive the ${firstChapter?.title ?? 'reserve'} opening invitation. No spam, unsubscribe anytime.`,
                     }),
                   ],
                 }),

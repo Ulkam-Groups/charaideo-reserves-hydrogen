@@ -1,7 +1,8 @@
 import {useState} from 'react';
 import {data, Link, useLoaderData} from 'react-router';
+import {Image, Money} from '@shopify/hydrogen';
 import type {Route} from './+types/reserve-list';
-import {chapterState, hasInventory, partitionReserveCollections, type ReserveCollection} from '~/lib/reserve-list';
+import {chapterState, isAvailableForSale, partitionReserveCollections, type ReserveCollection} from '~/lib/reserve-list';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
 
 export const links = () => [{rel: 'stylesheet', href: reserveListStylesheet}];
@@ -16,7 +17,7 @@ type CollectionsPage = {
 type ProductPage = {
   collection: {
     products: {
-      nodes: {title: string; handle: string; variants: {nodes: {quantityAvailable: number | null}[]}}[];
+      nodes: ReserveCollection['products'];
       pageInfo: {hasNextPage: boolean; endCursor: string | null};
     };
   } | null;
@@ -78,7 +79,9 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
         nodes {
           title
           handle
-          variants(first: 250) { nodes { quantityAvailable } }
+          availableForSale
+          featuredImage { url altText width height }
+          priceRange { minVariantPrice { amount currencyCode } }
         }
         pageInfo { hasNextPage endCursor }
       }
@@ -88,7 +91,19 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
 
 export default function ReserveList() {
   const {chapters, others} = useLoaderData<typeof loader>();
-  const [tab, setTab] = useState<'chapters' | 'collections'>('chapters');
+  const [tab, setTab] = useState<'chapters' | 'collections'>('collections');
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const visibleCollections = selectedCollection
+    ? others.filter((collection) => collection.handle === selectedCollection)
+    : others;
+  const productCollectionLabels = new Map<string, string>();
+  for (const collection of others) {
+    for (const product of collection.products) {
+      if (!productCollectionLabels.has(product.handle)) {
+        productCollectionLabels.set(product.handle, collection.title);
+      }
+    }
+  }
 
   return (
     <div className="reserve-list-page">
@@ -101,36 +116,18 @@ export default function ReserveList() {
           <button type="button" role="tab" id="reserve-collections-tab" aria-selected={tab === 'collections'} aria-controls="reserve-collections-panel" onClick={() => setTab('collections')}>Collections</button>
         </div>
         <section id="reserve-chapters-panel" role="tabpanel" aria-labelledby="reserve-chapters-tab" hidden={tab !== 'chapters'}>
-          <div className="reserve-chapter-list">
-            {chapters.map((chapter, index) => {
-              const state = chapterState(chapter);
-              const label = chapter.title;
-              const previous = chapters[index - 1]?.title ?? 'the previous chapter';
-              return (
-                <div className={`reserve-chapter-row reserve-chapter-row-${state}`} key={chapter.handle}>
-                  <div className="reserve-chapter-badge" aria-hidden="true">{label.replace(/^chapter\s+/i, '')}</div>
-                  <div className="reserve-chapter-content">
-                    <h2>{label}{state === 'open' ? '- Now Open' : '- Coming Soon'}{state !== 'open' && <span className="reserve-lock" aria-label="Locked"> 🔒</span>}</h2>
-                    <p>{state === 'locked' ? `Locked until ${previous} closes` : state === 'coming-soon' ? '• First 100 pouches • Once launched, estate name revealed' : `${chapter.products.filter(hasInventory).length} ${chapter.products.filter(hasInventory).length === 1 ? 'product' : 'products'} available`}</p>
-                    {state !== 'locked' && <div className="reserve-product-links">
-                      {chapter.products.filter((product) => state === 'coming-soon' || hasInventory(product)).map((product, productIndex) => <Link key={product.handle} to={`/products/${product.handle}`}>{state === 'open' ? product.title : `View product ${productIndex + 1}`} <span aria-hidden="true">↗</span></Link>)}
-                    </div>}
-                  </div>
-                  {state === 'locked' ? <span className="reserve-locked-label">Locked</span> : <Link className="reserve-view" to={`/collections/${chapter.handle}`}>→ View</Link>}
-                </div>
-              );
-            })}
+          <div className="reserve-chapter-sections">
+            {chapters.map((chapter) => <ReserveChapterSection key={chapter.handle} chapter={chapter} productCollectionLabels={productCollectionLabels} />)}
             {!chapters.length && <p className="reserve-empty">No chapters are listed yet.</p>}
           </div>
         </section>
         <section id="reserve-collections-panel" role="tabpanel" aria-labelledby="reserve-collections-tab" hidden={tab !== 'collections'}>
-          <div className="reserve-collection-grid">
-            {others.map((collection) => <Link className="reserve-collection-card" to={`/collections/${collection.handle}`} key={collection.handle}>
-              <div className="reserve-collection-top"><span className="reserve-collection-tag">Collection</span><span>{collection.products.length} {collection.products.length === 1 ? 'pouch' : 'pouches'}</span></div>
-              <h2>{collection.title}</h2>
-              {collection.description && <p>{collection.description}</p>}
-              <span className="reserve-collection-view">View collection →</span>
-            </Link>)}
+          <div className="reserve-filter-chips" role="group" aria-label="Filter by collection">
+            <button type="button" aria-pressed={selectedCollection === null} onClick={() => setSelectedCollection(null)}>All</button>
+            {others.map((collection) => <button key={collection.handle} type="button" aria-pressed={selectedCollection === collection.handle} onClick={() => setSelectedCollection(collection.handle)}>{collection.title} <span className="reserve-chip-count">{collection.products.length}</span></button>)}
+          </div>
+          <div className="reserve-collection-sections">
+            {visibleCollections.map((collection) => <ReserveCollectionSection key={collection.handle} collection={collection} />)}
             {!others.length && <p className="reserve-empty">No other collections are listed yet.</p>}
           </div>
           <div className="reserve-collection-note">
@@ -141,4 +138,76 @@ export default function ReserveList() {
       </div>
     </div>
   );
+}
+
+function ReserveChapterSection({chapter, productCollectionLabels}: {
+  chapter: ReserveCollection;
+  productCollectionLabels: Map<string, string>;
+}) {
+  const state = chapterState(chapter);
+  const availableCount = chapter.products.filter(isAvailableForSale).length;
+
+  return <section className="reserve-chapter-section" aria-labelledby={`reserve-heading-${chapter.handle}`}>
+    <header className="reserve-section-header">
+      <div>
+        <span className="reserve-chapter-kicker">Chapter archive</span>
+        <h2 id={`reserve-heading-${chapter.handle}`}>{chapter.title}{state !== 'open' && <span className="reserve-coming-badge">Coming soon</span>}</h2>
+        <p>{chapter.description || `${availableCount} ${availableCount === 1 ? 'expression' : 'expressions'} available`}</p>
+      </div>
+      <span>{availableCount} {availableCount === 1 ? 'tea' : 'teas'} available</span>
+    </header>
+    {chapter.products.length ? <div className="reserve-products-grid">
+      {chapter.products.map((product) => <ReserveTeaCard key={product.handle} product={product} collectionTitle={productCollectionLabels.get(product.handle) || chapter.title} lockWhenUnavailable />)}
+    </div> : <p className="reserve-empty">No teas are listed in this chapter yet.</p>}
+  </section>;
+}
+
+function ReserveCollectionSection({collection}: {collection: ReserveCollection}) {
+  return <section className="reserve-collection-section" aria-labelledby={`reserve-heading-${collection.handle}`}>
+    <header className="reserve-section-header">
+      <div>
+        <h2 id={`reserve-heading-${collection.handle}`}>{collection.title}</h2>
+        <p>{collection.products.length} {collection.products.length === 1 ? 'expression' : 'expressions'}</p>
+      </div>
+      <span>Curated from the tea library</span>
+    </header>
+    {collection.products.length ? <div className="reserve-products-grid">
+      {collection.products.map((product) => <ReserveTeaCard key={product.handle} product={product} collectionTitle={collection.title} />)}
+    </div> : <p className="reserve-empty">No teas are listed in this collection yet.</p>}
+  </section>;
+}
+
+function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}: {
+  product: ReserveCollection['products'][number];
+  collectionTitle: string;
+  lockWhenUnavailable?: boolean;
+}) {
+  if (lockWhenUnavailable && !isAvailableForSale(product)) {
+    return <article className="reserve-tea-card reserve-tea-card-locked">
+      <div className="reserve-tea-locked-content" aria-hidden="true">
+        <div className="reserve-tea-image">{product.featuredImage
+          ? <Image data={product.featuredImage} alt="" loading="lazy" sizes="(min-width: 900px) 220px, (min-width: 600px) 45vw, 85vw" />
+          : <span>Charaideo Reserves</span>}</div>
+        <span className="reserve-tea-collection">{collectionTitle}</span>
+        <h3>{product.title}</h3>
+      </div>
+      <div className="reserve-tea-lock-overlay">
+        <span className="reserve-tea-lock" aria-hidden="true">🔒</span>
+        <strong>Archive locked</strong>
+        <span>Coming soon</span>
+      </div>
+      <span className="reserve-visually-hidden">{product.title}, coming soon</span>
+    </article>;
+  }
+
+  return <article className="reserve-tea-card">
+    <Link to={`/products/${product.handle}`} className="reserve-tea-link" prefetch="intent">
+      <div className="reserve-tea-image">{product.featuredImage
+        ? <Image data={product.featuredImage} alt={product.featuredImage.altText || product.title} loading="lazy" sizes="(min-width: 900px) 220px, (min-width: 600px) 45vw, 85vw" />
+        : <span aria-hidden="true">Charaideo Reserves</span>}</div>
+      <span className="reserve-tea-collection">{collectionTitle}</span>
+      <h3>{product.title}</h3>
+      {product.priceRange && <span className="reserve-tea-price"><Money data={product.priceRange.minVariantPrice} /></span>}
+    </Link>
+  </article>;
 }
