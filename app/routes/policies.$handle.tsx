@@ -27,7 +27,13 @@ export default function Policy() {
     <div className="policy-page">
       <header className="policy-hero">
         <div className="policy-hero-inner">
-          <Link className="policy-back" to="/policies">← All policies</Link>
+          <nav className="listing-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/">Home</Link>
+            <span aria-hidden="true">/</span>
+            <Link to="/policies">Policies</Link>
+            <span aria-hidden="true">/</span>
+            <span>{policy.title}</span>
+          </nav>
           <span className="eyebrow">Charaideo Reserves / Information</span>
           <h1>{policy.title}</h1>
           <p>Details for shopping with Charaideo Reserves.</p>
@@ -37,7 +43,11 @@ export default function Policy() {
         <nav className="policy-nav" aria-label="Store policies">
           <span className="eyebrow">Browse policies</span>
           {POLICY_PAGES.map(({handle, title}) => (
-            <Link key={handle} aria-current={policy.handle === handle ? 'page' : undefined} to={`/policies/${handle}`}>
+            <Link
+              key={handle}
+              aria-current={policy.handle === handle ? 'page' : undefined}
+              to={`/policies/${handle}`}
+            >
               {title}
             </Link>
           ))}

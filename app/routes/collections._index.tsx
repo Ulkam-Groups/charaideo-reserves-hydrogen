@@ -46,18 +46,28 @@ export default function Collections() {
   const {collections} = useLoaderData<typeof loader>();
 
   return (
-    <div className="collections">
-      <h1>Collections</h1>
+    <div className="collections collections-directory">
+      <header className="listing-hero">
+        <div className="listing-hero-inner">
+          <nav className="listing-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/">Home</Link>
+            <span aria-hidden="true">/</span>
+            <span>Collections</span>
+          </nav>
+          <span className="eyebrow">The tea library</span>
+          <h1>Explore our collections</h1>
+          <p>Discover the teas of Charaideo Reserves, gathered by character and craft.</p>
+          <Link className="listing-hero-link" to="/reserve-list">
+            View the Reserve List <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </header>
       <PaginatedResourceSection<CollectionFragment>
         connection={collections}
         resourcesClassName="collections-grid"
       >
         {({node: collection, index}) => (
-          <CollectionItem
-            key={collection.id}
-            collection={collection}
-            index={index}
-          />
+          <CollectionItem key={collection.id} collection={collection} index={index} />
         )}
       </PaginatedResourceSection>
     </div>
@@ -78,7 +88,7 @@ function CollectionItem({
       to={`/collections/${collection.handle}`}
       prefetch="intent"
     >
-      {collection?.image && (
+      {collection?.image ? (
         <Image
           alt={collection.image.altText || collection.title}
           aspectRatio="1/1"
@@ -86,8 +96,16 @@ function CollectionItem({
           loading={index < 3 ? 'eager' : undefined}
           sizes="(min-width: 45em) 400px, 100vw"
         />
+      ) : (
+        <div className="collection-item-placeholder" aria-hidden="true">
+          Charaideo
+        </div>
       )}
-      <h5>{collection.title}</h5>
+      <div className="collection-item-copy">
+        <span className="eyebrow">Collection</span>
+        <h2>{collection.title}</h2>
+        <span aria-hidden="true">→</span>
+      </div>
     </Link>
   );
 }

@@ -1,23 +1,15 @@
 import {Await, Link} from 'react-router';
 import {Suspense} from 'react';
-import type {
-  CartApiQueryFragment,
-  FooterQuery,
-  HeaderQuery,
-} from 'storefrontapi.generated';
+import type {CartApiQueryFragment, HeaderQuery} from 'storefrontapi.generated';
 import {Aside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
-import {
-  SEARCH_ENDPOINT,
-  SearchFormPredictive,
-} from '~/components/SearchFormPredictive';
+import {SEARCH_ENDPOINT, SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
-  footer: Promise<FooterQuery | null>;
   header: HeaderQuery;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
@@ -27,7 +19,6 @@ interface PageLayoutProps {
 export function PageLayout({
   cart,
   children = null,
-  footer,
   header,
   isLoggedIn,
   publicStoreDomain,
@@ -45,13 +36,11 @@ export function PageLayout({
           publicStoreDomain={publicStoreDomain}
         />
       )}
-      <a className="skip-link" href="#main-content">Skip to content</a>
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <main id="main-content">{children}</main>
-      <Footer
-        footer={footer}
-        header={header}
-        publicStoreDomain={publicStoreDomain}
-      />
+      <Footer />
     </Aside.Provider>
   );
 }
@@ -96,7 +85,11 @@ function SearchAside() {
             const {articles, collections, pages, products} = items;
 
             if (state === 'loading' && term.current) {
-              return <p className="predictive-search-status" role="status">Finding teas...</p>;
+              return (
+                <p className="predictive-search-status" role="status">
+                  Finding teas...
+                </p>
+              );
             }
 
             if (!total) {
@@ -131,7 +124,8 @@ function SearchAside() {
                     onClick={closeSearch}
                     to={`${SEARCH_ENDPOINT}?q=${encodeURIComponent(term.current)}`}
                   >
-                    View all results for <q>{term.current}</q> <span aria-hidden="true">→</span>
+                    View all results for <q>{term.current}</q>{' '}
+                    <span aria-hidden="true">→</span>
                   </Link>
                 ) : null}
               </>
