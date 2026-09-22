@@ -1,4 +1,5 @@
 import {Analytics, getShopAnalytics, Script, useNonce} from '@shopify/hydrogen';
+import {useEffect, useState} from 'react';
 import {
   Links,
   Meta,
@@ -24,11 +25,6 @@ const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/c
 
 export function links() {
   return [
-    {
-      rel: 'modulepreload',
-      href: SHOPIFY_CHAT_SCRIPT,
-      crossOrigin: 'anonymous',
-    },
     {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
     {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
   ];
@@ -122,16 +118,31 @@ export default function App() {
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <shopify-store store-domain={data.chatShopDomain} country="IN" language="en">
-          <shopify-chat mode="standalone" />
-        </shopify-store>
-        <Script
-          waitForHydration
-          type="module"
-          crossOrigin="anonymous"
-          src={SHOPIFY_CHAT_SCRIPT}
-        />
+        <ShopifyChat storeDomain={data.chatShopDomain} />
       </body>
     </html>
+  );
+}
+
+function ShopifyChat({storeDomain}: {storeDomain: string}) {
+  // Web components can mutate their host nodes before React hydrates server markup.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return null;
+
+  return (
+    <>
+      <shopify-store store-domain={storeDomain} country="IN" language="en">
+        <shopify-chat mode="standalone" />
+      </shopify-store>
+      <Script
+        waitForHydration
+        type="module"
+        crossOrigin="anonymous"
+        src={SHOPIFY_CHAT_SCRIPT}
+      />
+    </>
   );
 }
