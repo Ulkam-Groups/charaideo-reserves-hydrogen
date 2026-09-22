@@ -2,7 +2,9 @@ import {useState} from 'react';
 import {data, Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/reserve-list';
 import {chapterState, hasInventory, partitionReserveCollections, type ReserveCollection} from '~/lib/reserve-list';
-import '~/assets/reserve-list.css';
+import reserveListStylesheet from '~/assets/reserve-list.css?url';
+
+export const links = () => [{rel: 'stylesheet', href: reserveListStylesheet}];
 
 type CollectionSummary = {title: string; handle: string; description: string};
 type CollectionsPage = {
@@ -21,8 +23,8 @@ type ProductPage = {
 };
 
 export const meta: Route.MetaFunction = () => [
-  {title: 'The Reserve List | Charaideo Reserves'},
-  {name: 'description', content: 'Explore the chapters and collections of Charaideo Reserves.'},
+  {title: 'The Reserve List | Charaideo Reserves™'},
+  {name: 'description', content: 'Explore the chapters and collections of Charaideo Reserves™.'},
 ];
 
 export async function loader({context}: Route.LoaderArgs) {
@@ -90,7 +92,7 @@ export default function ReserveList() {
 
   return (
     <div className="reserve-list-page">
-      <main className="reserve-list-main">
+      <div className="reserve-list-main">
         <p className="reserve-list-eyebrow">Library • {chapters.length} chapters • Permanent</p>
         <h1>The Reserve List</h1>
         <p className="reserve-list-intro">Where the library lives.</p>
@@ -136,7 +138,7 @@ export default function ReserveList() {
             <p>Chapter = where the tea comes from (estate). Collection = what kind of tea or curation it is.</p>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

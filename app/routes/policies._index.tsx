@@ -23,7 +23,7 @@ export default function Policies() {
             <span aria-hidden="true">/</span>
             <span>Policies</span>
           </nav>
-          <span className="eyebrow">Charaideo Reserves / Information</span>
+          <span className="eyebrow">Charaideo Reserves™ / Information</span>
           <h1>Store policies</h1>
           <p>
             Information about ordering, delivery, returns, and how we handle your data.

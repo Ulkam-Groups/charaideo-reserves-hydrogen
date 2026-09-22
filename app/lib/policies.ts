@@ -6,7 +6,7 @@ export const POLICY_PAGES = [
     field: 'privacyPolicy',
     fallbackBody: `
       <h2>Information we use</h2>
-      <p>When you browse or place an order with Charaideo Reserves, we may receive the contact, delivery, and order information you provide. We use it to process purchases, arrange delivery, answer enquiries, and provide customer support.</p>
+      <p>When you browse or place an order with Charaideo Reserves™, we may receive the contact, delivery, and order information you provide. We use it to process purchases, arrange delivery, answer enquiries, and provide customer support.</p>
       <h2>Store services</h2>
       <p>Our storefront and checkout use Shopify. Information needed to complete an order may also be shared with payment, delivery, and other service providers involved in fulfilling it. Those services process information according to their own terms and privacy practices.</p>
       <h2>Cookies and choices</h2>
@@ -38,7 +38,7 @@ export const POLICY_PAGES = [
       <h2>After your order</h2>
       <p>We prepare orders for dispatch and share delivery or tracking information when it is available. Delivery estimates can change because of location, carrier operations, holidays, or other circumstances outside our control.</p>
       <h2>Shipping questions</h2>
-      <p>For an update or help with a delivery, contact <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a> with your order number. Charaideo Reserves is based in Ownguri Gaon, Rupai Siding, Assam 786153, India.</p>
+      <p>For an update or help with a delivery, contact <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a> with your order number. Charaideo Reserves™ is based in Ownguri Gaon, Rupai Siding, Assam 786153, India.</p>
     `,
   },
   {
@@ -47,11 +47,11 @@ export const POLICY_PAGES = [
     field: 'termsOfService',
     fallbackBody: `
       <h2>Using this store</h2>
-      <p>Charaideo Reserves provides information about its teas and accepts orders through this storefront. Please provide accurate account, contact, and delivery details when ordering, and use the site lawfully.</p>
+      <p>Charaideo Reserves™ provides information about its teas and accepts orders through this storefront. Please provide accurate account, contact, and delivery details when ordering, and use the site lawfully.</p>
       <h2>Products and orders</h2>
       <p>Product availability, prices, shipping charges, and the order total are presented during shopping and checkout. We may contact you if an order cannot be fulfilled as placed. Your order confirmation and the details displayed at checkout form the record of your purchase.</p>
       <h2>Site content</h2>
-      <p>Product descriptions, images, branding, and other site content are provided for shopping and information. Please contact us before reusing Charaideo Reserves materials.</p>
+      <p>Product descriptions, images, branding, and other site content are provided for shopping and information. Please contact us before reusing Charaideo Reserves™ materials.</p>
       <h2>Contact</h2>
       <p>Questions about these terms or an order can be sent to <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a>.</p>
     `,

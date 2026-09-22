@@ -2,7 +2,7 @@ import {Link, redirect} from 'react-router';
 import type {Route} from './+types/sign-in';
 import {TextileRule} from '~/components/Brand';
 
-export const meta = () => [{title: 'Your tea room | Charaideo Reserves'}];
+export const meta = () => [{title: 'Your tea room | Charaideo Reserves™'}];
 
 export async function loader({context}: Route.LoaderArgs) {
   if (await context.customerAccount.isLoggedIn()) return redirect('/account');

@@ -8,7 +8,7 @@ import type {ProductItemFragment} from 'storefrontapi.generated';
 import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `${data?.collection.title ?? 'Collection'} | Charaideo Reserves`}];
+  return [{title: `${data?.collection.title ?? 'Collection'} | Charaideo Reserves™`}];
 };
 
 export async function loader(args: Route.LoaderArgs) {

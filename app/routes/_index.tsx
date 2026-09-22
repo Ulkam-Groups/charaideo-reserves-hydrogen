@@ -4,7 +4,7 @@
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
 import {useNonce} from '@shopify/hydrogen';
-import {Link, useLoaderData, useRevalidator} from 'react-router';
+import {useLoaderData, useRevalidator} from 'react-router';
 import logoUrl from '~/assets/charaideo_logo_transparent.png';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
@@ -12,7 +12,7 @@ import type {Route} from './+types/_index';
 import {findChapterCollection, selectStockedChapterProduct} from '~/lib/chapter-inventory';
 
 export const meta: Route.MetaFunction = () => [
-  {title: "Charaideo Reserves | The Reserve List of Assam's Fine Tea Estates"},
+  {title: "Charaideo Reserves™ | The Reserve List of Assam's Fine Tea Estates"},
   {name: 'description', content: 'One estate, one harvest, fully traceable, no blends.'},
 ];
 
@@ -123,33 +123,27 @@ const xe = React;
 const f = jsx;
 const y = jsxs;
 
-function BrandStory() {
+function HeroBrandArtwork() {
   return (
-    <section className="home-brand-story" aria-labelledby="home-brand-story-title">
-      <div className="home-brand-story-inner">
-        <div className="home-brand-art">
-          <div className="home-brand-plate">
-            <div className="home-brand-symbols" aria-hidden="true">
-              <svg className="home-brand-cha" viewBox="100 104 130 150" fill="none">
+    <div className="hero-brand-art order-1 md:order-2" role="img" aria-label="The Assamese Cha beside a cup of Assam tea">
+      <svg className="hero-brand-river" viewBox="0 0 600 430" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M12 285 C95 195 149 327 242 284 S386 157 453 206 S539 322 593 226" />
+      </svg>
+      <div className="hero-brand-symbols" aria-hidden="true">
+          <svg className="hero-brand-cha" viewBox="100 104 130 150" fill="none">
                 <path
                   d="M71.92 87.248 C90.44 80.432 100.648 70.424 100.648 52.768 C100.648 26.8 76.808 -0.2 49.809 -0.2 C31.721 -0.2 21.081 10.208 21.081 26.401 L21.081 122.992 L-4.256 122.992 L-4.256 136.624 L115.976 136.624 L115.976 122.992 L35.744 122.992 L35.744 117.24 C35.744 105.137 43.192 98.088 54.464 93.832 L71.92 87.248 Z M35.312 89.576 C35.744 87.68 36.376 76.176 36.376 56.193 L36.376 26.8 C36.376 19.152 40.432 14.032 50.008 14.032 C64.705 14.032 84.921 32.552 84.921 53.001 C84.921 61.28 81.296 68.096 66.6 73.416 L52.768 78.537 C43.425 81.928 38.504 86.816 36.176 89.576 L35.312 89.576 Z"
                   transform="translate(109.14 247.2) scale(1 -1)"
                   fill="#5C171C"
+                  stroke="#5C171C"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
                 />
               </svg>
-              <span className="home-brand-cup"><i /></span>
-            </div>
-          </div>
-          <div className="home-brand-caption"><span>The river thread / 01</span><span>Charaideo, Assam</span></div>
-        </div>
-        <div className="home-brand-copy">
-          <span className="home-brand-eyebrow">About the mark</span>
-          <h2 id="home-brand-story-title">A name drawn<br />from the land.</h2>
-          <p>Our Assamese চ meets a cup of Assam tea. The river thread carries a place, its people, and its harvest into every reserve.</p>
-          <Link to="/pages/about-us">Discover our story <span aria-hidden="true">→</span></Link>
-        </div>
+          <span className="hero-brand-cup"><i /><span className="hero-brand-ripple" /></span>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -365,171 +359,7 @@ export default function Homepage() {
                   }),
                 ],
               }),
-              y("div", {
-                className:
-                  "order-1 md:order-2 relative flex items-center justify-center max-w-full overflow-hidden",
-                children: [
-                  f("div", {
-                    className:
-                      "absolute w-[92%] md:w-[100%] aspect-[1/1.05] md:aspect-[1/0.95] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
-                    style: {
-                      background: "#E7EDE0",
-                      borderRadius: "58% 42% 38% 62% / 42% 58% 62% 48%",
-                      filter: "blur(0px)",
-                    },
-                  }),
-                  f("div", {
-                    className:
-                      "absolute w-[78%] max-w-[360px] aspect-square top-1/2 left-1/2 -translate-x-[48%] -translate-y-[52%]",
-                    style: {
-                      background: "#E7EDE0",
-                      opacity: 0.6,
-                      borderRadius: "62% 38% 52% 48% / 48% 62% 38% 52%",
-                    },
-                  }),
-                  y("div", {
-                    className: "relative z-10 w-[300px] md:w-[380px] max-w-[90vw] select-none",
-                    children: [
-                      f("div", {
-                        className:
-                          "absolute -bottom-6 left-1/2 -translate-x-1/2 w-[70%] h-[28px] rounded-[100%] blur-[12px]",
-                        style: { background: "rgba(19,42,31,0.12)" },
-                      }),
-                      y("div", {
-                        className:
-                          "relative bg-[#FFFEF8]/90 backdrop-blur-[2px] border border-white/80 rounded-[18px] md:rounded-[22px] p-[14px] shadow-[0_18px_60px_rgba(19,42,31,0.12),0_2px_10px_rgba(19,42,31,0.06)]",
-                        style: { transform: "rotate(-1.2deg)" },
-                        children: [
-                          y("div", {
-                            className:
-                              "bg-white rounded-[12px] md:rounded-[16px] border border-[#132A1F]/[0.04] overflow-hidden",
-                            children: [
-                              f("div", {
-                                className: "px-6 pt-7 pb-2 text-center",
-                                children: f("div", {
-                                  className:
-                                    "text-[10px] tracking-[0.22em] uppercase text-[#5A6B62] font-[600]",
-                                  children: "— Chapter I —",
-                                }),
-                              }),
-                              y("div", {
-                                className:
-                                  "mx-4 mt-2 h-[190px] md:h-[220px] rounded-[10px] bg-[#F5F1E6] relative overflow-hidden border border-[#132A1F]/[0.06] flex items-center justify-center",
-                                children: [
-                                  y("div", {
-                                    className: "absolute inset-0 opacity-[0.85]",
-                                    children: [
-                                      f("div", {
-                                        className: "w-full h-full",
-                                        style: {
-                                          background:
-                                            "radial-gradient(120% 80% at 30% 30%, #8CA88B 0%, #6B8E6A 18%, #4A6B4A 38%, #2F4A2E 68%)",
-                                        },
-                                      }),
-                                      y("svg", {
-                                        viewBox: "0 0 200 160",
-                                        className: "absolute inset-0 w-full h-full opacity-30",
-                                        children: [
-                                          f("path", {
-                                            d: "M40 80 Q70 20 110 80 T180 80",
-                                            stroke: "#132A1F",
-                                            strokeWidth: "0.6",
-                                            fill: "none",
-                                            opacity: "0.2",
-                                          }),
-                                          f("ellipse", {
-                                            cx: "88",
-                                            cy: "72",
-                                            rx: "26",
-                                            ry: "10",
-                                            fill: "#132A1F",
-                                            opacity: "0.12",
-                                            transform: "rotate(-22 88 72)",
-                                          }),
-                                          f("ellipse", {
-                                            cx: "122",
-                                            cy: "92",
-                                            rx: "22",
-                                            ry: "9",
-                                            fill: "#132A1F",
-                                            opacity: "0.1",
-                                            transform: "rotate(18 122 92)",
-                                          }),
-                                          f("ellipse", {
-                                            cx: "102",
-                                            cy: "102",
-                                            rx: "18",
-                                            ry: "7",
-                                            fill: "#132A1F",
-                                            opacity: "0.12",
-                                            transform: "rotate(-8 102 102)",
-                                          }),
-                                        ],
-                                      }),
-                                    ],
-                                  }),
-                                  y("div", {
-                                    className: "relative z-10 flex flex-col items-center",
-                                    children: [
-                                      f("span", {
-                                        className: `${isRevealed ? '' : 'blur-mystery'} text-[15px] md:text-[16px]`,
-                                        children: estateName,
-                                      }),
-                                      f("div", {
-                                        className:
-                                          "mt-3 text-[9px] tracking-[0.18em] uppercase text-[#132A1F]/40",
-                                        children: "Whole Leaf • Single Estate",
-                                      }),
-                                    ],
-                                  }),
-                                  f("div", {
-                                    className:
-                                      "absolute inset-0 rounded-[10px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.9),inset_0_12px_30px_rgba(255,255,255,0.6)] pointer-events-none",
-                                  }),
-                                ],
-                              }),
-                              y("div", {
-                                className: "px-6 py-5 text-center",
-                                children: [
-                                  y("div", {
-                                    className:
-                                      "text-[11px] tracking-[0.14em] uppercase text-[#132A1F]/60 font-[500]",
-                                    children: [
-                                      f("span", { className: "block", children: isRevealed ? "Now Open" : "Opening Soon" }),
-                                      f("span", {
-                                        className: "block mt-[2px]",
-                                        children: "First 100 pouches",
-                                      }),
-                                    ],
-                                  }),
-                                  f("div", {
-                                    className: "mt-3 flex justify-center",
-                                    children: f("div", { className: "h-[1px] w-12 bg-[#132A1F]/20" }),
-                                  }),
-                                  f("div", {
-                                    className:
-                                      "mt-3 text-[10px] tracking-[0.12em] uppercase text-[#5A6B62]/80",
-                                    children: "Charaideo Reserves",
-                                  }),
-                                ],
-                              }),
-                            ],
-                          }),
-                          f("div", {
-                            className:
-                              "absolute top-[18px] right-[6px] bottom-[18px] w-[10px] bg-gradient-to-l from-black/[0.04] to-transparent rounded-r-[12px] pointer-events-none",
-                          }),
-                        ],
-                      }),
-                      f("div", {
-                        className:
-                          "absolute -right-2 md:-right-6 top-[18%] bg-[#132A1F] text-[#FFFEF8] text-[10px] tracking-[0.12em] uppercase px-3 py-1.5 rounded-full rotate-[8deg] shadow-[0_6px_18px_rgba(0,0,0,0.18)]",
-                        children: "Reserve No. 001",
-                      }),
-                    ],
-                  }),
-                ],
-              }),
+              <HeroBrandArtwork />,
             ],
           }),
         }),
@@ -653,7 +483,6 @@ export default function Homepage() {
           }),
         }),
       }),
-      <BrandStory />,
       f("section", {
         id: "chapter-collection",
         className: "bg-[#FFFEF8] py-16 md:py-24 scroll-mt-[96px] max-w-[100vw] overflow-hidden",

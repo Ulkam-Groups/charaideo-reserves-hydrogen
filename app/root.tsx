@@ -125,11 +125,10 @@ export default function App() {
         <shopify-store store-domain={data.chatShopDomain} country="IN" language="en">
           <shopify-chat mode="standalone" />
         </shopify-store>
-        <script
+        <Script
+          waitForHydration
           type="module"
-          defer
           crossOrigin="anonymous"
-          nonce={nonce}
           src={SHOPIFY_CHAT_SCRIPT}
         />
       </body>

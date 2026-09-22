@@ -46,7 +46,7 @@ export function Footer() {
         ))}
       </nav>
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} Charaideo Reserves. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Charaideo Reserves™. All rights reserved.</p>
         <p>Rooted in Assam.</p>
       </div>
     </footer>

@@ -1,183 +1,183 @@
-.home-brand-story {
+.hero-brand-art {
   position: relative;
-  overflow: hidden;
-  background: #78908c;
-  color: #fffef8;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 460px;
+  isolation: isolate;
 }
 
-.home-brand-story::before {
+.hero-brand-art::before {
   position: absolute;
-  top: -38%;
-  right: -13%;
-  width: 48%;
-  aspect-ratio: 1;
-  border: 1px solid rgb(255 254 248 / 35%);
-  border-radius: 50%;
+  z-index: -1;
+  inset: 4% 0;
+  background: radial-gradient(
+    ellipse at 50% 53%,
+    rgb(120 144 140 / 20%) 0%,
+    rgb(120 144 140 / 10%) 38%,
+    transparent 73%
+  );
   content: '';
+}
+
+.hero-brand-river {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: -6%;
+  width: 112%;
+  height: 100%;
+  overflow: visible;
   pointer-events: none;
 }
 
-.home-brand-story-inner {
+.hero-brand-river path {
+  fill: none;
+  stroke: #78908c;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0.9;
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: hero-river-draw 2.2s ease-out forwards;
+}
+
+.hero-brand-symbols {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(250px, 0.75fr);
-  align-items: end;
-  gap: clamp(36px, 6vw, 100px);
-  max-width: 1280px;
-  margin: auto;
-  padding: clamp(60px, 7vw, 110px) 32px;
-}
-
-.home-brand-plate {
-  overflow: hidden;
-  border: 1px solid rgb(92 23 28 / 10%);
-  background: #fff9ef;
-  box-shadow: 0 22px 60px rgb(19 42 31 / 12%);
-}
-
-.home-brand-symbols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  z-index: 1;
+  display: flex;
   align-items: center;
-  justify-items: center;
-  gap: clamp(12px, 3vw, 38px);
-  min-height: 320px;
-  padding: clamp(25px, 5vw, 60px);
+  justify-content: center;
+  width: 100%;
+  min-height: 400px;
+  transform: translateX(-2%);
 }
 
-.home-brand-cha {
-  width: min(100%, 210px);
+.hero-brand-cha {
+  display: block;
+  flex: none;
+  width: min(48%, 245px);
   height: auto;
   aspect-ratio: 130 / 150;
+  filter: drop-shadow(0 8px 10px rgb(92 23 28 / 11%));
 }
 
-.home-brand-cup {
+.hero-brand-cup {
   position: relative;
   display: block;
-  width: min(100%, 185px);
+  flex: none;
+  width: min(45%, 220px);
   aspect-ratio: 1;
-  border: 18px solid #fffef8;
+  margin-left: -22px;
+  transform: translateY(-10px);
+  border: 19px solid #fffef8;
   border-radius: 50%;
-  background: #b87936;
+  background: radial-gradient(circle at 34% 27%, #d09753, #b87936 55%, #8f5826 100%);
   box-shadow:
     inset 0 0 0 2px #5c171c,
-    0 0 0 1px rgb(92 23 28 / 18%);
+    inset 0 9px 14px rgb(255 248 234 / 27%),
+    inset 0 -12px 18px rgb(92 23 28 / 12%),
+    0 0 0 1px rgb(92 23 28 / 16%),
+    0 18px 30px -12px rgb(19 42 31 / 18%);
+  animation: hero-cup-breathe 7s ease-in-out 2.2s infinite;
 }
 
-.home-brand-cup::after {
+.hero-brand-cup::after {
   position: absolute;
   top: 32%;
-  left: calc(100% + 18px);
-  width: 30%;
-  height: 43%;
+  left: calc(100% + 19px);
+  width: 29%;
+  height: 42%;
   border: 3px solid #5c171c;
   border-left: 0;
-  border-radius: 0 60% 60% 0;
+  border-radius: 12px 60% 60% 12px;
   content: '';
 }
 
-.home-brand-cup i {
+.hero-brand-cup i {
   position: absolute;
-  top: 25%;
+  top: 24%;
   left: 22%;
   width: 52%;
   height: 18%;
   transform: rotate(-13deg);
-  border-top: 2px solid rgb(255 248 234 / 70%);
+  border-top: 2px solid rgb(255 248 234 / 76%);
   border-radius: 50%;
 }
 
-.home-brand-caption {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 16px;
-  color: #e9f0e9;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+.hero-brand-ripple {
+  position: absolute;
+  inset: 30%;
+  border: 1px solid rgb(255 248 234 / 56%);
+  border-radius: 50%;
+  opacity: 0;
+  animation: hero-tea-ripple 6s ease-out 2.8s infinite;
 }
 
-.home-brand-copy {
-  padding-bottom: 20px;
-}
-
-.home-brand-eyebrow {
-  color: #f2d0a7;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.home-brand-copy h2 {
-  margin: 18px 0;
-  color: #fffef8;
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: clamp(38px, 4vw, 64px);
-  font-weight: 500;
-  line-height: 1.05;
-}
-
-.home-brand-copy p {
-  max-width: 390px;
-  margin: 0 0 28px;
-  color: #f3f6f0;
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.home-brand-copy a {
-  display: inline-flex;
-  gap: 15px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #fffef8;
-  color: #fffef8;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.home-brand-copy a:hover {
-  color: #fff0d7;
-  border-color: #fff0d7;
-}
-
-@media (max-width: 800px) {
-  .home-brand-story-inner {
-    grid-template-columns: 1fr;
-    padding: 64px 24px;
-  }
-
-  .home-brand-copy {
-    padding: 0;
+@keyframes hero-river-draw {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
-@media (max-width: 480px) {
-  .home-brand-story-inner {
-    padding: 48px 20px;
+@keyframes hero-cup-breathe {
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes hero-tea-ripple {
+  0%,
+  45% {
+    opacity: 0;
+    transform: scale(0.4);
   }
 
-  .home-brand-symbols {
-    min-height: 220px;
-    padding: 24px;
+  55% {
+    opacity: 0.48;
   }
 
-  .home-brand-cup {
-    width: 75%;
-    transform: translateX(-22px);
-    border-width: 12px;
+  82%,
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-brand-art {
+    min-height: 320px;
   }
 
-  .home-brand-cup::after {
-    left: calc(100% + 12px);
+  .hero-brand-symbols {
+    min-height: 280px;
+    transform: translateX(-12px);
+  }
+
+  .hero-brand-cha {
+    width: min(43%, 185px);
+  }
+
+  .hero-brand-cup {
+    width: min(38%, 155px);
+    margin-left: -12px;
+    border-width: 13px;
+  }
+
+  .hero-brand-cup::after {
+    left: calc(100% + 13px);
     border-width: 2px;
   }
+}
 
-  .home-brand-caption {
-    font-size: 8px;
+@media (prefers-reduced-motion: reduce) {
+  .hero-brand-river path {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+
+  .hero-brand-cup,
+  .hero-brand-ripple {
+    animation: none;
   }
 }

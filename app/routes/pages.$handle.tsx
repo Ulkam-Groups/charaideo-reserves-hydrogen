@@ -11,7 +11,7 @@ export const meta: Route.MetaFunction = ({data}) => {
       : (data?.page.seo?.description ?? '');
 
   return [
-    {title: `${data?.page.title ?? 'Page'} | Charaideo Reserves`},
+    {title: `${data?.page.title ?? 'Page'} | Charaideo Reserves™`},
     {
       name: 'description',
       content: description,
@@ -207,7 +207,7 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
             </p>
           </blockquote>
 
-          <ol className="about-story-timeline" aria-label="Charaideo Reserves story">
+          <ol className="about-story-timeline" aria-label="Charaideo Reserves™ story">
             <li>
               <span>1990</span>
               <h2>Family Roots in Rupai, Tinsukia</h2>
@@ -276,14 +276,14 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
               height="420"
               loading="lazy"
               decoding="async"
-              alt="Kamalika Biswas, founder and CEO of Charaideo Reserves"
+              alt="Kamalika Biswas, founder and CEO of Charaideo Reserves™"
             />
           </a>
           <h3>Kamalika Biswas</h3>
           <strong>Founder &amp; CEO</strong>
           <p>
             Founder of Ulkam Group, carrying Assam’s tea heritage to the world through
-            Charaideo Reserves.
+            Charaideo Reserves™.
           </p>
           <a
             className="founder-linkedin"
@@ -317,10 +317,10 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
     handle: 'contact',
     id: 'static-contact',
     title: 'Keep in touch.',
-    hero: 'Contact Charaideo Reserves',
+    hero: 'Contact Charaideo Reserves™',
     excerpt:
       "Whether you're a customer, retailer, or tea enthusiast, we would love to hear from you.",
-    body: 'Get in touch with Ulkam Group for Assam tea product questions, order support, or general information about Charaideo Reserves teas.',
+    body: 'Get in touch with Ulkam Group for Assam tea product questions, order support, or general information about Charaideo Reserves™ teas.',
     sections: [
       {
         eyebrow: 'Address',
@@ -346,7 +346,7 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
     cta: {label: 'Explore the Reserve List', to: '/reserve-list'},
     seo: {
       description:
-        'Contact Charaideo Reserves for Assam tea orders, product questions, and customer support.',
+        'Contact Charaideo Reserves™ for Assam tea orders, product questions, and customer support.',
     },
   },
   'about-us': {
@@ -376,13 +376,13 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
       {
         eyebrow: 'Founder',
         title: 'Kamalika Biswas',
-        body: 'Founder of Ulkam Group, driving the vision to bring the finest Assam teas to the world through Charaideo Reserves.',
+        body: 'Founder of Ulkam Group, driving the vision to bring the finest Assam teas to the world through Charaideo Reserves™.',
       },
     ],
     cta: {label: 'Browse catalog', to: '/collections/all'},
     seo: {
       description:
-        'Learn about Charaideo Reserves, an Assam-origin tea storefront offering orthodox, CTC, spiced, and blended teas.',
+        'Learn about Charaideo Reserves™, an Assam-origin tea storefront offering orthodox, CTC, spiced, and blended teas.',
     },
   },
 };

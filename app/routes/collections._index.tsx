@@ -56,7 +56,7 @@ export default function Collections() {
           </nav>
           <span className="eyebrow">The tea library</span>
           <h1>Explore our collections</h1>
-          <p>Discover the teas of Charaideo Reserves, gathered by character and craft.</p>
+          <p>Discover the teas of Charaideo Reserves™, gathered by character and craft.</p>
           <Link className="listing-hero-link" to="/reserve-list">
             View the Reserve List <span aria-hidden="true">→</span>
           </Link>

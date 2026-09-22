@@ -4,7 +4,7 @@ import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {getPolicyPage, POLICY_PAGES} from '~/lib/policies';
 
 export const meta: Route.MetaFunction = ({data}) => [
-  {title: `${data?.policy.title ?? 'Policy'} | Charaideo Reserves`},
+  {title: `${data?.policy.title ?? 'Policy'} | Charaideo Reserves™`},
 ];
 
 export async function loader({params, context}: Route.LoaderArgs) {
@@ -34,9 +34,9 @@ export default function Policy() {
             <span aria-hidden="true">/</span>
             <span>{policy.title}</span>
           </nav>
-          <span className="eyebrow">Charaideo Reserves / Information</span>
+          <span className="eyebrow">Charaideo Reserves™ / Information</span>
           <h1>{policy.title}</h1>
-          <p>Details for shopping with Charaideo Reserves.</p>
+          <p>Details for shopping with Charaideo Reserves™.</p>
         </div>
       </header>
       <div className="policy-layout">
@@ -57,7 +57,7 @@ export default function Policy() {
           <div className="policy-help">
             <h2>Need help?</h2>
             <p>Contact us if you have a question about this policy or an order.</p>
-            <Link to="/pages/contact">Contact Charaideo Reserves →</Link>
+            <Link to="/pages/contact">Contact Charaideo Reserves™ →</Link>
           </div>
         </article>
       </div>
