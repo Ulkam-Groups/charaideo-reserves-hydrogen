@@ -1,4 +1,4 @@
-import {redirect, useLoaderData} from 'react-router';
+import {Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/collections.$handle';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
@@ -8,7 +8,7 @@ import type {ProductItemFragment} from 'storefrontapi.generated';
 import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
-  return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
+  return [{title: `${data?.collection.title ?? 'Collection'} | Charaideo Reserves™`}];
 };
 
 export async function loader(args: Route.LoaderArgs) {
@@ -72,9 +72,26 @@ export default function Collection() {
   const {collection} = useLoaderData<typeof loader>();
 
   return (
-    <div className="collection">
-      <h1>{collection.title}</h1>
-      <p className="collection-description">{collection.description}</p>
+    <div className="collection collection-listing">
+      <header className="listing-hero">
+        <div className="listing-hero-inner">
+          <nav className="listing-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/">Home</Link>
+            <span aria-hidden="true">/</span>
+            <Link to="/reserve-list">Reserve List</Link>
+            <span aria-hidden="true">/</span>
+            <span>{collection.title}</span>
+          </nav>
+          <span className="eyebrow">Charaideo collection</span>
+          <h1>{collection.title}</h1>
+          {collection.description && (
+            <p className="collection-description">{collection.description}</p>
+          )}
+          <Link className="listing-hero-link" to="/reserve-list">
+            Explore the Reserve List <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      </header>
       <PaginatedResourceSection<ProductItemFragment>
         connection={collection.products}
         resourcesClassName="products-grid"

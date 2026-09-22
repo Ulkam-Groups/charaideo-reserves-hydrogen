@@ -1,6 +1,6 @@
 import {Suspense} from 'react';
 import {Brand} from './Brand';
-import {Await, NavLink, useAsyncValue} from 'react-router';
+import {Await, Link, NavLink, useAsyncValue} from 'react-router';
 import {
   type CartViewPayload,
   useAnalytics,
@@ -43,10 +43,7 @@ export function Header({
 }
 
 export function HeaderMenu({
-  menu,
-  primaryDomainUrl,
   viewport,
-  publicStoreDomain,
 }: {
   menu: HeaderProps['header']['menu'];
   primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
@@ -54,34 +51,17 @@ export function HeaderMenu({
   publicStoreDomain: HeaderProps['publicStoreDomain'];
 }) {
   const className = `header-menu-${viewport}`;
-  const {close} = useAside();
+  const {close, open} = useAside();
 
   return (
-    <nav className={className} role="navigation">
+    <nav className={className} aria-label="Main navigation">
       <NavLink className="header-menu-item" end onClick={close} to="/">Home</NavLink>
-      {FALLBACK_HEADER_MENU.items.map((item) => {
-        if (!item.url) return null;
-
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
-        return (
-          <NavLink
-            className="header-menu-item"
-            end
-            key={item.id}
-            onClick={close}
-            prefetch="intent"
-            to={url}
-          >
-            {item.title}
-          </NavLink>
-        );
-      })}
+      <NavLink className="header-menu-item" onClick={close} to="/reserve-list">Reserve List</NavLink>
+      <NavLink className="header-menu-item" onClick={close} to="/pages/about-us">About Us</NavLink>
+      <NavLink className="header-menu-item" onClick={close} to="/pages/contact">Contact</NavLink>
+      {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} to="/collections/all">Shop all teas</NavLink>}
+      {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} to="/sign-in">Account</NavLink>}
+      {viewport === 'mobile' && <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>}
     </nav>
   );
 }
@@ -93,13 +73,11 @@ function HeaderCtas({
   return (
     <nav className="header-ctas" role="navigation">
       <HeaderMenuMobileToggle />
-      <NavLink className="header-action" prefetch="intent" to="/sign-in">
-        <Suspense fallback="Account">
-          <Await resolve={isLoggedIn} errorElement="Account">
-            {() => 'Account'}
-          </Await>
-        </Suspense>
-      </NavLink>
+      <Suspense fallback={<NavLink className="header-action" to="/sign-in">Account</NavLink>}>
+        <Await resolve={isLoggedIn} errorElement={<NavLink className="header-action" to="/sign-in">Account</NavLink>}>
+          {(loggedIn) => <NavLink className="header-action" prefetch="intent" to={loggedIn ? '/account' : '/sign-in'}>Account</NavLink>}
+        </Await>
+      </Suspense>
       <SearchToggle />
       <CartToggle cart={cart} />
     </nav>
@@ -169,36 +147,3 @@ function CartBanner() {
   const cart = useOptimisticCart(originalCart);
   return <CartBadge count={cart?.totalQuantity ?? 0} />;
 }
-
-const FALLBACK_HEADER_MENU = {
-  id: 'gid://shopify/Menu/199655587896',
-  items: [
-    {
-      id: 'gid://shopify/MenuItem/461609500728',
-      resourceId: null,
-      tags: [],
-      title: 'Catalog',
-      type: 'HTTP',
-      url: '/collections/all',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609533496',
-      resourceId: null,
-      tags: [],
-      title: 'About Us',
-      type: 'HTTP',
-      url: '/pages/about-us',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609566264',
-      resourceId: null,
-      tags: [],
-      title: 'Contact',
-      type: 'HTTP',
-      url: '/pages/contact',
-      items: [],
-    },
-  ],
-};

@@ -119,27 +119,30 @@ export type StoreRobotsQueryVariables = StorefrontAPI.Exact<{
 
 export type StoreRobotsQuery = { shop: Pick<StorefrontAPI.Shop, 'id'> };
 
-export type RecommendedProductFragment = (
-  Pick<StorefrontAPI.Product, 'id' | 'title' | 'handle' | 'productType' | 'description'>
-  & { tastingNotes?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>>, priceRange: { minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'> }, featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>>, variants: { nodes: Array<(
-      Pick<StorefrontAPI.ProductVariant, 'id' | 'title' | 'availableForSale'>
-      & { price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, selectedOptions: Array<Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>> }
-    )> } }
-);
+export type ChapterCollectionListQueryVariables = StorefrontAPI.Exact<{ [key: string]: never; }>;
 
-export type RecommendedProductsQueryVariables = StorefrontAPI.Exact<{
-  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
-  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+
+export type ChapterCollectionListQuery = { collections: { nodes: Array<Pick<StorefrontAPI.Collection, 'title' | 'handle'>> } };
+
+export type ChapterCollectionInventoryQueryVariables = StorefrontAPI.Exact<{
+  handle: StorefrontAPI.Scalars['String']['input'];
 }>;
 
 
-export type RecommendedProductsQuery = { products: { nodes: Array<(
-      Pick<StorefrontAPI.Product, 'id' | 'title' | 'handle' | 'productType' | 'description'>
-      & { tastingNotes?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>>, priceRange: { minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'> }, featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>>, variants: { nodes: Array<(
-          Pick<StorefrontAPI.ProductVariant, 'id' | 'title' | 'availableForSale'>
-          & { price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, selectedOptions: Array<Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>> }
-        )> } }
-    )> } };
+export type ChapterCollectionInventoryQuery = { collection?: StorefrontAPI.Maybe<(
+    Pick<StorefrontAPI.Collection, 'title' | 'handle'>
+    & { products: { nodes: Array<(
+        Pick<StorefrontAPI.Product, 'title' | 'handle'>
+        & { variants: { nodes: Array<Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock'>> } }
+      )> } }
+  )> };
+
+export type ChapterProductDetailsQueryVariables = StorefrontAPI.Exact<{
+  handle: StorefrontAPI.Scalars['String']['input'];
+}>;
+
+
+export type ChapterProductDetailsQuery = { product?: StorefrontAPI.Maybe<{ estate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, flush?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, grade?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, pluckDate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, leaf?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>> }> };
 
 export type ArticleQueryVariables = StorefrontAPI.Exact<{
   articleHandle: StorefrontAPI.Scalars['String']['input'];
@@ -497,7 +500,9 @@ interface GeneratedQueryTypes {
   "#graphql\n  fragment Shop on Shop {\n    id\n    name\n    description\n    primaryDomain {\n      url\n    }\n    brand {\n      logo {\n        image {\n          url\n        }\n      }\n    }\n  }\n  query Header(\n    $country: CountryCode\n    $headerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      ...Shop\n    }\n    menu(handle: $headerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n": {return: HeaderQuery, variables: HeaderQueryVariables},
   "#graphql\n  query Footer(\n    $country: CountryCode\n    $footerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    menu(handle: $footerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n": {return: FooterQuery, variables: FooterQueryVariables},
   "#graphql\n  query StoreRobots($country: CountryCode, $language: LanguageCode)\n   @inContext(country: $country, language: $language) {\n    shop {\n      id\n    }\n  }\n": {return: StoreRobotsQuery, variables: StoreRobotsQueryVariables},
-  "#graphql\n  fragment RecommendedProduct on Product {\n    id title handle productType description\n    tastingNotes: metafield(namespace: \"custom\", key: \"tasting_notes\") { value }\n    selectedOrFirstAvailableVariant { id availableForSale }\n    priceRange { minVariantPrice { amount currencyCode } }\n    featuredImage { id url altText width height }\n    variants(first: 20) {\n      nodes {\n        id\n        title\n        availableForSale\n        price { amount currencyCode }\n        selectedOptions { name value }\n      }\n    }\n  }\n  query RecommendedProducts ($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    products(first: 4, sortKey: BEST_SELLING) { nodes { ...RecommendedProduct } }\n  }\n": {return: RecommendedProductsQuery, variables: RecommendedProductsQueryVariables},
+  "#graphql\n  query ChapterCollectionList {\n    collections(first: 50) { nodes { title handle } }\n  }\n": {return: ChapterCollectionListQuery, variables: ChapterCollectionListQueryVariables},
+  "#graphql\n  query ChapterCollectionInventory($handle: String!) {\n    collection(handle: $handle) {\n      title\n      handle\n      products(first: 100) {\n        nodes {\n          title\n          handle\n          variants(first: 50) {\n            nodes { availableForSale currentlyNotInStock }\n          }\n        }\n      }\n    }\n  }\n": {return: ChapterCollectionInventoryQuery, variables: ChapterCollectionInventoryQueryVariables},
+  "#graphql\n  query ChapterProductDetails($handle: String!) {\n    product(handle: $handle) {\n      estate: metafield(namespace: \"custom\", key: \"estate\") { value }\n      flush: metafield(namespace: \"custom\", key: \"flush\") { value }\n      grade: metafield(namespace: \"custom\", key: \"grade\") { value }\n      pluckDate: metafield(namespace: \"custom\", key: \"pluck_date\") { value }\n      leaf: metafield(namespace: \"custom\", key: \"leaf\") { value }\n    }\n  }\n": {return: ChapterProductDetailsQuery, variables: ChapterProductDetailsQueryVariables},
   "#graphql\n  query Article(\n    $articleHandle: String!\n    $blogHandle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    blog(handle: $blogHandle) {\n      handle\n      articleByHandle(handle: $articleHandle) {\n        handle\n        title\n        contentHtml\n        publishedAt\n        author: authorV2 {\n          name\n        }\n        image {\n          id\n          altText\n          url\n          width\n          height\n        }\n        seo {\n          description\n          title\n        }\n      }\n    }\n  }\n": {return: ArticleQuery, variables: ArticleQueryVariables},
   "#graphql\n  query Blog(\n    $language: LanguageCode\n    $blogHandle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      title\n      handle\n      seo {\n        title\n        description\n      }\n      articles(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ArticleItem\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n\n      }\n    }\n  }\n  fragment ArticleItem on Article {\n    author: authorV2 {\n      name\n    }\n    contentHtml\n    handle\n    id\n    image {\n      id\n      altText\n      url\n      width\n      height\n    }\n    publishedAt\n    title\n    blog {\n      handle\n    }\n  }\n": {return: BlogQuery, variables: BlogQueryVariables},
   "#graphql\n  query Blogs(\n    $country: CountryCode\n    $endCursor: String\n    $first: Int\n    $language: LanguageCode\n    $last: Int\n    $startCursor: String\n  ) @inContext(country: $country, language: $language) {\n    blogs(\n      first: $first,\n      last: $last,\n      before: $startCursor,\n      after: $endCursor\n    ) {\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n      nodes {\n        title\n        handle\n        seo {\n          title\n          description\n        }\n      }\n    }\n  }\n": {return: BlogsQuery, variables: BlogsQueryVariables},

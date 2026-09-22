@@ -89,7 +89,13 @@ type Pages = {
   "/sitemap.xml": {
     params: {};
   };
+  "/api/waitlist": {
+    params: {};
+  };
   "/blogs": {
+    params: {};
+  };
+  "/reserve-list": {
     params: {};
   };
   "/robots.txt": {
@@ -144,7 +150,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/blogs" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
@@ -222,9 +228,17 @@ type RouteFiles = {
     id: "routes/[sitemap.xml]";
     page: "/sitemap.xml";
   };
+  "routes/api.waitlist.tsx": {
+    id: "routes/api.waitlist";
+    page: "/api/waitlist";
+  };
   "routes/blogs._index.tsx": {
     id: "routes/blogs._index";
     page: "/blogs";
+  };
+  "routes/reserve-list.tsx": {
+    id: "routes/reserve-list";
+    page: "/reserve-list";
   };
   "routes/[robots.txt].tsx": {
     id: "routes/[robots.txt]";
@@ -309,7 +323,9 @@ type RouteModules = {
   "routes/discount.$code": typeof import("./app/routes/discount.$code.tsx");
   "routes/pages.$handle": typeof import("./app/routes/pages.$handle.tsx");
   "routes/[sitemap.xml]": typeof import("./app/routes/[sitemap.xml].tsx");
+  "routes/api.waitlist": typeof import("./app/routes/api.waitlist.tsx");
   "routes/blogs._index": typeof import("./app/routes/blogs._index.tsx");
+  "routes/reserve-list": typeof import("./app/routes/reserve-list.tsx");
   "routes/[robots.txt]": typeof import("./app/routes/[robots.txt].tsx");
   "routes/account": typeof import("./app/routes/account.tsx");
   "routes/account.orders._index": typeof import("./app/routes/account.orders._index.tsx");

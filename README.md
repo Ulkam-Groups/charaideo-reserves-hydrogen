@@ -42,6 +42,23 @@ removed. A temporary signed no-op route remains only to acknowledge deliveries
 that were already in flight when the subscription was retired; Shopify remains
 the sole source of ordinary product inventory changes.
 
+## Homepage chapter inventory reveal
+
+The homepage reads the Shopify collections titled `Chapter I`, `Chapter II`,
+and `Chapter III`. Publish those collections and their products to the Hydrogen
+storefront. A chapter stays sealed or Coming Soon while every product variant
+in its collection is unavailable or marked out of stock for backorders. When a
+variant becomes available with stock, the chapter card opens and links to
+`/collections/<handle>`. Clicking
+the sealed Chapter I card opens its waitlist modal. Chapter I also reveals the
+estate name and traceability rows from the first stocked product. Use the product
+metafields `custom.estate`, `custom.flush`, `custom.grade`, `custom.pluck_date`,
+and `custom.leaf` for those rows, with Storefront API read access enabled on
+their definitions. Without them, the product title or “Revealed soon” appears.
+The homepage checks again when the tab gains focus and every 60 seconds while
+visible; new visitors get a fresh inventory check. The inventory query checks up
+to 100 products per collection.
+
 ## Local development
 
 Copy `.env.example` to `.env`, use development-store credentials, and run:

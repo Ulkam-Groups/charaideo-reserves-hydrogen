@@ -1,20 +1,20 @@
 /* Charaideo Reserves - River Thread identity layer */
 :root {
-  --paper: #fbf8f1;
+  --paper: #fffef8;
   --pure-white: #ffffff;
-  --gamosa-cream: #f4ebdd;
-  --assam-red: #5c171c;
-  --heritage-red: #b12b2d;
-  --river-mist: #78908c;
-  --aged-indigo: #31484a;
-  --tea-liquor: #b87936;
-  --burnt-clay: #9d5f45;
-  --leaf-ink: #202b29;
-  --quiet-ink: #4b5552;
-  --steeped-brown: #1b110b;
+  --gamosa-cream: #f5f1e6;
+  --assam-red: #132a1f;
+  --heritage-red: #132a1f;
+  --river-mist: #e7ede0;
+  --aged-indigo: #132a1f;
+  --tea-liquor: #c4a484;
+  --burnt-clay: #c4a484;
+  --leaf-ink: #132a1f;
+  --quiet-ink: #5a6b62;
+  --steeped-brown: #132a1f;
   --thread: rgba(49,72,74,.32);
-  --serif: 'Cormorant Garamond', Baskerville, Georgia, serif;
-  --sans: Manrope, 'Helvetica Neue', Arial, sans-serif;
+  --serif: 'Fraunces', Baskerville, Georgia, serif;
+  --sans: 'General Sans', 'Helvetica Neue', Arial, sans-serif;
   --gutter: clamp(20px, 5vw, 80px);
   --header-height: 70px;
   --type-label: .6875rem;
@@ -467,7 +467,7 @@ button {cursor: pointer}
 .page,.search {max-width: 1200px; margin: 0 auto; padding: 70px var(--gutter) 100px}
 .page h1,.search h1 {font-size: clamp(48px,6vw,82px); line-height: .9}
 
-/* Customer account — a quiet private tea room */
+/* Customer account- a quiet private tea room */
 .account {width: 100%; max-width: none; margin: 0; padding: 0 0 110px; background: var(--paper)}
 .account-hero {position: relative; min-height: 290px; padding: 66px max(var(--gutter),calc((100vw - 1200px)/2)); overflow: hidden; border-bottom: 1px solid var(--thread); background: var(--gamosa-cream)}
 .account-hero::before,.account-hero::after {content: ''; position: absolute; pointer-events: none; left: 45%; width: 58%; height: 150px; border-top: 1px solid var(--river-mist); border-radius: 50%; opacity: .58}
@@ -877,8 +877,8 @@ body {font-size: var(--type-body); line-height: 1.65}
 .catalog-page .catalog-hero {grid-template-columns: minmax(0,1fr) minmax(300px,.8fr); gap: clamp(24px,5vw,80px); min-height: 390px; padding-block: 58px; background: var(--aged-indigo)}
 .catalog-page .catalog-hero .eyebrow {color: #e7b474}
 .catalog-page .catalog-hero h1 {max-width: 720px; margin-bottom: 20px; color: var(--paper); line-height: .94}
-.catalog-page .catalog-hero h1 em {color: #d4b693}
-.catalog-page .catalog-hero p {max-width: 510px; color: #f0e7d9}
+.catalog-page .catalog-hero h1 em {color: #d8cab3}
+.catalog-page .catalog-hero p {max-width: 510px; color: #fffef8}
 .catalog-hero-art {position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 270px; padding: 20px; border: 1px solid rgba(244,235,221,.5); color: var(--paper); background: radial-gradient(circle at 50% 48%,rgba(184,121,54,.32),transparent 55%)}
 .catalog-hero-art::before {content: ''; position: absolute; inset: 9px; border: 1px solid rgba(244,235,221,.2); pointer-events: none}
 .catalog-hero-art-label {align-self: flex-start; font: 600 var(--type-label)/1 var(--sans); letter-spacing: .2em}
@@ -900,7 +900,7 @@ body {font-size: var(--type-body); line-height: 1.65}
 .policy-back {display: inline-block; margin-bottom: 26px; color: var(--paper); font-size: var(--type-small)}
 .policy-hero .eyebrow {margin-bottom: 12px; color: #e7b474}
 .policy-hero h1 {margin: 0 0 10px; color: var(--paper); font-size: var(--type-page-title); line-height: 1}
-.policy-hero p {margin: 0; color: #f0e7d9; font-size: var(--type-body)}
+.policy-hero p {margin: 0; color: #fffef8; font-size: var(--type-body)}
 .policy-layout {display: grid; grid-template-columns: 230px minmax(0,1fr); gap: clamp(35px,6vw,90px); max-width: 1220px; margin: 0 auto; padding: 60px var(--gutter) 100px}
 .policy-nav {display: flex; flex-direction: column; align-self: start; position: sticky; top: calc(var(--header-height) + 24px); padding: 22px; border: 1px solid var(--thread); background: var(--gamosa-cream)}
 .policy-nav .eyebrow {margin-bottom: 10px}

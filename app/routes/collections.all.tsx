@@ -17,11 +17,11 @@ type CatalogSort = keyof typeof CATALOG_SORTS;
 
 export const meta: Route.MetaFunction = () => {
   return [
-    {title: 'Catalog | Charaideo Reserves'},
+    {title: 'Catalog | Charaideo Reserves™'},
     {
       name: 'description',
       content:
-        'Browse the complete Charaideo Reserves tea catalog and add Assam tea products to your Shopify cart.',
+        'Browse the complete Charaideo Reserves™ tea catalog and add Assam tea products to your Shopify cart.',
     },
   ];
 };

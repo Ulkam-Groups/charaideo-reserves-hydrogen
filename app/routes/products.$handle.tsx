@@ -20,7 +20,7 @@ import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
-    {title: ` ${data?.product.title ?? "Tea"} | Charaideo Reserves`},
+    {title: ` ${data?.product.title ?? "Tea"} | Charaideo Reserves™`},
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,

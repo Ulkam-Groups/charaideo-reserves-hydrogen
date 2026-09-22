@@ -18,9 +18,16 @@ export default function Policies() {
     <div className="policies-page">
       <header className="policy-hero">
         <div className="policy-hero-inner">
-          <span className="eyebrow">Charaideo Reserves / Information</span>
+          <nav className="listing-breadcrumb" aria-label="Breadcrumb">
+            <Link to="/">Home</Link>
+            <span aria-hidden="true">/</span>
+            <span>Policies</span>
+          </nav>
+          <span className="eyebrow">Charaideo Reserves™ / Information</span>
           <h1>Store policies</h1>
-          <p>Information about ordering, delivery, returns, and how we handle your data.</p>
+          <p>
+            Information about ordering, delivery, returns, and how we handle your data.
+          </p>
         </div>
       </header>
       <div className="policies-list">
