@@ -467,7 +467,7 @@ button {cursor: pointer}
 .page,.search {max-width: 1200px; margin: 0 auto; padding: 70px var(--gutter) 100px}
 .page h1,.search h1 {font-size: clamp(48px,6vw,82px); line-height: .9}
 
-/* Customer account — a quiet private tea room */
+/* Customer account- a quiet private tea room */
 .account {width: 100%; max-width: none; margin: 0; padding: 0 0 110px; background: var(--paper)}
 .account-hero {position: relative; min-height: 290px; padding: 66px max(var(--gutter),calc((100vw - 1200px)/2)); overflow: hidden; border-bottom: 1px solid var(--thread); background: var(--gamosa-cream)}
 .account-hero::before,.account-hero::after {content: ''; position: absolute; pointer-events: none; left: 45%; width: 58%; height: 150px; border-top: 1px solid var(--river-mist); border-radius: 50%; opacity: .58}

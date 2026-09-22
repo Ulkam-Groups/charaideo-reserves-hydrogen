@@ -8,7 +8,7 @@ Prepared: 2026-09-19 on `prodReady`. Updated after the pushed Sentry commit.
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Sentry change commit SHA                   | `09a61f5d0b8d0d1dea571d690af928918e4890d3` (`09a61f5`)                                                                                             |
 | Sentry diagnostic follow-up commit SHA     | `e0f8ebaafa2eb8a77f97cf76c45e2726217a35dd` (`e0f8eba`)                                                                                             |
-| PR / merge commit SHA                      | **Pending** — record the commit that actually lands on the deployment branch                                                                       |
+| PR / merge commit SHA                      | **Pending**- record the commit that actually lands on the deployment branch                                                                       |
 | Local base before these edits              | `95a07362dc982f046dfcd256e9e4c961712e4e3d` (not necessarily the production rollback target)                                                        |
 | Oxygen environment and domain              | **Pending**                                                                                                                                        |
 | Last known good Oxygen deployment ID / URL | **Record before deploying**                                                                                                                        |

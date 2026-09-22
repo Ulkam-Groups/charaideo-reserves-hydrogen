@@ -110,7 +110,7 @@ export default function ReserveList() {
                 <div className={`reserve-chapter-row reserve-chapter-row-${state}`} key={chapter.handle}>
                   <div className="reserve-chapter-badge" aria-hidden="true">{label.replace(/^chapter\s+/i, '')}</div>
                   <div className="reserve-chapter-content">
-                    <h2>{label}{state === 'open' ? ' — Now Open' : ' — Coming Soon'}{state !== 'open' && <span className="reserve-lock" aria-label="Locked"> 🔒</span>}</h2>
+                    <h2>{label}{state === 'open' ? '- Now Open' : '- Coming Soon'}{state !== 'open' && <span className="reserve-lock" aria-label="Locked"> 🔒</span>}</h2>
                     <p>{state === 'locked' ? `Locked until ${previous} closes` : state === 'coming-soon' ? '• First 100 pouches • Once launched, estate name revealed' : `${chapter.products.filter(hasInventory).length} ${chapter.products.filter(hasInventory).length === 1 ? 'product' : 'products'} available`}</p>
                     {state !== 'locked' && <div className="reserve-product-links">
                       {chapter.products.filter((product) => state === 'coming-soon' || hasInventory(product)).map((product, productIndex) => <Link key={product.handle} to={`/products/${product.handle}`}>{state === 'open' ? product.title : `View product ${productIndex + 1}`} <span aria-hidden="true">↗</span></Link>)}

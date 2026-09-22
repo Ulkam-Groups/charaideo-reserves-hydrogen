@@ -239,7 +239,7 @@ export default function Homepage() {
       if (!(await submitWaitlist(l))) return;
       E();
       i("");
-      q("You're on the list — first 100 pouches reserved for early access");
+      q("You're on the list- first 100 pouches reserved for early access");
     },
     Z = async (a) => {
       a.preventDefault();
@@ -248,7 +248,7 @@ export default function Homepage() {
         return;
       }
       if (!(await submitWaitlist(t))) return;
-      q("You're on the list — first 100 pouches reserved for early access");
+      q("You're on the list- first 100 pouches reserved for early access");
       r("");
     };
   return y("div", {
@@ -305,7 +305,7 @@ export default function Homepage() {
       f("div", {
         className:
           "w-full max-w-[100vw] overflow-hidden bg-[#132A1F] text-[#FFFEF8] text-center py-[10px] text-[12px] tracking-[0.14em] uppercase font-[500]",
-        children: isRevealed ? "Chapter I — Now Open — First 100 pouches only" : "Chapter I — Opening Soon — First 100 pouches only",
+        children: isRevealed ? "Chapter I- Now Open- First 100 pouches only" : "Chapter I- Opening Soon- First 100 pouches only",
       }),
       f("section", {
         className: "relative bg-[#FFFEF8] overflow-hidden max-w-[100vw]",
@@ -334,7 +334,7 @@ export default function Homepage() {
                     className:
                       "mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
                     children:
-                      "Single-estate, single-harvest teas — sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
+                      "Single-estate, single-harvest teas- sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
                   }),
                   y("div", {
                     className: "mt-8 flex flex-wrap gap-3",
@@ -529,7 +529,7 @@ export default function Homepage() {
                 y("div", {
                   role: isRevealed ? "link" : "button",
                   tabIndex: 0,
-                  "aria-label": isRevealed ? "Explore Chapter I collection" : "Join Waitlist — Chapter I",
+                  "aria-label": isRevealed ? "Explore Chapter I collection" : "Join Waitlist- Chapter I",
                   onClick: (event) => {
                     if (isRevealed) window.location.assign(chapterHref);
                     else d(event);
@@ -563,7 +563,7 @@ export default function Homepage() {
                           children: f("span", {
                             className:
                               "inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F]",
-                            children: isRevealed ? "CHAPTER I — OPEN" : "CHAPTER I — SEALED",
+                            children: isRevealed ? "CHAPTER I- OPEN" : "CHAPTER I- SEALED",
                           }),
                         }),
                         y("div", {
@@ -582,7 +582,7 @@ export default function Homepage() {
                                     children: f("div", {
                                       className:
                                         "text-[8px] tracking-[0.20em] uppercase text-[#5A6B62] font-[600]",
-                                      children: "— Chapter I —",
+                                      children: "— Chapter I-",
                                     }),
                                   }),
                                   y("div", {
@@ -674,7 +674,7 @@ export default function Homepage() {
                           children: f("span", {
                             className:
                               "w-full h-[42px] rounded-full border border-[#132A1F] text-[12px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center hover:bg-[#132A1F] hover:text-white transition",
-                            children: isRevealed ? "Explore Chapter I →" : "Join Waitlist — Chapter I →",
+                            children: isRevealed ? "Explore Chapter I →" : "Join Waitlist- Chapter I →",
                           }),
                         }),
                       ],
@@ -830,7 +830,7 @@ export default function Homepage() {
               f("p", {
                 className: "mt-6 text-[15px] leading-[1.7] text-[#5A6B62] max-w-[520px] mx-auto",
                 children:
-                  "We begin where Assam's tea story began — with a garden whose leaves carry the weight of history. The first reserve is whole leaf, single-harvest, sealed in small batches for those who join early.",
+                  "We begin where Assam's tea story began- with a garden whose leaves carry the weight of history. The first reserve is whole leaf, single-harvest, sealed in small batches for those who join early.",
               }),
               f("div", {
                 className: "mt-8 flex flex-wrap justify-center gap-2",
@@ -885,12 +885,12 @@ export default function Homepage() {
                 f("p", {
                   className: "mt-6 text-[15px] leading-[1.8] text-[#132A1F]/70 max-w-[460px]",
                   children:
-                    "Every tea we reserve is traceable to the garden it came from. Not a region, not a blend — a single estate, a single pluck, a single story. When you hold a pouch of Charaideo, you hold the place itself. The soil, the season, the hands that picked it.",
+                    "Every tea we reserve is traceable to the garden it came from. Not a region, not a blend- a single estate, a single pluck, a single story. When you hold a pouch of Charaideo, you hold the place itself. The soil, the season, the hands that picked it.",
                 }),
                 f("p", {
                   className: "mt-4 text-[15px] leading-[1.8] text-[#132A1F]/70 max-w-[460px]",
                   children:
-                    "That is why we list estates in order. Once a garden enters our Reserve List, it stays — Chapter after Chapter — so you can follow a place through time.",
+                    "That is why we list estates in order. Once a garden enters our Reserve List, it stays- Chapter after Chapter- so you can follow a place through time.",
                 }),
               ],
             }),
@@ -899,7 +899,7 @@ export default function Homepage() {
               children: [
                 f("div", {
                   className: "text-[11px] tracking-[0.18em] uppercase text-[#5A6B62] font-[600] mb-6",
-                  children: "Traceability — Chapter I",
+                  children: "Traceability- Chapter I",
                 }),
                 f("div", {
                   className: "space-y-4",
@@ -972,7 +972,7 @@ export default function Homepage() {
                 {
                   n: "03",
                   t: "Make room",
-                  d: "A clear table, a quiet cup. The tea will do the rest — if you let it.",
+                  d: "A clear table, a quiet cup. The tea will do the rest- if you let it.",
                 },
               ].map((a) =>
                 y(
@@ -1079,20 +1079,20 @@ export default function Homepage() {
                     f("h3", {
                       id: "waitlist-title",
                       className: "serif text-[28px] md:text-[32px] leading-[0.95] tracking-[-0.02em]",
-                      children: "Join Waitlist — Chapter I",
+                      children: "Join Waitlist- Chapter I",
                     }),
                     y("div", {
                       className:
                         "mt-4 flex flex-wrap items-center gap-2 text-[13px] leading-[1.6] text-[#5A6B62]",
                       children: [
-                        f("span", { children: "First 100 pouches • Opening Soon — Estate:" }),
+                        f("span", { children: "First 100 pouches • Opening Soon- Estate:" }),
                         f("span", { className: `${isRevealed ? '' : 'blur-mystery'} text-[13px]`, children: estateName }),
                       ],
                     }),
                     f("p", {
                       className: "mt-3 text-[13.5px] leading-[1.6] text-[#5A6B62]/90",
                       children:
-                        "Single-estate, whole leaf. No blends. Invitation when Chapter opens — no payment today.",
+                        "Single-estate, whole leaf. No blends. Invitation when Chapter opens- no payment today.",
                     }),
                   ],
                 }),
