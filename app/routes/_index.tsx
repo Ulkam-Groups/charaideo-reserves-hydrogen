@@ -320,10 +320,10 @@ export default function Homepage() {
                 children: [
                   { label: "Home", active: !0, href: "#", targetId: null },
                   {
-                    label: "Collection",
+                    label: "Reserve List",
                     active: !1,
-                    href: "#chapter-collection",
-                    targetId: "chapter-collection",
+                    href: "/reserve-list",
+                    targetId: null,
                   },
                   { label: "About Us", active: !1, href: "#", targetId: "about" },
                   { label: "Contact", active: !1, href: "#", targetId: "contact" },
@@ -333,6 +333,7 @@ export default function Homepage() {
                     {
                       href: a.href,
                       onClick: (P) => {
+                        if (a.label === "Reserve List") return;
                         P.preventDefault();
                         if (a.label === "Home") {
                           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -401,15 +402,16 @@ export default function Homepage() {
                   className: "flex flex-col gap-4",
                   children: [
                     { label: "Home", id: null },
-                    { label: "Collection", id: "chapter-collection" },
+                    { label: "Reserve List", id: "reserve-list" },
                     { label: "About Us", id: "about" },
                     { label: "Contact", id: "contact" },
                   ].map((a) =>
                     f(
                       "a",
                       {
-                        href: a.id === "chapter-collection" ? "#chapter-collection" : "#",
+                        href: a.id === "reserve-list" ? "/reserve-list" : "#",
                         onClick: (P) => {
+                          if (a.id === "reserve-list") return;
                           P.preventDefault();
                           n(!1);
                           if (a.label === "Home") {
