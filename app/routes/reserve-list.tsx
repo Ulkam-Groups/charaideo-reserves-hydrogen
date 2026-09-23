@@ -7,6 +7,8 @@ import reserveListStylesheet from '~/assets/reserve-list.css?url';
 
 export const links = () => [{rel: 'stylesheet', href: reserveListStylesheet}];
 
+export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
+
 type CollectionSummary = {title: string; handle: string; description: string};
 type CollectionsPage = {
   collections: {
@@ -29,37 +31,51 @@ export const meta: Route.MetaFunction = () => [
 ];
 
 export async function loader({context}: Route.LoaderArgs) {
+  const cache = context.storefront.CacheShort({
+    maxAge: 60,
+    staleWhileRevalidate: 300,
+  });
   const summaries: CollectionSummary[] = [];
   let cursor: string | null = null;
   do {
     const result: CollectionsPage = await context.storefront.query(COLLECTIONS_QUERY, {
       variables: {after: cursor},
-      cache: context.storefront.CacheNone(),
+      cache,
+      displayName: 'Reserve list collections',
     });
     summaries.push(...result.collections.nodes);
     cursor = result.collections.pageInfo.hasNextPage ? result.collections.pageInfo.endCursor : null;
   } while (cursor);
 
-  const collections: ReserveCollection[] = [];
-  for (const summary of summaries) {
-    const products: ReserveCollection['products'] = [];
-    let productCursor: string | null = null;
-    do {
-      const result: ProductPage = await context.storefront.query(COLLECTION_PRODUCTS_QUERY, {
-        variables: {handle: summary.handle, after: productCursor},
-        cache: context.storefront.CacheNone(),
-      });
-      if (!result.collection) break;
-      products.push(...result.collection.products.nodes);
-      productCursor = result.collection.products.pageInfo.hasNextPage
-        ? result.collection.products.pageInfo.endCursor
-        : null;
-    } while (productCursor);
-    collections.push({...summary, products});
-  }
+  // Each collection is independent. Loading them serially creates an N+1
+  // waterfall that adds one Storefront API round trip per collection to TTFB.
+  const collections = await Promise.all(
+    summaries.map(async (summary): Promise<ReserveCollection> => {
+      const products: ReserveCollection['products'] = [];
+      let productCursor: string | null = null;
+      do {
+        const result: ProductPage = await context.storefront.query(
+          COLLECTION_PRODUCTS_QUERY,
+          {
+            variables: {handle: summary.handle, after: productCursor},
+            cache,
+            displayName: `Reserve list products: ${summary.handle}`,
+          },
+        );
+        if (!result.collection) break;
+        products.push(...result.collection.products.nodes);
+        productCursor = result.collection.products.pageInfo.hasNextPage
+          ? result.collection.products.pageInfo.endCursor
+          : null;
+      } while (productCursor);
+      return {...summary, products};
+    }),
+  );
 
   return data(partitionReserveCollections(collections), {
-    headers: {'Cache-Control': 'no-store'},
+    headers: {
+      'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=300',
+    },
   });
 }
 

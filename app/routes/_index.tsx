@@ -19,6 +19,8 @@ export const links = () => [
   {rel: 'stylesheet', href: brandStoryStylesheet},
 ];
 
+export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
+
 type ChapterProduct = {
   title: string;
   handle: string;
@@ -64,9 +66,14 @@ function chapterSequence(title: string): number | null {
 export async function loader({context}: Route.LoaderArgs) {
   let chapterProduct: ChapterProduct | null = null;
   let chapterCollections: ChapterCollection[] = [];
+  const cache = context.storefront.CacheShort({
+    maxAge: 60,
+    staleWhileRevalidate: 300,
+  });
   try {
     const result = await context.storefront.query(CHAPTER_COLLECTIONS_QUERY, {
-      cache: context.storefront.CacheNone(),
+      cache,
+      displayName: 'Homepage chapter collections',
     }) as {collections: {nodes: {title: string; handle: string}[]}};
     const summaries = result.collections.nodes
       .filter((collection) => chapterSequence(collection.title) !== null)
@@ -77,7 +84,8 @@ export async function loader({context}: Route.LoaderArgs) {
       try {
         const response = await context.storefront.query(CHAPTER_COLLECTION_QUERY, {
           variables: {handle: summary.handle},
-          cache: context.storefront.CacheNone(),
+          cache,
+          displayName: `Homepage chapter: ${summary.handle}`,
         }) as {collection: ChapterCollection | null};
         return response.collection;
       } catch {
@@ -86,24 +94,17 @@ export async function loader({context}: Route.LoaderArgs) {
     }));
     chapterCollections = collections.filter((collection): collection is ChapterCollection => collection !== null);
     chapterProduct = chapterCollections[0]?.products.nodes.find((product) => product.availableForSale) ?? null;
-    if (chapterProduct) {
-      try {
-        const detail = await context.storefront.query(CHAPTER_PRODUCT_DETAILS_QUERY, {
-          variables: {handle: chapterProduct.handle},
-          cache: context.storefront.CacheNone(),
-        }) as {product: Partial<ChapterProduct> | null};
-        chapterProduct = {...chapterProduct, ...detail.product};
-      } catch {
-        // The collection still opens when optional metafields are unavailable.
-      }
-    }
   } catch {
     // A failed inventory check keeps the mystery state instead of revealing it.
   }
 
   return Response.json(
     {chapterProduct, chapterCollections},
-    {headers: {'Cache-Control': 'no-store'}},
+    {
+      headers: {
+        'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=300',
+      },
+    },
   );
 }
 
@@ -127,23 +128,15 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
           availableForSale
           featuredImage { url altText width height }
           estate: metafield(namespace: "custom", key: "estate") { value }
+          flush: metafield(namespace: "custom", key: "flush") { value }
+          grade: metafield(namespace: "custom", key: "grade") { value }
+          pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }
+          leaf: metafield(namespace: "custom", key: "leaf") { value }
           variants(first: 50) {
             nodes { availableForSale currentlyNotInStock }
           }
         }
       }
-    }
-  }
-` as const;
-
-const CHAPTER_PRODUCT_DETAILS_QUERY = `#graphql
-  query ChapterProductDetails($handle: String!) {
-    product(handle: $handle) {
-      estate: metafield(namespace: "custom", key: "estate") { value }
-      flush: metafield(namespace: "custom", key: "flush") { value }
-      grade: metafield(namespace: "custom", key: "grade") { value }
-      pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }
-      leaf: metafield(namespace: "custom", key: "leaf") { value }
     }
   }
 ` as const;
