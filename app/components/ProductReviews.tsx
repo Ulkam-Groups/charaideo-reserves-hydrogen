@@ -1,4 +1,5 @@
 import type {ProductReview, ProductReviewsResult} from '~/lib/judgeme.server';
+import {formatDateShort} from '~/lib/formatDate';
 
 export function ProductReviews({
   data,
@@ -92,7 +93,5 @@ function averageRating(reviews: Array<{rating: number}>) {
 }
 
 function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('en-IN', {month: 'short', year: 'numeric'}).format(date);
+  return formatDateShort(value);
 }

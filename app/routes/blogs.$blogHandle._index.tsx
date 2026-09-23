@@ -1,6 +1,7 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/blogs.$blogHandle._index';
 import {Image, getPaginationVariables} from '@shopify/hydrogen';
+import {formatDateLongUS} from '~/lib/formatDate';
 import type {ArticleItemFragment} from 'storefrontapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
@@ -89,11 +90,7 @@ function ArticleItem({
   article: ArticleItemFragment;
   loading?: HTMLImageElement['loading'];
 }) {
-  const publishedAt = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(article.publishedAt!));
+  const publishedAt = formatDateLongUS(article.publishedAt!);
   return (
     <div className="blog-article" key={article.id}>
       <Link to={`/blogs/${article.blog.handle}/${article.handle}`}>

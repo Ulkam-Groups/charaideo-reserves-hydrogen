@@ -11,6 +11,7 @@ import {
   getPaginationVariables,
   flattenConnection,
 } from '@shopify/hydrogen';
+import {formatDateLong} from '~/lib/formatDate';
 import {
   buildOrderSearchQuery,
   parseOrderFilters,
@@ -204,7 +205,7 @@ function OrderItem({order}: {order: OrderItemFragment}) {
         <strong>#{order.number}</strong>
       </div>
       <div className="account-order-card-main">
-        <p className="account-order-date">Placed {new Intl.DateTimeFormat('en-IN', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(order.processedAt))}</p>
+        <p className="account-order-date">Placed {formatDateLong(order.processedAt)}</p>
         {order.confirmationNumber && <p>Confirmation · {order.confirmationNumber}</p>}
         <div className="account-order-statuses">
           <span>{order.financialStatus}</span>
