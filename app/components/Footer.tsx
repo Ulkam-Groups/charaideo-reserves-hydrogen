@@ -8,8 +8,8 @@ export function Footer() {
       <div className="footer-accent" aria-hidden="true" />
       <div className="footer-inner">
         <section className="footer-brand">
-          <Brand variant="light" />
-          <p>One estate, one harvest, fully traceable. No blends.</p>
+          <Brand />
+          <p>A place. A people. A pot of tea. Bringing Assam back to the table.</p>
         </section>
         <FooterColumn
           title="Explore"
@@ -46,8 +46,8 @@ export function Footer() {
         ))}
       </nav>
       <div className="footer-bottom">
-        <p>© {new Date().getFullYear()} Charaideo Reserves™. All rights reserved.</p>
-        <p>Rooted in Assam.</p>
+        <p>© 2026 Ulkam Group. All rights reserved.</p>
+        <p>Made with love in Assam.</p>
       </div>
     </footer>
   );

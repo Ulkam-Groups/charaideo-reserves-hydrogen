@@ -24,7 +24,7 @@ import {
 
 const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
 const GOOGLE_FONTS_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=General+Sans:wght@400;500;600&display=swap';
+  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
 const FASTRR_STYLESHEET =
   'https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css';
 

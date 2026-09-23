@@ -145,6 +145,10 @@ button {cursor: pointer}
 .heritage-note .text-link {color: var(--gamosa-cream)}
 .heritage-seal {position: absolute; z-index: 2; left: var(--gutter); bottom: 55px; display: grid; justify-items: center; color: var(--tea-liquor); font: 500 45px/1 var(--serif)}
 .heritage-seal span {color: var(--river-mist); font: 600 7px/1 var(--sans); letter-spacing: .25em; margin: 5px 0}
+.heritage-seal-mark {display: block; width: 42px; height: auto; color: var(--tea-liquor)}
+.heritage-seal .heritage-seal-place {margin: 5px 0 7px; color: var(--river-mist); font: 600 7px/1 var(--sans); letter-spacing: .25em}
+.heritage-seal .heritage-seal-coordinate {display: inline-block; margin: 0; color: #b87936; font: 500 54px/.82 'Cormorant Garamond', Baskerville, Georgia, serif; font-variant-numeric: oldstyle-nums proportional-nums; font-feature-settings: 'onum' 1,'pnum' 1; letter-spacing: -.035em; white-space: nowrap}
+.heritage-seal-coordinate sup {position: relative; top: -.62em; margin-left: .04em; font-size: .48em; line-height: 0; vertical-align: baseline}
 .ritual-section {background: var(--gamosa-cream)}
 .ritual-grid {display: grid; grid-template-columns: repeat(3,1fr); gap: 50px; margin-top: 54px}
 .ritual-grid article {position: relative; padding: 24px 0 0; border-top: 1px solid var(--thread)}

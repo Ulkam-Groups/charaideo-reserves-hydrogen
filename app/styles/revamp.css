@@ -503,11 +503,41 @@ textarea {
 .footer a:hover {
   color: #d8cab3;
 }
-.footer .wordmark--light img {
+.footer .wordmark--default {
+  position: relative;
+  width: 220px;
+  height: 66px;
+}
+.footer .wordmark--default img {
+  width: 220px;
+  height: 66px;
   filter: brightness(0) invert(1);
 }
+.footer .wordmark--default::after {
+  position: absolute;
+  top: 17.5px;
+  left: 44.4px;
+  width: 4.8px;
+  height: 4.8px;
+  border-radius: 50%;
+  background: #b87936;
+  content: '';
+  pointer-events: none;
+}
 .footer-accent {
-  background: #c4a484;
+  height: 3px;
+  background: #b87936;
+}
+.footer-bottom {
+  position: relative;
+  border-top: 0;
+}
+.footer-bottom::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: #b87936;
+  content: '';
 }
 
 /* Navigation destinations use the same shapes, colors and spacing as home. */
