@@ -548,7 +548,7 @@ shopify-chat {
   --shopify-chat-accent-bg-color: #132a1f;
   --shopify-chat-accent-text-color: #fffef8;
   --shopify-chat-activator-font-size: 14px;
-  --shopify-chat-border-radius: 999px;
+  --shopify-chat-border-radius: 16px;
   --shopify-chat-body-font-family: inherit;
 }
 
@@ -560,6 +560,7 @@ shopify-chat::part(activator) {
   padding-inline: 14px;
   overflow: hidden;
   border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 999px;
   font-size: 0;
   font-weight: 600;
   line-height: 0;
