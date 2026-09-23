@@ -55,10 +55,6 @@ export function ProductItem({
     product.description?.trim().replace(/\s+/g, ' ') ||
     product.tastingNotes?.value?.trim().replace(/\s+/g, ' ') ||
     '';
-  const cardDescription =
-    [...fullDescription].length > 40
-      ? `${[...fullDescription].slice(0, 40).join('')}...`
-      : fullDescription;
 
   return (
     <article
@@ -83,7 +79,7 @@ export function ProductItem({
           <h2><Link to={url}>{product.title}</Link></h2>
         </div>
         <p className="catalog-card-description" title={fullDescription}>
-          {cardDescription}
+          {fullDescription}
         </p>
 
         {showVariantChoices ? (
