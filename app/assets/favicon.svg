@@ -1,10 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="2080" height="1488" viewBox="34 72 260 186" fill="none" role="img" aria-labelledby="title desc" shape-rendering="geometricPrecision">
-  <title id="title">Charaideo Reserves logo</title>
-  <desc id="desc">Bengali Cha mark, river thread and tea cup mark.</desc>
-  <path d="M577 622V551H172V532Q192 497 215.5 472.5Q239 448 273.0 435.5Q307 423 361 423H377Q415 423 435.5 418.0Q456 413 472 403Q517 375 517 306Q517 245 488.0 189.0Q459 133 415 95Q377 62 334.0 43.0Q291 24 238 24Q201 24 175.0 35.0Q149 46 132 63Q116 82 105.5 109.0Q95 136 95 191V551H-10V622ZM189 117Q207 96 244 96Q284 96 318.0 115.0Q352 134 379 162Q407 192 422.5 225.5Q438 259 438 296Q438 329 419.5 339.0Q401 349 368 349H363Q317 349 289.0 356.5Q261 364 235 377Q216 388 199.0 402.0Q182 416 170 433Q171 420 171.5 405.5Q172 391 172 378V205Q172 161 177.0 143.0Q182 125 189 117Z" transform="matrix(0.204824531516 0 0 -0.228802675585 106.932245315162 252.891264214047)" fill="#5C171C" />
-  <ns0:path d="M44.6 230.4 C111.8 185.6 176.2 286.4 282.6 213.6" stroke="#78908C" stroke-width="7.56" stroke-linecap="round" />
-  <ns0:path d="M273 101 H281 C288 101 291.5 104 291.5 108.5 C291.5 113 288 116 281 116 H273" stroke="#5C171C" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
-  <ns0:circle cx="255" cy="108.5" r="19" fill="#B87936" stroke="#5C171C" stroke-width="1.9" />
-  <ns0:path d="M246.5 104.2 C251 100.6 259.4 99.9 265.7 102.2" stroke="#FFF8EA" stroke-width="0.75" stroke-linecap="round" opacity="0.62" />
+<svg width="1040" height="784" fill="none" shape-rendering="geometricPrecision" aria-labelledby="title desc" role="img" viewBox="34 62 260 196" xmlns="http://www.w3.org/2000/svg">
+ <title>Charaideo Reserves logo</title>
+ <desc>Bengali Cha mark, river thread and tea cup mark.</desc>
+ <path d="M106.500 110.500
+L216.498 110.500
+L223.482 121.849
+L143.166 121.849
+C 142.293 124.468 142.293 127.087 144.912 130.579
+C 150.150 137.563 156.261 141.055 164.118 145.420
+C 172.848 149.785 180.705 152.404 188.562 155.023
+C 195.546 155.896 200.784 159.388 205.149 165.499
+C 207.768 168.991 208.641 174.229 208.641 179.467
+C 208.641 190.816 204.276 203.038 199.038 212.641
+C 192.927 222.244 182.451 231.847 170.229 235.339
+C 163.245 237.958 152.769 236.212 145.785 233.593
+C 136.182 230.101 131.817 224.863 130.071 217.879
+C 129.198 215.260 129.198 213.514 129.198 210.022
+L129.198 122.722
+L114.357 121.849
+Z M142.293 142.801
+C 145.785 148.039 151.023 154.150 156.261 159.388
+C 164.118 165.499 172.848 169.864 180.705 171.610
+C 184.197 172.483 185.943 172.483 187.689 174.229
+C 188.562 177.721 187.689 182.086 186.816 185.578
+C 185.070 195.181 180.705 203.038 174.594 210.022
+C 169.356 215.260 163.245 219.625 158.880 220.498
+C 154.515 221.371 150.150 219.625 146.658 217.006
+C 144.039 215.260 142.293 213.514 142.293 210.895
+L142.293 142.801
+Z" fill="#5C171C" fill-rule="evenodd" clip-rule="evenodd" aria-label="Bengali letter Cha" role="img"/>
+ <path d="m44.6 226.9c67.2-44.8 131.6 56 238-16.8" fill="none" stroke="#78908C" stroke-linecap="round" stroke-width="3" transform="translate(0,-2)"/>
+ 
+ <circle cx="255" cy="108.5" r="21" fill="#FFF8EA" stroke="#5C171C" stroke-width="0.25"/>
+  <circle cx="255" cy="108.5" r="15" fill="#FFF8EA" stroke="#5C171C" stroke-width="1.5"/>
+ <circle cx="255" cy="108.5" r="13" fill="#B87936" stroke="#B87936" stroke-width="1.9"/>
+ <path d="m246.5 104.2c4.5-3.6 12.9-4.3 19.2-2" fill="none" opacity=".95" stroke="#FFF8EA" stroke-linecap="round" stroke-width=".75"/>
+<g transform="rotate(0 255 108.5)"><path d="m270 103h7.6537c4.8489 0 7.3463 2.2 7.3463 5.5s-2.444 5.5-7.3463 5.5H270" fill="none" stroke="#5C171C" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></g>
 </svg>

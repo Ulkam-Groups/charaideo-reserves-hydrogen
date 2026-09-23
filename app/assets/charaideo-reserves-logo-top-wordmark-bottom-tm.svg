@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="1300" height="420" viewBox="0 0 650 210" fill="none" shape-rendering="geometricPrecision" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg">
- <title>Charaideo Reserves wordmark with trademark</title>
- <desc>CHARAIDEO RESERVES wordmark with the existing Charaideo Maidan-inspired outline and trademark symbol.</desc>
- <g transform="translate(-380 -50)">
+<svg width="1400" height="860" viewBox="0 0 700 430" fill="none" shape-rendering="geometricPrecision" aria-labelledby="title desc" role="img" xmlns="http://www.w3.org/2000/svg">
+ <title>Charaideo Reserves stacked logo and wordmark</title>
+ <desc>Existing Charaideo Reserves logo centered above the existing CHARAIDEO RESERVES wordmark with trademark symbol.</desc>
+ <g transform="translate(207 -26) scale(0.85)">
+<path xmlns="http://www.w3.org/2000/svg" d="M106.500 110.500 L216.498 110.500 L223.482 121.849 L143.166 121.849 C 142.293 124.468 142.293 127.087 144.912 130.579 C 150.150 137.563 156.261 141.055 164.118 145.420 C 172.848 149.785 180.705 152.404 188.562 155.023 C 195.546 155.896 200.784 159.388 205.149 165.499 C 207.768 168.991 208.641 174.229 208.641 179.467 C 208.641 190.816 204.276 203.038 199.038 212.641 C 192.927 222.244 182.451 231.847 170.229 235.339 C 163.245 237.958 152.769 236.212 145.785 233.593 C 136.182 230.101 131.817 224.863 130.071 217.879 C 129.198 215.260 129.198 213.514 129.198 210.022 L129.198 122.722 L114.357 121.849 Z M142.293 142.801 C 145.785 148.039 151.023 154.150 156.261 159.388 C 164.118 165.499 172.848 169.864 180.705 171.610 C 184.197 172.483 185.943 172.483 187.689 174.229 C 188.562 177.721 187.689 182.086 186.816 185.578 C 185.070 195.181 180.705 203.038 174.594 210.022 C 169.356 215.260 163.245 219.625 158.880 220.498 C 154.515 221.371 150.150 219.625 146.658 217.006 C 144.039 215.260 142.293 213.514 142.293 210.895 L142.293 142.801 Z" fill="#5C171C" fill-rule="evenodd" clip-rule="evenodd" aria-label="Bengali letter Cha" role="img" />
+ 
+ 
+<path xmlns="http://www.w3.org/2000/svg" d="m44.6 226.9c67.2-44.8 131.6 56 238-16.8" fill="none" stroke="#78908C" stroke-linecap="round" stroke-width="3" transform="translate(0,-2)" />
+
+ 
+<g xmlns="http://www.w3.org/2000/svg">
+ 
+  <circle cx="255" cy="108.5" r="21" fill="#FFF8EA" stroke="#5C171C" stroke-width="0.25" />
+  <circle cx="255" cy="108.5" r="15" fill="#FFF8EA" stroke="#5C171C" stroke-width="1.5" />
+  <circle cx="255" cy="108.5" r="13" fill="#B87936" stroke="#B87936" stroke-width="1.9" />
+  <path d="m246.5 104.2c4.5-3.6 12.9-4.3 19.2-2" fill="none" opacity=".95" stroke="#FFF8EA" stroke-linecap="round" stroke-width=".75" />
+ </g>
+ 
+ 
+<g xmlns="http://www.w3.org/2000/svg" transform="rotate(0 255 108.5)"><path d="m270 103h7.6537c4.8489 0 7.3463 2.2 7.3463 5.5s-2.444 5.5-7.3463 5.5H270" fill="none" stroke="#5C171C" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" /></g>
+
+ </g>
+ <g transform="translate(-228 196) scale(0.82)">
 <g xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#B9B5AB" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" aria-label="Charaideo Maidan structure">
   
   <path d="m470 176c50-39 114-68 180-79 19-3 36-5 50-5s31 2 50 5c66 11 130 40 180 60 26 10 51 16 75 19" />
@@ -39,3 +58,4 @@
 
  </g>
 </svg>
+
