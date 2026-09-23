@@ -86,6 +86,9 @@ type Pages = {
       "handle": string;
     };
   };
+  "/favicon.ico": {
+    params: {};
+  };
   "/sitemap.xml": {
     params: {};
   };
@@ -150,7 +153,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/favicon.ico" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
@@ -223,6 +226,10 @@ type RouteFiles = {
   "routes/pages.$handle.tsx": {
     id: "routes/pages.$handle";
     page: "/pages/:handle";
+  };
+  "routes/[favicon.ico].tsx": {
+    id: "routes/[favicon.ico]";
+    page: "/favicon.ico";
   };
   "routes/[sitemap.xml].tsx": {
     id: "routes/[sitemap.xml]";
@@ -322,6 +329,7 @@ type RouteModules = {
   "routes/api.admin.teas": typeof import("./app/routes/api.admin.teas.ts");
   "routes/discount.$code": typeof import("./app/routes/discount.$code.tsx");
   "routes/pages.$handle": typeof import("./app/routes/pages.$handle.tsx");
+  "routes/[favicon.ico]": typeof import("./app/routes/[favicon.ico].tsx");
   "routes/[sitemap.xml]": typeof import("./app/routes/[sitemap.xml].tsx");
   "routes/api.waitlist": typeof import("./app/routes/api.waitlist.tsx");
   "routes/blogs._index": typeof import("./app/routes/blogs._index.tsx");

@@ -3,7 +3,7 @@
 // Recovered from the supplied approved React artifact. Keep its render tree intact.
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
-import {Image, useNonce} from '@shopify/hydrogen';
+import {Image} from '@shopify/hydrogen';
 import {useLoaderData, useRevalidator} from 'react-router';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
@@ -322,7 +322,6 @@ function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) 
 }
 
 export default function Homepage() {
-  const nonce = useNonce();
   const {chapterProduct, chapterCollections} = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
   const firstChapter = chapterCollections[0] ?? null;
@@ -430,53 +429,6 @@ export default function Homepage() {
     className:
       "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#FFFEF8] text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
     children: [
-      f("style", {
-        nonce,
-        children: `
-        .revamp-home * { font-family: "General Sans", system-ui, -apple-system, sans-serif; }
-        html, body { max-width: 100vw; overflow-x: hidden; }
-        .revamp-home h1,.revamp-home h2,.revamp-home h3,.revamp-home .serif { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -0.02em; }
-        .blur-mystery {
-          filter: blur(12px);
-          background: #D8CAB3;
-          padding: 6px 14px;
-          border-radius: 8px;
-          letter-spacing: 3px;
-          user-select: none;
-          display: inline-block;
-          line-height: 1;
-          color: #132A1F;
-        }
-        .grain:after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          opacity: 0.02;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        }
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .marquee-track {
-          display: flex;
-          width: max-content;
-          max-width: none;
-          animation: marquee 30s linear infinite;
-          will-change: transform;
-        }
-        .marquee-viewport {
-          overflow: hidden;
-          max-width: 100vw;
-          width: 100%;
-        }
-        @keyframes toastIn {
-          0% { transform: translate(-50%, 12px); opacity: 0; }
-          100% { transform: translate(-50%, 0); opacity: 1; }
-        }
-      `,
-      }),
       f("div", {
         className:
           "w-full max-w-[100vw] overflow-hidden bg-[#132A1F] text-[#FFFEF8] text-center py-[10px] text-[12px] tracking-[0.14em] uppercase font-[500]",
@@ -705,12 +657,11 @@ export default function Homepage() {
             f("div", {
               className: "grid grid-cols-1 md:grid-cols-3 gap-6",
               children: chapterCollections.map((collection, index) =>
-                f(ChapterCollectionCard, {
-                  key: collection.handle,
-                  collection,
-                  index,
-                  onWaitlist: d,
-                }),
+                f(
+                  ChapterCollectionCard,
+                  {collection, index, onWaitlist: d},
+                  collection.handle,
+                ),
               ),
             }),
           ],
