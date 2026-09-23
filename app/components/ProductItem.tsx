@@ -55,10 +55,9 @@ export function ProductItem({
     product.description?.trim().replace(/\s+/g, ' ') ||
     product.tastingNotes?.value?.trim().replace(/\s+/g, ' ') ||
     '';
-  const descriptionCharacters = Array.from(fullDescription);
   const cardDescription =
-    descriptionCharacters.length > 40
-      ? `${descriptionCharacters.slice(0, 40).join('').trimEnd()}...`
+    [...fullDescription].length > 40
+      ? `${[...fullDescription].slice(0, 40).join('')}...`
       : fullDescription;
 
   return (
