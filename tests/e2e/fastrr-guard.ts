@@ -34,6 +34,15 @@ export async function isolateCheckout(
       url.pathname === '/assets/styles/shopify.css'
     ) {
       await route.fulfill({status: 200, contentType: 'text/css', body: ''});
+    } else if (
+      url.origin === 'https://cdn.shopify.com' &&
+      url.pathname === '/storefront/web-components/chat.js'
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/javascript',
+        body: 'export {};',
+      });
     } else {
       await route.abort();
     }

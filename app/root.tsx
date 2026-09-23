@@ -130,7 +130,21 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
   // Web components can mutate their host nodes before React hydrates server markup.
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+
+    if (document.querySelector('script[data-shopify-chat-script]')) return;
+
+    // Hydrogen's lazy Script path applies attributes after inserting the
+    // element. A module must have its type set before insertion, otherwise the
+    // browser prepares chat.js as a classic script and rejects import.meta.
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.crossOrigin = 'anonymous';
+    script.src = SHOPIFY_CHAT_SCRIPT;
+    script.dataset.shopifyChatScript = 'true';
+    document.body.appendChild(script);
+  }, []);
 
   if (!mounted) return null;
 
@@ -139,12 +153,6 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       <shopify-store store-domain={storeDomain} country="IN" language="en">
         <shopify-chat mode="standalone" />
       </shopify-store>
-      <Script
-        waitForHydration
-        type="module"
-        crossOrigin="anonymous"
-        src={SHOPIFY_CHAT_SCRIPT}
-      />
     </>
   );
 }

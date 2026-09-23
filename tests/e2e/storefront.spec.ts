@@ -1,6 +1,37 @@
 import {expect, test} from '@playwright/test';
 import {isolateCheckout} from './fastrr-guard';
 
+test('homepage and catalog hydrate without recoverable React errors', async ({
+  page,
+  context,
+}) => {
+  await isolateCheckout(context);
+  const browserErrors: string[] = [];
+
+  page.on('console', (message) => {
+    if (
+      message.type() === 'error' &&
+      /hydration|react error #(418|423)/i.test(message.text())
+    ) {
+      browserErrors.push(message.text());
+    }
+  });
+  page.on('pageerror', (error) => browserErrors.push(error.message));
+
+  for (const path of ['/', '/collections/all']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole('heading', {level: 1})).toBeVisible();
+    await page.waitForLoadState('networkidle');
+
+    const chatScript = page.locator('script[data-shopify-chat-script]');
+    await expect(chatScript).toHaveCount(1);
+    await expect(chatScript).toHaveAttribute('type', 'module');
+  }
+
+  expect(browserErrors).toEqual([]);
+});
+
 test('disabled Sentry flag omits browser SDK and ingest requests', async ({
   page,
   context,
