@@ -19,6 +19,8 @@ export const links = () => [
   {rel: 'stylesheet', href: brandStoryStylesheet},
 ];
 
+export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
+
 type ChapterProduct = {
   title: string;
   handle: string;
@@ -64,9 +66,14 @@ function chapterSequence(title: string): number | null {
 export async function loader({context}: Route.LoaderArgs) {
   let chapterProduct: ChapterProduct | null = null;
   let chapterCollections: ChapterCollection[] = [];
+  const cache = context.storefront.CacheShort({
+    maxAge: 60,
+    staleWhileRevalidate: 300,
+  });
   try {
     const result = await context.storefront.query(CHAPTER_COLLECTIONS_QUERY, {
-      cache: context.storefront.CacheNone(),
+      cache,
+      displayName: 'Homepage chapter collections',
     }) as {collections: {nodes: {title: string; handle: string}[]}};
     const summaries = result.collections.nodes
       .filter((collection) => chapterSequence(collection.title) !== null)
@@ -77,7 +84,8 @@ export async function loader({context}: Route.LoaderArgs) {
       try {
         const response = await context.storefront.query(CHAPTER_COLLECTION_QUERY, {
           variables: {handle: summary.handle},
-          cache: context.storefront.CacheNone(),
+          cache,
+          displayName: `Homepage chapter: ${summary.handle}`,
         }) as {collection: ChapterCollection | null};
         return response.collection;
       } catch {
@@ -86,24 +94,17 @@ export async function loader({context}: Route.LoaderArgs) {
     }));
     chapterCollections = collections.filter((collection): collection is ChapterCollection => collection !== null);
     chapterProduct = chapterCollections[0]?.products.nodes.find((product) => product.availableForSale) ?? null;
-    if (chapterProduct) {
-      try {
-        const detail = await context.storefront.query(CHAPTER_PRODUCT_DETAILS_QUERY, {
-          variables: {handle: chapterProduct.handle},
-          cache: context.storefront.CacheNone(),
-        }) as {product: Partial<ChapterProduct> | null};
-        chapterProduct = {...chapterProduct, ...detail.product};
-      } catch {
-        // The collection still opens when optional metafields are unavailable.
-      }
-    }
   } catch {
     // A failed inventory check keeps the mystery state instead of revealing it.
   }
 
   return Response.json(
     {chapterProduct, chapterCollections},
-    {headers: {'Cache-Control': 'no-store'}},
+    {
+      headers: {
+        'Cache-Control': 'public, max-age=10, s-maxage=60, stale-while-revalidate=300',
+      },
+    },
   );
 }
 
@@ -127,23 +128,15 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
           availableForSale
           featuredImage { url altText width height }
           estate: metafield(namespace: "custom", key: "estate") { value }
+          flush: metafield(namespace: "custom", key: "flush") { value }
+          grade: metafield(namespace: "custom", key: "grade") { value }
+          pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }
+          leaf: metafield(namespace: "custom", key: "leaf") { value }
           variants(first: 50) {
             nodes { availableForSale currentlyNotInStock }
           }
         }
       }
-    }
-  }
-` as const;
-
-const CHAPTER_PRODUCT_DETAILS_QUERY = `#graphql
-  query ChapterProductDetails($handle: String!) {
-    product(handle: $handle) {
-      estate: metafield(namespace: "custom", key: "estate") { value }
-      flush: metafield(namespace: "custom", key: "flush") { value }
-      grade: metafield(namespace: "custom", key: "grade") { value }
-      pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }
-      leaf: metafield(namespace: "custom", key: "leaf") { value }
     }
   }
 ` as const;
@@ -343,8 +336,7 @@ export default function Homepage() {
       window.removeEventListener('focus', checkInventory);
     };
   }, [revalidator]);
-  let [t, r] = xe.useState(""),
-    [A, u] = xe.useState(!1),
+  let [A, u] = xe.useState(!1),
     [l, i] = xe.useState(""),
     [submitting, setSubmitting] = xe.useState(!1),
     [o, c] = xe.useState({ visible: !1, message: "" }),
@@ -414,16 +406,6 @@ export default function Homepage() {
       E();
       i("");
       q(`You're on the list for ${firstChapter?.title ?? 'the next reserve'}`);
-    },
-    Z = async (a) => {
-      a.preventDefault();
-      if (!t || !t.includes("@")) {
-        q("Please enter a valid email");
-        return;
-      }
-      if (!(await submitWaitlist(t))) return;
-      q(`You're on the list for ${firstChapter?.title ?? 'the next reserve'}`);
-      r("");
     };
   return y("div", {
     className:
@@ -806,6 +788,58 @@ export default function Homepage() {
           ],
         }),
       }),
+      y("section", {
+        className: "heritage-note",
+        children: [
+          f("span", {
+            className: "eyebrow",
+            children: "More than a place of origin",
+          }),
+          y("div", {
+            children: [
+              y("h2", {
+                children: [
+                  "We bring tea to the world.",
+                  f("br", {}),
+                  f("em", {children: "And heritage back to the table."}),
+                ],
+              }),
+              f("p", {
+                children:
+                  "Our name carries the cultural memory of Charaideo and the Ahom legacy. Our spirit belongs to Assam: its tea gardens, its living traditions, and its instinct to make room for one more.",
+              }),
+              f("a", {
+                className: "text-link",
+                href: "/pages/about-us",
+                children: "The story of Charaideo \u2197",
+              }),
+            ],
+          }),
+          y("span", {
+            className: "heritage-seal",
+            "aria-hidden": "true",
+            children: [
+              f("svg", {
+                className: "heritage-seal-mark",
+                viewBox: "100 104 130 150",
+                fill: "none",
+                focusable: "false",
+                children: f("path", {
+                  d: "M106.5 110.5H216.498L223.482 121.849H143.166C142.293 124.468 142.293 127.087 144.912 130.579C150.15 137.563 156.261 141.055 164.118 145.42C172.848 149.785 180.705 152.404 188.562 155.023C195.546 155.896 200.784 159.388 205.149 165.499C207.768 168.991 208.641 174.229 208.641 179.467C208.641 190.816 204.276 203.038 199.038 212.641C192.927 222.244 182.451 231.847 170.229 235.339C163.245 237.958 152.769 236.212 145.785 233.593C136.182 230.101 131.817 224.863 130.071 217.879C129.198 215.26 129.198 213.514 129.198 210.022V122.722L114.357 121.849L106.5 110.5ZM142.293 142.801C145.785 148.039 151.023 154.15 156.261 159.388C164.118 165.499 172.848 169.864 180.705 171.61C184.197 172.483 185.943 172.483 187.689 174.229C188.562 177.721 187.689 182.086 186.816 185.578C185.07 195.181 180.705 203.038 174.594 210.022C169.356 215.26 163.245 219.625 158.88 220.498C154.515 221.371 150.15 219.625 146.658 217.006C144.039 215.26 142.293 213.514 142.293 210.895V142.801Z",
+                  fill: "currentColor",
+                  fillRule: "evenodd",
+                  clipRule: "evenodd",
+                }),
+              }),
+              f("span", {className: "heritage-seal-place", children: "ASSAM"}),
+              y("span", {
+                className: "heritage-seal-coordinate",
+                children: ["26.98", f("sup", {children: "\u00b0"})],
+              }),
+            ],
+          }),
+        ],
+      }),
       f("section", {
         className:
           "bg-[#FFFEF8] border-t border-[#132A1F]/[0.06] py-16 md:py-24 max-w-[100vw] overflow-hidden",
@@ -861,54 +895,6 @@ export default function Homepage() {
               ),
             }),
           ],
-        }),
-      }),
-      f("section", {
-        id: "contact",
-        className:
-          "bg-[#132A1F] text-[#FFFEF8] py-16 md:py-24 max-w-[100vw] overflow-hidden scroll-mt-[96px]",
-        children: f("div", {
-          className: "mx-auto max-w-[1280px] px-6 md:px-8",
-          children: y("div", {
-            className: "max-w-[720px] mx-auto text-center",
-            children: [
-              f("h2", {
-                className: "serif text-[36px] md:text-[56px] leading-[0.92]",
-                children: `Be there when ${firstChapter?.title ?? 'the next reserve'} opens.`,
-              }),
-              f("p", {
-                className: "mt-4 text-[14px] tracking-[0.06em] text-[#FFFEF8]/60",
-                children: `${firstChapter?.products.nodes.length ?? 0} ${(firstChapter?.products.nodes.length ?? 0) === 1 ? 'tea' : 'teas'} listed. Small batch. One garden.`,
-              }),
-              y("form", {
-                onSubmit: Z,
-                className: "mt-10 flex flex-col sm:flex-row gap-3 max-w-[440px] mx-auto",
-                children: [
-                  f("input", {
-                    value: t,
-                    onChange: (a) => r(a.target.value),
-                    placeholder: "Your email",
-                    type: "email",
-                    required: !0,
-                    name: "contact[email]",
-                    className:
-                      "flex-1 h-[48px] rounded-full bg-[#FFFEF8]/[0.08] border border-[#FFFEF8]/20 px-6 text-[14px] placeholder:text-[#FFFEF8]/40 outline-none focus:border-[#FFFEF8]/40",
-                  }),
-                  f("button", {
-                    type: "submit",
-                    disabled: submitting,
-                    className:
-                      "h-[48px] px-7 rounded-full bg-[#FFFEF8] text-[#132A1F] text-[13px] tracking-[0.06em] uppercase font-[600] hover:bg-white transition",
-                    children: "Join Reserve List",
-                  }),
-                ],
-              }),
-              f("div", {
-                className: "mt-4 text-[11px] text-[#FFFEF8]/40",
-                children: `Invitation only for ${firstChapter?.title ?? 'the next reserve'}. No spam, unsubscribe anytime.`,
-              }),
-            ],
-          }),
         }),
       }),
       A &&

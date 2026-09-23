@@ -23,6 +23,10 @@ import {
 } from '~/lib/monitoring.server';
 
 const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
+const GOOGLE_FONTS_STYLESHEET =
+  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
+const FASTRR_STYLESHEET =
+  'https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css';
 
 export function links() {
   return [
@@ -84,19 +88,9 @@ export default function App() {
         )}
         <Meta />
         <Links />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=General+Sans:wght@400;500;600&display=swap"
-        />
         <link rel="stylesheet" href={stylesheet} />
         <link rel="stylesheet" href={identity} />
         <link rel="stylesheet" href={revamp} />
-        {data.fastrrSellerDomain && (
-          <link
-            rel="stylesheet"
-            href="https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css"
-          />
-        )}
       </head>
       <body>
         {data.fastrrSellerDomain && (
@@ -120,10 +114,28 @@ export default function App() {
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
+        <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
+        {data.fastrrSellerDomain && <DeferredStylesheet href={FASTRR_STYLESHEET} />}
         <ShopifyChat storeDomain={data.chatShopDomain} />
       </body>
     </html>
   );
+}
+
+function DeferredStylesheet({href}: {href: string}) {
+  useEffect(() => {
+    const existing = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+    ).some((link) => link.href === href);
+    if (existing) return;
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  }, [href]);
+
+  return null;
 }
 
 function ShopifyChat({storeDomain}: {storeDomain: string}) {
@@ -150,6 +162,14 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
   return (
     <>
+      <script
+        id="shopify-chat-app-embed-data"
+        type="application/json"
+        dangerouslySetInnerHTML={{
+          __html:
+            '{"settings":{"horizontalPosition":"right","invertActivatorColors":true}}',
+        }}
+      />
       <shopify-store store-domain={storeDomain} country="IN" language="en">
         <shopify-chat mode="standalone" />
       </shopify-store>
