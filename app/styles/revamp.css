@@ -540,6 +540,73 @@ textarea {
   content: '';
 }
 
+/* Make the Shopify chat launcher visible while keeping it clear of the footer. */
+shopify-chat {
+  --shopify-chat-activator-offset: 76px;
+  --shopify-chat-bg-color: #fffef8;
+  --shopify-chat-text-color: #132a1f;
+  --shopify-chat-accent-bg-color: #132a1f;
+  --shopify-chat-accent-text-color: #fffef8;
+  --shopify-chat-activator-font-size: 14px;
+  --shopify-chat-border-radius: 999px;
+  --shopify-chat-body-font-family: inherit;
+}
+
+shopify-chat::part(activator) {
+  justify-content: start;
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  padding-inline: 14px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 25%);
+  font-size: 0;
+  font-weight: 600;
+  line-height: 0;
+  white-space: nowrap;
+  animation: chat-launcher-pulse 2.4s ease-in-out infinite;
+  box-shadow:
+    0 6px 18px rgb(0 0 0 / 20%),
+    0 0 0 0 rgb(184 121 54 / 36%);
+  transition:
+    width 180ms ease,
+    padding 180ms ease,
+    box-shadow 180ms ease;
+}
+
+shopify-chat::part(activator):hover,
+shopify-chat::part(activator):focus-visible {
+  width: 148px;
+  padding-inline: 11px 17px;
+  font-size: 14px;
+  line-height: normal;
+  animation: none;
+  box-shadow:
+    0 8px 24px rgb(0 0 0 / 24%),
+    0 0 0 3px rgb(184 121 54 / 24%);
+}
+
+@keyframes chat-launcher-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 6px 18px rgb(0 0 0 / 20%),
+      0 0 0 0 rgb(184 121 54 / 36%);
+  }
+  50% {
+    box-shadow:
+      0 6px 18px rgb(0 0 0 / 20%),
+      0 0 0 8px rgb(184 121 54 / 0%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  shopify-chat::part(activator) {
+    animation: none;
+    transition: none;
+  }
+}
+
 /* Navigation destinations use the same shapes, colors and spacing as home. */
 .listing-hero {
   padding: clamp(52px, 7vw, 96px) var(--gutter);

@@ -162,6 +162,14 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
   return (
     <>
+      <script
+        id="shopify-chat-app-embed-data"
+        type="application/json"
+        dangerouslySetInnerHTML={{
+          __html:
+            '{"settings":{"horizontalPosition":"right","invertActivatorColors":true}}',
+        }}
+      />
       <shopify-store store-domain={storeDomain} country="IN" language="en">
         <shopify-chat mode="standalone" />
       </shopify-store>
