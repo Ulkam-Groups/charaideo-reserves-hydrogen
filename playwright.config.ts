@@ -36,7 +36,9 @@ export default defineConfig({
   ],
   webServer: {
     command: `npm run dev:local -- --config vite.e2e.config.ts --host 127.0.0.1 --port ${port} --strictPort`,
-    url: baseURL,
+    // Server readiness must not depend on Shopify's mock Storefront API.
+    // The tests themselves still exercise the real storefront routes below.
+    url: `${baseURL}/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
