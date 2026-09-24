@@ -4,7 +4,7 @@ import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
 import {useEffect, useRef, useState} from 'react';
 import {useFetcher, useRouteLoaderData} from 'react-router';
 import type {loader as rootLoader} from '~/root';
-import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {canStartCheckout, startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
 
 type CartSummaryProps = {
@@ -68,19 +68,18 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
   if (!cart?.lines?.nodes?.length) return null;
 
   const products = cart.lines.nodes.map((line) => ({
-    variantId: fastrrVariantId(line.merchandise.id),
+    variantId: line.merchandise.id,
     quantity: line.quantity,
   }));
-  const canUseFastrr = Boolean(
-    rootData?.fastrrSellerDomain &&
-      products.length > 0 &&
-      products.every((product) => product.variantId && product.quantity > 0) &&
+  const canUseCheckout = Boolean(
+    rootData?.checkoutReady &&
+      canStartCheckout(rootData.checkoutProvider, products) &&
       !cart.isOptimistic &&
       !cart.appliedGiftCards?.length,
   );
 
   function handleCheckout() {
-    if (!canUseFastrr) return;
+    if (!canUseCheckout) return;
     const couponCode = cart?.discountCodes?.find((code) => code.applicable)?.code;
     const cartAttributes = Object.fromEntries(
       (cart?.attributes ?? [])
@@ -95,9 +94,9 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
       ),
     ).toString();
 
-    if (!startFastrrCheckout({
-      type: 'cart',
-      products: products.map(({variantId, quantity}) => ({variantId: variantId!, quantity})),
+    if (!startCheckout(rootData?.checkoutProvider, {
+      source: 'cart',
+      products,
       ...(couponCode ? {couponCode} : {}),
       ...(utmParams ? {utmParams} : {}),
       ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
@@ -111,10 +110,10 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
 
   return (
     <div>
-      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseFastrr}>
+      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseCheckout}>
         <span>Checkout with Shiprocket &rarr;</span>
       </button>
-      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
+      {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
       {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}
       {checkoutError && <p role="alert">{checkoutError}</p>}
       <p className="fine-print">Shipping and applicable taxes calculated at checkout.</p>

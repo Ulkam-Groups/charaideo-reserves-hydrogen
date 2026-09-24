@@ -32,6 +32,7 @@ declare global {
     WRIT_TO_CUSTOMER_CLIENT_ID?: string;
     WRIT_TO_CUSTOMER_CLIENT_SECRET?: string;
     PUBLIC_SHOPIFY_CHAT_SHOP?: string;
+    CHECKOUT_PROVIDER?: string;
     PUBLIC_FASTRR_SELLER_DOMAIN?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;

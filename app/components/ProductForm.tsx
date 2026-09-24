@@ -8,7 +8,7 @@ import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 import type {ProductFragment} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
-import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {canStartCheckout, startCheckout} from '~/lib/checkout/checkout.client';
 import {useState} from 'react';
 
 export function ProductForm({
@@ -21,7 +21,7 @@ export function ProductForm({
   const navigate = useNavigate();
   const {open} = useAside();
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
-  const buyNowVariantId = selectedVariant && fastrrVariantId(selectedVariant.id);
+  const buyNowVariantId = selectedVariant?.id;
   const [checkoutError, setCheckoutError] = useState('');
   return (
     <div className="product-form">
@@ -131,15 +131,20 @@ export function ProductForm({
         <button
           type="button"
           className="button secondary product-buy-now"
-          disabled={!rootData?.fastrrSellerDomain}
+          disabled={
+            !rootData?.checkoutReady ||
+            !canStartCheckout(rootData.checkoutProvider, [
+              {variantId: buyNowVariantId, quantity: 1},
+            ])
+          }
           onClick={() => {
             const utmParams = new URLSearchParams(
               [...new URLSearchParams(window.location.search)].filter(([key]) =>
                 key.startsWith('utm_'),
               ),
             ).toString();
-            if (!startFastrrCheckout({
-              type: 'product',
+            if (!startCheckout(rootData?.checkoutProvider, {
+              source: 'product',
               products: [{variantId: buyNowVariantId, quantity: 1}],
               ...(utmParams ? {utmParams} : {}),
             })) {
@@ -152,7 +157,7 @@ export function ProductForm({
           Buy now
         </button>
       )}
-      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
+      {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
       {checkoutError && <p role="alert">{checkoutError}</p>}
     </div>
   );
