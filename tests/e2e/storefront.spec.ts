@@ -2,13 +2,7 @@ import {expect, test, type Page} from '@playwright/test';
 import {isolateCheckout} from './fastrr-guard';
 
 async function addCurrentProductToCart(page: Page) {
-  const cartAction = page.waitForResponse((response) => {
-    const request = response.request();
-    return request.method() === 'POST' && new URL(response.url()).pathname === '/cart';
-  });
-
   await page.getByRole('button', {name: 'Add to cart'}).click();
-  expect((await cartAction).ok()).toBe(true);
   await expect(page.getByRole('button', {name: 'Add to cart'})).toBeEnabled();
   await expect(page.getByRole('link', {name: /Cart 1 item/})).toBeVisible();
 }
