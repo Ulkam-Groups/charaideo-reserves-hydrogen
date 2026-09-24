@@ -14,10 +14,10 @@ test('checkout provider defaults to Fastrr and rejects unknown values', () => {
   assert.equal(resolveCheckoutProvider('unknown'), null);
 });
 
-test('shared checkout launcher preserves the current Fastrr payload', () => {
+test('shared checkout launcher preserves the current Fastrr payload', async () => {
   const products = [{variantId: 'gid://shopify/ProductVariant/12345', quantity: 2}];
   assert.equal(canStartCheckout('fastrr', products), true);
-  assert.equal(canStartCheckout('razorpay', products), false);
+  assert.equal(canStartCheckout('razorpay', products), true);
 
   let received: unknown;
   Object.assign(globalThis, {
@@ -32,7 +32,7 @@ test('shared checkout launcher preserves the current Fastrr payload', () => {
 
   try {
     assert.equal(
-      startCheckout('fastrr', {
+      await startCheckout('fastrr', {
         source: 'cart',
         products,
         couponCode: 'TEA10',

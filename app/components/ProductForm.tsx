@@ -11,6 +11,7 @@ import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useState} from 'react';
+import {useCheckoutError} from '~/lib/checkout/checkout-errors.client';
 
 export function ProductForm({
   productOptions,
@@ -24,6 +25,8 @@ export function ProductForm({
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const buyNowVariantId = selectedVariant?.id;
   const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutPending, setCheckoutPending] = useState(false);
+  useCheckoutError(setCheckoutError);
   return (
     <div className="product-form">
       {productOptions.map((option) => {
@@ -134,24 +137,30 @@ export function ProductForm({
           className="button secondary product-buy-now"
           disabled={
             !rootData?.checkoutReady ||
+            checkoutPending ||
             !canStartCheckout(rootData.checkoutProvider, [
               {variantId: buyNowVariantId, quantity: 1},
             ])
           }
-          onClick={() => {
+          onClick={async () => {
+            setCheckoutPending(true);
             const utmParams = new URLSearchParams(
               [...new URLSearchParams(window.location.search)].filter(([key]) =>
                 key.startsWith('utm_'),
               ),
             ).toString();
-            if (!startCheckout(rootData?.checkoutProvider, {
-              source: 'product',
-              products: [{variantId: buyNowVariantId, quantity: 1}],
-              ...(utmParams ? {utmParams} : {}),
-            })) {
-              setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
-            } else {
-              setCheckoutError('');
+            try {
+              if (!await startCheckout(rootData?.checkoutProvider, {
+                source: 'product',
+                products: [{variantId: buyNowVariantId, quantity: 1}],
+                ...(utmParams ? {utmParams} : {}),
+              })) {
+                setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
+              } else {
+                setCheckoutError('');
+              }
+            } finally {
+              setCheckoutPending(false);
             }
           }}
         >

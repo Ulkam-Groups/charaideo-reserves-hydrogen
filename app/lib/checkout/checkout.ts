@@ -1,5 +1,6 @@
 import type {CheckoutProvider} from './provider.ts';
 import {fastrrVariantId} from './providers/fastrr/fastrr.ts';
+import {canStartRazorpayCheckout} from './providers/razorpay/razorpay.ts';
 
 export type CheckoutProduct = {variantId: string; quantity: number};
 
@@ -15,6 +16,7 @@ export function canStartCheckout(
   provider: CheckoutProvider | null | undefined,
   products: CheckoutProduct[],
 ): boolean {
+  if (provider === 'razorpay') return canStartRazorpayCheckout(products);
   if (provider !== 'fastrr' || products.length === 0) return false;
 
   return products.every(

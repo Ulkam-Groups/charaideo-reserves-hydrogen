@@ -7,6 +7,7 @@ import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
+import {useCheckoutError} from '~/lib/checkout/checkout-errors.client';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -66,6 +67,8 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const {close} = useAside();
   const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutPending, setCheckoutPending] = useState(false);
+  useCheckoutError(setCheckoutError);
   if (!cart?.lines?.nodes?.length) return null;
 
   const products = cart.lines.nodes.map((line) => ({
@@ -76,11 +79,13 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
     rootData?.checkoutReady &&
       canStartCheckout(rootData.checkoutProvider, products) &&
       !cart.isOptimistic &&
+      !checkoutPending &&
       !cart.appliedGiftCards?.length,
   );
 
-  function handleCheckout() {
+  async function handleCheckout() {
     if (!canUseCheckout) return;
+    setCheckoutPending(true);
     const couponCode = cart?.discountCodes?.find((code) => code.applicable)?.code;
     const cartAttributes = Object.fromEntries(
       (cart?.attributes ?? [])
@@ -95,24 +100,33 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
       ),
     ).toString();
 
-    if (!startCheckout(rootData?.checkoutProvider, {
-      source: 'cart',
-      products,
-      ...(couponCode ? {couponCode} : {}),
-      ...(utmParams ? {utmParams} : {}),
-      ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
-    })) {
-      setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
-    } else {
-      setCheckoutError('');
-      if (layout === 'aside') close();
+    try {
+      if (!await startCheckout(rootData?.checkoutProvider, {
+        source: 'cart',
+        products,
+        ...(couponCode ? {couponCode} : {}),
+        ...(utmParams ? {utmParams} : {}),
+        ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
+      })) {
+        setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
+      } else {
+        setCheckoutError('');
+        if (layout === 'aside') close();
+      }
+    } finally {
+      setCheckoutPending(false);
     }
   }
 
   return (
     <div>
       <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseCheckout}>
-        <span>Checkout with Shiprocket &rarr;</span>
+        <span>
+          {rootData?.checkoutProvider === 'razorpay'
+            ? 'Checkout with Razorpay'
+            : 'Checkout with Shiprocket'}{' '}
+          &rarr;
+        </span>
       </button>
       {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
       {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}

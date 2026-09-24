@@ -23,6 +23,7 @@ import {
 } from '~/lib/monitoring.server';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
 import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
+import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 
 const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
 const GOOGLE_FONTS_STYLESHEET =
@@ -49,6 +50,19 @@ export async function loader({context}: Route.LoaderArgs) {
     checkoutProvider === 'fastrr'
       ? env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null
       : null;
+  const razorpayReady =
+    checkoutProvider === 'razorpay' &&
+    Boolean(
+      env.RAZORPAY_KEY_ID?.trim() &&
+        env.RAZORPAY_KEY_SECRET?.trim() &&
+        env.RAZORPAY_WEBHOOK_SECRET?.trim() &&
+        env.SHOPIFY_ADMIN_CLIENT_ID?.trim() &&
+        env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim() &&
+        /^[a-z0-9][a-z0-9.-]*\.myshopify\.com$/i.test(
+          env.PUBLIC_STORE_DOMAIN?.trim() ?? '',
+        ),
+    ) &&
+    /^\d+$/.test(env.RAZORPAY_SHIPPING_FEE_PAISE?.trim() ?? '');
 
   const header = await measureStorefront(context.monitor, 'header', () =>
     storefront.query(HEADER_QUERY, {
@@ -65,7 +79,10 @@ export async function loader({context}: Route.LoaderArgs) {
     publicStoreDomain,
     chatShopDomain,
     checkoutProvider,
-    checkoutReady: checkoutProvider === 'fastrr' && Boolean(fastrrSellerDomain),
+    checkoutReady:
+      checkoutProvider === 'fastrr'
+        ? Boolean(fastrrSellerDomain)
+        : razorpayReady,
     fastrrSellerDomain,
     sentryDsn:
       monitoringEnabled(env.SENTRY_ENABLED) && sentryIngestOrigin(env.SENTRY_DSN)
@@ -123,6 +140,9 @@ export default function App() {
         <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
         {data.fastrrSellerDomain && (
           <DeferredStylesheet href={FASTRR_ASSETS.stylesheet} />
+        )}
+        {data.checkoutProvider === 'razorpay' && data.checkoutReady && (
+          <Script waitForHydration src={RAZORPAY_ASSETS.script} />
         )}
         <ShopifyChat storeDomain={data.chatShopDomain} />
       </body>

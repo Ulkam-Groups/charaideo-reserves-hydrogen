@@ -34,6 +34,15 @@ declare global {
     PUBLIC_SHOPIFY_CHAT_SHOP?: string;
     CHECKOUT_PROVIDER?: string;
     PUBLIC_FASTRR_SELLER_DOMAIN?: string;
+    RAZORPAY_KEY_ID?: string;
+    RAZORPAY_KEY_SECRET?: string;
+    RAZORPAY_WEBHOOK_SECRET?: string;
+    RAZORPAY_BUSINESS_NAME?: string;
+    RAZORPAY_SHIPPING_FEE_PAISE?: string;
+    RAZORPAY_COD_ENABLED?: string;
+    RAZORPAY_COD_FEE_PAISE?: string;
+    SHOPIFY_ADMIN_CLIENT_ID?: string;
+    SHOPIFY_ADMIN_CLIENT_SECRET?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
     JUDGEME_PRIVATE_API_TOKEN?: string;
