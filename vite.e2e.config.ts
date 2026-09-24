@@ -5,13 +5,14 @@ import {oxygen} from '@shopify/mini-oxygen/vite';
 import {reactRouter} from '@react-router/dev/vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-// Isolated test runtime. Its only storefront is Shopify's public mock.shop.
+// Isolated test runtime. Use a named mock.shop catalog because Shopify's
+// default mock.shop catalog intermittently returns opaque internal errors.
 export default defineConfig({
   plugins: [
     hydrogen(),
     oxygen({
       env: {
-        PUBLIC_STORE_DOMAIN: 'mock.shop',
+        PUBLIC_STORE_DOMAIN: 'apparel.mock.shop',
         PUBLIC_STOREFRONT_API_TOKEN: '',
         PRIVATE_STOREFRONT_API_TOKEN: '',
         PUBLIC_STOREFRONT_ID: '0',

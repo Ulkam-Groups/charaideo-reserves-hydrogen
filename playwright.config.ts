@@ -42,7 +42,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      PUBLIC_STORE_DOMAIN: 'mock.shop',
+      PUBLIC_STORE_DOMAIN: 'apparel.mock.shop',
       PUBLIC_STOREFRONT_API_TOKEN: '',
       PRIVATE_STOREFRONT_API_TOKEN: '',
       PUBLIC_STOREFRONT_ID: '0',
