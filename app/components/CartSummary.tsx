@@ -4,7 +4,8 @@ import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
 import {useEffect, useRef, useState} from 'react';
 import {useFetcher, useRouteLoaderData} from 'react-router';
 import type {loader as rootLoader} from '~/root';
-import {canStartCheckout, startCheckout} from '~/lib/checkout/checkout.client';
+import {canStartCheckout} from '~/lib/checkout/checkout';
+import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
 
 type CartSummaryProps = {

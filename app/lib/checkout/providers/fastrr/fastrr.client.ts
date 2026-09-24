@@ -1,14 +1,7 @@
 import {recordFastrrLaunch} from '../../../monitoring-signals.ts';
+import type {FastrrCheckoutInput} from './fastrr.ts';
 
-export type FastrrProduct = {variantId: string; quantity: number};
-
-export type FastrrCheckoutInput = {
-  type: 'cart' | 'product';
-  products: FastrrProduct[];
-  couponCode?: string;
-  utmParams?: string;
-  cartAttributes?: Record<string, string>;
-};
+export type {FastrrCheckoutInput} from './fastrr.ts';
 
 declare global {
   interface Window {
@@ -16,11 +9,6 @@ declare global {
       buyDirect: (input: FastrrCheckoutInput) => void;
     };
   }
-}
-
-export function fastrrVariantId(gid: string): string | null {
-  const match = /^gid:\/\/shopify\/ProductVariant\/(\d+)$/.exec(gid);
-  return match?.[1] ?? null;
 }
 
 export function startFastrrCheckout(input: FastrrCheckoutInput): boolean {

@@ -1,30 +1,7 @@
 import type {CheckoutProvider} from './provider.ts';
-import {
-  fastrrVariantId,
-  startFastrrCheckout,
-} from './providers/fastrr/fastrr.client.ts';
-
-export type CheckoutProduct = {variantId: string; quantity: number};
-
-export type CheckoutInput = {
-  source: 'cart' | 'product';
-  products: CheckoutProduct[];
-  couponCode?: string;
-  utmParams?: string;
-  cartAttributes?: Record<string, string>;
-};
-
-export function canStartCheckout(
-  provider: CheckoutProvider | null | undefined,
-  products: CheckoutProduct[],
-): boolean {
-  if (provider !== 'fastrr' || products.length === 0) return false;
-
-  return products.every(
-    ({variantId, quantity}) =>
-      Boolean(fastrrVariantId(variantId)) && quantity > 0,
-  );
-}
+import {canStartCheckout, type CheckoutInput} from './checkout.ts';
+import {startFastrrCheckout} from './providers/fastrr/fastrr.client.ts';
+import {fastrrVariantId} from './providers/fastrr/fastrr.ts';
 
 export function startCheckout(
   provider: CheckoutProvider | null | undefined,

@@ -4,7 +4,8 @@ import {
   DEFAULT_CHECKOUT_PROVIDER,
   resolveCheckoutProvider,
 } from '../app/lib/checkout/provider.ts';
-import {canStartCheckout, startCheckout} from '../app/lib/checkout/checkout.client.ts';
+import {canStartCheckout} from '../app/lib/checkout/checkout.ts';
+import {startCheckout} from '../app/lib/checkout/checkout.client.ts';
 
 test('checkout provider defaults to Fastrr and rejects unknown values', () => {
   assert.equal(resolveCheckoutProvider(undefined), DEFAULT_CHECKOUT_PROVIDER);

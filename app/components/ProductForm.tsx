@@ -8,7 +8,8 @@ import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 import type {ProductFragment} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
-import {canStartCheckout, startCheckout} from '~/lib/checkout/checkout.client';
+import {canStartCheckout} from '~/lib/checkout/checkout';
+import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useState} from 'react';
 
 export function ProductForm({
