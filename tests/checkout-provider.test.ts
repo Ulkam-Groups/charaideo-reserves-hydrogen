@@ -4,10 +4,7 @@ import {
   DEFAULT_CHECKOUT_PROVIDER,
   resolveCheckoutProvider,
 } from '../app/lib/checkout/provider.ts';
-import {
-  canStartCheckout,
-  startCheckout,
-} from '../app/lib/checkout/checkout.client.ts';
+import {canStartCheckout, startCheckout} from '../app/lib/checkout/checkout.client.ts';
 
 test('checkout provider defaults to Fastrr and rejects unknown values', () => {
   assert.equal(resolveCheckoutProvider(undefined), DEFAULT_CHECKOUT_PROVIDER);
@@ -17,9 +14,7 @@ test('checkout provider defaults to Fastrr and rejects unknown values', () => {
 });
 
 test('shared checkout launcher preserves the current Fastrr payload', () => {
-  const products = [
-    {variantId: 'gid://shopify/ProductVariant/12345', quantity: 2},
-  ];
+  const products = [{variantId: 'gid://shopify/ProductVariant/12345', quantity: 2}];
   assert.equal(canStartCheckout('fastrr', products), true);
   assert.equal(canStartCheckout('razorpay', products), false);
 
