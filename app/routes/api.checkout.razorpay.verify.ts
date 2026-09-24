@@ -41,7 +41,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   }
 
   try {
-    if (!verifyRazorpayPayment({credentials, orderId, paymentId, signature})) {
+    if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
       return json({error: 'Payment verification failed'}, 400);
     }
     const {shopifyOrder} = await reconcileRazorpayOrder({

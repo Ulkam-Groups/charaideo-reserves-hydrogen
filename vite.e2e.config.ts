@@ -25,7 +25,29 @@ export default defineConfig({
     reactRouter(),
     tsconfigPaths(),
   ],
-  resolve: {alias: {'~': fileURLToPath(new URL('./app', import.meta.url))}},
+  resolve: {
+    alias: [
+      {
+        find: /^razorpay$/,
+        replacement: fileURLToPath(
+          new URL(
+            './app/lib/checkout/providers/razorpay/razorpay-oxygen.server.ts',
+            import.meta.url,
+          ),
+        ),
+      },
+      {
+        find: /^crypto$/,
+        replacement: fileURLToPath(
+          new URL(
+            './app/lib/checkout/providers/razorpay/crypto-compat.server.ts',
+            import.meta.url,
+          ),
+        ),
+      },
+      {find: '~', replacement: fileURLToPath(new URL('./app', import.meta.url))},
+    ],
+  },
   build: {assetsInlineLimit: 0},
   ssr: {
     optimizeDeps: {
@@ -33,6 +55,9 @@ export default defineConfig({
         'react-router > set-cookie-parser',
         'react-router > cookie',
         'react-router',
+        'razorpay/dist/api.js',
+        'razorpay/dist/resources/orders.js',
+        'razorpay/dist/resources/payments.js',
       ],
     },
   },

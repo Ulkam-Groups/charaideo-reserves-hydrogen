@@ -4,7 +4,9 @@ This folder contains all Razorpay-specific checkout code and configuration.
 
 - `razorpay.ts` contains SSR-safe validation and Magic Checkout order payload construction.
 - `razorpay.client.ts` creates an order through the storefront, opens `magic-checkout.js`, and submits the payment result for server verification.
-- `razorpay.server.ts` is the only module that imports the official `razorpay` Node SDK. It creates orders and verifies payment signatures without exposing the key secret.
+- `razorpay.server.ts` creates orders with the official `razorpay` SDK and verifies signatures with Oxygen's Web Crypto API without exposing the key secret.
+- `razorpay-oxygen.server.ts` initializes only the official SDK's API, Orders, and Payments modules used by this storefront; the package's main class eagerly imports Node-only modules that Oxygen cannot load.
+- `crypto-compat.server.ts` blocks accidental use of the SDK's Node-only crypto helpers. Payment and webhook HMAC verification remains in `razorpay.server.ts`.
 - `razorpay-order.server.ts` fetches and validates the final Razorpay order/payment, then idempotently creates the matching Shopify order through Admin GraphQL.
 - `razorpay.config.ts` owns the Magic Checkout script URL and CSP sources.
 

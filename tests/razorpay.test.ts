@@ -306,7 +306,7 @@ test('Shopify order input records payment, addresses, shipping and idempotency k
   assert.equal('transactions' in cod, false);
 });
 
-test('Razorpay signatures and webhook event targets are verified', () => {
+test('Razorpay signatures and webhook event targets are verified', async () => {
   const secret = 'test_secret';
   const orderId = 'order_abc123';
   const paymentId = 'pay_abc123';
@@ -314,7 +314,7 @@ test('Razorpay signatures and webhook event targets are verified', () => {
     .update(`${orderId}|${paymentId}`)
     .digest('hex');
   assert.equal(
-    verifyRazorpayPayment({
+    await verifyRazorpayPayment({
       credentials: {keyId: 'rzp_test_public', keySecret: secret},
       orderId,
       paymentId,
@@ -323,7 +323,7 @@ test('Razorpay signatures and webhook event targets are verified', () => {
     true,
   );
   assert.equal(
-    verifyRazorpayPayment({
+    await verifyRazorpayPayment({
       credentials: {keyId: 'rzp_test_public', keySecret: secret},
       orderId,
       paymentId,
@@ -334,8 +334,11 @@ test('Razorpay signatures and webhook event targets are verified', () => {
 
   const rawBody = JSON.stringify({event: 'order.paid'});
   const webhookSignature = createHmac('sha256', secret).update(rawBody).digest('hex');
-  assert.equal(verifyRazorpayWebhook(rawBody, webhookSignature, secret), true);
-  assert.equal(verifyRazorpayWebhook(`${rawBody} `, webhookSignature, secret), false);
+  assert.equal(await verifyRazorpayWebhook(rawBody, webhookSignature, secret), true);
+  assert.equal(
+    await verifyRazorpayWebhook(`${rawBody} `, webhookSignature, secret),
+    false,
+  );
   assert.deepEqual(
     razorpayWebhookTarget({
       event: 'payment.captured',

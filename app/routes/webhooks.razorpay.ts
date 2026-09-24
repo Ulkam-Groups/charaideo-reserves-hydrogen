@@ -23,7 +23,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   if (new TextEncoder().encode(rawBody).byteLength > MAX_WEBHOOK_BODY_BYTES) {
     return new Response('Payload too large', {status: 413});
   }
-  if (!verifyRazorpayWebhook(rawBody, signature, secret)) {
+  if (!(await verifyRazorpayWebhook(rawBody, signature, secret))) {
     return new Response('Unauthorized', {status: 401});
   }
 
