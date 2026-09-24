@@ -58,3 +58,15 @@ export function measureStorefront<T>(
     },
   );
 }
+
+export async function measureOptionalStorefront<T>(
+  monitor: Monitor | null,
+  operation: string,
+  query: () => Promise<T>,
+): Promise<T | null> {
+  try {
+    return await measureStorefront(monitor, operation, query);
+  } catch {
+    return null;
+  }
+}

@@ -17,7 +17,7 @@ import revamp from '~/styles/revamp.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {
-  measureStorefront,
+  measureOptionalStorefront,
   monitoringEnabled,
   sentryIngestOrigin,
 } from '~/lib/monitoring.server';
@@ -64,7 +64,7 @@ export async function loader({context}: Route.LoaderArgs) {
     ) &&
     /^\d+$/.test(env.RAZORPAY_SHIPPING_FEE_PAISE?.trim() ?? '');
 
-  const header = await measureStorefront(context.monitor, 'header', () =>
+  const header = await measureOptionalStorefront(context.monitor, 'header', () =>
     storefront.query(HEADER_QUERY, {
       variables: {headerMenuHandle: 'main-menu'},
       cache: storefront.CacheLong(),

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  measureOptionalStorefront,
   measureStorefront,
   monitoringEnabled,
   safeErrorStack,
@@ -235,5 +236,15 @@ test('Storefront measurement preserves success and failure', async () => {
       throw new Error('upstream');
     }),
     /upstream/,
+  );
+});
+
+test('optional Storefront measurement contains upstream failure', async () => {
+  assert.equal(await measureOptionalStorefront(null, 'header', async () => 42), 42);
+  assert.equal(
+    await measureOptionalStorefront(null, 'header', async () => {
+      throw new Error('upstream');
+    }),
+    null,
   );
 });
