@@ -7,7 +7,7 @@ import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
-import {useCheckoutError} from '~/lib/checkout/checkout-errors.client';
+import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;

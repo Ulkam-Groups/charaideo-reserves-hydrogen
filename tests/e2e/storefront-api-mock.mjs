@@ -112,6 +112,14 @@ function mutationPayload(name, cart) {
 
 function execute(operation, variables) {
   switch (operation) {
+    case 'ShopData':
+      return {
+        shop: {id: 'gid://shopify/Shop/1'},
+        localization: {
+          country: {currency: {isoCode: 'INR'}},
+          language: {isoCode: 'EN'},
+        },
+      };
     case 'Header':
       return {
         shop: {
@@ -202,6 +210,7 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, {'content-type': 'application/json'});
     response.end(JSON.stringify({data}));
   } catch (error) {
+    console.error(error);
     response.writeHead(400, {'content-type': 'application/json'});
     response.end(
       JSON.stringify({

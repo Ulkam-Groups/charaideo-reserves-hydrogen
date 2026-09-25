@@ -1,5 +1,5 @@
 import type {CheckoutInput} from '../../checkout.ts';
-import {dispatchCheckoutError} from '../../checkout-errors.client.ts';
+import {dispatchCheckoutError} from '../../checkout-errors.ts';
 
 type RazorpayPaymentResponse = {
   razorpay_order_id: string;
