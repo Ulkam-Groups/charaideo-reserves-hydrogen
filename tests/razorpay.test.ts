@@ -21,9 +21,11 @@ import {
   type RazorpayPaymentDetails,
 } from '../app/lib/checkout/providers/razorpay/razorpay-order.server.ts';
 import {
+  classifyRazorpayFailure,
   verifyRazorpayPayment,
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
+import {RAZORPAY_CSP} from '../app/lib/checkout/providers/razorpay/razorpay.config.ts';
 import {
   buildRazorpayShippingResponse,
   parseRazorpayShippingAddresses,
@@ -39,6 +41,35 @@ test('Razorpay validates Shopify variants and converts INR to paise', () => {
   const form = new FormData();
   form.set('products', JSON.stringify(products));
   assert.deepEqual(parseRazorpayCheckoutProducts(form.get('products')), products);
+});
+
+test('Razorpay CSP permits checkout risk detection without broad script access', () => {
+  assert.deepEqual(RAZORPAY_CSP.scriptSrc, [
+    'https://checkout.razorpay.com',
+    'https://cdn.razorpay.com',
+  ]);
+});
+
+test('Razorpay API failures expose only safe operational classifications', () => {
+  assert.deepEqual(
+    classifyRazorpayFailure({
+      statusCode: 400,
+      error: {code: 'BAD_REQUEST_ERROR', description: 'private provider detail'},
+    }),
+    {
+      code: 'RAZORPAY_ORDER_REJECTED',
+      tags: {
+        provider: 'razorpay',
+        reason: 'order_rejected',
+        upstreamStatus: 400,
+        providerCode: 'BAD_REQUEST_ERROR',
+      },
+    },
+  );
+  assert.deepEqual(classifyRazorpayFailure(new TypeError('fetch failed')), {
+    code: 'RAZORPAY_RUNTIME_FAILURE',
+    tags: {provider: 'razorpay', reason: 'runtime'},
+  });
 });
 
 test('Razorpay Magic order contains authoritative line totals', () => {

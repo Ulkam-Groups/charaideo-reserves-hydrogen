@@ -8,6 +8,7 @@ import {
   type RazorpayOrderLine,
 } from '~/lib/checkout/providers/razorpay/razorpay';
 import {
+  classifyRazorpayFailure,
   createRazorpayMagicOrder,
   razorpayCredentials,
 } from '~/lib/checkout/providers/razorpay/razorpay.server';
@@ -167,7 +168,8 @@ export async function action({request, context}: ActionFunctionArgs) {
       businessName: context.env.RAZORPAY_BUSINESS_NAME?.trim() || 'Charaideo Reserves',
     });
   } catch (error) {
-    context.monitor?.failure('checkout.razorpay.order.failure', {}, error);
-    return json({error: 'Unable to create checkout order'}, 502);
+    const failure = classifyRazorpayFailure(error);
+    context.monitor?.failure('checkout.razorpay.order.failure', failure.tags, error);
+    return json({error: 'Unable to create checkout order', code: failure.code}, 502);
   }
 }

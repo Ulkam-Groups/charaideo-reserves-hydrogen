@@ -7,6 +7,67 @@ import {
 
 export type RazorpayCredentials = {keyId: string; keySecret: string};
 
+export type RazorpayFailure = {
+  code:
+    | 'RAZORPAY_AUTHENTICATION_FAILED'
+    | 'RAZORPAY_ORDER_REJECTED'
+    | 'RAZORPAY_RATE_LIMITED'
+    | 'RAZORPAY_PROVIDER_UNAVAILABLE'
+    | 'RAZORPAY_RUNTIME_FAILURE';
+  tags: Record<string, string | number>;
+};
+
+export function classifyRazorpayFailure(error: unknown): RazorpayFailure {
+  const value =
+    error && typeof error === 'object'
+      ? (error as {
+          statusCode?: unknown;
+          error?: {code?: unknown};
+        })
+      : null;
+  const statusCode =
+    typeof value?.statusCode === 'number' &&
+    Number.isInteger(value.statusCode) &&
+    value.statusCode >= 400 &&
+    value.statusCode <= 599
+      ? value.statusCode
+      : undefined;
+  const providerCode =
+    typeof value?.error?.code === 'string' && /^[A-Z0-9_]{1,64}$/.test(value.error.code)
+      ? value.error.code
+      : undefined;
+  const reason =
+    statusCode === 401 || statusCode === 403
+      ? 'authentication'
+      : statusCode === 400 || statusCode === 422
+        ? 'order_rejected'
+        : statusCode === 429
+          ? 'rate_limited'
+          : statusCode !== undefined && statusCode >= 500
+            ? 'provider_unavailable'
+            : 'runtime';
+  const code: RazorpayFailure['code'] =
+    reason === 'authentication'
+      ? 'RAZORPAY_AUTHENTICATION_FAILED'
+      : reason === 'order_rejected'
+        ? 'RAZORPAY_ORDER_REJECTED'
+        : reason === 'rate_limited'
+          ? 'RAZORPAY_RATE_LIMITED'
+          : reason === 'provider_unavailable'
+            ? 'RAZORPAY_PROVIDER_UNAVAILABLE'
+            : 'RAZORPAY_RUNTIME_FAILURE';
+
+  return {
+    code,
+    tags: {
+      provider: 'razorpay',
+      reason,
+      ...(statusCode === undefined ? {} : {upstreamStatus: statusCode}),
+      ...(providerCode ? {providerCode} : {}),
+    },
+  };
+}
+
 async function razorpayClient(credentials: RazorpayCredentials) {
   return new Razorpay({
     key_id: credentials.keyId,
