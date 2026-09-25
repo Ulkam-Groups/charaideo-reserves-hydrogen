@@ -59,6 +59,14 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
   await expect.poll(() => requests.length).toBe(2);
   expect(requests[1].fields.source).toBe('cart');
   expect(requests[1].fields.utmParams).toBe('utm_source=ci&utm_medium=e2e');
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const instance = (window as any).__razorpayInstances[1];
+        return instance?.opened === true;
+      }),
+    )
+    .toBe(true);
 
   await page.evaluate(() => {
     (window as any).__razorpayOptions[1].handler({
