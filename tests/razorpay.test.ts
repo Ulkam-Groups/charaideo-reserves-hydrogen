@@ -26,6 +26,7 @@ import {
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
 import {RAZORPAY_CSP} from '../app/lib/checkout/providers/razorpay/razorpay.config.ts';
+import RazorpayOxygen from '../app/lib/checkout/providers/razorpay/razorpay-oxygen.server.ts';
 import {
   buildRazorpayShippingResponse,
   parseRazorpayShippingAddresses,
@@ -47,7 +48,64 @@ test('Razorpay CSP permits checkout risk detection without broad script access',
   assert.deepEqual(RAZORPAY_CSP.scriptSrc, [
     'https://checkout.razorpay.com',
     'https://cdn.razorpay.com',
+    'https://checkout-static-next.razorpay.com',
   ]);
+});
+
+test('Razorpay Oxygen SDK adapter creates orders through fetch', async () => {
+  const originalFetch = globalThis.fetch;
+  let request: Request | undefined;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    request = input instanceof Request ? input : new Request(input, init);
+    return Response.json({id: 'order_fetch123', amount: 49900});
+  }) as typeof fetch;
+
+  try {
+    const razorpay = new RazorpayOxygen({
+      key_id: 'rzp_test_public',
+      key_secret: 'test-secret',
+      hostUrl: 'https://api.razorpay.test',
+    });
+    const result = (await razorpay.orders.create({
+      amount: 49900,
+      currency: 'INR',
+      line_items_total: 49900,
+      line_items: [
+        {
+          sku: 'MATCHA-30',
+          variant_id: '12345',
+          price: 49900,
+          offer_price: 49900,
+          quantity: 1,
+          name: 'Matcha - 30g',
+        },
+      ],
+    } as unknown as Parameters<typeof razorpay.orders.create>[0])) as unknown as {
+      id: string;
+    };
+
+    assert.equal(result.id, 'order_fetch123');
+    assert.equal(request?.url, 'https://api.razorpay.test/v1/orders');
+    assert.equal(request?.method, 'POST');
+    assert.match(request?.headers.get('authorization') ?? '', /^Basic /);
+    assert.deepEqual(await request?.clone().json(), {
+      amount: 49900,
+      currency: 'INR',
+      line_items_total: 49900,
+      line_items: [
+        {
+          sku: 'MATCHA-30',
+          variant_id: '12345',
+          price: 49900,
+          offer_price: 49900,
+          quantity: 1,
+          name: 'Matcha - 30g',
+        },
+      ],
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('Razorpay API failures expose only safe operational classifications', () => {

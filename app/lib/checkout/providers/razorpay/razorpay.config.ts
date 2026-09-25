@@ -4,7 +4,11 @@ export const RAZORPAY_ASSETS = {
 
 export const RAZORPAY_CSP = {
   styleSrc: ['https://checkout.razorpay.com', 'https://*.razorpay.com'],
-  scriptSrc: ['https://checkout.razorpay.com', 'https://cdn.razorpay.com'],
+  scriptSrc: [
+    'https://checkout.razorpay.com',
+    'https://cdn.razorpay.com',
+    'https://checkout-static-next.razorpay.com',
+  ],
   connectSrc: [
     'https://api.razorpay.com',
     'https://checkout.razorpay.com',
