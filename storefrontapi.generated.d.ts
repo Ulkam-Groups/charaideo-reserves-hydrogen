@@ -130,19 +130,22 @@ export type ChapterCollectionInventoryQueryVariables = StorefrontAPI.Exact<{
 
 
 export type ChapterCollectionInventoryQuery = { collection?: StorefrontAPI.Maybe<(
-    Pick<StorefrontAPI.Collection, 'title' | 'handle'>
-    & { products: { nodes: Array<(
-        Pick<StorefrontAPI.Product, 'title' | 'handle'>
-        & { variants: { nodes: Array<Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock'>> } }
+    Pick<StorefrontAPI.Collection, 'title' | 'handle' | 'description'>
+    & { image?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>>, products: { nodes: Array<(
+        Pick<StorefrontAPI.Product, 'title' | 'handle' | 'availableForSale'>
+        & { featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>>, estate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, flush?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, grade?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, pluckDate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, leaf?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, variants: { nodes: Array<Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock'>> } }
       )> } }
   )> };
 
-export type ChapterProductDetailsQueryVariables = StorefrontAPI.Exact<{
-  handle: StorefrontAPI.Scalars['String']['input'];
+export type RazorpayCheckoutVariantsQueryVariables = StorefrontAPI.Exact<{
+  ids: Array<StorefrontAPI.Scalars['ID']['input']> | StorefrontAPI.Scalars['ID']['input'];
 }>;
 
 
-export type ChapterProductDetailsQuery = { product?: StorefrontAPI.Maybe<{ estate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, flush?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, grade?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, pluckDate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, leaf?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>> }> };
+export type RazorpayCheckoutVariantsQuery = { nodes: Array<StorefrontAPI.Maybe<(
+    Pick<StorefrontAPI.ProductVariant, 'id' | 'title' | 'sku' | 'availableForSale'>
+    & { price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount'>>, image?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'url'>>, product: Pick<StorefrontAPI.Product, 'id' | 'title' | 'description' | 'handle'> }
+  )>> };
 
 export type ArticleQueryVariables = StorefrontAPI.Exact<{
   articleHandle: StorefrontAPI.Scalars['String']['input'];
@@ -300,7 +303,7 @@ export type PoliciesQueryVariables = StorefrontAPI.Exact<{
 export type PoliciesQuery = { shop: { privacyPolicy?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>>, refundPolicy?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>>, shippingPolicy?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>>, termsOfService?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>> } };
 
 export type ProductVariantFragment = (
-  Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+  Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
   & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
     { __typename: 'Image' }
     & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -309,7 +312,7 @@ export type ProductVariantFragment = (
 
 export type ProductFragment = (
   Pick<StorefrontAPI.Product, 'id' | 'title' | 'vendor' | 'handle' | 'productType' | 'descriptionHtml' | 'description' | 'encodedVariantExistence' | 'encodedVariantAvailability'>
-  & { tastingNotes?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, brewingSuggestion?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewRating?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, images: { nodes: Array<(
+  & { tastingNotes?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, brewingSuggestion?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, netWeight?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, origin?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, estate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, cultivar?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, grade?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, harvest?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, flush?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, pluckDate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, ingredients?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, caffeineLevel?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, storage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, shelfLife?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, allergens?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, certifications?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewRating?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, images: { nodes: Array<(
       { __typename: 'Image' }
       & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
     )> }, options: Array<(
@@ -317,7 +320,7 @@ export type ProductFragment = (
     & { optionValues: Array<(
       Pick<StorefrontAPI.ProductOptionValue, 'name'>
       & { firstSelectableVariant?: StorefrontAPI.Maybe<(
-        Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+        Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
         & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
           { __typename: 'Image' }
           & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -328,13 +331,13 @@ export type ProductFragment = (
       )> }
     )> }
   )>, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<(
-    Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+    Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
     & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
       { __typename: 'Image' }
       & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
     )>, price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, product: Pick<StorefrontAPI.Product, 'title' | 'handle'>, selectedOptions: Array<Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>>, unitPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>> }
   )>, adjacentVariants: Array<(
-    Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+    Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
     & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
       { __typename: 'Image' }
       & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -352,7 +355,7 @@ export type ProductQueryVariables = StorefrontAPI.Exact<{
 
 export type ProductQuery = { product?: StorefrontAPI.Maybe<(
     Pick<StorefrontAPI.Product, 'id' | 'title' | 'vendor' | 'handle' | 'productType' | 'descriptionHtml' | 'description' | 'encodedVariantExistence' | 'encodedVariantAvailability'>
-    & { tastingNotes?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, brewingSuggestion?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewRating?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, images: { nodes: Array<(
+    & { tastingNotes?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, brewingSuggestion?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, netWeight?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, origin?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, estate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, cultivar?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, grade?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, harvest?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, flush?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, pluckDate?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, ingredients?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, caffeineLevel?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, storage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, shelfLife?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, allergens?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, certifications?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewRating?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, reviewCount?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Metafield, 'value'>>, images: { nodes: Array<(
         { __typename: 'Image' }
         & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
       )> }, options: Array<(
@@ -360,7 +363,7 @@ export type ProductQuery = { product?: StorefrontAPI.Maybe<(
       & { optionValues: Array<(
         Pick<StorefrontAPI.ProductOptionValue, 'name'>
         & { firstSelectableVariant?: StorefrontAPI.Maybe<(
-          Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+          Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
           & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
             { __typename: 'Image' }
             & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -371,19 +374,74 @@ export type ProductQuery = { product?: StorefrontAPI.Maybe<(
         )> }
       )> }
     )>, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<(
-      Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+      Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
       & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
         { __typename: 'Image' }
         & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
       )>, price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, product: Pick<StorefrontAPI.Product, 'title' | 'handle'>, selectedOptions: Array<Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>>, unitPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>> }
     )>, adjacentVariants: Array<(
-      Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'id' | 'sku' | 'title'>
+      Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
       & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
         { __typename: 'Image' }
         & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
       )>, price: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, product: Pick<StorefrontAPI.Product, 'title' | 'handle'>, selectedOptions: Array<Pick<StorefrontAPI.SelectedOption, 'name' | 'value'>>, unitPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>> }
     )>, seo: Pick<StorefrontAPI.Seo, 'description' | 'title'> }
   )> };
+
+export type RelatedProductMoneyFragment = Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>;
+
+export type RelatedProductCardFragment = (
+  Pick<StorefrontAPI.Product, 'id' | 'handle' | 'title' | 'description' | 'productType'>
+  & { featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'id' | 'altText' | 'url' | 'width' | 'height'>>, priceRange: { minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'> }, collections: { nodes: Array<Pick<StorefrontAPI.Collection, 'id'>> }, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>> }
+);
+
+export type ProductRecommendationsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+  productId: StorefrontAPI.Scalars['ID']['input'];
+}>;
+
+
+export type ProductRecommendationsQuery = { product?: StorefrontAPI.Maybe<{ collections: { nodes: Array<(
+        Pick<StorefrontAPI.Collection, 'id'>
+        & { products: { nodes: Array<(
+            Pick<StorefrontAPI.Product, 'id' | 'handle' | 'title' | 'description' | 'productType'>
+            & { featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'id' | 'altText' | 'url' | 'width' | 'height'>>, priceRange: { minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'> }, collections: { nodes: Array<Pick<StorefrontAPI.Collection, 'id'>> }, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>> }
+          )> } }
+      )> } }>, productRecommendations?: StorefrontAPI.Maybe<Array<(
+    Pick<StorefrontAPI.Product, 'id' | 'handle' | 'title' | 'description' | 'productType'>
+    & { featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'id' | 'altText' | 'url' | 'width' | 'height'>>, priceRange: { minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>, maxVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'> }, collections: { nodes: Array<Pick<StorefrontAPI.Collection, 'id'>> }, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ProductVariant, 'id' | 'availableForSale'>> }
+  )>> };
+
+export type RelatedProductTagsQueryVariables = StorefrontAPI.Exact<{
+  country?: StorefrontAPI.InputMaybe<StorefrontAPI.CountryCode>;
+  language?: StorefrontAPI.InputMaybe<StorefrontAPI.LanguageCode>;
+  productIds: Array<StorefrontAPI.Scalars['ID']['input']> | StorefrontAPI.Scalars['ID']['input'];
+}>;
+
+
+export type RelatedProductTagsQuery = { nodes: Array<StorefrontAPI.Maybe<{ __typename: 'AppliedGiftCard' | 'Article' | 'Blog' | 'Cart' | 'CartLine' | 'Collection' | 'Comment' | 'Company' | 'CompanyContact' | 'CompanyLocation' | 'ComponentizableCartLine' | 'ExternalVideo' | 'GenericFile' | 'Location' | 'MailingAddress' | 'Market' | 'MediaImage' | 'MediaPresentation' | 'Menu' | 'MenuItem' } | { __typename: 'Metafield' | 'Metaobject' | 'Model3d' | 'Order' | 'Page' | 'ProductOption' | 'ProductOptionValue' | 'ProductVariant' | 'Shop' | 'ShopPayInstallmentsFinancingPlan' | 'ShopPayInstallmentsFinancingPlanTerm' | 'ShopPayInstallmentsProductVariantPricing' | 'ShopPolicy' | 'TaxonomyCategory' | 'UrlRedirect' | 'Video' } | (
+    { __typename: 'Product' }
+    & Pick<StorefrontAPI.Product, 'id' | 'tags'>
+  )>> };
+
+export type ReserveListCollectionsQueryVariables = StorefrontAPI.Exact<{
+  after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
+}>;
+
+
+export type ReserveListCollectionsQuery = { collections: { nodes: Array<Pick<StorefrontAPI.Collection, 'title' | 'handle' | 'description'>>, pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage' | 'endCursor'> } };
+
+export type ReserveListProductsQueryVariables = StorefrontAPI.Exact<{
+  handle: StorefrontAPI.Scalars['String']['input'];
+  after?: StorefrontAPI.InputMaybe<StorefrontAPI.Scalars['String']['input']>;
+}>;
+
+
+export type ReserveListProductsQuery = { collection?: StorefrontAPI.Maybe<{ products: { nodes: Array<(
+        Pick<StorefrontAPI.Product, 'title' | 'handle' | 'availableForSale'>
+        & { featuredImage?: StorefrontAPI.Maybe<Pick<StorefrontAPI.Image, 'url' | 'altText' | 'width' | 'height'>>, priceRange: { minVariantPrice: Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'> } }
+      )>, pageInfo: Pick<StorefrontAPI.PageInfo, 'hasNextPage' | 'endCursor'> } }> };
 
 export type SearchProductFragment = (
   { __typename: 'Product' }
@@ -500,9 +558,9 @@ interface GeneratedQueryTypes {
   "#graphql\n  fragment Shop on Shop {\n    id\n    name\n    description\n    primaryDomain {\n      url\n    }\n    brand {\n      logo {\n        image {\n          url\n        }\n      }\n    }\n  }\n  query Header(\n    $country: CountryCode\n    $headerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    shop {\n      ...Shop\n    }\n    menu(handle: $headerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n": {return: HeaderQuery, variables: HeaderQueryVariables},
   "#graphql\n  query Footer(\n    $country: CountryCode\n    $footerMenuHandle: String!\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    menu(handle: $footerMenuHandle) {\n      ...Menu\n    }\n  }\n  #graphql\n  fragment MenuItem on MenuItem {\n    id\n    resourceId\n    tags\n    title\n    type\n    url\n  }\n  fragment ChildMenuItem on MenuItem {\n    ...MenuItem\n  }\n  fragment ParentMenuItem on MenuItem {\n    ...MenuItem\n    items {\n      ...ChildMenuItem\n    }\n  }\n  fragment Menu on Menu {\n    id\n    items {\n      ...ParentMenuItem\n    }\n  }\n\n": {return: FooterQuery, variables: FooterQueryVariables},
   "#graphql\n  query StoreRobots($country: CountryCode, $language: LanguageCode)\n   @inContext(country: $country, language: $language) {\n    shop {\n      id\n    }\n  }\n": {return: StoreRobotsQuery, variables: StoreRobotsQueryVariables},
-  "#graphql\n  query ChapterCollectionList {\n    collections(first: 50) { nodes { title handle } }\n  }\n": {return: ChapterCollectionListQuery, variables: ChapterCollectionListQueryVariables},
-  "#graphql\n  query ChapterCollectionInventory($handle: String!) {\n    collection(handle: $handle) {\n      title\n      handle\n      products(first: 100) {\n        nodes {\n          title\n          handle\n          variants(first: 50) {\n            nodes { availableForSale currentlyNotInStock }\n          }\n        }\n      }\n    }\n  }\n": {return: ChapterCollectionInventoryQuery, variables: ChapterCollectionInventoryQueryVariables},
-  "#graphql\n  query ChapterProductDetails($handle: String!) {\n    product(handle: $handle) {\n      estate: metafield(namespace: \"custom\", key: \"estate\") { value }\n      flush: metafield(namespace: \"custom\", key: \"flush\") { value }\n      grade: metafield(namespace: \"custom\", key: \"grade\") { value }\n      pluckDate: metafield(namespace: \"custom\", key: \"pluck_date\") { value }\n      leaf: metafield(namespace: \"custom\", key: \"leaf\") { value }\n    }\n  }\n": {return: ChapterProductDetailsQuery, variables: ChapterProductDetailsQueryVariables},
+  "#graphql\n  query ChapterCollectionList {\n    collections(first: 50, sortKey: TITLE) { nodes { title handle } }\n  }\n": {return: ChapterCollectionListQuery, variables: ChapterCollectionListQueryVariables},
+  "#graphql\n  query ChapterCollectionInventory($handle: String!) {\n    collection(handle: $handle) {\n      title\n      handle\n      description\n      image { url altText width height }\n      products(first: 100) {\n        nodes {\n          title\n          handle\n          availableForSale\n          featuredImage { url altText width height }\n          estate: metafield(namespace: \"custom\", key: \"estate\") { value }\n          flush: metafield(namespace: \"custom\", key: \"flush\") { value }\n          grade: metafield(namespace: \"custom\", key: \"grade\") { value }\n          pluckDate: metafield(namespace: \"custom\", key: \"pluck_date\") { value }\n          leaf: metafield(namespace: \"custom\", key: \"leaf\") { value }\n          variants(first: 50) {\n            nodes { availableForSale currentlyNotInStock }\n          }\n        }\n      }\n    }\n  }\n": {return: ChapterCollectionInventoryQuery, variables: ChapterCollectionInventoryQueryVariables},
+  "#graphql\n  query RazorpayCheckoutVariants($ids: [ID!]!) {\n    nodes(ids: $ids) {\n      ... on ProductVariant {\n        id\n        title\n        sku\n        availableForSale\n        price { amount currencyCode }\n        compareAtPrice { amount }\n        image { url }\n        product { id title description handle }\n      }\n    }\n  }\n": {return: RazorpayCheckoutVariantsQuery, variables: RazorpayCheckoutVariantsQueryVariables},
   "#graphql\n  query Article(\n    $articleHandle: String!\n    $blogHandle: String!\n    $country: CountryCode\n    $language: LanguageCode\n  ) @inContext(language: $language, country: $country) {\n    blog(handle: $blogHandle) {\n      handle\n      articleByHandle(handle: $articleHandle) {\n        handle\n        title\n        contentHtml\n        publishedAt\n        author: authorV2 {\n          name\n        }\n        image {\n          id\n          altText\n          url\n          width\n          height\n        }\n        seo {\n          description\n          title\n        }\n      }\n    }\n  }\n": {return: ArticleQuery, variables: ArticleQueryVariables},
   "#graphql\n  query Blog(\n    $language: LanguageCode\n    $blogHandle: String!\n    $first: Int\n    $last: Int\n    $startCursor: String\n    $endCursor: String\n  ) @inContext(language: $language) {\n    blog(handle: $blogHandle) {\n      title\n      handle\n      seo {\n        title\n        description\n      }\n      articles(\n        first: $first,\n        last: $last,\n        before: $startCursor,\n        after: $endCursor\n      ) {\n        nodes {\n          ...ArticleItem\n        }\n        pageInfo {\n          hasPreviousPage\n          hasNextPage\n          hasNextPage\n          endCursor\n          startCursor\n        }\n\n      }\n    }\n  }\n  fragment ArticleItem on Article {\n    author: authorV2 {\n      name\n    }\n    contentHtml\n    handle\n    id\n    image {\n      id\n      altText\n      url\n      width\n      height\n    }\n    publishedAt\n    title\n    blog {\n      handle\n    }\n  }\n": {return: BlogQuery, variables: BlogQueryVariables},
   "#graphql\n  query Blogs(\n    $country: CountryCode\n    $endCursor: String\n    $first: Int\n    $language: LanguageCode\n    $last: Int\n    $startCursor: String\n  ) @inContext(country: $country, language: $language) {\n    blogs(\n      first: $first,\n      last: $last,\n      before: $startCursor,\n      after: $endCursor\n    ) {\n      pageInfo {\n        hasNextPage\n        hasPreviousPage\n        startCursor\n        endCursor\n      }\n      nodes {\n        title\n        handle\n        seo {\n          title\n          description\n        }\n      }\n    }\n  }\n": {return: BlogsQuery, variables: BlogsQueryVariables},
@@ -512,7 +570,11 @@ interface GeneratedQueryTypes {
   "#graphql\n  query Page(\n    $language: LanguageCode,\n    $country: CountryCode,\n    $handle: String!\n  )\n  @inContext(language: $language, country: $country) {\n    page(handle: $handle) {\n      handle\n      id\n      title\n      body\n      seo {\n        description\n        title\n      }\n    }\n  }\n": {return: PageQuery, variables: PageQueryVariables},
   "#graphql\n  query Policy {\n    shop {\n      privacyPolicy { title body }\n      refundPolicy { title body }\n      shippingPolicy { title body }\n      termsOfService { title body }\n    }\n  }\n": {return: PolicyQuery, variables: PolicyQueryVariables},
   "#graphql\n  query Policies ($country: CountryCode, $language: LanguageCode)\n    @inContext(country: $country, language: $language) {\n    shop {\n      privacyPolicy { title }\n      refundPolicy { title }\n      shippingPolicy { title }\n      termsOfService { title }\n    }\n  }\n": {return: PoliciesQuery, variables: PoliciesQueryVariables},
-  "#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n    $selectedOptions: [SelectedOptionInput!]!\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      ...Product\n    }\n  }\n  #graphql\n  fragment Product on Product {\n    id\n    title\n    vendor\n    handle\n    productType\n    tastingNotes: metafield(namespace: \"custom\", key: \"tasting_notes\") { value }\n    brewingSuggestion: metafield(namespace: \"custom\", key: \"brewing_suggestion\") { value }\n    reviewRating: metafield(namespace: \"reviews\", key: \"rating\") { value }\n    reviewCount: metafield(namespace: \"reviews\", key: \"rating_count\") { value }\n    descriptionHtml\n    description\n    images(first: 10) {\n      nodes {\n        __typename\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    encodedVariantExistence\n    encodedVariantAvailability\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          ...ProductVariant\n        }\n        swatch {\n          color\n          image {\n            previewImage {\n              url\n            }\n          }\n        }\n      }\n    }\n    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {\n      ...ProductVariant\n    }\n    adjacentVariants (selectedOptions: $selectedOptions) {\n      ...ProductVariant\n    }\n    seo {\n      description\n      title\n    }\n  }\n  #graphql\n  fragment ProductVariant on ProductVariant {\n    availableForSale\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    id\n    image {\n      __typename\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      title\n      handle\n    }\n    selectedOptions {\n      name\n      value\n    }\n    sku\n    title\n    unitPrice {\n      amount\n      currencyCode\n    }\n  }\n\n\n": {return: ProductQuery, variables: ProductQueryVariables},
+  "#graphql\n  query Product(\n    $country: CountryCode\n    $handle: String!\n    $language: LanguageCode\n    $selectedOptions: [SelectedOptionInput!]!\n  ) @inContext(country: $country, language: $language) {\n    product(handle: $handle) {\n      ...Product\n    }\n  }\n  #graphql\n  fragment Product on Product {\n    id\n    title\n    vendor\n    handle\n    productType\n    tastingNotes: metafield(namespace: \"custom\", key: \"tasting_notes\") { value }\n    brewingSuggestion: metafield(namespace: \"custom\", key: \"brewing_suggestion\") { value }\n    netWeight: metafield(namespace: \"custom\", key: \"net_weight\") { value }\n    origin: metafield(namespace: \"custom\", key: \"origin\") { value }\n    estate: metafield(namespace: \"custom\", key: \"estate\") { value }\n    cultivar: metafield(namespace: \"custom\", key: \"cultivar\") { value }\n    grade: metafield(namespace: \"custom\", key: \"grade\") { value }\n    harvest: metafield(namespace: \"custom\", key: \"harvest\") { value }\n    flush: metafield(namespace: \"custom\", key: \"flush\") { value }\n    pluckDate: metafield(namespace: \"custom\", key: \"pluck_date\") { value }\n    ingredients: metafield(namespace: \"custom\", key: \"ingredients\") { value }\n    caffeineLevel: metafield(namespace: \"custom\", key: \"caffeine_level\") { value }\n    storage: metafield(namespace: \"custom\", key: \"storage\") { value }\n    shelfLife: metafield(namespace: \"custom\", key: \"shelf_life\") { value }\n    allergens: metafield(namespace: \"custom\", key: \"allergens\") { value }\n    certifications: metafield(namespace: \"custom\", key: \"certifications\") { value }\n    reviewRating: metafield(namespace: \"reviews\", key: \"rating\") { value }\n    reviewCount: metafield(namespace: \"reviews\", key: \"rating_count\") { value }\n    descriptionHtml\n    description\n    images(first: 250) {\n      nodes {\n        __typename\n        id\n        url\n        altText\n        width\n        height\n      }\n    }\n    encodedVariantExistence\n    encodedVariantAvailability\n    options {\n      name\n      optionValues {\n        name\n        firstSelectableVariant {\n          ...ProductVariant\n        }\n        swatch {\n          color\n          image {\n            previewImage {\n              url\n            }\n          }\n        }\n      }\n    }\n    selectedOrFirstAvailableVariant(selectedOptions: $selectedOptions, ignoreUnknownOptions: true, caseInsensitiveMatch: true) {\n      ...ProductVariant\n    }\n    adjacentVariants (selectedOptions: $selectedOptions) {\n      ...ProductVariant\n    }\n    seo {\n      description\n      title\n    }\n  }\n  #graphql\n  fragment ProductVariant on ProductVariant {\n    availableForSale\n    currentlyNotInStock\n    compareAtPrice {\n      amount\n      currencyCode\n    }\n    id\n    image {\n      __typename\n      id\n      url\n      altText\n      width\n      height\n    }\n    price {\n      amount\n      currencyCode\n    }\n    product {\n      title\n      handle\n    }\n    selectedOptions {\n      name\n      value\n    }\n    sku\n    title\n    unitPrice {\n      amount\n      currencyCode\n    }\n  }\n\n\n": {return: ProductQuery, variables: ProductQueryVariables},
+  "#graphql\n  fragment RelatedProductMoney on MoneyV2 {\n    amount\n    currencyCode\n  }\n  fragment RelatedProductCard on Product {\n    id\n    handle\n    title\n    description\n    productType\n    featuredImage {\n      id\n      altText\n      url\n      width\n      height\n    }\n    priceRange {\n      minVariantPrice {\n        ...RelatedProductMoney\n      }\n      maxVariantPrice {\n        ...RelatedProductMoney\n      }\n    }\n    collections(first: 10) {\n      nodes {\n        id\n      }\n    }\n    selectedOrFirstAvailableVariant {\n      id\n      availableForSale\n    }\n  }\n  query ProductRecommendations(\n    $country: CountryCode\n    $language: LanguageCode\n    $productId: ID!\n  ) @inContext(country: $country, language: $language) {\n    product(id: $productId) {\n      collections(first: 3) {\n        nodes {\n          id\n          products(first: 8) {\n            nodes {\n              ...RelatedProductCard\n            }\n          }\n        }\n      }\n    }\n    productRecommendations(productId: $productId) {\n      ...RelatedProductCard\n    }\n  }\n": {return: ProductRecommendationsQuery, variables: ProductRecommendationsQueryVariables},
+  "#graphql\n  query RelatedProductTags(\n    $country: CountryCode\n    $language: LanguageCode\n    $productIds: [ID!]!\n  ) @inContext(country: $country, language: $language) {\n    nodes(ids: $productIds) {\n      __typename\n      ... on Product {\n        id\n        tags\n      }\n    }\n  }\n": {return: RelatedProductTagsQuery, variables: RelatedProductTagsQueryVariables},
+  "#graphql\n  query ReserveListCollections($after: String) {\n    collections(first: 100, after: $after) {\n      nodes { title handle description }\n      pageInfo { hasNextPage endCursor }\n    }\n  }\n": {return: ReserveListCollectionsQuery, variables: ReserveListCollectionsQueryVariables},
+  "#graphql\n  query ReserveListProducts($handle: String!, $after: String) {\n    collection(handle: $handle) {\n      products(first: 100, after: $after) {\n        nodes {\n          title\n          handle\n          availableForSale\n          featuredImage { url altText width height }\n          priceRange { minVariantPrice { amount currencyCode } }\n        }\n        pageInfo { hasNextPage endCursor }\n      }\n    }\n  }\n": {return: ReserveListProductsQuery, variables: ReserveListProductsQueryVariables},
   "#graphql\n  query RegularSearch(\n    $country: CountryCode\n    $endCursor: String\n    $first: Int\n    $language: LanguageCode\n    $last: Int\n    $term: String!\n    $startCursor: String\n  ) @inContext(country: $country, language: $language) {\n    articles: search(\n      query: $term,\n      types: [ARTICLE],\n      first: $first,\n    ) {\n      nodes {\n        ...on Article {\n          ...SearchArticle\n        }\n      }\n    }\n    pages: search(\n      query: $term,\n      types: [PAGE],\n      first: $first,\n    ) {\n      nodes {\n        ...on Page {\n          ...SearchPage\n        }\n      }\n    }\n    products: search(\n      after: $endCursor,\n      before: $startCursor,\n      first: $first,\n      last: $last,\n      query: $term,\n      sortKey: RELEVANCE,\n      types: [PRODUCT],\n      unavailableProducts: HIDE,\n    ) {\n      nodes {\n        ...on Product {\n          ...SearchProduct\n        }\n      }\n      pageInfo {\n        ...PageInfoFragment\n      }\n    }\n  }\n  #graphql\n  fragment SearchProduct on Product {\n    __typename\n    handle\n    id\n    publishedAt\n    title\n    trackingParameters\n    vendor\n    selectedOrFirstAvailableVariant(\n      selectedOptions: []\n      ignoreUnknownOptions: true\n      caseInsensitiveMatch: true\n    ) {\n      id\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n      compareAtPrice {\n        amount\n        currencyCode\n      }\n      selectedOptions {\n        name\n        value\n      }\n      product {\n        handle\n        title\n      }\n    }\n  }\n\n  #graphql\n  fragment SearchPage on Page {\n     __typename\n     handle\n    id\n    title\n    trackingParameters\n  }\n\n  #graphql\n  fragment SearchArticle on Article {\n    __typename\n    handle\n    id\n    title\n    trackingParameters\n  }\n\n  #graphql\n  fragment PageInfoFragment on PageInfo {\n    hasNextPage\n    hasPreviousPage\n    startCursor\n    endCursor\n  }\n\n": {return: RegularSearchQuery, variables: RegularSearchQueryVariables},
   "#graphql\n  query PredictiveSearch(\n    $country: CountryCode\n    $language: LanguageCode\n    $limit: Int!\n    $limitScope: PredictiveSearchLimitScope!\n    $term: String!\n    $types: [PredictiveSearchType!]\n  ) @inContext(country: $country, language: $language) {\n    predictiveSearch(\n      limit: $limit,\n      limitScope: $limitScope,\n      query: $term,\n      types: $types,\n    ) {\n      articles {\n        ...PredictiveArticle\n      }\n      collections {\n        ...PredictiveCollection\n      }\n      pages {\n        ...PredictivePage\n      }\n      products {\n        ...PredictiveProduct\n      }\n      queries {\n        ...PredictiveQuery\n      }\n    }\n  }\n  #graphql\n  fragment PredictiveArticle on Article {\n    __typename\n    id\n    title\n    handle\n    blog {\n      handle\n    }\n    image {\n      url\n      altText\n      width\n      height\n    }\n    trackingParameters\n  }\n\n  #graphql\n  fragment PredictiveCollection on Collection {\n    __typename\n    id\n    title\n    handle\n    image {\n      url\n      altText\n      width\n      height\n    }\n    trackingParameters\n  }\n\n  #graphql\n  fragment PredictivePage on Page {\n    __typename\n    id\n    title\n    handle\n    trackingParameters\n  }\n\n  #graphql\n  fragment PredictiveProduct on Product {\n    __typename\n    id\n    title\n    handle\n    trackingParameters\n    selectedOrFirstAvailableVariant(\n      selectedOptions: []\n      ignoreUnknownOptions: true\n      caseInsensitiveMatch: true\n    ) {\n      id\n      image {\n        url\n        altText\n        width\n        height\n      }\n      price {\n        amount\n        currencyCode\n      }\n    }\n  }\n\n  #graphql\n  fragment PredictiveQuery on SearchQuerySuggestion {\n    __typename\n    text\n    styledText\n    trackingParameters\n  }\n\n": {return: PredictiveSearchQuery, variables: PredictiveSearchQueryVariables},
 }

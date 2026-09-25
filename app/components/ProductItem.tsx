@@ -4,6 +4,7 @@ import {useState} from 'react';
 import type {
   ProductItemFragment,
   CollectionItemFragment,
+  RelatedProductCardFragment,
 } from 'storefrontapi.generated';
 import {useVariantUrl} from '~/lib/variants';
 import {AddToCartButton} from './AddToCartButton';
@@ -14,6 +15,7 @@ type CardVariant = CollectionItemFragment['variants']['nodes'][number];
 type TeaProduct = (
   | CollectionItemFragment
   | ProductItemFragment
+  | RelatedProductCardFragment
 ) & {
   productType?: string;
   tastingNotes?: {value: string} | null;

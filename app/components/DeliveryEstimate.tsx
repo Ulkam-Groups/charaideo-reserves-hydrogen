@@ -49,8 +49,8 @@ export function DeliveryEstimate() {
   return (
     <section className="delivery-estimate" aria-labelledby="delivery-estimate-title">
       <div className="delivery-estimate-heading">
-        <h2 id="delivery-estimate-title">Delivery to your doorstep</h2>
-        <p>Enter your pincode for a courier estimate.</p>
+        <h2 id="delivery-estimate-title">Check delivery</h2>
+        <p>Estimated arrival to your pincode</p>
       </div>
       <form className="delivery-estimate-form" onSubmit={checkDelivery}>
         <label className="visually-hidden" htmlFor="delivery-pincode">
@@ -64,7 +64,7 @@ export function DeliveryEstimate() {
           autoComplete="postal-code"
           pattern="[0-9]{6}"
           maxLength={6}
-          placeholder="6-digit pincode"
+          placeholder="Enter 6-digit pincode"
           value={pincode}
           onChange={(event) => {
             setPincode(event.target.value.replace(/\D/g, '').slice(0, 6));
@@ -76,11 +76,11 @@ export function DeliveryEstimate() {
           {pending ? 'Checking…' : 'Check'}
         </button>
       </form>
-      <div className="delivery-estimate-result" aria-live="polite">
+      <div className="delivery-estimate-result" aria-live="polite" aria-atomic="true">
         {error && <p className="delivery-estimate-error">{error}</p>}
         {result?.serviceable && (
           <p className="delivery-estimate-success">
-            <span aria-hidden="true">◇</span>
+            <span aria-hidden="true">✓</span>
             {deliveryMessage(result)}
           </p>
         )}
