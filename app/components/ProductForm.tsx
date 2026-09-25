@@ -12,6 +12,7 @@ import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useState} from 'react';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
+import {DeliveryEstimate} from './DeliveryEstimate';
 
 export function ProductForm({
   productOptions,
@@ -169,6 +170,7 @@ export function ProductForm({
       )}
       {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
       {checkoutError && <p role="alert">{checkoutError}</p>}
+      <DeliveryEstimate />
     </div>
   );
 }

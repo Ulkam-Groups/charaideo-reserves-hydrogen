@@ -15,6 +15,12 @@ export const API_RATE_LIMITS = {
   },
   '/api/blend-checkout': null, // Retired: always 410.
   '/api/admin/teas': null, // Disabled: always 404.
+  '/api/shipping-estimate': {
+    limits: [
+      {max: 20, windowMs: 60_000},
+      {max: 300, windowMs: 86_400_000},
+    ],
+  },
   '/agent/buyer-claims': null, // Read-only Shopify chat proxy.
   '/cart': null, // Hydrogen cart actions; protected by form and session checks.
   '/cart/:lines': null, // Cart permalink.
