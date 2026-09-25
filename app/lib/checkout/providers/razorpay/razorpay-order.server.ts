@@ -1,4 +1,4 @@
-import Razorpay from 'razorpay';
+import RazorpayOxygen from './razorpay-oxygen.server.ts';
 import {
   decodeRazorpayCheckoutSnapshot,
   type RazorpayCheckoutSnapshotLine,
@@ -355,7 +355,7 @@ export async function createShopifyOrder(
 }
 
 async function fetchCapturedPayment(
-  razorpay: InstanceType<typeof Razorpay>,
+  razorpay: RazorpayOxygen,
   order: RazorpayMagicOrderDetails,
   paymentId?: string,
 ) {
@@ -388,7 +388,7 @@ async function reconcileRazorpayOrderOnce({
   }
   const credentials = razorpayCredentials(env);
   if (!credentials) throw new RazorpayReconciliationError('Razorpay is not configured');
-  const razorpay = new Razorpay({
+  const razorpay = new RazorpayOxygen({
     key_id: credentials.keyId,
     key_secret: credentials.keySecret,
   });

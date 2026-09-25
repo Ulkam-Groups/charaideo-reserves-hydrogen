@@ -1,4 +1,4 @@
-import Razorpay from 'razorpay';
+import RazorpayOxygen from './razorpay-oxygen.server.ts';
 import {
   buildRazorpayMagicOrder,
   encodeRazorpayCheckoutSnapshot,
@@ -69,7 +69,7 @@ export function classifyRazorpayFailure(error: unknown): RazorpayFailure {
 }
 
 async function razorpayClient(credentials: RazorpayCredentials) {
-  return new Razorpay({
+  return new RazorpayOxygen({
     key_id: credentials.keyId,
     key_secret: credentials.keySecret,
   });

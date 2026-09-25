@@ -22,11 +22,11 @@ import {
 } from '../app/lib/checkout/providers/razorpay/razorpay-order.server.ts';
 import {
   classifyRazorpayFailure,
+  createRazorpayMagicOrder,
   verifyRazorpayPayment,
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
 import {RAZORPAY_CSP} from '../app/lib/checkout/providers/razorpay/razorpay.config.ts';
-import RazorpayOxygen from '../app/lib/checkout/providers/razorpay/razorpay-oxygen.server.ts';
 import {
   buildRazorpayShippingResponse,
   parseRazorpayShippingAddresses,
@@ -52,7 +52,7 @@ test('Razorpay CSP permits checkout risk detection without broad script access',
   ]);
 });
 
-test('Razorpay Oxygen SDK adapter creates orders through fetch', async () => {
+test('Razorpay order service uses the Oxygen fetch adapter', async () => {
   const originalFetch = globalThis.fetch;
   let request: Request | undefined;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -61,34 +61,32 @@ test('Razorpay Oxygen SDK adapter creates orders through fetch', async () => {
   }) as typeof fetch;
 
   try {
-    const razorpay = new RazorpayOxygen({
-      key_id: 'rzp_test_public',
-      key_secret: 'test-secret',
-      hostUrl: 'https://api.razorpay.test',
-    });
-    const result = (await razorpay.orders.create({
-      amount: 49900,
-      currency: 'INR',
-      line_items_total: 49900,
-      line_items: [
+    const result = await createRazorpayMagicOrder({
+      credentials: {keyId: 'rzp_test_public', keySecret: 'test-secret'},
+      source: 'product',
+      expectedAmount: 49900,
+      lines: [
         {
+          variantId: 'gid://shopify/ProductVariant/12345',
+          productId: 'gid://shopify/Product/987',
           sku: 'MATCHA-30',
-          variant_id: '12345',
-          price: 49900,
-          offer_price: 49900,
           quantity: 1,
+          unitPrice: '499.00',
+          currencyCode: 'INR',
           name: 'Matcha - 30g',
+          description: 'Matcha',
         },
       ],
-    } as unknown as Parameters<typeof razorpay.orders.create>[0])) as unknown as {
-      id: string;
-    };
+    });
 
     assert.equal(result.id, 'order_fetch123');
-    assert.equal(request?.url, 'https://api.razorpay.test/v1/orders');
+    assert.equal(request?.url, 'https://api.razorpay.com/v1/orders');
     assert.equal(request?.method, 'POST');
     assert.match(request?.headers.get('authorization') ?? '', /^Basic /);
-    assert.deepEqual(await request?.clone().json(), {
+    const payload = (await request?.clone().json()) as Record<string, unknown>;
+    assert.match(String(payload.receipt), /^cr_[a-z0-9]+_[0-9a-f]{8}$/);
+    delete payload.receipt;
+    assert.deepEqual(payload, {
       amount: 49900,
       currency: 'INR',
       line_items_total: 49900,
@@ -100,8 +98,13 @@ test('Razorpay Oxygen SDK adapter creates orders through fetch', async () => {
           offer_price: 49900,
           quantity: 1,
           name: 'Matcha - 30g',
+          description: 'Matcha',
         },
       ],
+      notes: {
+        source: 'product',
+        items_0: '12345:1:49900',
+      },
     });
   } finally {
     globalThis.fetch = originalFetch;
