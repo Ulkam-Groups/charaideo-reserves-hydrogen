@@ -55,7 +55,9 @@ test('Razorpay CSP permits checkout risk detection without broad script access',
 test('Razorpay order service uses the Oxygen fetch adapter', async () => {
   const originalFetch = globalThis.fetch;
   let request: Request | undefined;
+  let rawInput: RequestInfo | URL | undefined;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    rawInput = input;
     request = input instanceof Request ? input : new Request(input, init);
     return Response.json({id: 'order_fetch123', amount: 49900});
   }) as typeof fetch;
@@ -80,6 +82,7 @@ test('Razorpay order service uses the Oxygen fetch adapter', async () => {
     });
 
     assert.equal(result.id, 'order_fetch123');
+    assert.equal(typeof rawInput, 'string');
     assert.equal(request?.url, 'https://api.razorpay.com/v1/orders');
     assert.equal(request?.method, 'POST');
     assert.match(request?.headers.get('authorization') ?? '', /^Basic /);

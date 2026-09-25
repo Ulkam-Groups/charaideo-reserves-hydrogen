@@ -5,7 +5,16 @@ type Options = {
 };
 
 type FetchBackedApi = {
-  rq: {defaults: {adapter: string}};
+  rq: {
+    defaults: {
+      adapter: string;
+      env: {
+        fetch: typeof globalThis.fetch;
+        Request: null;
+        Response: null;
+      };
+    };
+  };
 };
 
 /**
@@ -26,9 +35,15 @@ export default class RazorpayOxygen {
       key_id: options.key_id,
       key_secret: options.key_secret,
     });
-    // Oxygen is a Worker runtime. Axios can otherwise select its Node HTTP
-    // adapter because of compatibility globals injected by the bundler.
-    (api as unknown as FetchBackedApi).rq.defaults.adapter = 'fetch';
+    // Oxygen is a Worker runtime. Use native fetch without Axios constructing
+    // a browser-style Request whose initializer is not fully supported by workerd.
+    const request = (api as unknown as FetchBackedApi).rq.defaults;
+    request.adapter = 'fetch';
+    request.env = {
+      fetch: globalThis.fetch,
+      Request: null,
+      Response: null,
+    };
     this.orders = createOrders(api);
     this.payments = createPayments(api);
   }
