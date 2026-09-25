@@ -16,7 +16,9 @@ import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {getJudgeMeProductReviews} from '~/lib/judgeme.server';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {ProductReviews} from '~/components/ProductReviews';
+import {ProductItem} from '~/components/ProductItem';
 import {measureStorefront} from '~/lib/monitoring.server';
+import type {ProductFragment} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
@@ -90,11 +92,97 @@ function loadDeferredData(
       shopifyProductGid,
       monitor: context.monitor,
     }),
+    relatedProducts: loadRelatedProducts(context, shopifyProductGid),
   };
 }
 
+async function loadRelatedProducts(
+  context: Route.LoaderArgs['context'],
+  productId: string,
+) {
+  try {
+    const {product, productRecommendations} = await context.storefront.query(
+      RELATED_PRODUCTS_QUERY,
+      {variables: {productId}},
+    );
+    const sourceCollections = new Set(
+      product?.collections.nodes.map((collection) => collection.id) ?? [],
+    );
+    const candidates = [
+      ...(productRecommendations ?? []),
+      ...(product?.collections.nodes.flatMap(
+        (collection) => collection.products.nodes,
+      ) ?? []),
+    ];
+    const uniqueCandidates = [
+      ...new Map(
+        candidates
+          .filter((candidate) => candidate.id !== productId)
+          .map((candidate) => [candidate.id, candidate]),
+      ).values(),
+    ];
+
+    // Product tags require an additional Storefront API scope. Keep the
+    // collection fallback useful even when that optional permission is absent.
+    const productTags = await loadRelatedProductTags(context, [
+      productId,
+      ...uniqueCandidates.map((candidate) => candidate.id),
+    ]);
+    const sourceTags = productTags.get(productId) ?? new Set<string>();
+
+    return uniqueCandidates
+      .map((candidate, index) => ({
+        candidate,
+        index,
+        tagMatches: [...(productTags.get(candidate.id) ?? [])].filter((tag) =>
+          sourceTags.has(tag),
+        ).length,
+        collectionMatches: candidate.collections.nodes.filter((collection) =>
+          sourceCollections.has(collection.id),
+        ).length,
+      }))
+      .sort(
+        (left, right) =>
+          right.tagMatches - left.tagMatches ||
+          right.collectionMatches - left.collectionMatches ||
+          left.index - right.index,
+      )
+      .slice(0, 4)
+      .map(({candidate}) => candidate);
+  } catch {
+    // Recommendations are non-critical and must never prevent the PDP rendering.
+    return [];
+  }
+}
+
+async function loadRelatedProductTags(
+  context: Route.LoaderArgs['context'],
+  productIds: string[],
+) {
+  const tagsByProduct = new Map<string, Set<string>>();
+
+  if (productIds.length === 0) return tagsByProduct;
+
+  try {
+    const {nodes} = await context.storefront.query(RELATED_PRODUCT_TAGS_QUERY, {
+      variables: {productIds},
+    });
+
+    for (const node of nodes) {
+      if (node?.__typename === 'Product') {
+        tagsByProduct.set(node.id, new Set(node.tags));
+      }
+    }
+  } catch {
+    // The unauthenticated_read_product_tags scope is optional. Collection
+    // matches still provide a deterministic fallback without this scope.
+  }
+
+  return tagsByProduct;
+}
+
 export default function Product() {
-  const {product, judgeMeReviews} = useLoaderData<typeof loader>();
+  const {product, judgeMeReviews, relatedProducts} = useLoaderData<typeof loader>();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -149,7 +237,6 @@ export default function Product() {
           />
           <ul className="product-assurances" aria-label="Purchase information">
             <li><span aria-hidden="true">◇</span> Packed fresh in Assam</li>
-            <li><span aria-hidden="true">◇</span> Shipping calculated at checkout</li>
             <li><span aria-hidden="true">◇</span> Secure checkout</li>
           </ul>
         </div>
@@ -168,11 +255,13 @@ export default function Product() {
         </div>
       </section>
 
+      <TeaSpecifications product={product} selectedVariant={selectedVariant} />
+
       <section className="product-reviews" id="customer-notes" aria-labelledby="customer-notes-title">
         <div className="product-reviews-heading">
           <span className="eyebrow">From the tea table</span>
-          <h2 id="customer-notes-title">Customer notes.</h2>
-          <p>Every review shown here is supplied by a connected review service. We never invent customer feedback.</p>
+          <h2 id="customer-notes-title">Reviews & questions.</h2>
+          <p>Verified reviews are supplied by Judge.me. Customer questions will appear here when Judge.me Q&amp;A is enabled.</p>
         </div>
         <Suspense fallback={<ReviewsSkeleton />}>
           <Await resolve={judgeMeReviews}>
@@ -203,6 +292,32 @@ export default function Product() {
         </div>
       </section>
 
+      <Suspense fallback={null}>
+        <Await resolve={relatedProducts}>
+          {(products) =>
+            products.length > 0 && (
+              <section className="product-related" aria-labelledby="related-products-title">
+                <div className="editorial-heading">
+                  <div>
+                    <span className="eyebrow">Continue exploring</span>
+                    <h2 id="related-products-title">You may also enjoy.</h2>
+                    <p>Selected by shared tea tags and collections.</p>
+                  </div>
+                  <Link className="text-link" to="/collections/all">
+                    Shop all teas →
+                  </Link>
+                </div>
+                <div className="recommended-products-grid">
+                  {products.map((relatedProduct) => (
+                    <ProductItem key={relatedProduct.id} product={relatedProduct} />
+                  ))}
+                </div>
+              </section>
+            )
+          }
+        </Await>
+      </Suspense>
+
       <Analytics.ProductView
         data={{
           products: [
@@ -220,6 +335,93 @@ export default function Product() {
       />
     </div>
   );
+}
+
+function TeaSpecifications({
+  product,
+  selectedVariant,
+}: {
+  product: ProductFragment;
+  selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
+}) {
+  const selectedWeight = selectedVariant?.selectedOptions.find((option) =>
+    /size|weight|pack/i.test(option.name),
+  )?.value;
+  const harvest = [
+    product.harvest?.value,
+    product.flush?.value,
+    product.pluckDate?.value,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  const specifications = [
+    ['Net weight', product.netWeight?.value || selectedWeight],
+    ['Origin', product.origin?.value || product.estate?.value],
+    ['Cultivar', product.cultivar?.value],
+    ['Grade', product.grade?.value],
+    ['Harvest', harvest],
+    ['Ingredients', product.ingredients?.value],
+    ['Caffeine level', product.caffeineLevel?.value],
+    ['Tasting notes', product.tastingNotes?.value],
+    ['Preparation', product.brewingSuggestion?.value],
+    ['Storage', product.storage?.value],
+    ['Shelf life', product.shelfLife?.value],
+    ['Allergens', product.allergens?.value],
+    ['Certifications', product.certifications?.value],
+  ] as const;
+
+  return (
+    <section
+      className="product-specifications"
+      aria-labelledby="tea-specifications-title"
+    >
+      <div className="product-specifications-heading">
+        <span className="eyebrow">Nothing hidden</span>
+        <h2 id="tea-specifications-title">Every detail, clearly stated.</h2>
+        <p>
+          These specifications come directly from this tea’s Shopify product
+          record. Missing information is labelled instead of guessed.
+        </p>
+      </div>
+      <dl className="product-specifications-grid">
+        {specifications.map(([label, rawValue]) => {
+          const value = formatSpecification(rawValue);
+          return (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd className={value ? undefined : 'is-missing'}>
+                {value || 'Not yet provided'}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  );
+}
+
+function formatSpecification(value?: string | null) {
+  if (!value?.trim()) return '';
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed)) return parsed.join(', ');
+    if (parsed && typeof parsed === 'object' && 'value' in parsed) {
+      const measurement = parsed as {value?: string | number; unit?: string};
+      if (measurement.value == null) return value;
+      const units: Record<string, string> = {
+        GRAMS: 'g',
+        KILOGRAMS: 'kg',
+        OUNCES: 'oz',
+        POUNDS: 'lb',
+      };
+      return `${measurement.value}${measurement.unit ? ` ${units[measurement.unit] || measurement.unit.toLowerCase()}` : ''}`;
+    }
+  } catch {
+    // Plain-text metafields are already display-ready.
+  }
+
+  return value;
 }
 
 function ReviewsSkeleton() {
@@ -248,6 +450,7 @@ function parseRating(value?: string) {
 const PRODUCT_VARIANT_FRAGMENT = `#graphql
   fragment ProductVariant on ProductVariant {
     availableForSale
+    currentlyNotInStock
     compareAtPrice {
       amount
       currencyCode
@@ -291,11 +494,25 @@ const PRODUCT_FRAGMENT = `#graphql
     productType
     tastingNotes: metafield(namespace: "custom", key: "tasting_notes") { value }
     brewingSuggestion: metafield(namespace: "custom", key: "brewing_suggestion") { value }
+    netWeight: metafield(namespace: "custom", key: "net_weight") { value }
+    origin: metafield(namespace: "custom", key: "origin") { value }
+    estate: metafield(namespace: "custom", key: "estate") { value }
+    cultivar: metafield(namespace: "custom", key: "cultivar") { value }
+    grade: metafield(namespace: "custom", key: "grade") { value }
+    harvest: metafield(namespace: "custom", key: "harvest") { value }
+    flush: metafield(namespace: "custom", key: "flush") { value }
+    pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }
+    ingredients: metafield(namespace: "custom", key: "ingredients") { value }
+    caffeineLevel: metafield(namespace: "custom", key: "caffeine_level") { value }
+    storage: metafield(namespace: "custom", key: "storage") { value }
+    shelfLife: metafield(namespace: "custom", key: "shelf_life") { value }
+    allergens: metafield(namespace: "custom", key: "allergens") { value }
+    certifications: metafield(namespace: "custom", key: "certifications") { value }
     reviewRating: metafield(namespace: "reviews", key: "rating") { value }
     reviewCount: metafield(namespace: "reviews", key: "rating_count") { value }
     descriptionHtml
     description
-    images(first: 10) {
+    images(first: 250) {
       nodes {
         __typename
         id
@@ -350,4 +567,79 @@ const PRODUCT_QUERY = `#graphql
     }
   }
   ${PRODUCT_FRAGMENT}
+` as const;
+
+const RELATED_PRODUCTS_QUERY = `#graphql
+  fragment RelatedProductMoney on MoneyV2 {
+    amount
+    currencyCode
+  }
+  fragment RelatedProductCard on Product {
+    id
+    handle
+    title
+    description
+    productType
+    featuredImage {
+      id
+      altText
+      url
+      width
+      height
+    }
+    priceRange {
+      minVariantPrice {
+        ...RelatedProductMoney
+      }
+      maxVariantPrice {
+        ...RelatedProductMoney
+      }
+    }
+    collections(first: 10) {
+      nodes {
+        id
+      }
+    }
+    selectedOrFirstAvailableVariant {
+      id
+      availableForSale
+    }
+  }
+  query ProductRecommendations(
+    $country: CountryCode
+    $language: LanguageCode
+    $productId: ID!
+  ) @inContext(country: $country, language: $language) {
+    product(id: $productId) {
+      collections(first: 3) {
+        nodes {
+          id
+          products(first: 8) {
+            nodes {
+              ...RelatedProductCard
+            }
+          }
+        }
+      }
+    }
+    productRecommendations(productId: $productId) {
+      ...RelatedProductCard
+    }
+  }
+` as const;
+
+const RELATED_PRODUCT_TAGS_QUERY = `#graphql
+  query RelatedProductTags(
+    $country: CountryCode
+    $language: LanguageCode
+    $productIds: [ID!]!
+  ) @inContext(country: $country, language: $language) {
+    nodes(ids: $productIds) {
+      __typename
+      ... on Product {
+        id
+        tags
+      }
+    }
+  }
 ` as const;

@@ -15,6 +15,13 @@ export function ProductPrice({
     Number(compareAtPrice.amount) > Number(price.amount)
       ? compareAtPrice
       : null;
+  const savings =
+    price && validCompareAtPrice
+      ? Number(validCompareAtPrice.amount) - Number(price.amount)
+      : 0;
+  const savingsPercent = validCompareAtPrice
+    ? Math.round((savings / Number(validCompareAtPrice.amount)) * 100)
+    : 0;
 
   return (
     <div className="product-price">
@@ -24,6 +31,16 @@ export function ProductPrice({
           <s>
             <Money data={validCompareAtPrice} />
           </s>
+          <span className="product-savings">
+            Save{' '}
+            <Money
+              data={{
+                amount: savings.toFixed(2),
+                currencyCode: price!.currencyCode,
+              }}
+            />{' '}
+            ({savingsPercent}%)
+          </span>
         </div>
       ) : price ? (
         <Money data={price} />

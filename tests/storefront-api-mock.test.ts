@@ -57,6 +57,25 @@ test('local Storefront fixture supports the complete checkout E2E data path', as
   );
   assert.equal(detail.data.product.id, product.id);
 
+  const recommendations = await graphql(
+    'query ProductRecommendations($productId: ID!) { product(id: $productId) { id } productRecommendations(productId: $productId) { id } }',
+    {productId: product.id},
+  );
+  assert.equal(recommendations.data.product.id, product.id);
+  assert.deepEqual(recommendations.data.productRecommendations, []);
+
+  const tags = await graphql(
+    'query RelatedProductTags($productIds: [ID!]!) { nodes(ids: $productIds) { ... on Product { id tags } } }',
+    {productIds: [product.id]},
+  );
+  assert.deepEqual(tags.data.nodes, [
+    {
+      __typename: 'Product',
+      id: product.id,
+      tags: ['e2e-assam-tea'],
+    },
+  ]);
+
   const created = await graphql(
     'mutation cartCreate($input: CartInput!) { cartCreate(input: $input) { cart { id } } }',
     {
