@@ -25,6 +25,13 @@ type VariantNode = {
   product: {id: string; title: string; description: string; handle: string};
 };
 
+type RazorpayOrderStage =
+  | 'cart_lookup'
+  | 'variant_lookup'
+  | 'checkout_payload'
+  | 'razorpay_order_create'
+  | 'session_persist';
+
 const RAZORPAY_VARIANTS_QUERY = `#graphql
   query RazorpayCheckoutVariants($ids: [ID!]!) {
     nodes(ids: $ids) {
@@ -91,6 +98,9 @@ export async function action({request, context}: ActionFunctionArgs) {
     return json({error: 'Invalid checkout request'}, 400);
   }
 
+  let stage: RazorpayOrderStage =
+    source === 'cart' ? 'cart_lookup' : 'variant_lookup';
+
   try {
     let lines: RazorpayOrderLine[];
     let expectedAmount: number;
@@ -107,6 +117,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       if (JSON.stringify(cartProducts) !== JSON.stringify(requestedProducts)) {
         return json({error: 'Cart changed before checkout'}, 409);
       }
+      stage = 'checkout_payload';
       lines = cartLines(cart, new URL(request.url).origin);
       expectedAmount = inrToPaise(cart.cost.subtotalAmount.amount);
     } else {
@@ -120,6 +131,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       if (variants.length !== requestedProducts.length) {
         return json({error: 'A product is unavailable'}, 409);
       }
+      stage = 'checkout_payload';
       lines = requestedProducts.map(({variantId, quantity}) => {
         const variant = variants.find((candidate) => candidate.id === variantId);
         if (!variant) throw new Error('Shopify variant was not returned');
@@ -146,6 +158,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       );
     }
 
+    stage = 'razorpay_order_create';
     const order = await createRazorpayMagicOrder({
       credentials,
       lines,
@@ -160,6 +173,7 @@ export async function action({request, context}: ActionFunctionArgs) {
           : {}),
       },
     });
+    stage = 'session_persist';
     context.session.set('razorpayOrderId', order.id);
 
     return json({
@@ -169,7 +183,18 @@ export async function action({request, context}: ActionFunctionArgs) {
     });
   } catch (error) {
     const failure = classifyRazorpayFailure(error);
-    context.monitor?.failure('checkout.razorpay.order.failure', failure.tags, error);
-    return json({error: 'Unable to create checkout order', code: failure.code}, 502);
+    context.monitor?.failure(
+      'checkout.razorpay.order.failure',
+      {...failure.tags, stage},
+      error,
+    );
+    return json(
+      {
+        error: 'Unable to create checkout order',
+        code: failure.code,
+        stage,
+      },
+      502,
+    );
   }
 }
