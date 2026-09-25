@@ -63,14 +63,8 @@ test('Shiprocket authenticates server-side and returns its recommended courier',
     email: env.SHIPROCKET_API_EMAIL,
     password: env.SHIPROCKET_API_PASSWORD,
   });
-  assert.equal(
-    requests[1].url.searchParams.get('pickup_postcode'),
-    '785690',
-  );
-  assert.equal(
-    requests[1].url.searchParams.get('delivery_postcode'),
-    '560001',
-  );
+  assert.equal(requests[1].url.searchParams.get('pickup_postcode'), '785690');
+  assert.equal(requests[1].url.searchParams.get('delivery_postcode'), '560001');
   assert.equal(requests[1].url.searchParams.get('weight'), '0.5');
   assert.equal(requests[1].url.searchParams.get('cod'), '0');
   assert.equal(
