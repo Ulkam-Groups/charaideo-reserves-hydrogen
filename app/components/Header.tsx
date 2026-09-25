@@ -137,10 +137,11 @@ function SearchToggle() {
 function CartBadge({count}: {count: number | null}) {
   const {open} = useAside();
   const {publish, shop, cart, prevCart} = useAnalytics();
+  const cartCount = count ?? 0;
 
   return (
     <a
-      aria-label={`Cart, ${count ?? 0} items`}
+      aria-label={`Cart ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
       className="header-icon-button header-cart"
       href="/cart"
       title="Cart"

@@ -150,6 +150,19 @@ function execute(operation, variables) {
       };
     case 'Product':
       return {product: variables.handle === product.handle ? product : null};
+    case 'ProductRecommendations':
+      return {
+        product: {...product, collections: {nodes: []}},
+        productRecommendations: [],
+      };
+    case 'RelatedProductTags':
+      return {
+        nodes: (variables.productIds || []).map((id) => ({
+          __typename: 'Product',
+          id,
+          tags: id === productId ? ['e2e-assam-tea'] : [],
+        })),
+      };
     case 'CartQuery': {
       const cart = carts.get(variables.cartId);
       return {cart: cart ? cartResult(cart) : null};
