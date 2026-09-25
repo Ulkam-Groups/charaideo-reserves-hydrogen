@@ -42,6 +42,9 @@ test('local Storefront fixture supports the complete checkout E2E data path', as
   assert.equal(shop.data.shop.id, 'gid://shopify/Shop/1');
   assert.equal(shop.data.localization.language.isoCode, 'EN');
 
+  const cookies = await graphql('query ensureCookies { shop { id } }');
+  assert.equal(cookies.data.shop.id, 'gid://shopify/Shop/1');
+
   const catalog = await graphql(
     'query Catalog { products(first: 8) { nodes { id handle } } }',
   );

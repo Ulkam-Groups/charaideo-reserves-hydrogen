@@ -270,6 +270,51 @@ test('Razorpay client creates an order before opening Magic Checkout', async () 
   }
 });
 
+test('Razorpay client waits for the deferred checkout script after navigation', async () => {
+  const script = new EventTarget();
+  const originalFetch = globalThis.fetch;
+  let opened = false;
+  Object.assign(globalThis, {
+    fetch: async () =>
+      Response.json({
+        keyId: 'rzp_test_public',
+        orderId: 'order_deferred',
+        businessName: 'Charaideo Reserves',
+      }),
+    window: {
+      location: {assign() {}},
+      dispatchEvent() {},
+    },
+    document: {
+      querySelector: () => script,
+    },
+  });
+
+  try {
+    const launch = startRazorpayCheckout({
+      source: 'product',
+      products: [{variantId: 'gid://shopify/ProductVariant/12345', quantity: 1}],
+    });
+    await Promise.resolve();
+    Object.assign((globalThis as any).window, {
+      Razorpay: class {
+        on() {}
+        open() {
+          opened = true;
+        }
+      },
+    });
+    script.dispatchEvent(new Event('load'));
+
+    assert.equal(await launch, true);
+    assert.equal(opened, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+    Reflect.deleteProperty(globalThis, 'window');
+    Reflect.deleteProperty(globalThis, 'document');
+  }
+});
+
 const orderLine: RazorpayOrderLine = {
   variantId: 'gid://shopify/ProductVariant/12345',
   productId: 'gid://shopify/Product/987',

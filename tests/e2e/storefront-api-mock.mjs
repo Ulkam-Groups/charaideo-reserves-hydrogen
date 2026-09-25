@@ -120,6 +120,9 @@ function execute(operation, variables) {
           language: {isoCode: 'EN'},
         },
       };
+    case 'ensureCookies':
+      // Hydrogen issues this internal bootstrap query independently of page data.
+      return {shop: {id: 'gid://shopify/Shop/1'}};
     case 'Header':
       return {
         shop: {

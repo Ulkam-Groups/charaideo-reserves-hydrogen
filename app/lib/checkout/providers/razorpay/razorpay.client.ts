@@ -1,5 +1,6 @@
 import type {CheckoutInput} from '../../checkout.ts';
 import {dispatchCheckoutError} from '../../checkout-errors.ts';
+import {RAZORPAY_ASSETS} from './razorpay.config.ts';
 
 type RazorpayPaymentResponse = {
   razorpay_order_id: string;
@@ -35,8 +36,33 @@ async function postForm(path: string, fields: Record<string, string>) {
   });
 }
 
+async function waitForRazorpay(): Promise<RazorpayCheckoutConstructor | null> {
+  if (typeof window === 'undefined') return null;
+  if (window.Razorpay) return window.Razorpay;
+  if (typeof document === 'undefined') return null;
+
+  const script = document.querySelector<HTMLScriptElement>(
+    `script[src="${RAZORPAY_ASSETS.script}"]`,
+  );
+  if (!script) return null;
+
+  return new Promise((resolve) => {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const finish = () => {
+      if (timeout !== undefined) clearTimeout(timeout);
+      script.removeEventListener('load', finish);
+      script.removeEventListener('error', finish);
+      resolve(window.Razorpay ?? null);
+    };
+    script.addEventListener('load', finish, {once: true});
+    script.addEventListener('error', finish, {once: true});
+    timeout = setTimeout(finish, 10_000);
+  });
+}
+
 export async function startRazorpayCheckout(input: CheckoutInput): Promise<boolean> {
-  if (typeof window === 'undefined' || !window.Razorpay) return false;
+  const Razorpay = await waitForRazorpay();
+  if (!Razorpay) return false;
 
   try {
     const orderResponse = await postForm('/api/checkout/razorpay/order', {
@@ -60,7 +86,7 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       return false;
     }
 
-    const checkout = new window.Razorpay({
+    const checkout = new Razorpay({
       key: order.keyId,
       one_click_checkout: true,
       name: order.businessName,
