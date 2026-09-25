@@ -4,6 +4,8 @@ const port = 4173;
 const baseURL = `http://127.0.0.1:${port}`;
 const storefrontPort = 4174;
 const storefrontURL = `http://127.0.0.1:${storefrontPort}`;
+const razorpayPort = 4175;
+const razorpayURL = `http://127.0.0.1:${razorpayPort}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -35,6 +37,17 @@ export default defineConfig({
           : undefined,
       },
     },
+    {
+      name: 'razorpay',
+      testMatch: /razorpay\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: razorpayURL,
+        launchOptions: process.env.E2E_BROWSER_EXECUTABLE
+          ? {executablePath: process.env.E2E_BROWSER_EXECUTABLE}
+          : undefined,
+      },
+    },
   ],
   webServer: [
     {
@@ -45,7 +58,7 @@ export default defineConfig({
       env: {E2E_STOREFRONT_PORT: String(storefrontPort)},
     },
     {
-      command: `npm run dev:local -- --config vite.e2e.config.ts --host 127.0.0.1 --port ${port} --strictPort`,
+      command: `npm run dev:local -- --config vite.e2e.config.ts --mode fastrr --host 127.0.0.1 --port ${port} --strictPort`,
       url: `${baseURL}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
@@ -58,6 +71,12 @@ export default defineConfig({
         PUBLIC_CHECKOUT_DOMAIN: 'checkout.invalid',
         SESSION_SECRET: 'playwright-test-session-secret-32-characters',
       },
+    },
+    {
+      command: `npm run dev:local -- --config vite.e2e.config.ts --mode razorpay --host 127.0.0.1 --port ${razorpayPort} --strictPort`,
+      url: `${razorpayURL}/health`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
     },
   ],
 });

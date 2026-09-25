@@ -59,7 +59,9 @@ type ShopifyAdminCredentials = {
 export class RazorpayReconciliationError extends Error {}
 
 function adminCredentials(env: Env): ShopifyAdminCredentials | null {
-  const domain = env.PUBLIC_STORE_DOMAIN?.trim();
+  const domain = (
+    env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
+  )?.trim();
   const clientId = env.SHOPIFY_ADMIN_CLIENT_ID?.trim();
   const clientSecret = env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim();
   if (

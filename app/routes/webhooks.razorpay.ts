@@ -1,7 +1,10 @@
 import type {ActionFunctionArgs} from 'react-router';
 import {reconcileRazorpayOrder} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 import {verifyRazorpayWebhook} from '~/lib/checkout/providers/razorpay/razorpay.server';
-import {razorpayWebhookTarget} from '~/lib/checkout/providers/razorpay/razorpay';
+import {
+  isRazorpayReconciliationEvent,
+  razorpayWebhookTarget,
+} from '~/lib/checkout/providers/razorpay/razorpay';
 
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
@@ -34,7 +37,11 @@ export async function action({request, context}: ActionFunctionArgs) {
     return new Response('Invalid payload', {status: 400});
   }
   const target = razorpayWebhookTarget(payload);
-  if (!target) return new Response(null, {status: 204});
+  if (!target) {
+    return isRazorpayReconciliationEvent(payload)
+      ? new Response('Invalid event payload', {status: 400})
+      : new Response(null, {status: 204});
+  }
 
   try {
     await reconcileRazorpayOrder({...target, env: context.env});

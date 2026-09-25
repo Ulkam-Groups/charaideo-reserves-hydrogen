@@ -80,6 +80,8 @@ test('storefront CSP permits configured checkout and third-party assets', async 
   }
   await expect(page.locator('script[src*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(1);
   await expect(page.locator('link[href*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(1);
+  await expect(page.locator('script[src*="checkout.razorpay.com"]')).toHaveCount(0);
+  expect(csp).not.toContain('checkout-static-next.razorpay.com');
 });
 
 test('catalog to product to cart launches Fastrr with Shopify variant IDs', async ({

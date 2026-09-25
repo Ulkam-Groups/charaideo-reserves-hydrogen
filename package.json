@@ -10,7 +10,7 @@
     "start": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:integration": "node --import ./tests/support/windows-userinfo.mjs --import tsx --test tests/integration/*.test.ts",
-    "test:e2e": "playwright test --project=storefront",
+    "test:e2e": "playwright test --project=storefront --project=razorpay",
     "test:e2e:account": "playwright test --project=account",
     "format:check": "prettier --check \"tests/**/*.{ts,tsx}\" \"playwright.config.ts\" \"vite.e2e.config.ts\" \"eslint.config.js\"",
     "lint": "eslint app tests playwright.config.ts vite.e2e.config.ts",

@@ -43,6 +43,7 @@ declare global {
     RAZORPAY_COD_FEE_PAISE?: string;
     SHOPIFY_ADMIN_CLIENT_ID?: string;
     SHOPIFY_ADMIN_CLIENT_SECRET?: string;
+    SHOPIFY_ADMIN_STORE_DOMAIN?: string;
     JUDGEME_SHOP_DOMAIN?: string;
     JUDGEME_PUBLIC_API_TOKEN?: string;
     JUDGEME_PRIVATE_API_TOKEN?: string;

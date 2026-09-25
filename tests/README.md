@@ -4,15 +4,16 @@ Run `npm test`, `npm run test:integration`, `npm run typecheck`,
 `npm run format:check`, and `npm run lint` locally. The Oxygen workflow runs
 these checks and the mock.shop Playwright suite before deployment.
 
-`npm run test:e2e` starts an isolated MiniOxygen instance against Shopify's
-public mock.shop catalog. Every browser request outside localhost is blocked;
-the Fastrr script and stylesheet are fulfilled locally, and `buyDirect` is a
-recording stub. Tests exercise successful launches, missing script, a thrown
-vendor error, empty cart, quantity and UTM payloads, and cart persistence.
-These tests **never open the vendor checkout or call its API**.
-The server only queries mock.shop for product and cart fixtures. On Windows,
-set `E2E_BROWSER_EXECUTABLE` to an installed Chrome executable if Playwright's
-browser download is unavailable.
+`npm run test:e2e` starts two isolated MiniOxygen storefronts against the same
+local Storefront API fixture: one with `CHECKOUT_PROVIDER=fastrr` and one with
+`CHECKOUT_PROVIDER=razorpay`. Every browser request outside localhost is
+blocked. The FastRR script and stylesheet are fulfilled locally, while the
+Razorpay script, order endpoint and verification endpoint are deterministic
+recording stubs. The suites exercise both Buy Now and cart checkout and assert
+that each provider's scripts and CSP sources are absent from the other mode.
+They **never open a real vendor checkout or call either vendor API**. On
+Windows, set `E2E_BROWSER_EXECUTABLE` to an installed Chrome executable if
+Playwright's browser download is unavailable.
 
 Customer Account browser tests need a separate `.myshopify.dev` test deployment
 and a test customer's Playwright `storageState` JSON. Set

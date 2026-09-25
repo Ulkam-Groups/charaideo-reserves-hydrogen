@@ -59,7 +59,9 @@ export async function loader({context}: Route.LoaderArgs) {
         env.SHOPIFY_ADMIN_CLIENT_ID?.trim() &&
         env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim() &&
         /^[a-z0-9][a-z0-9.-]*\.myshopify\.com$/i.test(
-          env.PUBLIC_STORE_DOMAIN?.trim() ?? '',
+          (
+            env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
+          )?.trim() ?? '',
         ),
     ) &&
     /^\d+$/.test(env.RAZORPAY_SHIPPING_FEE_PAISE?.trim() ?? '');

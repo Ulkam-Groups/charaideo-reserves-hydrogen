@@ -7,6 +7,7 @@ import {
   decodeRazorpayCheckoutSnapshot,
   encodeRazorpayCheckoutSnapshot,
   inrToPaise,
+  isRazorpayReconciliationEvent,
   parseRazorpayCheckoutProducts,
   razorpayWebhookTarget,
   type RazorpayOrderLine,
@@ -15,6 +16,7 @@ import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razo
 import {
   createShopifyOrder,
   buildShopifyOrderInput,
+  razorpayOrderIntegrationReady,
   validateCapturedRazorpayPayment,
   validateRazorpayOrderForShopify,
   type RazorpayMagicOrderDetails,
@@ -449,6 +451,9 @@ test('Razorpay signatures and webhook event targets are verified', async () => {
     {orderId},
   );
   assert.equal(razorpayWebhookTarget({event: 'refund.processed'}), null);
+  assert.equal(isRazorpayReconciliationEvent({event: 'order.paid'}), true);
+  assert.equal(isRazorpayReconciliationEvent({event: 'payment.captured'}), true);
+  assert.equal(isRazorpayReconciliationEvent({event: 'refund.processed'}), false);
 });
 
 test('Shopify creation checks for an existing Razorpay order before mutation', async () => {
@@ -473,7 +478,8 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
   }) as typeof fetch;
   const result = await createShopifyOrder(
     {
-      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      PUBLIC_STORE_DOMAIN: 'http://127.0.0.1:4174',
+      SHOPIFY_ADMIN_STORE_DOMAIN: 'store.myshopify.com',
       SHOPIFY_ADMIN_CLIENT_ID: 'client',
       SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
       RAZORPAY_KEY_ID: 'rzp_test_public',
@@ -485,12 +491,29 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
     fetcher,
   );
   assert.deepEqual(result, {id: 'gid://shopify/Order/1', name: '#1001', created: true});
+  assert.equal(calls[0].url, 'https://store.myshopify.com/admin/oauth/access_token');
   const lookup = JSON.parse(String(calls[1].init?.body)) as {variables: {query: string}};
   assert.equal(lookup.variables.query, `source_identifier:${magicOrder.id}`);
   const mutation = JSON.parse(String(calls[3].init?.body)) as {
     variables: {order: {sourceIdentifier: string}};
   };
   assert.equal(mutation.variables.order.sourceIdentifier, magicOrder.id);
+});
+
+test('Razorpay readiness accepts a separate canonical Admin store domain', () => {
+  assert.equal(
+    razorpayOrderIntegrationReady({
+      PUBLIC_STORE_DOMAIN: 'http://127.0.0.1:4174',
+      SHOPIFY_ADMIN_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_KEY_ID: 'rzp_test_public',
+      RAZORPAY_KEY_SECRET: 'razorpay-secret',
+      RAZORPAY_WEBHOOK_SECRET: 'webhook-secret',
+      RAZORPAY_SHIPPING_FEE_PAISE: '0',
+    } as Env),
+    true,
+  );
 });
 
 test('Shopify duplicate lookup skips order creation and user errors fail closed', async () => {

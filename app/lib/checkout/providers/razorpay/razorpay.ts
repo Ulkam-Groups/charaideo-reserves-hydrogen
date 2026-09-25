@@ -32,6 +32,22 @@ export type RazorpayCheckoutSnapshotLine = {
   unitPricePaise: number;
 };
 
+const RAZORPAY_RECONCILIATION_EVENTS = new Set([
+  'payment.captured',
+  'order.paid',
+  'order.placed',
+]);
+
+export function isRazorpayReconciliationEvent(value: unknown): boolean {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    RAZORPAY_RECONCILIATION_EVENTS.has(
+      String((value as {event?: unknown}).event ?? ''),
+    )
+  );
+}
+
 export function razorpayWebhookTarget(value: unknown): {
   orderId: string;
   paymentId?: string;
