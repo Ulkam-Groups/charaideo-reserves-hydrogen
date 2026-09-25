@@ -41,22 +41,38 @@ async function waitForRazorpay(): Promise<RazorpayCheckoutConstructor | null> {
   if (window.Razorpay) return window.Razorpay;
   if (typeof document === 'undefined') return null;
 
-  const script = document.querySelector<HTMLScriptElement>(
-    `script[src="${RAZORPAY_ASSETS.script}"]`,
-  );
-  if (!script) return null;
-
   return new Promise((resolve) => {
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    const finish = () => {
-      if (timeout !== undefined) clearTimeout(timeout);
-      script.removeEventListener('load', finish);
-      script.removeEventListener('error', finish);
-      resolve(window.Razorpay ?? null);
+    let observedScript: HTMLScriptElement | null = null;
+    let settled = false;
+    const finish = (value: RazorpayCheckoutConstructor | null) => {
+      if (settled) return;
+      settled = true;
+      clearInterval(interval);
+      clearTimeout(timeout);
+      observedScript?.removeEventListener('load', check);
+      observedScript?.removeEventListener('error', failed);
+      resolve(value);
     };
-    script.addEventListener('load', finish, {once: true});
-    script.addEventListener('error', finish, {once: true});
-    timeout = setTimeout(finish, 10_000);
+    const failed = () => finish(null);
+    const check = () => {
+      if (window.Razorpay) {
+        finish(window.Razorpay);
+        return;
+      }
+      const script = document.querySelector<HTMLScriptElement>(
+        `script[src="${RAZORPAY_ASSETS.script}"]`,
+      );
+      if (script && script !== observedScript) {
+        observedScript?.removeEventListener('load', check);
+        observedScript?.removeEventListener('error', failed);
+        observedScript = script;
+        script.addEventListener('load', check, {once: true});
+        script.addEventListener('error', failed, {once: true});
+      }
+    };
+    const interval = setInterval(check, 25);
+    const timeout = setTimeout(() => finish(null), 10_000);
+    check();
   });
 }
 
