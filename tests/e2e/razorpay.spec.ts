@@ -62,14 +62,16 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
   await expect
     .poll(() =>
       page.evaluate(() => {
-        const instance = (window as any).__razorpayInstances[1];
+        const instances = (window as any).__razorpayInstances;
+        const instance = instances[instances.length - 1];
         return instance?.opened === true;
       }),
     )
     .toBe(true);
 
   await page.evaluate(() => {
-    (window as any).__razorpayOptions[1].handler({
+    const options = (window as any).__razorpayOptions;
+    options[options.length - 1].handler({
       razorpay_order_id: 'order_e2e2',
       razorpay_payment_id: 'pay_e2e2',
       razorpay_signature: 'a'.repeat(64),
