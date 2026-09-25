@@ -695,6 +695,11 @@ textarea {
     color: #132a1f;
     font-size: 13px;
   }
+  .product-mobile-purchase-bar > div small {
+    color: #5f6f66;
+    font: 600 9px/1.2 var(--sans);
+    letter-spacing: 0.03em;
+  }
   .product-mobile-purchase-bar form,
   .product-mobile-purchase-bar form button {
     width: auto;

@@ -52,6 +52,9 @@ export function ProductForm({
     : selectedVariant.currentlyNotInStock
       ? 'Available to order'
       : 'In stock';
+  const selectedSize = selectedVariant?.selectedOptions.find(
+    (option) => option.name.toLowerCase() === 'size',
+  )?.value;
 
   return (
     <div className="product-form">
@@ -247,6 +250,9 @@ export function ProductForm({
               <Money data={selectedVariant.price} />
               {quantity > 1 && ` × ${quantity}`}
             </strong>
+            <small>
+              {selectedSize ? `Size: ${selectedSize}` : selectedVariant.title}
+            </small>
           </div>
           <AddToCartButton
             lines={[

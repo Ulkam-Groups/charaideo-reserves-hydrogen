@@ -58,8 +58,7 @@ export function HeaderMenu({
   return (
     <nav className={className} aria-label="Main navigation">
       {viewport === 'mobile' && <NavLink className="header-menu-item" end onClick={close} to="/">Home</NavLink>}
-      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/collections/all">Shop</NavLink>
-      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/reserve-list">Reserves</NavLink>
+      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/reserve-list">Tea Library</NavLink>
       <NavLink className="header-menu-item" onClick={close} to="/pages/about-us">Our story</NavLink>
       <NavLink className="header-menu-item" onClick={close} to="/pages/contact">Contact</NavLink>
       {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} to="/sign-in">Account</NavLink>}
