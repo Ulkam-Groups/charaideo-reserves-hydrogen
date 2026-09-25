@@ -2,6 +2,10 @@ import {defineConfig, devices} from '@playwright/test';
 
 const port = 4173;
 const baseURL = `http://127.0.0.1:${port}`;
+const storefrontPort = 4174;
+const storefrontURL = `http://127.0.0.1:${storefrontPort}`;
+const razorpayPort = 4175;
+const razorpayURL = `http://127.0.0.1:${razorpayPort}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -33,20 +37,46 @@ export default defineConfig({
           : undefined,
       },
     },
-  ],
-  webServer: {
-    command: `npm run dev:local -- --config vite.e2e.config.ts --host 127.0.0.1 --port ${port} --strictPort`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: {
-      PUBLIC_STORE_DOMAIN: 'mock.shop',
-      PUBLIC_STOREFRONT_API_TOKEN: '',
-      PRIVATE_STOREFRONT_API_TOKEN: '',
-      PUBLIC_STOREFRONT_ID: '0',
-      PUBLIC_FASTRR_SELLER_DOMAIN: 'e2e.invalid',
-      PUBLIC_CHECKOUT_DOMAIN: 'checkout.invalid',
-      SESSION_SECRET: 'playwright-test-session-secret-32-characters',
+    {
+      name: 'razorpay',
+      testMatch: /razorpay\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: razorpayURL,
+        launchOptions: process.env.E2E_BROWSER_EXECUTABLE
+          ? {executablePath: process.env.E2E_BROWSER_EXECUTABLE}
+          : undefined,
+      },
     },
-  },
+  ],
+  webServer: [
+    {
+      command: 'node tests/e2e/storefront-api-mock.mjs',
+      url: `${storefrontURL}/health`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+      env: {E2E_STOREFRONT_PORT: String(storefrontPort)},
+    },
+    {
+      command: `npm run dev:local -- --config vite.e2e.config.ts --mode fastrr --host 127.0.0.1 --port ${port} --strictPort`,
+      url: `${baseURL}/health`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      env: {
+        PUBLIC_STORE_DOMAIN: storefrontURL,
+        PUBLIC_STOREFRONT_API_TOKEN: 'e2e-token',
+        PRIVATE_STOREFRONT_API_TOKEN: '',
+        PUBLIC_STOREFRONT_ID: '0',
+        PUBLIC_FASTRR_SELLER_DOMAIN: 'e2e.invalid',
+        PUBLIC_CHECKOUT_DOMAIN: 'checkout.invalid',
+        SESSION_SECRET: 'playwright-test-session-secret-32-characters',
+      },
+    },
+    {
+      command: `npm run dev:local -- --config vite.e2e.config.ts --mode razorpay --host 127.0.0.1 --port ${razorpayPort} --strictPort`,
+      url: `${razorpayURL}/health`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
 });

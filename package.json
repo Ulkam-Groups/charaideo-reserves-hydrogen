@@ -10,7 +10,7 @@
     "start": "vite preview",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:integration": "node --import ./tests/support/windows-userinfo.mjs --import tsx --test tests/integration/*.test.ts",
-    "test:e2e": "playwright test --project=storefront",
+    "test:e2e": "playwright test --project=storefront --project=razorpay --workers=1",
     "test:e2e:account": "playwright test --project=account",
     "format:check": "prettier --check \"tests/**/*.{ts,tsx}\" \"playwright.config.ts\" \"vite.e2e.config.ts\" \"eslint.config.js\"",
     "lint": "eslint app tests playwright.config.ts vite.e2e.config.ts",
@@ -27,6 +27,7 @@
     "headroom-ai": "^0.37.0",
     "htmlparser2": "^10.1.0",
     "isbot": "^5.1.25",
+    "razorpay": "^2.9.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router": "~7.16.0"

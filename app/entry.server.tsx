@@ -7,6 +7,9 @@ import {
 } from '@shopify/hydrogen';
 import type {EntryContext} from 'react-router';
 import {monitoringEnabled, sentryIngestOrigin} from '~/lib/monitoring.server';
+import {resolveCheckoutProvider} from '~/lib/checkout/provider';
+import {FASTRR_CSP} from '~/lib/checkout/providers/fastrr/fastrr.config';
+import {RAZORPAY_CSP} from '~/lib/checkout/providers/razorpay/razorpay.config';
 
 export default async function handleRequest(
   request: Request,
@@ -18,30 +21,34 @@ export default async function handleRequest(
   const sentryOrigin = monitoringEnabled(context.env?.SENTRY_ENABLED)
     ? sentryIngestOrigin(context.env?.SENTRY_DSN)
     : null;
+  const fastrrEnabled =
+    resolveCheckoutProvider(context.env?.CHECKOUT_PROVIDER) === 'fastrr';
+  const razorpayEnabled =
+    resolveCheckoutProvider(context.env?.CHECKOUT_PROVIDER) === 'razorpay';
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
-    styleSrc: ['https://fonts.googleapis.com', 'https://fastrr-boost-ui.pickrr.com'],
+    styleSrc: [
+      'https://fonts.googleapis.com',
+      ...(fastrrEnabled ? FASTRR_CSP.styleSrc : []),
+      ...(razorpayEnabled ? RAZORPAY_CSP.styleSrc : []),
+    ],
     scriptSrc: [
       "'self'",
       'https://cdn.shopify.com',
-      'https://fastrr-boost-ui.pickrr.com',
-      'https://sr-cdn.shiprocket.in',
-      'https://otpless.com',
+      ...(fastrrEnabled ? FASTRR_CSP.scriptSrc : []),
+      ...(razorpayEnabled ? RAZORPAY_CSP.scriptSrc : []),
     ],
     connectSrc: [
       ...(sentryOrigin ? [sentryOrigin] : []),
       'https://cdn.shopify.com',
       'https://messaging-api.shopifyapps.com',
       'https://otlp-http-production.shopifysvc.com',
-      'https://fastrr-boost-ui.pickrr.com',
-      'https://sr-cdn.shiprocket.in',
-      'https://uptime2.fastrr.com',
-      'https://events.pickrr.com',
-      'https://cred.club',
-      'https://tez.google.com',
+      ...(fastrrEnabled ? FASTRR_CSP.connectSrc : []),
+      ...(razorpayEnabled ? RAZORPAY_CSP.connectSrc : []),
     ],
     frameSrc: [
       "'self'",
-      'https://fastrr-boost-ui.pickrr.com',
+      ...(fastrrEnabled ? FASTRR_CSP.frameSrc : []),
+      ...(razorpayEnabled ? RAZORPAY_CSP.frameSrc : []),
       'https://storefront-agent-server.shopify.ai',
     ],
     mediaSrc: ["'self'", 'data:'],
@@ -50,8 +57,8 @@ export default async function handleRequest(
       "'self'",
       'https://cdn.shopify.com',
       'https://shopify.com',
-      'https://fastrr-boost-ui.pickrr.com',
-      'https://sr-cdn.shiprocket.in',
+      ...(fastrrEnabled ? FASTRR_CSP.imgSrc : []),
+      ...(razorpayEnabled ? RAZORPAY_CSP.imgSrc : []),
       'https://images.unsplash.com',
       'data:',
     ],

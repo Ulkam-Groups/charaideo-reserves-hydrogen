@@ -10,7 +10,7 @@ import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
-  header: HeaderQuery;
+  header: HeaderQuery | null;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
   children?: React.ReactNode;
@@ -28,14 +28,12 @@ export function PageLayout({
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
-      {header && (
-        <Header
-          header={header}
-          cart={cart}
-          isLoggedIn={isLoggedIn}
-          publicStoreDomain={publicStoreDomain}
-        />
-      )}
+      <Header
+        header={header}
+        cart={cart}
+        isLoggedIn={isLoggedIn}
+        publicStoreDomain={publicStoreDomain}
+      />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -144,16 +142,17 @@ function MobileMenuAside({
   header: PageLayoutProps['header'];
   publicStoreDomain: PageLayoutProps['publicStoreDomain'];
 }) {
+  const primaryDomainUrl =
+    header?.shop.primaryDomain.url ?? `https://${publicStoreDomain}`;
+
   return (
-    header.shop.primaryDomain?.url && (
-      <Aside type="mobile" heading="MENU">
-        <HeaderMenu
-          menu={header.menu}
-          viewport="mobile"
-          primaryDomainUrl={header.shop.primaryDomain.url}
-          publicStoreDomain={publicStoreDomain}
-        />
-      </Aside>
-    )
+    <Aside type="mobile" heading="MENU">
+      <HeaderMenu
+        menu={header?.menu ?? null}
+        viewport="mobile"
+        primaryDomainUrl={primaryDomainUrl}
+        publicStoreDomain={publicStoreDomain}
+      />
+    </Aside>
   );
 }

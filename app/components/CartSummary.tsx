@@ -4,8 +4,10 @@ import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
 import {useEffect, useRef, useState} from 'react';
 import {useFetcher, useRouteLoaderData} from 'react-router';
 import type {loader as rootLoader} from '~/root';
-import {fastrrVariantId, startFastrrCheckout} from '~/lib/fastrr';
+import {canStartCheckout} from '~/lib/checkout/checkout';
+import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
+import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -65,22 +67,25 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const {close} = useAside();
   const [checkoutError, setCheckoutError] = useState('');
+  const [checkoutPending, setCheckoutPending] = useState(false);
+  useCheckoutError(setCheckoutError);
   if (!cart?.lines?.nodes?.length) return null;
 
   const products = cart.lines.nodes.map((line) => ({
-    variantId: fastrrVariantId(line.merchandise.id),
+    variantId: line.merchandise.id,
     quantity: line.quantity,
   }));
-  const canUseFastrr = Boolean(
-    rootData?.fastrrSellerDomain &&
-      products.length > 0 &&
-      products.every((product) => product.variantId && product.quantity > 0) &&
+  const canUseCheckout = Boolean(
+    rootData?.checkoutReady &&
+      canStartCheckout(rootData.checkoutProvider, products) &&
       !cart.isOptimistic &&
+      !checkoutPending &&
       !cart.appliedGiftCards?.length,
   );
 
-  function handleCheckout() {
-    if (!canUseFastrr) return;
+  async function handleCheckout() {
+    if (!canUseCheckout) return;
+    setCheckoutPending(true);
     const couponCode = cart?.discountCodes?.find((code) => code.applicable)?.code;
     const cartAttributes = Object.fromEntries(
       (cart?.attributes ?? [])
@@ -95,26 +100,35 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
       ),
     ).toString();
 
-    if (!startFastrrCheckout({
-      type: 'cart',
-      products: products.map(({variantId, quantity}) => ({variantId: variantId!, quantity})),
-      ...(couponCode ? {couponCode} : {}),
-      ...(utmParams ? {utmParams} : {}),
-      ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
-    })) {
-      setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
-    } else {
-      setCheckoutError('');
-      if (layout === 'aside') close();
+    try {
+      if (!await startCheckout(rootData?.checkoutProvider, {
+        source: 'cart',
+        products,
+        ...(couponCode ? {couponCode} : {}),
+        ...(utmParams ? {utmParams} : {}),
+        ...(Object.keys(cartAttributes).length ? {cartAttributes} : {}),
+      })) {
+        setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
+      } else {
+        setCheckoutError('');
+        if (layout === 'aside') close();
+      }
+    } finally {
+      setCheckoutPending(false);
     }
   }
 
   return (
     <div>
-      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseFastrr}>
-        <span>Checkout with Shiprocket &rarr;</span>
+      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseCheckout}>
+        <span>
+          {rootData?.checkoutProvider === 'razorpay'
+            ? 'Checkout with Razorpay'
+            : 'Checkout with Shiprocket'}{' '}
+          &rarr;
+        </span>
       </button>
-      {!rootData?.fastrrSellerDomain && <p role="status">Checkout is being configured.</p>}
+      {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
       {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}
       {checkoutError && <p role="alert">{checkoutError}</p>}
       <p className="fine-print">Shipping and applicable taxes calculated at checkout.</p>

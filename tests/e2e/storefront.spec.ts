@@ -1,5 +1,11 @@
-import {expect, test} from '@playwright/test';
+import {expect, test, type Page} from '@playwright/test';
 import {isolateCheckout} from './fastrr-guard';
+
+async function addCurrentProductToCart(page: Page) {
+  await page.getByRole('button', {name: 'Add to cart'}).click();
+  await expect(page.getByRole('button', {name: 'Add to cart'})).toBeEnabled();
+  await expect(page.getByRole('link', {name: /Cart 1 item/})).toBeVisible();
+}
 
 test('homepage and catalog hydrate without recoverable React errors', async ({
   page,
@@ -74,6 +80,8 @@ test('storefront CSP permits configured checkout and third-party assets', async 
   }
   await expect(page.locator('script[src*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(1);
   await expect(page.locator('link[href*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(1);
+  await expect(page.locator('script[src*="checkout.razorpay.com"]')).toHaveCount(0);
+  expect(csp).not.toContain('checkout-static-next.razorpay.com');
 });
 
 test('catalog to product to cart launches Fastrr with Shopify variant IDs', async ({
@@ -98,8 +106,7 @@ test('catalog to product to cart launches Fastrr with Shopify variant IDs', asyn
   expect(direct).toMatchObject({type: 'product', products: [{quantity: 1}]});
   expect(direct.products[0].variantId).toMatch(/^\d+$/);
 
-  await page.getByRole('button', {name: 'Add to cart'}).click();
-  await expect(page.getByRole('link', {name: /Cart 1 item/})).toBeVisible();
+  await addCurrentProductToCart(page);
   await expect
     .poll(async () => (await context.cookies()).some((cookie) => cookie.name === 'cart'))
     .toBe(true);
@@ -123,8 +130,7 @@ test('cart cookie keeps the cart after a new page load', async ({page, context})
   await page.locator('a[href^="/products/"]').first().click();
   await expect(page).toHaveURL(/\/products\//);
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', {name: 'Add to cart'}).click();
-  await expect(page.getByRole('link', {name: /Cart 1 item/})).toBeVisible();
+  await addCurrentProductToCart(page);
   await expect
     .poll(async () => (await context.cookies()).some((cookie) => cookie.name === 'cart'))
     .toBe(true);
@@ -184,7 +190,7 @@ test('cart quantity and UTM parameters are passed to the mocked Fastrr launch', 
   await page.locator('a[href^="/products/"]').first().click();
   await expect(page.getByRole('button', {name: 'Buy now'})).toBeEnabled();
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', {name: 'Add to cart'}).click();
+  await addCurrentProductToCart(page);
   await expect
     .poll(async () => (await context.cookies()).some((cookie) => cookie.name === 'cart'))
     .toBe(true);

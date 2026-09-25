@@ -29,11 +29,29 @@ export default defineConfig({
   ],
   define: {'__SENTRY_RELEASE__': JSON.stringify(sentryRelease)},
   resolve: {
-    alias: {
+    alias: [
+      {
+        find: /^razorpay$/,
+        replacement: fileURLToPath(
+          new URL(
+            './app/lib/checkout/providers/razorpay/razorpay-oxygen.server.ts',
+            import.meta.url,
+          ),
+        ),
+      },
+      {
+        find: /^crypto$/,
+        replacement: fileURLToPath(
+          new URL(
+            './app/lib/checkout/providers/razorpay/crypto-compat.server.ts',
+            import.meta.url,
+          ),
+        ),
+      },
       // Vite's native tsconfig path resolver does not cover JavaScript
       // projects that use jsconfig.json, so define Hydrogen's app alias here.
-      '~': fileURLToPath(new URL('./app', import.meta.url)),
-    },
+      {find: '~', replacement: fileURLToPath(new URL('./app', import.meta.url))},
+    ],
   },
   build: {
     // Allow a strict Content-Security-Policy
@@ -57,6 +75,9 @@ export default defineConfig({
         'react-router > set-cookie-parser',
         'react-router > cookie',
         'react-router',
+        'razorpay/dist/api.js',
+        'razorpay/dist/resources/orders.js',
+        'razorpay/dist/resources/payments.js',
       ],
     },
   },

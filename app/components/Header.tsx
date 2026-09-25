@@ -10,7 +10,7 @@ import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 
 interface HeaderProps {
-  header: HeaderQuery;
+  header: HeaderQuery | null;
   cart: Promise<CartApiQueryFragment | null>;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
@@ -24,7 +24,9 @@ export function Header({
   cart,
   publicStoreDomain,
 }: HeaderProps) {
-  const {menu} = header;
+  const menu = header?.menu ?? null;
+  const primaryDomainUrl =
+    header?.shop.primaryDomain.url ?? `https://${publicStoreDomain}`;
 
   return (
     <header className="header header-solid">
@@ -33,7 +35,7 @@ export function Header({
         <HeaderMenu
           menu={menu}
           viewport="desktop"
-          primaryDomainUrl={header.shop.primaryDomain.url}
+          primaryDomainUrl={primaryDomainUrl}
           publicStoreDomain={publicStoreDomain}
         />
         <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
@@ -45,8 +47,8 @@ export function Header({
 export function HeaderMenu({
   viewport,
 }: {
-  menu: HeaderProps['header']['menu'];
-  primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
+  menu: HeaderQuery['menu'];
+  primaryDomainUrl: string;
   viewport: Viewport;
   publicStoreDomain: HeaderProps['publicStoreDomain'];
 }) {

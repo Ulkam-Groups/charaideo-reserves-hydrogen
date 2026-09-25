@@ -21,6 +21,29 @@ is removed, because the supplied Fastrr API has no gift card parameter. Cart
 permalinks now create a cart and open `/cart` rather than redirecting to Shopify
 Checkout.
 
+## Razorpay Magic Checkout
+
+Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`,
+`RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`,
+`RAZORPAY_SHIPPING_FEE_PAISE`, `SHOPIFY_ADMIN_CLIENT_ID`, and
+`SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay Magic Checkout. The app
+installation must grant only `read_orders,write_orders`. Secrets are used only
+by server routes. The storefront creates Razorpay orders with authoritative
+Shopify prices, opens `magic-checkout.js`, verifies the returned signature,
+fetches the Razorpay order/payment to confirm its final state and amount, and
+then creates the matching Shopify order.
+
+Razorpay-specific code is isolated in
+`app/lib/checkout/providers/razorpay`. Configure
+`/api/checkout/razorpay/shipping` as the Shipping Info URL for the custom
+e-commerce platform in the Razorpay Dashboard. Configure the webhook URL as
+`/webhooks/razorpay`, use the same dedicated `RAZORPAY_WEBHOOK_SECRET`, and
+subscribe to `payment.captured`, `order.paid`, and `order.placed`. Webhook
+deliveries repeat the server-side reconciliation so browser closure cannot lose
+an order. Duplicate deliveries look up Shopify orders by Razorpay
+`sourceIdentifier` before creation. Coupons are disabled until promotion rules
+and endpoints are defined.
+
 Before enabling this in production, test one product and one cart order with
 Shiprocket's configured seller domain and confirm the resulting Shopify orders,
 discounts, and analytics. The vendor script may use additional origins that

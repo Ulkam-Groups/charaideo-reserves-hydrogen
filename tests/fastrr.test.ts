@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  fastrrVariantId,
   startFastrrCheckout,
   type FastrrCheckoutInput,
-} from '../app/lib/fastrr.ts';
+} from '../app/lib/checkout/providers/fastrr/fastrr.client.ts';
+import {fastrrVariantId} from '../app/lib/checkout/providers/fastrr/fastrr.ts';
 
 test('Fastrr receives the numeric Shopify variant ID', () => {
   assert.equal(fastrrVariantId('gid://shopify/ProductVariant/12345'), '12345');

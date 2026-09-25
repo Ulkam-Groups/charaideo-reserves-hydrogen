@@ -17,17 +17,17 @@ import revamp from '~/styles/revamp.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {
-  measureStorefront,
+  measureOptionalStorefront,
   monitoringEnabled,
   sentryIngestOrigin,
 } from '~/lib/monitoring.server';
+import {resolveCheckoutProvider} from '~/lib/checkout/provider';
+import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
+import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 
 const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
 const GOOGLE_FONTS_STYLESHEET =
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
-const FASTRR_STYLESHEET =
-  'https://fastrr-boost-ui.pickrr.com/assets/styles/shopify.css';
-
 export function links() {
   return [
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
@@ -45,8 +45,28 @@ export async function loader({context}: Route.LoaderArgs) {
   const chatShopDomain = `https://${
     configuredChatShop || 'charaideoreserves.myshopify.com'
   }`;
+  const checkoutProvider = resolveCheckoutProvider(env.CHECKOUT_PROVIDER);
+  const fastrrSellerDomain =
+    checkoutProvider === 'fastrr'
+      ? env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null
+      : null;
+  const razorpayReady =
+    checkoutProvider === 'razorpay' &&
+    Boolean(
+      env.RAZORPAY_KEY_ID?.trim() &&
+        env.RAZORPAY_KEY_SECRET?.trim() &&
+        env.RAZORPAY_WEBHOOK_SECRET?.trim() &&
+        env.SHOPIFY_ADMIN_CLIENT_ID?.trim() &&
+        env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim() &&
+        /^[a-z0-9][a-z0-9.-]*\.myshopify\.com$/i.test(
+          (
+            env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
+          )?.trim() ?? '',
+        ),
+    ) &&
+    /^\d+$/.test(env.RAZORPAY_SHIPPING_FEE_PAISE?.trim() ?? '');
 
-  const header = await measureStorefront(context.monitor, 'header', () =>
+  const header = await measureOptionalStorefront(context.monitor, 'header', () =>
     storefront.query(HEADER_QUERY, {
       variables: {headerMenuHandle: 'main-menu'},
       cache: storefront.CacheLong(),
@@ -60,7 +80,12 @@ export async function loader({context}: Route.LoaderArgs) {
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
     chatShopDomain,
-    fastrrSellerDomain: env.PUBLIC_FASTRR_SELLER_DOMAIN?.trim() || null,
+    checkoutProvider,
+    checkoutReady:
+      checkoutProvider === 'fastrr'
+        ? Boolean(fastrrSellerDomain)
+        : razorpayReady,
+    fastrrSellerDomain,
     sentryDsn:
       monitoringEnabled(env.SENTRY_ENABLED) && sentryIngestOrigin(env.SENTRY_DSN)
         ? env.SENTRY_DSN
@@ -109,13 +134,18 @@ export default function App() {
         {data.fastrrSellerDomain && (
           <Script
             waitForHydration
-            src="https://fastrr-boost-ui.pickrr.com/assets/js/channels/shopify.js"
+            src={FASTRR_ASSETS.script}
           />
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
-        {data.fastrrSellerDomain && <DeferredStylesheet href={FASTRR_STYLESHEET} />}
+        {data.fastrrSellerDomain && (
+          <DeferredStylesheet href={FASTRR_ASSETS.stylesheet} />
+        )}
+        {data.checkoutProvider === 'razorpay' && data.checkoutReady && (
+          <Script waitForHydration src={RAZORPAY_ASSETS.script} />
+        )}
         <ShopifyChat storeDomain={data.chatShopDomain} />
       </body>
     </html>

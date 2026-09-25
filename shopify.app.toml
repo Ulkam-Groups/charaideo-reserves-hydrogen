@@ -4,7 +4,7 @@ application_url = "https://REPLACE_AFTER_DEPLOYMENT"
 embedded = false
 
 [access_scopes]
-scopes = ""
+scopes = "read_orders,write_orders"
 
 [build]
 automatically_update_urls_on_dev = true
