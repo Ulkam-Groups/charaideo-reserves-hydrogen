@@ -25,8 +25,8 @@ Checkout.
 
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`,
 `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`,
-`RAZORPAY_SHIPPING_FEE_PAISE`, `SHOPIFY_ADMIN_CLIENT_ID`, and
-`SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay Magic Checkout. The app
+`SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay
+Magic Checkout. The app
 installation must grant only `read_orders,write_orders`. Secrets are used only
 by server routes. The storefront creates Razorpay orders with authoritative
 Shopify prices, opens `magic-checkout.js`, verifies the returned signature,
@@ -34,19 +34,20 @@ fetches the Razorpay order/payment to confirm its final state and amount, and
 then creates the matching Shopify order.
 
 Razorpay-specific code is isolated in
-`app/lib/checkout/providers/razorpay`. Configure
-`/api/checkout/razorpay/shipping` as the Shipping Info URL for the custom
-e-commerce platform in the Razorpay Dashboard. Configure the webhook URL as
-`/webhooks/razorpay`, use the same dedicated `RAZORPAY_WEBHOOK_SECRET`, and
-subscribe to `payment.captured`, `order.paid`, and `order.placed`. Webhook
+`app/lib/checkout/providers/razorpay`. Shipping serviceability, shipping fees,
+and COD fees are owned by the Shiprocket connection in Razorpay's Shipping
+Setup; do not configure a custom Shipping Info API URL while Shiprocket is the
+selected shipping service. Configure the payment webhook URL as
+`/webhooks/razorpay`, use the dedicated `RAZORPAY_WEBHOOK_SECRET`, and subscribe
+to `payment.captured`, `order.paid`, and `order.placed`. Webhook
 deliveries repeat the server-side reconciliation so browser closure cannot lose
 an order. Duplicate deliveries look up Shopify orders by Razorpay
 `sourceIdentifier` before creation. Coupons are disabled until promotion rules
 and endpoints are defined.
 
-Before enabling this in production, test one product and one cart order with
-Shiprocket's configured seller domain and confirm the resulting Shopify orders,
-discounts, and analytics. The vendor script may use additional origins that
+Before enabling this in production, test one prepaid and one COD order through
+Razorpay Magic Checkout and confirm Shiprocket serviceability and fees, the
+resulting Shopify orders, discounts, and analytics. The vendor script may use additional origins that
 must be added to the Content Security Policy after checking its live network
 requests.
 

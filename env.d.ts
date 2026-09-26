@@ -38,9 +38,6 @@ declare global {
     RAZORPAY_KEY_SECRET?: string;
     RAZORPAY_WEBHOOK_SECRET?: string;
     RAZORPAY_BUSINESS_NAME?: string;
-    RAZORPAY_SHIPPING_FEE_PAISE?: string;
-    RAZORPAY_COD_ENABLED?: string;
-    RAZORPAY_COD_FEE_PAISE?: string;
     SHOPIFY_ADMIN_CLIENT_ID?: string;
     SHOPIFY_ADMIN_CLIENT_SECRET?: string;
     SHOPIFY_ADMIN_STORE_DOMAIN?: string;

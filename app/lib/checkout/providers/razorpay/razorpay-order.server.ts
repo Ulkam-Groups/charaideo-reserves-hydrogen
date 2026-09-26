@@ -436,7 +436,6 @@ export function razorpayOrderIntegrationReady(env: Env) {
   return Boolean(
     razorpayCredentials(env) &&
       adminCredentials(env) &&
-      env.RAZORPAY_WEBHOOK_SECRET?.trim() &&
-      /^\d+$/.test(env.RAZORPAY_SHIPPING_FEE_PAISE?.trim() ?? ''),
+      env.RAZORPAY_WEBHOOK_SECRET?.trim(),
   );
 }
