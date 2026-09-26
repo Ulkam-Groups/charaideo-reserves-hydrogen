@@ -12,16 +12,14 @@ This folder contains all Razorpay-specific checkout code and configuration.
 
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to enable this provider. Set `SHOPIFY_ADMIN_STORE_DOMAIN` to the shop's canonical `*.myshopify.com` domain when `PUBLIC_STORE_DOMAIN` points elsewhere; otherwise the public domain is used. The Shopify app installation needs `read_orders,write_orders`. `RAZORPAY_BUSINESS_NAME` is optional and defaults to `Charaideo Reserves`.
 
-Set `RAZORPAY_SHIPPING_FEE_PAISE` explicitly, including `0` for free shipping. COD is off by default; enable it with `RAZORPAY_COD_ENABLED=true` and optionally set `RAZORPAY_COD_FEE_PAISE`.
-
-Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, configure the custom e-commerce platform's Shipping Info URL as `/api/checkout/razorpay/shipping`. Configure `/webhooks/razorpay` with a dedicated secret and the `payment.captured` and `order.paid` events. Add `order.placed` when Razorpay exposes the Magic Checkout COD event for the account; keep `RAZORPAY_COD_ENABLED=false` until then because prepaid events cannot create a COD Shopify order. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
+Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, keep Shiprocket connected and selected in Shipping Setup; Razorpay then obtains pincode serviceability, shipping fees, COD availability, and COD fees from that dashboard integration. Do not configure a custom Shipping Info API URL at the same time. Configure `/webhooks/razorpay` with a dedicated secret and the `payment.captured`, `order.paid`, and `order.placed` events. The first two reconcile prepaid orders; `order.placed` is required to reconcile COD orders. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
 
 ## Razorpay steps 1-9
 
-1. Enable Magic Checkout in the Razorpay account. COD stays explicitly disabled unless the account exposes `order.placed` and that webhook is subscribed.
-2. Configure the public, unauthenticated Shipping Info URL above. Promotion URLs are intentionally not configured while coupons are disabled.
+1. Enable Magic Checkout in the Razorpay account. Keep Shiprocket connected and serviceability enabled in Shipping Setup. If COD is enabled there, subscribe the payment webhook to `order.placed` before accepting COD orders.
+2. Leave the custom Shipping Info API URL unset while Shiprocket is the selected shipping service. Promotion URLs are intentionally not configured while coupons are disabled.
 3. `/api/checkout/razorpay/order` creates the server-side Razorpay order with authoritative Shopify prices, `line_items_total`, line items and a reconciliation snapshot.
-4. `/api/checkout/razorpay/shipping` implements the documented address-to-shipping-method response and keeps COD opt-in.
+4. Razorpay's Shiprocket connection supplies serviceability, shipping charges, COD availability, and COD fees; the storefront does not duplicate that decision in an API route.
 5. Get/Apply Promotions APIs are not applicable while `show_coupons` is `false`. Implement both endpoints and their real business rules before enabling coupons.
 6. `razorpay.client.ts` loads the created `order_id` into `magic-checkout.js` with `one_click_checkout: true`, a handler, and payment failure handling. Prefill is omitted because this storefront does not collect verified contact details before checkout.
 7. `/api/checkout/razorpay/verify` binds the returned order to the server session and verifies the HMAC-SHA256 signature with the server-only key secret.

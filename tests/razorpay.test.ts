@@ -29,10 +29,6 @@ import {
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
 import {RAZORPAY_CSP} from '../app/lib/checkout/providers/razorpay/razorpay.config.ts';
-import {
-  buildRazorpayShippingResponse,
-  parseRazorpayShippingAddresses,
-} from '../app/lib/checkout/providers/razorpay/razorpay-shipping.server.ts';
 
 test('Razorpay validates Shopify variants and converts INR to paise', () => {
   const products = [{variantId: 'gid://shopify/ProductVariant/12345', quantity: 2}];
@@ -168,39 +164,6 @@ test('Razorpay Magic order contains authoritative line totals', () => {
           description: 'Assamica matcha',
           image_url: 'https://cdn.shopify.com/matcha.jpg',
           product_url: 'https://example.com/products/matcha',
-        },
-      ],
-    },
-  );
-});
-
-test('Razorpay shipping requires an explicit fee and keeps COD opt-in', () => {
-  const addresses = parseRazorpayShippingAddresses([
-    {id: '0', zipcode: '786153', state_code: 'AS', country: 'IN'},
-  ]);
-  assert.ok(addresses);
-  assert.deepEqual(
-    buildRazorpayShippingResponse(addresses, {
-      RAZORPAY_SHIPPING_FEE_PAISE: '0',
-    } as Env),
-    {
-      addresses: [
-        {
-          id: '0',
-          zipcode: '786153',
-          state_code: 'AS',
-          country: 'IN',
-          shipping_methods: [
-            {
-              id: 'standard',
-              description: 'Standard delivery',
-              name: 'Standard delivery',
-              serviceable: true,
-              shipping_fee: 0,
-              cod: false,
-              cod_fee: 0,
-            },
-          ],
         },
       ],
     },
@@ -555,7 +518,6 @@ test('Razorpay readiness accepts a separate canonical Admin store domain', () =>
       RAZORPAY_KEY_ID: 'rzp_test_public',
       RAZORPAY_KEY_SECRET: 'razorpay-secret',
       RAZORPAY_WEBHOOK_SECRET: 'webhook-secret',
-      RAZORPAY_SHIPPING_FEE_PAISE: '0',
     } as Env),
     true,
   );

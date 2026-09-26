@@ -63,8 +63,7 @@ export async function loader({context}: Route.LoaderArgs) {
             env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
           )?.trim() ?? '',
         ),
-    ) &&
-    /^\d+$/.test(env.RAZORPAY_SHIPPING_FEE_PAISE?.trim() ?? '');
+    );
 
   const header = await measureOptionalStorefront(context.monitor, 'header', () =>
     storefront.query(HEADER_QUERY, {

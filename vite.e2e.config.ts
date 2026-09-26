@@ -31,7 +31,6 @@ export default defineConfig(({mode}) => {
                 RAZORPAY_KEY_ID: 'rzp_test_e2e',
                 RAZORPAY_KEY_SECRET: 'e2e-secret',
                 RAZORPAY_WEBHOOK_SECRET: 'e2e-webhook-secret',
-                RAZORPAY_SHIPPING_FEE_PAISE: '0',
                 SHOPIFY_ADMIN_CLIENT_ID: 'e2e-client',
                 SHOPIFY_ADMIN_CLIENT_SECRET: 'e2e-admin-secret',
                 SHOPIFY_ADMIN_STORE_DOMAIN: 'e2e-store.myshopify.com',
