@@ -66,6 +66,7 @@ function SearchAside() {
             <>
               <input
                 aria-label="Search teas and pages"
+                autoComplete="off"
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}

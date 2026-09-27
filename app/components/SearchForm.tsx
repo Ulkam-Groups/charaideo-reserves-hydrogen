@@ -36,7 +36,7 @@ export function SearchForm({children, ...props}: SearchFormProps) {
   }
 
   return (
-    <Form method="get" {...props}>
+    <Form autoComplete="off" method="get" {...props}>
       {children({inputRef})}
     </Form>
   );

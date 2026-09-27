@@ -53,6 +53,7 @@ export default function SearchPage() {
         {({inputRef}) => (
           <>
             <input
+              autoComplete="off"
               defaultValue={term}
               name="q"
               placeholder="Search…"

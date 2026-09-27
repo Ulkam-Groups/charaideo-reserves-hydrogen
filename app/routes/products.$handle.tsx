@@ -1,4 +1,4 @@
-import {Suspense} from 'react';
+import {Suspense, useEffect} from 'react';
 import {Await, Link, redirect, useLoaderData} from 'react-router';
 import type {Route} from './+types/products.$handle';
 import {
@@ -18,6 +18,11 @@ import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {ProductReviews} from '~/components/ProductReviews';
 import {ProductItem} from '~/components/ProductItem';
 import {measureStorefront} from '~/lib/monitoring.server';
+import {getProductOriginLabel} from '~/lib/product-origin';
+import {
+  RECENT_PRODUCTS_UPDATED_EVENT,
+  rememberRecentProduct,
+} from '~/lib/recent-products';
 import type {ProductFragment} from 'storefrontapi.generated';
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -51,13 +56,13 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     throw new Error('Expected product handle to be defined');
   }
 
-  const [{product}] = await Promise.all([
+  const [{product}, productOriginLabel] = await Promise.all([
     measureStorefront(context.monitor, 'product', () =>
       storefront.query(PRODUCT_QUERY, {
         variables: {handle, selectedOptions: getSelectedProductOptions(request)},
       }),
     ),
-    // Add other queries here, so that they are loaded in parallel
+    loadProductOriginLabel(context, handle),
   ]);
 
   if (!product?.id) {
@@ -68,6 +73,7 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   redirectIfHandleIsLocalized(request, {handle, data: product});
 
   return {
+    productOriginLabel,
     product: {
       ...product,
       descriptionHtml: sanitizeStorefrontHtml(product.descriptionHtml),
@@ -94,6 +100,23 @@ function loadDeferredData(
     }),
     relatedProducts: loadRelatedProducts(context, shopifyProductGid),
   };
+}
+
+async function loadProductOriginLabel(
+  context: Route.LoaderArgs['context'],
+  handle: string,
+) {
+  try {
+    const {product} = await context.storefront.query(PRODUCT_ORIGIN_TAG_QUERY, {
+      variables: {handle},
+    });
+
+    return getProductOriginLabel(product?.tags);
+  } catch {
+    // Product-tag access is optional. Keep the PDP available when the
+    // unauthenticated_read_product_tags permission has not been granted.
+    return getProductOriginLabel();
+  }
 }
 
 async function loadRelatedProducts(
@@ -182,7 +205,8 @@ async function loadRelatedProductTags(
 }
 
 export default function Product() {
-  const {product, judgeMeReviews, relatedProducts} = useLoaderData<typeof loader>();
+  const {product, productOriginLabel, judgeMeReviews, relatedProducts} =
+    useLoaderData<typeof loader>();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -204,12 +228,48 @@ export default function Product() {
   const rating = parseRating(product.reviewRating?.value);
   const reviewCount = Number(product.reviewCount?.value || 0);
   const hasReviews = rating !== null && reviewCount > 0;
+  const recentProductImage =
+    selectedVariant?.image ?? product.images.nodes[0] ?? null;
+
+  useEffect(() => {
+    if (!selectedVariant?.availableForSale) return;
+
+    try {
+      rememberRecentProduct(window.localStorage, {
+        handle: product.handle,
+        title: product.title,
+        variantId: selectedVariant.id,
+        variantTitle: selectedVariant.title,
+        price: selectedVariant.price,
+        image: recentProductImage
+          ? {
+              url: recentProductImage.url,
+              altText: recentProductImage.altText || product.title,
+            }
+          : null,
+        viewedAt: Date.now(),
+      });
+      window.dispatchEvent(new Event(RECENT_PRODUCTS_UPDATED_EVENT));
+    } catch {
+      // Some privacy modes block localStorage entirely. The PDP remains usable.
+    }
+  }, [
+    product.handle,
+    product.title,
+    recentProductImage?.altText,
+    recentProductImage?.url,
+    selectedVariant?.availableForSale,
+    selectedVariant?.id,
+    selectedVariant?.price.amount,
+    selectedVariant?.price.currencyCode,
+    selectedVariant?.title,
+  ]);
 
   return (
     <div className="product-page">
       <section className="product product-purchase">
         <div className="product-gallery">
-          <div className="product-origin-tab">Assam / 26.98° N</div>
+          <div className="product-origin-tab">{productOriginLabel}</div>
           <ProductImage
             image={selectedVariant?.image}
             images={product.images.nodes}
@@ -640,6 +700,18 @@ const RELATED_PRODUCT_TAGS_QUERY = `#graphql
         id
         tags
       }
+    }
+  }
+` as const;
+
+const PRODUCT_ORIGIN_TAG_QUERY = `#graphql
+  query ProductOriginTag(
+    $country: CountryCode
+    $language: LanguageCode
+    $handle: String!
+  ) @inContext(country: $country, language: $language) {
+    product(handle: $handle) {
+      tags
     }
   }
 ` as const;
