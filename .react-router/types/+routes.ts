@@ -20,6 +20,15 @@ type Pages = {
       "articleHandle": string;
     };
   };
+  "/api/checkout/razorpay/verify": {
+    params: {};
+  };
+  "/api/checkout/razorpay/order": {
+    params: {};
+  };
+  "/checkout/razorpay/success": {
+    params: {};
+  };
   "/sitemap/:type/:page.xml": {
     params: {
       "type": string;
@@ -32,6 +41,9 @@ type Pages = {
     };
   };
   "/webhooks/orders-create": {
+    params: {};
+  };
+  "/api/shipping-estimate": {
     params: {};
   };
   "/collections/:handle": {
@@ -49,6 +61,9 @@ type Pages = {
     params: {};
   };
   "/collections": {
+    params: {};
+  };
+  "/webhooks/razorpay": {
     params: {};
   };
   "/policies/:handle": {
@@ -132,6 +147,9 @@ type Pages = {
   "/blends": {
     params: {};
   };
+  "/health": {
+    params: {};
+  };
   "/search": {
     params: {};
   };
@@ -153,11 +171,23 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/favicon.ico" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/search" | "/cart" | "/cart/:lines" | "/*";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/api/checkout/razorpay/verify" | "/api/checkout/razorpay/order" | "/checkout/razorpay/success" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/api/shipping-estimate" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/webhooks/razorpay" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/favicon.ico" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/health" | "/search" | "/cart" | "/cart/:lines" | "/*";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
     page: "/blogs/:blogHandle/:articleHandle";
+  };
+  "routes/api.checkout.razorpay.verify.ts": {
+    id: "routes/api.checkout.razorpay.verify";
+    page: "/api/checkout/razorpay/verify";
+  };
+  "routes/api.checkout.razorpay.order.ts": {
+    id: "routes/api.checkout.razorpay.order";
+    page: "/api/checkout/razorpay/order";
+  };
+  "routes/checkout.razorpay.success.tsx": {
+    id: "routes/checkout.razorpay.success";
+    page: "/checkout/razorpay/success";
   };
   "routes/sitemap.$type.$page[.xml].tsx": {
     id: "routes/sitemap.$type.$page[.xml]";
@@ -170,6 +200,10 @@ type RouteFiles = {
   "routes/webhooks.orders-create.ts": {
     id: "routes/webhooks.orders-create";
     page: "/webhooks/orders-create";
+  };
+  "routes/api.shipping-estimate.ts": {
+    id: "routes/api.shipping-estimate";
+    page: "/api/shipping-estimate";
   };
   "routes/collections.$handle.tsx": {
     id: "routes/collections.$handle";
@@ -190,6 +224,10 @@ type RouteFiles = {
   "routes/collections._index.tsx": {
     id: "routes/collections._index";
     page: "/collections";
+  };
+  "routes/webhooks.razorpay.ts": {
+    id: "routes/webhooks.razorpay";
+    page: "/webhooks/razorpay";
   };
   "routes/policies.$handle.tsx": {
     id: "routes/policies.$handle";
@@ -287,6 +325,10 @@ type RouteFiles = {
     id: "routes/blends";
     page: "/blends";
   };
+  "routes/health.ts": {
+    id: "routes/health";
+    page: "/health";
+  };
   "routes/search.tsx": {
     id: "routes/search";
     page: "/search";
@@ -312,14 +354,19 @@ type RouteFiles = {
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "routes/blogs.$blogHandle.$articleHandle": typeof import("./app/routes/blogs.$blogHandle.$articleHandle.tsx");
+  "routes/api.checkout.razorpay.verify": typeof import("./app/routes/api.checkout.razorpay.verify.ts");
+  "routes/api.checkout.razorpay.order": typeof import("./app/routes/api.checkout.razorpay.order.ts");
+  "routes/checkout.razorpay.success": typeof import("./app/routes/checkout.razorpay.success.tsx");
   "routes/sitemap.$type.$page[.xml]": typeof import("./app/routes/sitemap.$type.$page[.xml].tsx");
   "routes/blogs.$blogHandle._index": typeof import("./app/routes/blogs.$blogHandle._index.tsx");
   "routes/webhooks.orders-create": typeof import("./app/routes/webhooks.orders-create.ts");
+  "routes/api.shipping-estimate": typeof import("./app/routes/api.shipping-estimate.ts");
   "routes/collections.$handle": typeof import("./app/routes/collections.$handle.tsx");
   "routes/account_.authorize": typeof import("./app/routes/account_.authorize.tsx");
   "routes/agent.buyer-claims": typeof import("./app/routes/agent.buyer-claims.ts");
   "routes/api.blend-checkout": typeof import("./app/routes/api.blend-checkout.ts");
   "routes/collections._index": typeof import("./app/routes/collections._index.tsx");
+  "routes/webhooks.razorpay": typeof import("./app/routes/webhooks.razorpay.ts");
   "routes/policies.$handle": typeof import("./app/routes/policies.$handle.tsx");
   "routes/products.$handle": typeof import("./app/routes/products.$handle.tsx");
   "routes/account_.logout": typeof import("./app/routes/account_.logout.tsx");
@@ -344,6 +391,7 @@ type RouteModules = {
   "routes/account.$": typeof import("./app/routes/account.$.tsx");
   "routes/sign-in": typeof import("./app/routes/sign-in.tsx");
   "routes/blends": typeof import("./app/routes/blends.tsx");
+  "routes/health": typeof import("./app/routes/health.ts");
   "routes/search": typeof import("./app/routes/search.tsx");
   "routes/_index": typeof import("./app/routes/_index.tsx");
   "routes/cart": typeof import("./app/routes/cart.tsx");

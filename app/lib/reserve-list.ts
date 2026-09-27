@@ -6,6 +6,16 @@ export type ReserveProduct = {
   availableForSale: boolean;
   featuredImage?: {url: string; altText: string | null; width: number; height: number} | null;
   priceRange?: {minVariantPrice: ProductItemFragment['priceRange']['minVariantPrice']};
+  variants: {
+    nodes: ReserveVariant[];
+  };
+};
+
+export type ReserveVariant = {
+  id: string;
+  title: string;
+  availableForSale: boolean;
+  selectedOptions: Array<{name: string; value: string}>;
 };
 
 export type ReserveCollection = {
@@ -38,6 +48,15 @@ export function partitionReserveCollections(collections: ReserveCollection[]) {
 
 export function isAvailableForSale(product: ReserveProduct): boolean {
   return product.availableForSale;
+}
+
+export function reserveVariantLabel(variant: ReserveVariant): string {
+  const optionValues = variant.selectedOptions
+    .filter(({name, value}) => name.toLowerCase() !== 'title' && value.toLowerCase() !== 'default title')
+    .map(({value}) => value);
+
+  if (optionValues.length) return optionValues.join(' / ');
+  return variant.title.toLowerCase() === 'default title' ? 'Standard' : variant.title;
 }
 
 export function chapterState(collection: ReserveCollection): 'open' | 'coming-soon' | 'locked' {
