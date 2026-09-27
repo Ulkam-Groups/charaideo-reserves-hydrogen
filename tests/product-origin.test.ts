@@ -7,10 +7,7 @@ import {
 
 test('uses the value from an origin-label product tag', () => {
   assert.equal(
-    getProductOriginLabel([
-      'black-tea',
-      'origin-label: Darjeeling / 27.04° N',
-    ]),
+    getProductOriginLabel(['black-tea', 'origin-label: Darjeeling / 27.04° N']),
     'Darjeeling / 27.04° N',
   );
 });

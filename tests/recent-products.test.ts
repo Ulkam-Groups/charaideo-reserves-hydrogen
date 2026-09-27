@@ -37,10 +37,7 @@ function product(overrides: Partial<RecentProduct> = {}): RecentProduct {
 test('stores the most recently viewed variant first and deduplicates it', () => {
   const storage = createStorage();
   rememberRecentProduct(storage, product());
-  rememberRecentProduct(
-    storage,
-    product({title: 'Updated title', viewedAt: 2}),
-  );
+  rememberRecentProduct(storage, product({title: 'Updated title', viewedAt: 2}));
 
   const recent = readRecentProducts(storage);
   assert.equal(recent.length, 1);
