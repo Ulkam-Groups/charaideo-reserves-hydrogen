@@ -4,7 +4,7 @@
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
 import {Image} from '@shopify/hydrogen';
-import {useLoaderData, useRevalidator} from 'react-router';
+import {useLoaderData, useNavigate, useRevalidator} from 'react-router';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
@@ -179,6 +179,7 @@ function ChapterCollectionCard({
   index: number;
   onWaitlist: (event?: React.SyntheticEvent) => void;
 }) {
+  const navigate = useNavigate();
   const products = collection.products.nodes;
   const availableProducts = products.filter((product) => product.availableForSale);
   const primaryProduct = availableProducts[0] ?? products[0] ?? null;
@@ -195,7 +196,7 @@ function ChapterCollectionCard({
     : `${availableProducts.length} ${availableProducts.length === 1 ? 'tea' : 'teas'} available`;
   const href = `/collections/${collection.handle}`;
   const activate = (event: React.SyntheticEvent) => {
-    if (isOpen) window.location.assign(href);
+    if (isOpen) void navigate(href);
     else if (canJoinWaitlist) onWaitlist(event);
   };
 

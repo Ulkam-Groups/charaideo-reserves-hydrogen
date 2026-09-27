@@ -25,7 +25,7 @@ export default function SignIn() {
         <p>Sign in to see your orders and manage your details, ready for your next tea ritual.</p>
         <a className="button primary" href="/account/login">Continue to sign in <span aria-hidden="true">↗</span></a>
         <p className="fine-print">You’ll continue to our secure sign-in page. New here? You can create your account there too.</p>
-        <Link className="text-link" to="/collections/all">Keep exploring the teas →</Link>
+        <Link className="text-link" prefetch="intent" to="/collections/all">Keep exploring the teas →</Link>
       </div>
     </section>
   );

@@ -61,13 +61,13 @@ function AccountMenu() {
     <div className="account-sidebar">
       <span className="account-menu-label">Account cabinet</span>
       <nav className="account-menu" aria-label="Customer account">
-      <NavLink to="/account/orders" className={accountLinkClass}>
+      <NavLink to="/account/orders" prefetch="intent" className={accountLinkClass}>
         <span aria-hidden="true">01</span> Orders
       </NavLink>
-      <NavLink to="/account/profile" className={accountLinkClass}>
+      <NavLink to="/account/profile" prefetch="intent" className={accountLinkClass}>
         <span aria-hidden="true">02</span> Profile
       </NavLink>
-      <NavLink to="/account/addresses" className={accountLinkClass}>
+      <NavLink to="/account/addresses" prefetch="intent" className={accountLinkClass}>
         <span aria-hidden="true">03</span> Addresses
       </NavLink>
       <Logout />

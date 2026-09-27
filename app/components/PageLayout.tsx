@@ -124,6 +124,7 @@ function SearchAside() {
                   <Link
                     className="predictive-search-all"
                     onClick={closeSearch}
+                    prefetch="intent"
                     to={`${SEARCH_ENDPOINT}?q=${encodeURIComponent(term.current)}`}
                   >
                     View all results for <q>{term.current}</q>{' '}

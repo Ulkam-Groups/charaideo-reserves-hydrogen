@@ -57,11 +57,11 @@ export function HeaderMenu({
 
   return (
     <nav className={className} aria-label="Main navigation">
-      {viewport === 'mobile' && <NavLink className="header-menu-item" end onClick={close} to="/">Home</NavLink>}
+      {viewport === 'mobile' && <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">Home</NavLink>}
       <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/reserve-list">Tea Library</NavLink>
-      <NavLink className="header-menu-item" onClick={close} to="/pages/about-us">Our story</NavLink>
-      <NavLink className="header-menu-item" onClick={close} to="/pages/contact">Contact</NavLink>
-      {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} to="/sign-in">Account</NavLink>}
+      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/about-us">Our story</NavLink>
+      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
+      {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>}
       {viewport === 'mobile' && <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>}
     </nav>
   );
