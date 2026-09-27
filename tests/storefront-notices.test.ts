@@ -28,10 +28,7 @@ function entry(
 }
 
 test('maps an active Shopify link field into a sorted notice', () => {
-  const notices = parseStorefrontNotices(
-    [entry()],
-    new Date('2026-09-27T12:00:00Z'),
-  );
+  const notices = parseStorefrontNotices([entry()], new Date('2026-09-27T12:00:00Z'));
 
   assert.deepEqual(notices, [
     {

@@ -14,7 +14,7 @@
   --thread: #e7ede0;
   --serif: 'Fraunces', Georgia, serif;
   --sans: 'General Sans', system-ui, sans-serif;
-  --header-height: 82px;
+  --header-height: 70px;
   --color-dark: #132a1f;
   --color-light: #fffef8;
   --color-brand: #132a1f;
@@ -163,11 +163,11 @@ textarea {
 .header,
 .header.header-solid,
 .header.header-scrolled {
-  height: 76px;
+  height: 70px;
   padding: 0;
   background: rgba(255, 254, 248, 0.94);
   border-bottom: 1px solid #e7ede0;
-  box-shadow: 0 8px 28px rgba(19, 42, 31, 0.035);
+  box-shadow: 0 10px 30px rgba(19, 42, 31, 0.07);
   backdrop-filter: blur(16px);
 }
 .header-inner {
@@ -2266,7 +2266,7 @@ html {
 }
 @media (max-width: 640px) {
   :root {
-    --header-height: 66px;
+    --header-height: 70px;
   }
   .header,
   .header.header-solid,
