@@ -64,6 +64,101 @@ textarea {
   color: #c4a484;
 }
 
+.chapter-announcement {
+  position: relative;
+  z-index: 51;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 26px);
+  height: 25px;
+  min-height: 25px;
+  padding: 0 18px;
+  background: #132a1f;
+  color: #fffef8;
+  font: 600 9px/1.15 var(--sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.notice-board {
+  position: relative;
+  z-index: 51;
+  height: 25px;
+  min-height: 25px;
+  background: #132a1f;
+}
+.notice-board-item {
+  animation: notice-board-enter 0.35s ease both;
+}
+.chapter-announcement:hover,
+.chapter-announcement:focus-visible {
+  background: #132a1f;
+  color: #fff;
+  text-decoration: none;
+}
+.chapter-announcement-message,
+.chapter-announcement-cta {
+  display: inline-flex;
+  align-items: center;
+}
+.chapter-announcement-message {
+  gap: 8px;
+  min-width: 0;
+}
+.chapter-announcement-message > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chapter-announcement-signal {
+  --chapter-signal: 216 202 179;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(var(--chapter-signal));
+  box-shadow: 0 0 0 0 rgb(var(--chapter-signal) / 0.6);
+  animation: chapter-announcement-pulse 1.5s ease-out infinite;
+}
+.chapter-announcement[data-state='open'] .chapter-announcement-signal {
+  --chapter-signal: 155 227 155;
+}
+.chapter-announcement-cta {
+  gap: 5px;
+  padding-bottom: 1px;
+  border-bottom: 1px solid rgba(255, 254, 248, 0.65);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+@keyframes chapter-announcement-pulse {
+  0% {box-shadow: 0 0 0 0 rgb(var(--chapter-signal) / 0.65); opacity: 1}
+  70% {box-shadow: 0 0 0 6px transparent; opacity: 0.7}
+  100% {box-shadow: 0 0 0 0 transparent; opacity: 1}
+}
+@keyframes notice-board-enter {
+  from {opacity: 0; transform: translateY(-2px)}
+  to {opacity: 1; transform: translateY(0)}
+}
+@media (prefers-reduced-motion: reduce) {
+  .chapter-announcement-signal {animation: none}
+  .notice-board-item {animation: none}
+}
+@media (max-width: 520px) {
+  .chapter-announcement {
+    justify-content: space-between;
+    gap: 8px;
+    height: 24px;
+    min-height: 24px;
+    padding: 0 10px;
+    font-size: 8.5px;
+    letter-spacing: 0.07em;
+  }
+  .notice-board {height: 24px; min-height: 24px}
+  .chapter-announcement-message {gap: 6px}
+  .chapter-announcement-cta {letter-spacing: 0.04em}
+}
+
 /* One shared header and footer across every route. */
 .header,
 .header.header-solid,

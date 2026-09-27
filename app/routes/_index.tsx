@@ -4,10 +4,11 @@
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
 import {Image} from '@shopify/hydrogen';
-import {useLoaderData, useNavigate, useRevalidator} from 'react-router';
+import {useLoaderData, useNavigate, useRevalidator, useSearchParams} from 'react-router';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
+import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
 
 export const meta: Route.MetaFunction = () => [
   {title: "Charaideo Reserves™ | The Reserve List of Assam's Fine Tea Estates"},
@@ -93,7 +94,9 @@ export async function loader({context}: Route.LoaderArgs) {
       }
     }));
     chapterCollections = collections.filter((collection): collection is ChapterCollection => collection !== null);
-    chapterProduct = chapterCollections[0]?.products.nodes.find((product) => product.availableForSale) ?? null;
+    chapterProduct = selectStockedChapterProduct(
+      chapterCollections[0]?.products.nodes ?? [],
+    );
   } catch {
     // A failed inventory check keeps the mystery state instead of revealing it.
   }
@@ -317,6 +320,7 @@ function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) 
 
 export default function Homepage() {
   const {chapterProduct, chapterCollections} = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const revalidator = useRevalidator();
   const firstChapter = chapterCollections[0] ?? null;
   const firstChapterProduct = firstChapter?.products.nodes[0] ?? null;
@@ -366,6 +370,17 @@ export default function Homepage() {
     };
   }, [A]);
   xe.useEffect(() => {
+    if (
+      searchParams.get('join') !== firstChapter?.handle ||
+      !isChapterOneWaitlist
+    ) return;
+
+    u(!0);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('join');
+    setSearchParams(nextParams, {preventScrollReset: true, replace: true});
+  }, [firstChapter?.handle, isChapterOneWaitlist, searchParams, setSearchParams]);
+  xe.useEffect(() => {
     let a = (P) => {
       if (P.key === "Escape" && A) E();
     };
@@ -412,15 +427,6 @@ export default function Homepage() {
     className:
       "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#FFFEF8] text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
     children: [
-      f("div", {
-        className:
-          "w-full max-w-[100vw] overflow-hidden bg-[#132A1F] text-[#FFFEF8] text-center py-[10px] text-[12px] tracking-[0.14em] uppercase font-[500]",
-        children: isRevealed
-          ? `${firstChapter?.title ?? 'Reserve'}- Now Open`
-          : isChapterOneWaitlist
-            ? `${firstChapter?.title ?? 'Reserve'}- Opening Soon`
-            : "The Reserve List- New chapters coming soon",
-      }),
       f("section", {
         className: "relative bg-[#FFFEF8] overflow-hidden max-w-[100vw]",
         children: f("div", {

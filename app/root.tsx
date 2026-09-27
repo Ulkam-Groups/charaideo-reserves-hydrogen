@@ -25,12 +25,38 @@ import {
   sentryIngestOrigin,
 } from '~/lib/monitoring.server';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
+import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
+import {
+  parseStorefrontNotices,
+  type StorefrontNoticeMetaobject,
+} from '~/lib/storefront-notices';
 import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
 import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 
 const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
 const GOOGLE_FONTS_STYLESHEET =
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
+type ChapterAnnouncementResult = {
+  collections: {
+    nodes: Array<{
+      title: string;
+      handle: string;
+      products: {
+        nodes: Array<{
+          variants: {
+            nodes: Array<{
+              availableForSale: boolean;
+              currentlyNotInStock: boolean;
+            }>;
+          };
+        }>;
+      };
+    }>;
+  };
+  metaobjects: {
+    nodes: StorefrontNoticeMetaobject[];
+  };
+};
 export function links() {
   return [
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
@@ -70,16 +96,78 @@ export async function loader({context}: Route.LoaderArgs) {
         ),
     );
 
-  const header = await measureOptionalStorefront(context.monitor, 'header', () =>
-    storefront.query(HEADER_QUERY, {
-      variables: {headerMenuHandle: 'main-menu'},
-      cache: storefront.CacheLong(),
-    }),
+  const [header, chapterAnnouncementResult] = await Promise.all([
+    measureOptionalStorefront(context.monitor, 'header', () =>
+      storefront.query(HEADER_QUERY, {
+        variables: {headerMenuHandle: 'main-menu'},
+        cache: storefront.CacheLong(),
+      }),
+    ),
+    measureOptionalStorefront(context.monitor, 'global_notices', () =>
+      storefront.query(GLOBAL_NOTICES_QUERY, {
+        cache: storefront.CacheShort({maxAge: 30, staleWhileRevalidate: 60}),
+      }) as Promise<ChapterAnnouncementResult>,
+    ),
+  ]);
+  const chapter = chapterAnnouncementResult?.collections.nodes.find(
+    (collection) => collection.title.trim().toLocaleLowerCase() === 'chapter i',
+  ) ?? null;
+  const stockedChapterProduct = chapter
+    ? selectStockedChapterProduct(chapter.products.nodes)
+    : null;
+  const chapterAnnouncement = chapter
+    ? {
+        title: chapter.title,
+        handle: chapter.handle,
+        state: stockedChapterProduct
+          ? ('open' as const)
+          : chapter.products.nodes.length
+            ? ('opening-soon' as const)
+            : ('upcoming' as const),
+      }
+    : {
+        title: 'Chapter I',
+        handle: 'chapter-i',
+        state: 'opening-soon' as const,
+      };
+  const chapterNotice = {
+    id: 'automatic-chapter-i',
+    message:
+      chapterAnnouncement.state === 'open'
+        ? `${chapterAnnouncement.title} · Open Now`
+        : chapterAnnouncement.state === 'opening-soon'
+          ? `${chapterAnnouncement.title} · Opening Soon`
+          : `${chapterAnnouncement.title} · Coming Soon`,
+    buttonLabel:
+      chapterAnnouncement.state === 'open'
+        ? 'Explore Now →'
+        : chapterAnnouncement.state === 'opening-soon'
+          ? 'Join Now →'
+          : 'View Reserve List →',
+    buttonLink:
+      chapterAnnouncement.state === 'open'
+        ? `/collections/${chapterAnnouncement.handle}`
+        : chapterAnnouncement.state === 'opening-soon'
+          ? `/?join=${encodeURIComponent(chapterAnnouncement.handle)}#chapter-collection`
+          : '/reserve-list',
+    displayOrder: 1,
+    tone: chapterAnnouncement.state === 'open' ? ('success' as const) : ('default' as const),
+    state: chapterAnnouncement.state,
+  };
+  const notices = [
+    chapterNotice,
+    ...parseStorefrontNotices(
+      chapterAnnouncementResult?.metaobjects.nodes ?? [],
+    ),
+  ].sort(
+    (left, right) =>
+      left.displayOrder - right.displayOrder || left.id.localeCompare(right.id),
   );
 
   return {
     cart: measureOptionalStorefront(context.monitor, 'cart', () => cart.get()),
     consent: buildAnalyticsConsent(env),
+    notices,
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
@@ -101,6 +189,37 @@ export async function loader({context}: Route.LoaderArgs) {
     }),
   };
 }
+
+const GLOBAL_NOTICES_QUERY = `#graphql
+  query GlobalNotices {
+    collections(first: 50, sortKey: TITLE) {
+      nodes {
+        title
+        handle
+        products(first: 50) {
+          nodes {
+            variants(first: 50) {
+              nodes { availableForSale currentlyNotInStock }
+            }
+          }
+        }
+      }
+    }
+    metaobjects(type: "storefront_notice", first: 50) {
+      nodes {
+        id
+        message: field(key: "message") { value }
+        buttonLabel: field(key: "button_label") { value }
+        buttonLink: field(key: "button_link") { value }
+        enabled: field(key: "enabled") { value }
+        displayOrder: field(key: "display_order") { value }
+        startsAt: field(key: "start_date_time") { value }
+        endsAt: field(key: "end_date_time") { value }
+        tone: field(key: "style_tone") { value }
+      }
+    }
+  }
+` as const;
 
 export default function App() {
   const data = useLoaderData<typeof loader>();

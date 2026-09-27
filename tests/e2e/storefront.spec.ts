@@ -38,6 +38,30 @@ test('homepage and catalog hydrate without recoverable React errors', async ({
   expect(browserErrors).toEqual([]);
 });
 
+test('chapter announcement is a compact call to action above the header', async ({
+  page,
+  context,
+}) => {
+  await isolateCheckout(context);
+  await page.goto('/');
+
+  const announcement = page.getByRole('link', {
+    name: /Chapter I · Opening Soon\. Join Now/i,
+  });
+  await expect(announcement).toBeVisible();
+  await expect(announcement).toHaveAttribute(
+    'href',
+    /\?join=chapter-i#chapter-collection$/,
+  );
+
+  const announcementBox = await announcement.boundingBox();
+  const headerBox = await page.locator('.header').boundingBox();
+  expect(announcementBox).not.toBeNull();
+  expect(headerBox).not.toBeNull();
+  expect(announcementBox!.height).toBeLessThan(headerBox!.height);
+  expect(announcementBox!.y).toBeLessThan(headerBox!.y);
+});
+
 test('disabled Sentry flag omits browser SDK and ingest requests', async ({
   page,
   context,

@@ -1,5 +1,5 @@
 import {Await, Link} from 'react-router';
-import {Suspense} from 'react';
+import {Suspense, useEffect, useState} from 'react';
 import type {CartApiQueryFragment, HeaderQuery} from 'storefrontapi.generated';
 import {Aside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
@@ -7,9 +7,11 @@ import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
 import {SEARCH_ENDPOINT, SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
+import type {StorefrontNotice} from '~/lib/storefront-notices';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
+  notices: StorefrontNotice[];
   header: HeaderQuery | null;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
@@ -18,6 +20,7 @@ interface PageLayoutProps {
 
 export function PageLayout({
   cart,
+  notices,
   children = null,
   header,
   isLoggedIn,
@@ -28,6 +31,7 @@ export function PageLayout({
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
+      <NoticeBoard notices={notices} />
       <Header
         header={header}
         cart={cart}
@@ -40,6 +44,76 @@ export function PageLayout({
       <main id="main-content">{children}</main>
       <Footer />
     </Aside.Provider>
+  );
+}
+
+function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => setActiveIndex(0), [notices.length]);
+
+  useEffect(() => {
+    if (notices.length < 2 || paused) return;
+    const interval = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % notices.length);
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [notices.length, paused]);
+
+  if (!notices.length) return null;
+  const notice = notices[activeIndex] ?? notices[0];
+
+  return (
+    <div
+      className="notice-board"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
+      }}
+      onFocus={() => setPaused(true)}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <NoticeLink key={notice.id} notice={notice} />
+    </div>
+  );
+}
+
+function NoticeLink({notice}: {notice: StorefrontNotice}) {
+  const content = (
+    <>
+      <span className="chapter-announcement-message">
+        <span className="chapter-announcement-signal" aria-hidden="true" />
+        <span>{notice.message}</span>
+      </span>
+      {notice.buttonLabel && (
+        <span className="chapter-announcement-cta">{notice.buttonLabel}</span>
+      )}
+    </>
+  );
+  const className = 'chapter-announcement notice-board-item';
+  const sharedProps = {
+    'aria-label': notice.buttonLabel
+      ? `${notice.message}. ${notice.buttonLabel}`
+      : notice.message,
+    className,
+    'data-state': notice.state,
+    'data-tone': notice.tone,
+  };
+
+  if (!notice.buttonLink) return <div {...sharedProps}>{content}</div>;
+  if (notice.buttonLink.startsWith('/') && !notice.buttonLink.startsWith('//')) {
+    return (
+      <Link {...sharedProps} prefetch="intent" to={notice.buttonLink}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <a {...sharedProps} href={notice.buttonLink}>
+      {content}
+    </a>
   );
 }
 
