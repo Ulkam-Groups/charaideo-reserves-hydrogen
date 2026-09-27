@@ -47,7 +47,10 @@ function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
   return (
     <Aside type="cart" heading="Cart">
       <Suspense fallback={<p>Loading cart ...</p>}>
-        <Await resolve={cart}>
+        <Await
+          resolve={cart}
+          errorElement={<CartMain cart={null} layout="aside" />}
+        >
           {(cart) => {
             return <CartMain cart={cart} layout="aside" />;
           }}
@@ -66,6 +69,7 @@ function SearchAside() {
             <>
               <input
                 aria-label="Search teas and pages"
+                autoComplete="off"
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}

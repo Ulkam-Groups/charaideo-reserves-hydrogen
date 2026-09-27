@@ -85,7 +85,7 @@ export function ProductItem({
           <p>{product.productType || 'The tea cabinet'}</p>
           <h2><Link to={url}>{product.title}</Link></h2>
         </div>
-        <p className="catalog-card-description" title={fullDescription}>
+        <p className="catalog-card-description">
           {cardDescription}
         </p>
 
@@ -107,7 +107,6 @@ export function ProductItem({
                         ? `Select ${label}`
                         : `${label}, out of stock`
                     }
-                    title={!item.availableForSale ? 'Out of stock' : undefined}
                     onClick={() => setSelectedVariantId(item.id)}
                   >
                     {label}

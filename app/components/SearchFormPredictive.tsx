@@ -65,7 +65,12 @@ export function SearchFormPredictive({
   }
 
   return (
-    <fetcher.Form {...props} className={className} onSubmit={submitSearch}>
+    <fetcher.Form
+      autoComplete="off"
+      {...props}
+      className={className}
+      onSubmit={submitSearch}
+    >
       {children({inputRef, fetcher, fetchResults, goToSearch})}
     </fetcher.Form>
   );

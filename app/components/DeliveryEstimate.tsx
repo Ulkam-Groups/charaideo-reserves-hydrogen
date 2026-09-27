@@ -52,7 +52,11 @@ export function DeliveryEstimate() {
         <h2 id="delivery-estimate-title">Check delivery</h2>
         <p>Estimated arrival to your pincode</p>
       </div>
-      <form className="delivery-estimate-form" onSubmit={checkDelivery}>
+      <form
+        autoComplete="off"
+        className="delivery-estimate-form"
+        onSubmit={checkDelivery}
+      >
         <label className="visually-hidden" htmlFor="delivery-pincode">
           Delivery pincode
         </label>
@@ -61,7 +65,7 @@ export function DeliveryEstimate() {
           name="pincode"
           type="text"
           inputMode="numeric"
-          autoComplete="postal-code"
+          autoComplete="off"
           pattern="[0-9]{6}"
           maxLength={6}
           placeholder="Enter 6-digit pincode"

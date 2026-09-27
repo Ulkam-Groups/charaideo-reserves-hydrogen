@@ -73,7 +73,7 @@ export async function loader({context}: Route.LoaderArgs) {
   );
 
   return {
-    cart: cart.get(),
+    cart: measureOptionalStorefront(context.monitor, 'cart', () => cart.get()),
     consent: buildAnalyticsConsent(env),
     header,
     isLoggedIn: customerAccount.isLoggedIn(),

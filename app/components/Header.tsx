@@ -94,8 +94,8 @@ function AccountLink({loggedIn}: {loggedIn: boolean}) {
     <NavLink
       aria-label={label}
       className="header-icon-button header-account"
+      data-tooltip={label}
       prefetch="intent"
-      title={label}
       to={loggedIn ? '/account' : '/sign-in'}
     >
       <AccountIcon />
@@ -109,8 +109,8 @@ function HeaderMenuMobileToggle() {
     <button
       aria-label="Open menu"
       className="header-icon-button header-menu-mobile-toggle reset"
+      data-tooltip="Menu"
       onClick={() => open('mobile')}
-      title="Menu"
       type="button"
     >
       <MenuIcon />
@@ -142,8 +142,8 @@ function CartBadge({count}: {count: number | null}) {
     <a
       aria-label={`Cart ${cartCount} ${cartCount === 1 ? 'item' : 'items'}`}
       className="header-icon-button header-cart"
+      data-tooltip="Cart"
       href="/cart"
-      title="Cart"
       onClick={(e) => {
         e.preventDefault();
         open('cart');
@@ -166,7 +166,7 @@ function CartBadge({count}: {count: number | null}) {
 function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
   return (
     <Suspense fallback={<CartBadge count={null} />}>
-      <Await resolve={cart}>
+      <Await resolve={cart} errorElement={<CartBadge count={0} />}>
         <CartBanner />
       </Await>
     </Suspense>

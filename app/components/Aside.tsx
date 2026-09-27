@@ -42,7 +42,9 @@ export function Aside({
     if (!expanded) return;
     const previous = document.activeElement as HTMLElement | null;
     const oldOverflow = document.body.style.overflow;
+    const oldDocumentOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     const focusable = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select, textarea, [tabindex="0"]') || []).filter(el => el.getClientRects().length > 0);
     focusable()[0]?.focus();
     const handler = (event: KeyboardEvent) => {
@@ -56,7 +58,12 @@ export function Aside({
       }
     };
     document.addEventListener('keydown', handler);
-    return () => {document.removeEventListener('keydown', handler); document.body.style.overflow = oldOverflow; previous?.focus();};
+    return () => {
+      document.removeEventListener('keydown', handler);
+      document.body.style.overflow = oldOverflow;
+      document.documentElement.style.overflow = oldDocumentOverflow;
+      previous?.focus();
+    };
   }, [close, expanded]);
 
   return (

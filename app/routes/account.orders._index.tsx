@@ -153,6 +153,7 @@ function OrderSearchForm({
 
   return (
     <form
+      autoComplete="off"
       ref={formRef}
       onSubmit={handleSubmit}
       className="order-search-form"
@@ -164,11 +165,27 @@ function OrderSearchForm({
         <div className="order-search-inputs">
           <div className="account-field">
             <label htmlFor="order-number">Order number</label>
-            <input id="order-number" type="search" name={ORDER_FILTER_FIELDS.NAME} placeholder="e.g. 1042" defaultValue={currentFilters.name || ''} className="order-search-input" />
+            <input
+              autoComplete="off"
+              id="order-number"
+              type="search"
+              name={ORDER_FILTER_FIELDS.NAME}
+              placeholder="e.g. 1042"
+              defaultValue={currentFilters.name || ''}
+              className="order-search-input"
+            />
           </div>
           <div className="account-field">
             <label htmlFor="confirmation-number">Confirmation number</label>
-            <input id="confirmation-number" type="search" name={ORDER_FILTER_FIELDS.CONFIRMATION_NUMBER} placeholder="Enter confirmation number" defaultValue={currentFilters.confirmationNumber || ''} className="order-search-input" />
+            <input
+              autoComplete="off"
+              id="confirmation-number"
+              type="search"
+              name={ORDER_FILTER_FIELDS.CONFIRMATION_NUMBER}
+              placeholder="Enter confirmation number"
+              defaultValue={currentFilters.confirmationNumber || ''}
+              className="order-search-input"
+            />
           </div>
         </div>
 

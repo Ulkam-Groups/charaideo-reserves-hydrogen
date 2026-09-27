@@ -171,6 +171,7 @@ function CartDiscounts({
             Discount code
           </label>
           <input
+            autoComplete="off"
             id="discount-code-input"
             type="text"
             name="discountCode"
@@ -244,6 +245,7 @@ function CartGiftCard({
       {showInput && <AddGiftCardForm fetcherKey="gift-card-add">
         <div>
           <input
+            autoComplete="off"
             type="text"
             name="giftCardCode"
             placeholder="Gift card code"
