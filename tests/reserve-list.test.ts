@@ -46,16 +46,22 @@ test('chapter state follows storefront sale availability', () => {
 });
 
 test('variant labels prefer customer-facing option values', () => {
-  assert.equal(reserveVariantLabel({
-    id: 'variant-50g',
-    title: '50 g',
-    availableForSale: true,
-    selectedOptions: [{name: 'Size', value: '50 g'}],
-  }), '50 g');
-  assert.equal(reserveVariantLabel({
-    id: 'variant-default',
-    title: 'Default Title',
-    availableForSale: true,
-    selectedOptions: [{name: 'Title', value: 'Default Title'}],
-  }), 'Standard');
+  assert.equal(
+    reserveVariantLabel({
+      id: 'variant-50g',
+      title: '50 g',
+      availableForSale: true,
+      selectedOptions: [{name: 'Size', value: '50 g'}],
+    }),
+    '50 g',
+  );
+  assert.equal(
+    reserveVariantLabel({
+      id: 'variant-default',
+      title: 'Default Title',
+      availableForSale: true,
+      selectedOptions: [{name: 'Title', value: 'Default Title'}],
+    }),
+    'Standard',
+  );
 });
