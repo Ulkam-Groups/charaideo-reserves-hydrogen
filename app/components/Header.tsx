@@ -166,7 +166,7 @@ function CartBadge({count}: {count: number | null}) {
 function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
   return (
     <Suspense fallback={<CartBadge count={null} />}>
-      <Await resolve={cart}>
+      <Await resolve={cart} errorElement={<CartBadge count={0} />}>
         <CartBanner />
       </Await>
     </Suspense>
