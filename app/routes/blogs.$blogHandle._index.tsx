@@ -96,7 +96,7 @@ function ArticleItem({
   }).format(new Date(article.publishedAt!));
   return (
     <div className="blog-article" key={article.id}>
-      <Link to={`/blogs/${article.blog.handle}/${article.handle}`}>
+      <Link prefetch="intent" to={`/blogs/${article.blog.handle}/${article.handle}`}>
         {article.image && (
           <div className="blog-article-image">
             <Image

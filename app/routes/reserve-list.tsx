@@ -4,9 +4,6 @@ import {data, Link, useLoaderData} from 'react-router';
 import {Image, Money} from '@shopify/hydrogen';
 import type {Route} from './+types/reserve-list';
 import {chapterState, isAvailableForSale, partitionReserveCollections, reserveVariantLabel, type ReserveCollection} from '~/lib/reserve-list';
-import reserveListStylesheet from '~/assets/reserve-list.css?url';
-
-export const links = () => [{rel: 'stylesheet', href: reserveListStylesheet}];
 
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
 

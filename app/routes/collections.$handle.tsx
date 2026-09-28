@@ -76,9 +76,9 @@ export default function Collection() {
       <header className="listing-hero">
         <div className="listing-hero-inner">
           <nav className="listing-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/">Home</Link>
+            <Link prefetch="intent" to="/">Home</Link>
             <span aria-hidden="true">/</span>
-            <Link to="/reserve-list">Reserve List</Link>
+            <Link prefetch="intent" to="/reserve-list">Reserve List</Link>
             <span aria-hidden="true">/</span>
             <span>{collection.title}</span>
           </nav>
@@ -87,7 +87,7 @@ export default function Collection() {
           {collection.description && (
             <p className="collection-description">{collection.description}</p>
           )}
-          <Link className="listing-hero-link" to="/reserve-list">
+          <Link className="listing-hero-link" prefetch="intent" to="/reserve-list">
             Explore the Reserve List <span aria-hidden="true">→</span>
           </Link>
         </div>

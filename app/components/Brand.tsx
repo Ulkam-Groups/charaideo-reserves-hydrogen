@@ -8,6 +8,7 @@ export function Brand({variant = 'default'}: {variant?: 'default' | 'light'}) {
       to="/"
       className={`wordmark wordmark--${variant}`}
       aria-label="Charaideo Reserves home"
+      prefetch="intent"
     >
       <img src={variant === 'light' ? wordmark : logoWordmark} alt="" />
     </Link>

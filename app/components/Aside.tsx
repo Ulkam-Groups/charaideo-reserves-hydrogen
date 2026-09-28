@@ -46,7 +46,8 @@ export function Aside({
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     const focusable = () => Array.from(panel.current?.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select, textarea, [tabindex="0"]') || []).filter(el => el.getClientRects().length > 0);
-    focusable()[0]?.focus();
+    const preferredFocus = panel.current?.querySelector<HTMLElement>('[data-autofocus]');
+    (preferredFocus ?? focusable()[0])?.focus({preventScroll: true});
     const handler = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
       if (event.key === 'Tab') {

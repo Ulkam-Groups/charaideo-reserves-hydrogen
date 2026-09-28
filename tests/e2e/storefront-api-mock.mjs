@@ -134,6 +134,28 @@ function execute(operation, variables) {
         },
         menu: null,
       };
+    case 'ChapterAnnouncement':
+      return {
+        collections: {
+          nodes: [
+            {
+              title: 'Chapter I',
+              handle: 'chapter-i',
+              products: {
+                nodes: [
+                  {
+                    variants: {
+                      nodes: [
+                        {availableForSale: false, currentlyNotInStock: false},
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
     case 'ChapterCollectionList':
       return {collections: {nodes: []}};
     case 'Catalog':

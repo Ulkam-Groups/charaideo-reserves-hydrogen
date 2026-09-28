@@ -83,7 +83,7 @@ export default function OrderRoute() {
   } = useLoaderData<typeof loader>();
   return (
     <div className="account-order">
-      <Link className="account-back-link" to="/account/orders">← Back to orders</Link>
+      <Link className="account-back-link" prefetch="intent" to="/account/orders">← Back to orders</Link>
       <header className="account-section-heading account-order-heading">
         <span className="eyebrow">Order record</span>
         <h2>Order {order.name}</h2>

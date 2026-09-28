@@ -50,14 +50,14 @@ export default function Collections() {
       <header className="listing-hero">
         <div className="listing-hero-inner">
           <nav className="listing-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/">Home</Link>
+            <Link prefetch="intent" to="/">Home</Link>
             <span aria-hidden="true">/</span>
             <span>Collections</span>
           </nav>
           <span className="eyebrow">The tea library</span>
           <h1>Explore our collections</h1>
           <p>Discover the teas of Charaideo Reserves™, gathered by character and craft.</p>
-          <Link className="listing-hero-link" to="/reserve-list">
+          <Link className="listing-hero-link" prefetch="intent" to="/reserve-list">
             View the Reserve List <span aria-hidden="true">→</span>
           </Link>
         </div>

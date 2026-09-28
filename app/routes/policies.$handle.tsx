@@ -28,9 +28,9 @@ export default function Policy() {
       <header className="policy-hero">
         <div className="policy-hero-inner">
           <nav className="listing-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/">Home</Link>
+            <Link prefetch="intent" to="/">Home</Link>
             <span aria-hidden="true">/</span>
-            <Link to="/policies">Policies</Link>
+            <Link prefetch="intent" to="/policies">Policies</Link>
             <span aria-hidden="true">/</span>
             <span>{policy.title}</span>
           </nav>
@@ -46,6 +46,7 @@ export default function Policy() {
             <Link
               key={handle}
               aria-current={policy.handle === handle ? 'page' : undefined}
+              prefetch="intent"
               to={`/policies/${handle}`}
             >
               {title}
@@ -57,7 +58,7 @@ export default function Policy() {
           <div className="policy-help">
             <h2>Need help?</h2>
             <p>Contact us if you have a question about this policy or an order.</p>
-            <Link to="/pages/contact">Contact Charaideo Reserves™ →</Link>
+            <Link prefetch="intent" to="/pages/contact">Contact Charaideo Reserves™ →</Link>
           </div>
         </article>
       </div>

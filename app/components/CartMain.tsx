@@ -178,6 +178,7 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
       <Link
         aria-label={`View ${product.title}`}
         className="cart-empty-suggestion-image"
+        prefetch="intent"
         to={productUrl}
       >
         {product.image ? (
@@ -193,7 +194,7 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
       <div className="cart-empty-suggestion-details">
         <span>Recently viewed</span>
         <h3>
-          <Link to={productUrl}>{product.title}</Link>
+          <Link prefetch="intent" to={productUrl}>{product.title}</Link>
         </h3>
         <div className="cart-empty-suggestion-meta">
           <span>{variantLabel}</span>

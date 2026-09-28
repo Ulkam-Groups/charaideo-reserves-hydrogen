@@ -4,10 +4,11 @@
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
 import {Image} from '@shopify/hydrogen';
-import {useLoaderData, useRevalidator} from 'react-router';
+import {useLoaderData, useNavigate, useRevalidator, useSearchParams} from 'react-router';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
+import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
 
 export const meta: Route.MetaFunction = () => [
   {title: "Charaideo Reserves™ | The Reserve List of Assam's Fine Tea Estates"},
@@ -93,7 +94,9 @@ export async function loader({context}: Route.LoaderArgs) {
       }
     }));
     chapterCollections = collections.filter((collection): collection is ChapterCollection => collection !== null);
-    chapterProduct = chapterCollections[0]?.products.nodes.find((product) => product.availableForSale) ?? null;
+    chapterProduct = selectStockedChapterProduct(
+      chapterCollections[0]?.products.nodes ?? [],
+    );
   } catch {
     // A failed inventory check keeps the mystery state instead of revealing it.
   }
@@ -161,6 +164,11 @@ function HeroBrandArtwork() {
           />
         </svg>
         <span className="hero-brand-cup">
+          <span className="hero-brand-steam">
+            <i />
+            <i />
+            <i />
+          </span>
           <i />
           <span className="hero-brand-ripple" />
           <span className="hero-brand-ripple hero-brand-ripple--trail" />
@@ -179,6 +187,7 @@ function ChapterCollectionCard({
   index: number;
   onWaitlist: (event?: React.SyntheticEvent) => void;
 }) {
+  const navigate = useNavigate();
   const products = collection.products.nodes;
   const availableProducts = products.filter((product) => product.availableForSale);
   const primaryProduct = availableProducts[0] ?? products[0] ?? null;
@@ -195,7 +204,7 @@ function ChapterCollectionCard({
     : `${availableProducts.length} ${availableProducts.length === 1 ? 'tea' : 'teas'} available`;
   const href = `/collections/${collection.handle}`;
   const activate = (event: React.SyntheticEvent) => {
-    if (isOpen) window.location.assign(href);
+    if (isOpen) void navigate(href);
     else if (canJoinWaitlist) onWaitlist(event);
   };
 
@@ -316,6 +325,7 @@ function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) 
 
 export default function Homepage() {
   const {chapterProduct, chapterCollections} = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const revalidator = useRevalidator();
   const firstChapter = chapterCollections[0] ?? null;
   const firstChapterProduct = firstChapter?.products.nodes[0] ?? null;
@@ -365,6 +375,17 @@ export default function Homepage() {
     };
   }, [A]);
   xe.useEffect(() => {
+    if (
+      searchParams.get('join') !== firstChapter?.handle ||
+      !isChapterOneWaitlist
+    ) return;
+
+    u(!0);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('join');
+    setSearchParams(nextParams, {preventScrollReset: true, replace: true});
+  }, [firstChapter?.handle, isChapterOneWaitlist, searchParams, setSearchParams]);
+  xe.useEffect(() => {
     let a = (P) => {
       if (P.key === "Escape" && A) E();
     };
@@ -411,28 +432,19 @@ export default function Homepage() {
     className:
       "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#FFFEF8] text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
     children: [
-      f("div", {
-        className:
-          "w-full max-w-[100vw] overflow-hidden bg-[#132A1F] text-[#FFFEF8] text-center py-[10px] text-[12px] tracking-[0.14em] uppercase font-[500]",
-        children: isRevealed
-          ? `${firstChapter?.title ?? 'Reserve'}- Now Open`
-          : isChapterOneWaitlist
-            ? `${firstChapter?.title ?? 'Reserve'}- Opening Soon`
-            : "The Reserve List- New chapters coming soon",
-      }),
       f("section", {
         className: "relative bg-[#FFFEF8] overflow-hidden max-w-[100vw]",
         children: f("div", {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: y("div", {
-            className: "grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center py-12 md:py-[88px]",
+            className: "home-hero-layout grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center",
             children: [
               y("div", {
-                className: "order-2 md:order-1",
+                className: "hero-copy-reveal order-2 md:order-1",
                 children: [
                   y("div", {
                     className:
-                      "inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-6",
+                      "hero-eyebrow inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-6",
                     children: [
                       f("span", { className: "w-6 h-[1px] bg-[#C4A484]" }),
                       "Assam, North East India",
@@ -440,26 +452,33 @@ export default function Homepage() {
                   }),
                   f("h1", {
                     className:
-                      "serif text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] max-w-[560px]",
-                    children: "The Reserve List of Assam's Fine Tea Estates.",
+                      "hero-display-title serif text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] max-w-[560px]",
+                    children: [
+                      "The Reserve List of ",
+                      f("span", {
+                        className: "hero-title-accent",
+                        children: "Assam's",
+                      }),
+                      " Fine Tea Estates.",
+                    ],
                   }),
                   f("p", {
                     className:
-                      "mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
+                      "hero-intro mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
                     children:
-                      "Single-estate, single-harvest teas- sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
+                      "Single-estate, single-harvest teas—sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
                   }),
                   y("div", {
-                    className: "mt-8 flex flex-wrap gap-3",
+                    className: "hero-actions mt-8 flex flex-wrap gap-3",
                     children: [
                       f("a", {
-                        href: "#",
+                        href: "#chapter-collection",
                         className:
                           "h-[48px] px-7 rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:bg-black transition",
                         children: "Explore Our Reserves",
                       }),
                       f("a", {
-                        href: "#",
+                        href: "/pages/about-us",
                         className:
                           "h-[48px] px-7 rounded-full border border-[#132A1F]/20 text-[#132A1F] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:border-[#132A1F] transition",
                         children: "The story of Charaideo",
@@ -467,7 +486,7 @@ export default function Homepage() {
                     ],
                   }),
                   f("div", {
-                    className: "mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
+                    className: "hero-proof mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
                     children: f("p", {
                       className: "text-[11.5px] tracking-[0.14em] uppercase text-[#5A6B62] font-[500]",
                       children: "One Estate, One Harvest, Fully Traceable, No Blends.",

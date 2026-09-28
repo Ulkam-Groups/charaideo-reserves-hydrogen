@@ -19,7 +19,7 @@ export default function Policies() {
       <header className="policy-hero">
         <div className="policy-hero-inner">
           <nav className="listing-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/">Home</Link>
+            <Link prefetch="intent" to="/">Home</Link>
             <span aria-hidden="true">/</span>
             <span>Policies</span>
           </nav>
@@ -32,7 +32,7 @@ export default function Policies() {
       </header>
       <div className="policies-list">
         {policies.map((policy, index) => (
-          <Link key={policy.handle} to={`/policies/${policy.handle}`}>
+          <Link key={policy.handle} prefetch="intent" to={`/policies/${policy.handle}`}>
             <span>{String(index + 1).padStart(2, '0')}</span>
             <strong>{policy.title}</strong>
             <span aria-hidden="true">→</span>

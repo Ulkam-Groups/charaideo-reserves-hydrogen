@@ -106,13 +106,13 @@ function EmptyOrders({hasFilters = false}: {hasFilters?: boolean}) {
         <>
           <h3>No matching journeys.</h3>
           <p>Try a different order or confirmation number.</p>
-          <Link className="text-link" to="/account/orders">Clear filters →</Link>
+          <Link className="text-link" prefetch="intent" to="/account/orders">Clear filters →</Link>
         </>
       ) : (
         <>
           <h3>Your tea shelf is waiting.</h3>
           <p>You haven&apos;t placed an order yet. Begin with a reserve selected for your daily ritual.</p>
-          <Link className="account-button account-button--primary" to="/collections/all">Explore the collection</Link>
+          <Link className="account-button account-button--primary" prefetch="intent" to="/collections/all">Explore the collection</Link>
         </>
       )}
     </div>
@@ -232,7 +232,7 @@ function OrderItem({order}: {order: OrderItemFragment}) {
         <span>Total</span>
         <Money data={order.totalPrice} />
       </div>
-      <Link className="account-order-link" to={`/account/orders/${btoa(order.id)}`}>View details <span aria-hidden="true">→</span></Link>
+      <Link className="account-order-link" prefetch="intent" to={`/account/orders/${btoa(order.id)}`}>View details <span aria-hidden="true">→</span></Link>
     </article>
   );
 }
