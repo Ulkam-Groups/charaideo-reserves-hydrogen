@@ -1,6 +1,6 @@
-import {useState, type KeyboardEvent} from 'react';
+import {useEffect, useState, type KeyboardEvent} from 'react';
 import {flushSync} from 'react-dom';
-import {data, Link, useLoaderData} from 'react-router';
+import {data, Link, useLoaderData, useSearchParams} from 'react-router';
 import {Image, Money} from '@shopify/hydrogen';
 import type {Route} from './+types/reserve-list';
 import {chapterState, isAvailableForSale, partitionReserveCollections, reserveVariantLabel, type ReserveCollection} from '~/lib/reserve-list';
@@ -116,8 +116,12 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
 
 export default function ReserveList() {
   const {chapters, others} = useLoaderData<typeof loader>();
-  const [tab, setTab] = useState<'chapters' | 'collections'>('collections');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab') === 'chapters' ? 'chapters' : 'collections';
+  const [tab, setTab] = useState<'chapters' | 'collections'>(requestedTab);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+
+  useEffect(() => setTab(requestedTab), [requestedTab]);
   const visibleCollections = selectedCollection
     ? others.filter((collection) => collection.handle === selectedCollection)
     : others;
@@ -136,6 +140,9 @@ export default function ReserveList() {
   }
   const selectTab = (nextTab: 'chapters' | 'collections') => {
     if (nextTab === tab) return;
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set('tab', nextTab);
+    setSearchParams(nextSearchParams, {preventScrollReset: true, replace: true});
     const transitionDocument = document as ViewTransitionDocument;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!transitionDocument.startViewTransition || reduceMotion) {

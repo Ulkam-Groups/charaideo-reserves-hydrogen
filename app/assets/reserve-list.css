@@ -1,12 +1,12 @@
 .reserve-list-page {
-  --reserve-canvas: #f3eee4;
-  --reserve-paper: #fffefb;
+  --reserve-canvas: #ffffff;
+  --reserve-paper: #ffffff;
   --reserve-green: #17382a;
   --reserve-green-deep: #10291e;
   --reserve-text: #20342a;
   --reserve-muted: #657269;
   --reserve-line: #d7cebf;
-  --reserve-soft: #e9e2d7;
+  --reserve-soft: #ffffff;
   --reserve-gold: #bd9162;
   background: var(--reserve-canvas);
   color: var(--reserve-text);
@@ -150,7 +150,7 @@
   padding: 9px 10px 9px 16px;
   border: 1px solid var(--reserve-line);
   border-radius: 8px;
-  background: rgba(243,238,228,.96);
+  background: rgba(255,255,255,.96);
   backdrop-filter: blur(10px);
 }
 
@@ -368,7 +368,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, rgba(255,254,251,.08), rgba(255,254,251,.68));
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.68));
 }
 
 .reserve-mystery-mark {color: var(--reserve-gold); font-size: 22px; line-height: 1}
@@ -380,7 +380,7 @@
   padding: 24px;
   border: 1px dashed #bfb5a7;
   border-radius: 8px;
-  background: rgba(255,254,251,.48);
+  background: rgba(255,255,255,.48);
   color: var(--reserve-muted);
   font-size: 12px;
   text-align: center;

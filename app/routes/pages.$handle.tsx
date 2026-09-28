@@ -180,9 +180,9 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
 
         <div className="about-story-copy">
           <span className="eyebrow">Our story</span>
-          <h1>Charaideo keeps what others blend away.</h1>
+          <h1>Charaideo Reserves keeps what others blend away.</h1>
           <p className="about-story-intro">
-            Charaideo was born from a deep emotional connection to Assam-its land, its
+            Charaideo Reserves was born from a deep emotional connection to Assam-its land, its
             culture, and its timeless tea legacy.
           </p>
 
@@ -199,12 +199,12 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
               No matter where life led me, Assam always remained home. While building a
               corporate career, I carried a quiet dream within me: to return to my roots
               and create something that would honour the heritage I was raised with. That
-              dream eventually became Charaideo.
+              dream eventually became Charaideo Reserves.
             </p>
             <p>
               Leaving the corporate world was more than a career change; it was a
               conscious decision to return to the soil, stories, and traditions that
-              shaped my identity. Through Charaideo, I want to carry the spirit of Assam
+              shaped my identity. Through Charaideo Reserves, I want to carry the spirit of Assam
               forward-blending heritage with contemporary craftsmanship to create teas
               that feel authentic, meaningful, and deeply connected to their origin.
             </p>
@@ -222,9 +222,9 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
             </li>
             <li>
               <span>2026</span>
-              <h2>Charaideo - Born in Assam, Shared with the World</h2>
+              <h2>Charaideo Reserves - Born in Assam, Shared with the World</h2>
               <p>
-                A return to roots. Charaideo was created to bring the spirit of Assam to
+                A return to roots. Charaideo Reserves was created to bring the spirit of Assam to
                 modern tea lovers around the world through teas that are authentic,
                 meaningful, and deeply connected to their origin.
               </p>
@@ -359,12 +359,12 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
     hero: 'Our story / Assam, North East India',
     excerpt:
       'Bringing Assam tea culture to the world. Bringing North East Indian heritage back to the table.',
-    body: 'Charaideo was born from a deep emotional connection to Assam, its land, its culture, and its timeless tea legacy. Growing up in a family of tea planters, tea was never simply a profession; it was a way of life.',
+    body: 'Charaideo Reserves was born from a deep emotional connection to Assam, its land, its culture, and its timeless tea legacy. Growing up in a family of tea planters, tea was never simply a profession; it was a way of life.',
     sections: [
       {
         eyebrow: 'Cultural memory',
         title: 'A name that remembers',
-        body: 'Charaideo and the Ahom legacy live in the cultural memory of Assam. Our name is an invitation to carry that memory into the everyday: a shared table, a conversation, a cup of tea.',
+        body: 'Charaideo Reserves draws its name from the Ahom legacy and the cultural memory of Assam. It is an invitation to carry that memory into the everyday: a shared table, a conversation, a cup of tea.',
       },
       {
         eyebrow: 'Mission',

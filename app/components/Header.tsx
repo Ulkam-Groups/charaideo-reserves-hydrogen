@@ -1,4 +1,4 @@
-import {Suspense, useEffect} from 'react';
+import {Suspense, useEffect, useState} from 'react';
 import {Brand} from './Brand';
 import {Await, Link, NavLink, useAsyncValue} from 'react-router';
 import {
@@ -54,16 +54,62 @@ export function HeaderMenu({
 }) {
   const className = `header-menu-${viewport}`;
   const {close, open} = useAside();
+  const [libraryOpen, setLibraryOpen] = useState(false);
+
+  if (viewport === 'mobile') {
+    return (
+      <nav className={className} aria-label="Main navigation">
+        <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">
+          Home
+        </NavLink>
+        <div className="mobile-library-menu" data-open={libraryOpen}>
+          <button
+            aria-controls="mobile-tea-library-sections"
+            aria-expanded={libraryOpen}
+            className="header-menu-item mobile-library-toggle reset"
+            onClick={() => setLibraryOpen((current) => !current)}
+            type="button"
+          >
+            <span>Tea Library</span>
+            <ChevronIcon />
+          </button>
+          <div
+            className="mobile-library-sections"
+            id="mobile-tea-library-sections"
+            hidden={!libraryOpen}
+          >
+            <Link onClick={close} prefetch="intent" to="/reserve-list?tab=collections">
+              <span>Collections</span>
+              <small>Explore curated groups of reserve teas</small>
+            </Link>
+            <Link onClick={close} prefetch="intent" to="/reserve-list?tab=chapters">
+              <span>Chapters</span>
+              <small>Browse releases by estate chapter</small>
+            </Link>
+          </div>
+        </div>
+        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/about-us">Our story</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
+        <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>
+      </nav>
+    );
+  }
 
   return (
     <nav className={className} aria-label="Main navigation">
-      {viewport === 'mobile' && <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">Home</NavLink>}
       <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/reserve-list">Tea Library</NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/about-us">Our story</NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
-      {viewport === 'mobile' && <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>}
-      {viewport === 'mobile' && <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>}
     </nav>
+  );
+}
+
+function ChevronIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20">
+      <path d="m5.5 7.5 4.5 4.5 4.5-4.5" />
+    </svg>
   );
 }
 
