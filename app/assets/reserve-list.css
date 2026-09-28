@@ -207,6 +207,43 @@
 .reserve-chapter-section + .reserve-chapter-section,
 .reserve-collection-section + .reserve-collection-section {padding-top: 0}
 
+.reserve-active-collection {
+  display: grid;
+  grid-template-columns: minmax(190px, .42fr) minmax(260px, 1fr);
+  align-items: end;
+  gap: 24px;
+  margin: 0 0 16px;
+  padding: 15px 18px;
+  border: 1px solid #dde5db;
+  border-radius: 9px;
+  background: #f7f9f6;
+}
+
+.reserve-active-collection span {
+  display: block;
+  margin-bottom: 4px;
+  color: #9a6c43;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.reserve-active-collection h2 {
+  margin: 0;
+  color: var(--reserve-green);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.reserve-active-collection p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--reserve-muted);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
 .reserve-section-header {
   position: relative;
   display: flex;
@@ -250,8 +287,12 @@
 
 .reserve-products-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.reserve-products-grid--collections {
+  align-items: stretch;
 }
 
 .reserve-tea-card {
@@ -266,9 +307,9 @@
 .reserve-tea-link {
   display: flex;
   flex-direction: column;
-  min-height: 272px;
+  min-height: 254px;
   height: 100%;
-  padding: 13px;
+  padding: 10px;
   color: inherit;
   text-align: left;
   text-decoration: none;
@@ -277,11 +318,12 @@
 .reserve-tea-image {
   display: grid;
   width: 100%;
-  height: 126px;
-  margin-bottom: 11px;
-  padding: 8px;
+  height: 120px;
+  margin-bottom: 7px;
+  padding: 4px;
   border-radius: 7px;
   background: #f0ebe2;
+  overflow: hidden;
   place-items: center;
 }
 
@@ -289,34 +331,47 @@
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: 108px;
+  max-height: 114px;
   object-fit: contain;
   filter: drop-shadow(0 4px 6px rgba(40,28,18,.1));
+  transform: scale(1.04);
 }
 
 .reserve-tea-image > span {color: #948879; font: 500 11px/1.2 "Fraunces", Georgia, serif; text-align: center}
-.reserve-tea-collection {color: #9a6c43; font-size: 9.5px; font-weight: 600; letter-spacing: .13em; line-height: 1.35; text-transform: uppercase}
-.reserve-tea-card h3 {margin: 5px 0 9px; color: var(--reserve-green); font-size: 16px; line-height: 1.22}
+.reserve-tea-collection {color: #9a6c43; font-size: 8.5px; font-weight: 600; letter-spacing: .12em; line-height: 1.35; text-transform: uppercase}
+.reserve-tea-card h3 {
+  display: -webkit-box;
+  min-height: 2.55em;
+  margin: 4px 0 7px;
+  overflow: hidden;
+  color: var(--reserve-green);
+  font-size: 14.5px;
+  font-weight: 400;
+  letter-spacing: -.012em;
+  line-height: 1.28;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 .reserve-tea-link:hover h3 {text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px}
 
 .reserve-variant-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  min-height: 24px;
+  gap: 4px;
+  min-height: 22px;
   margin-top: auto;
 }
 
 .reserve-variant {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
-  padding: 0 7px;
+  min-height: 20px;
+  padding: 0 6px;
   border: 1px solid #becbbf;
   border-radius: 6px;
   background: #f1f5f1;
   color: #315440;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -334,8 +389,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 10px;
-  padding-top: 9px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid #e6dfd5;
 }
 
@@ -346,8 +401,8 @@
 .reserve-tea-card-locked {
   position: relative;
   display: grid;
-  min-height: 272px;
-  padding: 13px;
+  min-height: 254px;
+  padding: 10px;
   place-items: center;
 }
 
@@ -426,7 +481,7 @@
 }
 
 @media (max-width: 1020px) {
-  .reserve-products-grid {grid-template-columns: repeat(3, minmax(0, 1fr))}
+  .reserve-products-grid {grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))}
 }
 
 @media (max-width: 760px) {
@@ -438,6 +493,7 @@
   .reserve-filter-chips {justify-content: flex-start; flex-wrap: nowrap; width: 100%; padding: 2px 1px 5px; overflow-x: auto; scrollbar-width: thin}
   .reserve-filter-chips button {flex: none}
   .reserve-products-grid {grid-template-columns: repeat(2, minmax(0, 1fr))}
+  .reserve-active-collection {grid-template-columns: 1fr; gap: 7px}
   .reserve-section-header > span {display: none}
 }
 
@@ -448,9 +504,9 @@
   .reserve-collection-sections,
   .reserve-chapter-sections {gap: 20px}
   .reserve-products-grid {grid-template-columns: 1fr}
-  .reserve-tea-image {height: 142px}
+  .reserve-tea-image {height: 134px}
   .reserve-tea-link,
-  .reserve-tea-card-locked {min-height: 284px}
+  .reserve-tea-card-locked {min-height: 270px}
   .reserve-collection-note {grid-template-columns: 1fr}
 }
 

@@ -122,14 +122,11 @@ export default function ReserveList() {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
 
   useEffect(() => setTab(requestedTab), [requestedTab]);
-  const visibleCollections = selectedCollection
-    ? others.filter((collection) => collection.handle === selectedCollection)
-    : others;
+  const selectedCollectionData = selectedCollection
+    ? others.find((collection) => collection.handle === selectedCollection) ?? null
+    : null;
   const allProducts = [...chapters, ...others].flatMap((collection) => collection.products);
   const totalProductCount = new Set(allProducts.map((product) => product.handle)).size;
-  const visibleProductCount = new Set(
-    visibleCollections.flatMap((collection) => collection.products.map((product) => product.handle)),
-  ).size;
   const productCollectionLabels = new Map<string, string>();
   for (const collection of others) {
     for (const product of collection.products) {
@@ -138,6 +135,17 @@ export default function ReserveList() {
       }
     }
   }
+  const allCollectionProducts = Array.from(
+    new Map(
+      others
+        .flatMap((collection) => collection.products)
+        .map((product) => [product.handle, product] as const),
+    ).values(),
+  );
+  const visibleCollectionProducts = selectedCollectionData
+    ? selectedCollectionData.products
+    : allCollectionProducts;
+  const visibleProductCount = visibleCollectionProducts.length;
   const selectTab = (nextTab: 'chapters' | 'collections') => {
     if (nextTab === tab) return;
     const nextSearchParams = new URLSearchParams(searchParams);
@@ -192,10 +200,28 @@ export default function ReserveList() {
               {others.map((collection) => <button key={collection.handle} type="button" aria-pressed={selectedCollection === collection.handle} onClick={() => setSelectedCollection(collection.handle)}>{collection.title} <span className="reserve-chip-count">{collection.products.length}</span></button>)}
             </div>
           </div>
-          <div className="reserve-collection-sections">
-            {visibleCollections.map((collection) => <ReserveCollectionSection key={collection.handle} collection={collection} />)}
-            {!others.length && <p className="reserve-empty">No other collections are listed yet.</p>}
-          </div>
+          {selectedCollectionData && (
+            <header className="reserve-active-collection">
+              <div>
+                <span>Curated collection</span>
+                <h2>{selectedCollectionData.title}</h2>
+              </div>
+              <p>{selectedCollectionData.description || `${visibleProductCount} ${visibleProductCount === 1 ? 'tea expression' : 'tea expressions'} selected from the Charaideo Reserves library.`}</p>
+            </header>
+          )}
+          {visibleCollectionProducts.length ? (
+            <div className="reserve-products-grid reserve-products-grid--collections">
+              {visibleCollectionProducts.map((product) => (
+                <ReserveTeaCard
+                  key={product.handle}
+                  product={product}
+                  collectionTitle={selectedCollectionData?.title || productCollectionLabels.get(product.handle) || 'Tea collection'}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="reserve-empty">No teas are listed in this collection yet.</p>
+          )}
           <div className="reserve-collection-note">
             <p>Collections can contain teas from different Chapters.</p>
             <p>Chapter = where the tea comes from (estate). Collection = what kind of tea or curation it is.</p>
@@ -228,21 +254,6 @@ function ReserveChapterSection({chapter, productCollectionLabels}: {
   </section>;
 }
 
-function ReserveCollectionSection({collection}: {collection: ReserveCollection}) {
-  return <section className="reserve-collection-section" aria-labelledby={`reserve-heading-${collection.handle}`}>
-    <header className="reserve-section-header">
-      <div>
-        <h2 id={`reserve-heading-${collection.handle}`}>{collection.title}</h2>
-        <p>{collection.products.length} {collection.products.length === 1 ? 'expression' : 'expressions'}</p>
-      </div>
-      <span>Curated from the tea library</span>
-    </header>
-    {collection.products.length ? <div className="reserve-products-grid">
-      {collection.products.map((product) => <ReserveTeaCard key={product.handle} product={product} collectionTitle={collection.title} />)}
-    </div> : <p className="reserve-empty">No teas are listed in this collection yet.</p>}
-  </section>;
-}
-
 function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}: {
   product: ReserveCollection['products'][number];
   collectionTitle: string;
@@ -255,7 +266,7 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
           ? <Image data={product.featuredImage} alt="" loading="lazy" sizes="(min-width: 900px) 220px, (min-width: 600px) 45vw, 85vw" />
           : <span>Charaideo Reserves</span>}</div>
         <span className="reserve-tea-collection">{collectionTitle}</span>
-        <h3>{product.title}</h3>
+        <h3>{reserveDisplayTitle(product.title)}</h3>
       </div>
       <div className="reserve-tea-lock-overlay">
         <span className="reserve-mystery-mark" aria-hidden="true">✶</span>
@@ -272,7 +283,7 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
         ? <Image data={product.featuredImage} alt={product.featuredImage.altText || product.title} loading="lazy" sizes="(min-width: 900px) 220px, (min-width: 600px) 45vw, 85vw" />
         : <span aria-hidden="true">Charaideo Reserves</span>}</div>
       <span className="reserve-tea-collection">{collectionTitle}</span>
-      <h3>{product.title}</h3>
+      <h3>{reserveDisplayTitle(product.title)}</h3>
       <div className="reserve-variant-list" aria-label="Variant availability">
         {product.variants.nodes.map((variant) => {
           const label = reserveVariantLabel(variant);
@@ -285,4 +296,13 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
       </div>
     </Link>
   </article>;
+}
+
+function reserveDisplayTitle(title: string) {
+  const simplified = title
+    .replace(/^.+?\bReserve\s*[-–—:]\s*/i, '')
+    .replace(/\s*\|\s*Single Estate Reserve\s*$/i, '')
+    .trim();
+
+  return simplified || title;
 }
