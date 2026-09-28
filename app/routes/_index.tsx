@@ -432,7 +432,7 @@ export default function Homepage() {
         children: f("div", {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: y("div", {
-            className: "grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center py-12 md:py-[88px]",
+            className: "home-hero-layout grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center",
             children: [
               y("div", {
                 className: "order-2 md:order-1",

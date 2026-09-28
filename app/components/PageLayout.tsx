@@ -49,20 +49,33 @@ export function PageLayout({
 
 function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [previousIndex, setPreviousIndex] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
 
-  useEffect(() => setActiveIndex(0), [notices.length]);
+  useEffect(() => {
+    setActiveIndex(0);
+    setPreviousIndex(null);
+  }, [notices.length]);
 
   useEffect(() => {
     if (notices.length < 2 || paused) return;
     const interval = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % notices.length);
+      setPreviousIndex(activeIndex);
+      setActiveIndex((activeIndex + 1) % notices.length);
     }, 5000);
     return () => window.clearInterval(interval);
-  }, [notices.length, paused]);
+  }, [activeIndex, notices.length, paused]);
+
+  useEffect(() => {
+    if (previousIndex === null) return;
+    const timeout = window.setTimeout(() => setPreviousIndex(null), 950);
+    return () => window.clearTimeout(timeout);
+  }, [previousIndex]);
 
   if (!notices.length) return null;
   const notice = notices[activeIndex] ?? notices[0];
+  const previousNotice =
+    previousIndex === null ? null : (notices[previousIndex] ?? null);
 
   return (
     <div
@@ -74,12 +87,36 @@ function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <NoticeLink key={notice.id} notice={notice} />
+      {previousNotice && previousIndex !== activeIndex && (
+        <div
+          aria-hidden="true"
+          className="notice-board-slide notice-board-slide--outgoing"
+          key={`outgoing-${previousNotice.id}`}
+        >
+          <NoticeLink notice={previousNotice} tabIndex={-1} />
+        </div>
+      )}
+      <div
+        className={`notice-board-slide ${
+          previousNotice
+            ? 'notice-board-slide--incoming'
+            : 'notice-board-slide--current'
+        }`}
+        key={`current-${notice.id}`}
+      >
+        <NoticeLink notice={notice} />
+      </div>
     </div>
   );
 }
 
-function NoticeLink({notice}: {notice: StorefrontNotice}) {
+function NoticeLink({
+  notice,
+  tabIndex,
+}: {
+  notice: StorefrontNotice;
+  tabIndex?: number;
+}) {
   const content = (
     <>
       <span className="chapter-announcement-message">
@@ -99,6 +136,7 @@ function NoticeLink({notice}: {notice: StorefrontNotice}) {
     className,
     'data-state': notice.state,
     'data-tone': notice.tone,
+    tabIndex,
   };
 
   if (!notice.buttonLink) return <div {...sharedProps}>{content}</div>;
@@ -136,7 +174,7 @@ function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
 
 function SearchAside() {
   return (
-    <Aside type="search" heading="SEARCH">
+    <Aside type="search" heading="Find your tea">
       <div className="predictive-search">
         <SearchFormPredictive>
           {({fetchResults, inputRef}) => (
@@ -144,6 +182,7 @@ function SearchAside() {
               <input
                 aria-label="Search teas and pages"
                 autoComplete="off"
+                data-autofocus
                 name="q"
                 onChange={fetchResults}
                 onFocus={fetchResults}
@@ -151,7 +190,6 @@ function SearchAside() {
                 ref={inputRef}
                 type="search"
               />
-              <button type="submit">Search</button>
             </>
           )}
         </SearchFormPredictive>
@@ -159,6 +197,19 @@ function SearchAside() {
         <SearchResultsPredictive>
           {({items, total, term, state, closeSearch}) => {
             const {articles, collections, pages, products} = items;
+
+            if (!term.current) {
+              return (
+                <div className="predictive-search-prompt">
+                  <span aria-hidden="true">✦</span>
+                  <h4>Explore the reserve list</h4>
+                  <p>
+                    Start typing an estate, tea, collection, or story. Results
+                    will appear here as you type.
+                  </p>
+                </div>
+              );
+            }
 
             if (state === 'loading' && term.current) {
               return (

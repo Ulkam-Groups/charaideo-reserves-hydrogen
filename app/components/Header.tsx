@@ -1,4 +1,4 @@
-import {Suspense} from 'react';
+import {Suspense, useEffect} from 'react';
 import {Brand} from './Brand';
 import {Await, Link, NavLink, useAsyncValue} from 'react-router';
 import {
@@ -120,14 +120,40 @@ function HeaderMenuMobileToggle() {
 
 function SearchToggle() {
   const {open} = useAside();
+
+  useEffect(() => {
+    const openFromKeyboard = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTyping = target?.closest(
+        'input, textarea, select, [contenteditable="true"]',
+      );
+      if (
+        event.key !== '/' ||
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        isTyping
+      ) {
+        return;
+      }
+      event.preventDefault();
+      open('search');
+    };
+    window.addEventListener('keydown', openFromKeyboard);
+    return () => window.removeEventListener('keydown', openFromKeyboard);
+  }, [open]);
+
   return (
     <button
       aria-label="Search teas"
       className="header-search-trigger reset"
       onClick={() => open('search')}
+      title="Search teas (/)"
       type="button"
     >
       <span>Search teas</span>
+      <kbd aria-hidden="true">/</kbd>
       <SearchIcon />
     </button>
   );
