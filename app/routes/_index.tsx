@@ -433,9 +433,9 @@ export default function Homepage() {
       "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
     children: [
       f("section", {
-        className: "relative bg-white overflow-hidden max-w-[100vw]",
+        className: "home-hero-stage relative overflow-hidden max-w-[100vw]",
         children: f("div", {
-          className: "mx-auto max-w-[1280px] px-6 md:px-8",
+          className: "relative z-[1] mx-auto max-w-[1280px] px-6 md:px-8",
           children: y("div", {
             className: "home-hero-layout grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center",
             children: [
@@ -469,19 +469,27 @@ export default function Homepage() {
                       "Single-estate, single-harvest teas—sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
                   }),
                   y("div", {
-                    className: "hero-actions mt-8 flex flex-wrap gap-3",
+                    className: "hero-actions mt-8",
                     children: [
                       f("a", {
                         href: "#chapter-collection",
                         className:
-                          "h-[48px] px-7 rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:bg-black transition",
-                        children: "Explore Our Reserves",
+                          "hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition",
+                        "data-mobile-label": "Explore Reserves",
+                        children: f("span", {
+                          className: "hero-action-label--desktop",
+                          children: "Explore Our Reserves",
+                        }),
                       }),
                       f("a", {
                         href: "/pages/about-us",
                         className:
-                          "h-[48px] px-7 rounded-full border border-[#132A1F]/20 text-[#132A1F] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:border-[#132A1F] transition",
-                        children: "The story of Charaideo Reserves",
+                          "hero-action rounded-full border border-[#132A1F]/20 text-[#132A1F] uppercase font-[500] hover:border-[#132A1F] transition",
+                        "data-mobile-label": "Our Story",
+                        children: f("span", {
+                          className: "hero-action-label--desktop",
+                          children: "The story of Charaideo Reserves",
+                        }),
                       }),
                     ],
                   }),
@@ -501,9 +509,9 @@ export default function Homepage() {
       }),
       f("div", {
         className:
-          "w-full max-w-[100vw] bg-[#132A1F] overflow-hidden border-y border-[#FFFEF8]/[0.08] marquee-viewport",
+          "home-marquee-strip w-full max-w-[100vw] bg-[#132A1F] overflow-hidden marquee-viewport",
         children: f("div", {
-          className: "relative w-full max-w-[100vw] overflow-hidden py-[14px]",
+          className: "home-marquee-inner relative w-full max-w-[100vw] overflow-hidden",
           children: y("div", {
             className: "marquee-track",
             children: [
@@ -620,9 +628,9 @@ export default function Homepage() {
       }),
       f("section", {
         id: "chapter-collection",
-        className: "bg-white py-16 md:py-24 scroll-mt-[96px] max-w-[100vw] overflow-hidden",
+        className: "chapter-collection-stage scroll-mt-[96px] max-w-[100vw] overflow-hidden",
         children: y("div", {
-          className: "mx-auto max-w-[1280px] px-6 md:px-8",
+          className: "chapter-collection-inner mx-auto max-w-[1280px] px-6 md:px-8",
           children: [
             y("div", {
               className: "flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10",

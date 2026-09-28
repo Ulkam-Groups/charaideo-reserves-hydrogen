@@ -1,3 +1,75 @@
+.home-hero-stage {
+  background-color: #f5f1e6;
+  background-image:
+    linear-gradient(90deg, rgb(255 254 248 / 88%) 0%, rgb(255 254 248 / 66%) 43%, rgb(255 254 248 / 18%) 100%),
+    linear-gradient(180deg, rgb(245 241 230 / 12%) 38%, rgb(19 42 31 / 12%) 100%),
+    url('../assets/home-hero-tea-estate.png');
+  background-position: center;
+  background-size: cover;
+}
+
+.home-marquee-strip {
+  position: relative;
+  box-shadow:
+    inset 0 1px rgb(196 164 132 / 28%),
+    inset 0 -1px rgb(196 164 132 / 22%);
+}
+
+.home-marquee-inner {
+  padding-block: 4px;
+}
+
+.home-marquee-strip::before,
+.home-marquee-strip::after {
+  position: absolute;
+  z-index: 2;
+  top: 1px;
+  bottom: 1px;
+  width: clamp(28px, 6vw, 92px);
+  pointer-events: none;
+  content: '';
+}
+
+.home-marquee-strip::before {
+  left: 0;
+  background: linear-gradient(90deg, #132a1f 12%, rgb(19 42 31 / 0%));
+}
+
+.home-marquee-strip::after {
+  right: 0;
+  background: linear-gradient(270deg, #132a1f 12%, rgb(19 42 31 / 0%));
+}
+
+.home-marquee-strip .marquee-track {
+  animation-duration: 48s;
+}
+
+.home-marquee-strip:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.chapter-collection-stage {
+  background: #f7f4ec;
+}
+
+.chapter-collection-inner {
+  margin-top: 48px;
+  margin-bottom: 64px;
+}
+
+.hero-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding-inline: 20px;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .hero-brand-art {
   position: relative;
   display: grid;
@@ -180,6 +252,8 @@
 }
 
 .revamp-home .hero-actions {
+  display: grid;
+  grid-template-columns: max-content max-content;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
@@ -356,6 +430,35 @@
 }
 
 @media (max-width: 767px) {
+  .revamp-home .hero-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .hero-action {
+    width: 100%;
+    height: 38px;
+    padding-inline: 8px;
+    font-size: 9.5px;
+  }
+
+  .hero-action-label--desktop {
+    display: none;
+  }
+
+  .hero-action::after {
+    content: attr(data-mobile-label);
+  }
+
+  .home-hero-stage {
+    background-image:
+      linear-gradient(180deg, rgb(255 254 248 / 48%) 0%, rgb(255 254 248 / 82%) 56%, rgb(255 254 248 / 90%) 100%),
+      url('../assets/home-hero-tea-estate.png');
+    background-position: 66% center;
+  }
+
   .hero-brand-art {
     min-height: 320px;
   }
@@ -381,7 +484,19 @@
   }
 }
 
+@media (min-width: 768px) {
+  .chapter-collection-inner {
+    margin-top: 64px;
+    margin-bottom: 80px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .home-marquee-strip .marquee-track {
+    transform: none;
+    animation: none;
+  }
+
   .hero-brand-river path {
     stroke-dashoffset: 0;
     animation: none;
