@@ -450,7 +450,7 @@ export default function Homepage() {
                       "Assam, North East India",
                     ],
                   }),
-                  f("h1", {
+                  y("h1", {
                     className:
                       "hero-display-title serif text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] max-w-[560px]",
                     children: [
@@ -466,7 +466,7 @@ export default function Homepage() {
                     className:
                       "hero-intro mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
                     children:
-                      "Single-estate, single-harvest teas—sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
+                      "Single-estate, single-harvest teas-sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
                   }),
                   y("div", {
                     className: "hero-actions mt-8",
