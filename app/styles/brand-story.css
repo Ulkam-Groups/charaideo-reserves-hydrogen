@@ -25,7 +25,7 @@
 
 .hero-brand-river {
   position: absolute;
-  z-index: 0;
+  z-index: 2;
   top: 0;
   left: -6%;
   width: 112%;
@@ -40,34 +40,35 @@
   stroke-width: 2.5;
   stroke-linecap: round;
   opacity: 0.9;
-  stroke-dasharray: 900;
-  stroke-dashoffset: 900;
-  animation: hero-river-draw 2.2s ease-out forwards;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hero-river-draw 2.6s 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .hero-brand-symbols {
   position: relative;
-  z-index: 1;
+  left: -2%;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 400px;
-  transform: translateX(-2%);
 }
 
 .hero-brand-cha {
+  position: relative;
+  z-index: 1;
   display: block;
   flex: none;
   width: min(48%, 245px);
   height: auto;
   aspect-ratio: 130 / 150;
   filter: drop-shadow(0 8px 10px rgb(92 23 28 / 11%));
-  animation: hero-cha-drift 8s ease-in-out 1.4s infinite;
 }
 
 .hero-brand-cup {
   position: relative;
+  z-index: 3;
   display: block;
   flex: none;
   width: min(45%, 220px);
@@ -98,15 +99,17 @@
   content: '';
 }
 
-.hero-brand-cup > i {
+.hero-brand-surface-glint {
   position: absolute;
   top: 24%;
   left: 22%;
   width: 52%;
   height: 18%;
   transform: rotate(-13deg);
-  border-top: 2px solid rgb(255 248 234 / 76%);
+  border-top: 2.4px solid #fff8ea;
   border-radius: 50%;
+  filter: drop-shadow(0 0 1.5px rgb(255 248 234 / 48%));
+  animation: hero-tea-glint 3.8s ease-in-out infinite;
 }
 
 .hero-brand-steam {
@@ -275,12 +278,6 @@
   }
 }
 
-@keyframes hero-cha-drift {
-  50% {
-    transform: translateY(-5px) rotate(-0.7deg);
-  }
-}
-
 @keyframes hero-steam-rise {
   0% {
     opacity: 0;
@@ -329,14 +326,43 @@
   }
 }
 
+/* The reflection stays anchored to its light source while the wave briefly softens it. */
+@keyframes hero-tea-glint {
+  0%,
+  100% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 1.5px rgb(255 248 234 / 48%));
+  }
+
+  12% {
+    opacity: 0.75;
+    filter: drop-shadow(0 0 1px rgb(255 248 234 / 52%));
+  }
+
+  40% {
+    opacity: 0.68;
+    filter: drop-shadow(0 0 1.5px rgb(255 248 234 / 42%)) blur(0.1px);
+  }
+
+  65% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 2px rgb(255 248 234 / 34%)) blur(0.3px);
+  }
+
+  82% {
+    opacity: 0.65;
+    filter: drop-shadow(0 0 1.75px rgb(255 248 234 / 40%)) blur(0.15px);
+  }
+}
+
 @media (max-width: 767px) {
   .hero-brand-art {
     min-height: 320px;
   }
 
   .hero-brand-symbols {
+    left: -12px;
     min-height: 280px;
-    transform: translateX(-12px);
   }
 
   .hero-brand-cha {
@@ -362,10 +388,10 @@
   }
 
   .hero-brand-cup,
+  .hero-brand-surface-glint,
   .hero-brand-ripple,
   .hero-brand-art,
   .hero-brand-art::before,
-  .hero-brand-cha,
   .hero-brand-steam i,
   .hero-copy-reveal > * {
     animation: none;

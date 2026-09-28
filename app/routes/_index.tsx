@@ -152,7 +152,7 @@ function HeroBrandArtwork() {
   return (
     <div className="hero-brand-art order-1 md:order-2" role="img" aria-label="The Assamese Cha beside a cup of Assam tea">
       <svg className="hero-brand-river" viewBox="0 0 600 430" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M12 285 C95 195 149 327 242 284 S386 157 453 206 S539 322 593 226" />
+        <path pathLength="1" d="M12 285 C95 195 149 327 242 284 S386 157 453 206 S539 322 593 226" />
       </svg>
       <div className="hero-brand-symbols" aria-hidden="true">
         <svg className="hero-brand-cha" viewBox="100 104 130 150" fill="none">
@@ -169,7 +169,7 @@ function HeroBrandArtwork() {
             <i />
             <i />
           </span>
-          <i />
+          <span className="hero-brand-surface-glint" />
           <span className="hero-brand-ripple" />
           <span className="hero-brand-ripple hero-brand-ripple--trail" />
         </span>
