@@ -82,7 +82,7 @@ export default function Collection() {
             <span aria-hidden="true">/</span>
             <span>{collection.title}</span>
           </nav>
-          <span className="eyebrow">Charaideo collection</span>
+          <span className="eyebrow">Charaideo Reserves collection</span>
           <h1>{collection.title}</h1>
           {collection.description && (
             <p className="collection-description">{collection.description}</p>

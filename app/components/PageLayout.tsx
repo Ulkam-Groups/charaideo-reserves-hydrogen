@@ -276,7 +276,7 @@ function MobileMenuAside({
     header?.shop.primaryDomain.url ?? `https://${publicStoreDomain}`;
 
   return (
-    <Aside type="mobile" heading="MENU">
+    <Aside type="mobile" heading="Explore">
       <HeaderMenu
         menu={header?.menu ?? null}
         viewport="mobile"

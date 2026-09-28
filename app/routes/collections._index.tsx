@@ -98,7 +98,7 @@ function CollectionItem({
         />
       ) : (
         <div className="collection-item-placeholder" aria-hidden="true">
-          Charaideo
+          Charaideo Reserves
         </div>
       )}
       <div className="collection-item-copy">

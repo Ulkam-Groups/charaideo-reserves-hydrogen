@@ -210,7 +210,7 @@ function ChapterCollectionCard({
 
   return (
     <article
-      className={`rounded-[24px] bg-[#FFFEF8] border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
+      className={`rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
       role={isOpen ? 'link' : canJoinWaitlist ? 'button' : undefined}
       tabIndex={isOpen || canJoinWaitlist ? 0 : undefined}
       aria-label={isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? `Join waitlist for ${collection.title}` : `${collection.title}, ${status}`}
@@ -430,10 +430,10 @@ export default function Homepage() {
     };
   return y("div", {
     className:
-      "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-[#FFFEF8] text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
+      "revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40",
     children: [
       f("section", {
-        className: "relative bg-[#FFFEF8] overflow-hidden max-w-[100vw]",
+        className: "relative bg-white overflow-hidden max-w-[100vw]",
         children: f("div", {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: y("div", {
@@ -481,7 +481,7 @@ export default function Homepage() {
                         href: "/pages/about-us",
                         className:
                           "h-[48px] px-7 rounded-full border border-[#132A1F]/20 text-[#132A1F] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:border-[#132A1F] transition",
-                        children: "The story of Charaideo",
+                        children: "The story of Charaideo Reserves",
                       }),
                     ],
                   }),
@@ -620,7 +620,7 @@ export default function Homepage() {
       }),
       f("section", {
         id: "chapter-collection",
-        className: "bg-[#FFFEF8] py-16 md:py-24 scroll-mt-[96px] max-w-[100vw] overflow-hidden",
+        className: "bg-white py-16 md:py-24 scroll-mt-[96px] max-w-[100vw] overflow-hidden",
         children: y("div", {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: [
@@ -675,7 +675,7 @@ export default function Homepage() {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: y("div", {
             className:
-              "bg-[#FFFEF8] rounded-[32px] border border-[#132A1F]/[0.06] p-8 md:p-16 text-center max-w-[900px] mx-auto shadow-[0_8px_32px_rgba(19,42,31,0.04)]",
+              "bg-white rounded-[32px] border border-[#132A1F]/[0.06] p-8 md:p-16 text-center max-w-[900px] mx-auto shadow-[0_8px_32px_rgba(19,42,31,0.04)]",
             children: [
               f("div", {
                 className: "text-[11px] tracking-[0.22em] uppercase text-[#C4A484] font-[600]",
@@ -738,7 +738,7 @@ export default function Homepage() {
       }),
       f("section", {
         id: "about",
-        className: "bg-[#FFFEF8] py-16 md:py-28 max-w-[100vw] overflow-hidden scroll-mt-[96px]",
+        className: "bg-white py-16 md:py-28 max-w-[100vw] overflow-hidden scroll-mt-[96px]",
         children: y("div", {
           className: `mx-auto max-w-[1280px] px-6 md:px-8 grid ${chapterOneHasProducts ? 'md:grid-cols-2' : ''} gap-12 md:gap-20 items-start`,
           children: [
@@ -755,7 +755,7 @@ export default function Homepage() {
                 f("p", {
                   className: "mt-6 text-[15px] leading-[1.8] text-[#132A1F]/70 max-w-[460px]",
                   children:
-                    "Every tea we reserve is traceable to the garden it came from. Not a region, not a blend- a single estate, a single pluck, a single story. When you hold a pouch of Charaideo, you hold the place itself. The soil, the season, the hands that picked it.",
+                    "Every tea we reserve is traceable to the garden it came from. Not a region, not a blend- a single estate, a single pluck, a single story. When you hold a pouch of Charaideo Reserves, you hold the place itself. The soil, the season, the hands that picked it.",
                 }),
                 f("p", {
                   className: "mt-4 text-[15px] leading-[1.8] text-[#132A1F]/70 max-w-[460px]",
@@ -825,12 +825,12 @@ export default function Homepage() {
               }),
               f("p", {
                 children:
-                  "Our name carries the cultural memory of Charaideo and the Ahom legacy. Our spirit belongs to Assam: its tea gardens, its living traditions, and its instinct to make room for one more.",
+                  "The Charaideo Reserves name carries the cultural memory of Assam and the Ahom legacy. Our spirit belongs to Assam: its tea gardens, its living traditions, and its instinct to make room for one more.",
               }),
               f("a", {
                 className: "text-link",
                 href: "/pages/about-us",
-                children: "The story of Charaideo \u2197",
+                children: "The story of Charaideo Reserves \u2197",
               }),
             ],
           }),
@@ -861,7 +861,7 @@ export default function Homepage() {
       }),
       f("section", {
         className:
-          "bg-[#FFFEF8] border-t border-[#132A1F]/[0.06] py-16 md:py-24 max-w-[100vw] overflow-hidden",
+          "bg-white border-t border-[#132A1F]/[0.06] py-16 md:py-24 max-w-[100vw] overflow-hidden",
         children: y("div", {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: [
@@ -930,7 +930,7 @@ export default function Homepage() {
               "aria-modal": "true",
               "aria-labelledby": "waitlist-title",
               className:
-                "relative w-full max-w-[520px] bg-[#FFFEF8] rounded-[24px] border border-[#132A1F]/[0.08] shadow-[0_24px_80px_rgba(19,42,31,0.18),0_4px_16px_rgba(19,42,31,0.08)] p-7 md:p-10",
+                "relative w-full max-w-[520px] bg-white rounded-[24px] border border-[#132A1F]/[0.08] shadow-[0_24px_80px_rgba(19,42,31,0.18),0_4px_16px_rgba(19,42,31,0.08)] p-7 md:p-10",
               children: [
                 f("button", {
                   onClick: E,

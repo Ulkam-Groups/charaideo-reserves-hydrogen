@@ -78,7 +78,7 @@ export default function Collection() {
     <div className="collection catalog-page">
       <section className="catalog-hero">
         <div className="catalog-intro">
-          <span className="eyebrow">The Charaideo collection</span>
+          <span className="eyebrow">The Charaideo Reserves collection</span>
           <h1>Tea with<br /><em>a sense of place.</em></h1>
           <p>Discover Assam through everyday favourites and distinctive leaves. Find the tea that fits your moment.</p>
         </div>

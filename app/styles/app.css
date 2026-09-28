@@ -5,7 +5,7 @@
   --grid-item-width: 355px;
   --header-height: 64px;
   --color-dark: #132a1f;
-  --color-light: #fffef8;
+  --color-light: #ffffff;
   --color-brand: #132a1f;
   --color-brand-deep: #132a1f;
   --color-accent: #c4a484;
@@ -24,7 +24,7 @@ html {
 body {
   margin: 0;
   font-family: Inter, 'Segoe UI', sans-serif;
-  background: linear-gradient(180deg, #fffef8 0%, #f5f1e6 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f5f1e6 100%);
   color: var(--color-dark);
 }
 
@@ -1171,18 +1171,18 @@ button.reset:hover:not(:has(> *)) {
 * --------------------------------------------------
 */
 :root {
-  --cream: #fffef8;
+  --cream: #ffffff;
   --dark-brown: #132a1f;
   --gamosa-red: #d42b2b;
   --gold: #c4a484;
-  --bg-base: #fffef8;
+  --bg-base: #ffffff;
   --bg-elevated: #ffffff;
   --bg-sunken: #f5f1e6;
   --bg-hero: #132a1f;
   --text-primary: #132a1f;
   --text-secondary: #132a1f;
   --text-muted: #5a6b62;
-  --text-inverse: #fffef8;
+  --text-inverse: #ffffff;
   --border-subtle: rgba(212, 43, 43, 0.08);
   --border-default: rgba(212, 43, 43, 0.15);
   --border-strong: rgba(212, 43, 43, 0.25);
@@ -1243,7 +1243,7 @@ h4 {
 .content-hero::before,
 .catalog-hero::before,
 .home-hero::before {
-  background: linear-gradient(90deg, transparent, #d42b2b 15%, #c4a484 35%, #fffef8 50%, #c4a484 65%, #d42b2b 85%, transparent);
+  background: linear-gradient(90deg, transparent, #d42b2b 15%, #c4a484 35%, #ffffff 50%, #c4a484 65%, #d42b2b 85%, transparent);
 }
 
 .gamosa-accent {
