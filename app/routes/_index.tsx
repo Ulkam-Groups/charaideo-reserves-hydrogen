@@ -164,6 +164,11 @@ function HeroBrandArtwork() {
           />
         </svg>
         <span className="hero-brand-cup">
+          <span className="hero-brand-steam">
+            <i />
+            <i />
+            <i />
+          </span>
           <i />
           <span className="hero-brand-ripple" />
           <span className="hero-brand-ripple hero-brand-ripple--trail" />
@@ -435,11 +440,11 @@ export default function Homepage() {
             className: "home-hero-layout grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center",
             children: [
               y("div", {
-                className: "order-2 md:order-1",
+                className: "hero-copy-reveal order-2 md:order-1",
                 children: [
                   y("div", {
                     className:
-                      "inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-6",
+                      "hero-eyebrow inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-6",
                     children: [
                       f("span", { className: "w-6 h-[1px] bg-[#C4A484]" }),
                       "Assam, North East India",
@@ -447,26 +452,33 @@ export default function Homepage() {
                   }),
                   f("h1", {
                     className:
-                      "serif text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] max-w-[560px]",
-                    children: "The Reserve List of Assam's Fine Tea Estates.",
+                      "hero-display-title serif text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] max-w-[560px]",
+                    children: [
+                      "The Reserve List of ",
+                      f("span", {
+                        className: "hero-title-accent",
+                        children: "Assam's",
+                      }),
+                      " Fine Tea Estates.",
+                    ],
                   }),
                   f("p", {
                     className:
-                      "mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
+                      "hero-intro mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
                     children:
-                      "Single-estate, single-harvest teas- sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
+                      "Single-estate, single-harvest teas—sourced directly from historic gardens in Assam and reserved in order, Chapter by Chapter. Once a garden enters our list, it stays.",
                   }),
                   y("div", {
-                    className: "mt-8 flex flex-wrap gap-3",
+                    className: "hero-actions mt-8 flex flex-wrap gap-3",
                     children: [
                       f("a", {
-                        href: "#",
+                        href: "#chapter-collection",
                         className:
                           "h-[48px] px-7 rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:bg-black transition",
                         children: "Explore Our Reserves",
                       }),
                       f("a", {
-                        href: "#",
+                        href: "/pages/about-us",
                         className:
                           "h-[48px] px-7 rounded-full border border-[#132A1F]/20 text-[#132A1F] text-[13.5px] tracking-[0.04em] uppercase font-[500] inline-flex items-center justify-center hover:border-[#132A1F] transition",
                         children: "The story of Charaideo",
@@ -474,7 +486,7 @@ export default function Homepage() {
                     ],
                   }),
                   f("div", {
-                    className: "mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
+                    className: "hero-proof mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
                     children: f("p", {
                       className: "text-[11.5px] tracking-[0.14em] uppercase text-[#5A6B62] font-[500]",
                       children: "One Estate, One Harvest, Fully Traceable, No Blends.",
