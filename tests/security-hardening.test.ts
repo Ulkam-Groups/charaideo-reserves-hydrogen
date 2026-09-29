@@ -111,6 +111,10 @@ test('root mounts the analytics provider around the storefront layout', async ()
   assert.match(source, /<Analytics\.Provider/);
   assert.match(source, /shop=\{data\.shop\}/);
   assert.match(source, /consent=\{data\.consent\}/);
+  assert.match(
+    source,
+    /measureOptionalStorefront\(context\.monitor, 'shop_analytics',[\s\S]*getShopAnalytics/,
+  );
 });
 
 test('manual Storefront API proxy is removed in favor of Hydrogen handler', async () => {

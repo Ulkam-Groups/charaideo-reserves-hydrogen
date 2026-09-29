@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "postinstall": "node scripts/patch-hydrogen-analytics.mjs",
     "dev": "npm run typegen && shopify hydrogen dev",
     "dev:local": "vite --host 0.0.0.0",
     "build": "npm run typegen && react-router build",
@@ -23,7 +24,7 @@
   "dependencies": {
     "@sentry/browser": "^10.75.0",
     "@sentry/core": "^10.75.0",
-    "@shopify/hydrogen": "^2026.4.5",
+    "@shopify/hydrogen": "2026.4.5",
     "@shopify/mini-oxygen": "^4.2.2",
     "headroom-ai": "^0.37.0",
     "htmlparser2": "^10.1.0",
