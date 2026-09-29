@@ -183,10 +183,12 @@ export async function loader({context}: Route.LoaderArgs) {
         ? env.SENTRY_DSN
         : null,
     sentryEnvironment: env.SENTRY_ENVIRONMENT?.trim() || 'production',
-    shop: getShopAnalytics({
-      storefront,
-      publicStorefrontId: env.PUBLIC_STOREFRONT_ID || '0',
-    }),
+    shop: measureOptionalStorefront(context.monitor, 'shop_analytics', () =>
+      getShopAnalytics({
+        storefront,
+        publicStorefrontId: env.PUBLIC_STOREFRONT_ID || '0',
+      }),
+    ),
   };
 }
 
