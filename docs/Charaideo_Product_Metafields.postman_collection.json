@@ -1,0 +1,427 @@
+{
+  "info": {
+    "_postman_id": "a21f55d8-2282-47a9-9ec8-e2702e95db48",
+    "name": "Charaideo Reserves - Product Metafields",
+    "description": "Reads a comprehensive Shopify product snapshot and provides PATCH-style GraphQL mutations for product, metafield, and variant updates. It also creates the Charaideo metafield definitions, writes all PDP values, verifies them, and optionally assigns a taxonomy category. For a Dev Dashboard app and a store in the same Shopify organization, set shop, client_id, and client_secret, then run request 00 to obtain and save a short-lived Admin API token. The released and installed app version must include write_products; that scope includes product read access. For a legacy custom app or OAuth app, place its Admin API access token directly in admin_token and start at request 01. Requests 01B and 01C contain example write values: edit them and remove fields you do not intend to change before sending. Never commit or share client_secret or admin_token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {"key": "key", "value": "X-Shopify-Access-Token", "type": "string"},
+      {"key": "value", "value": "{{admin_token}}", "type": "string"},
+      {"key": "in", "value": "header", "type": "string"}
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const requestName = pm.info.requestName || '';",
+          "const isTokenRequest = requestName.startsWith('00 -');",
+          "const shop = String(pm.collectionVariables.get('shop') || '').trim();",
+          "if (!shop || shop === 'your-store.myshopify.com') { throw new Error('Set shop to your real *.myshopify.com domain'); }",
+          "if (isTokenRequest) {",
+          "  if (!pm.collectionVariables.get('client_id')) { throw new Error('Set client_id from Dev Dashboard > Apps > your app > Settings > Credentials'); }",
+          "  if (!pm.collectionVariables.get('client_secret')) { throw new Error('Set client_secret securely in Postman; never commit or share it'); }",
+          "} else {",
+          "  if (!pm.collectionVariables.get('admin_token')) { throw new Error('Run request 00 to generate an Admin API token, or set admin_token from a legacy custom/OAuth app'); }",
+          "  const expiresAt = Number(pm.collectionVariables.get('admin_token_expires_at') || 0);",
+          "  if (expiresAt && Date.now() >= expiresAt) { throw new Error('The generated Admin API token has expired. Run request 00 again to refresh it.'); }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "let json;",
+          "try { json = pm.response.json(); } catch (_) { json = null; }",
+          "const denied = (json?.errors || []).find(error => error?.extensions?.code === 'ACCESS_DENIED');",
+          "if (denied) {",
+          "  const required = denied.extensions?.requiredAccess || 'the required Admin API scope';",
+          "  console.error(`Access denied. Release/install the app with ${required}, then run request 00 again. Existing tokens do not gain new scopes.`);",
+          "  pm.test(`Token has ${required}`, () => pm.expect.fail(`Release/install the app with ${required}, then obtain a new token using request 00.`));",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {"key": "shop", "value": "your-store.myshopify.com", "type": "string"},
+    {"key": "admin_api_version", "value": "2026-07", "type": "string"},
+    {"key": "client_id", "value": "", "type": "string"},
+    {"key": "client_secret", "value": "", "type": "string"},
+    {"key": "admin_token", "value": "", "type": "string"},
+    {"key": "admin_token_scopes", "value": "", "type": "string"},
+    {"key": "admin_token_expires_at", "value": "", "type": "string"},
+    {"key": "product_handle", "value": "ember-hojicha", "type": "string"},
+    {"key": "product_gid", "value": "", "type": "string"},
+    {"key": "variant_gid", "value": "", "type": "string"},
+    {"key": "category_gid", "value": "", "type": "string"}
+  ],
+  "item": [
+    {
+      "name": "00 - Get Admin token (Dev Dashboard app)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "let json = {};",
+              "try { json = pm.response.json(); } catch (_) {}",
+              "pm.test('Token endpoint returned HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Response contains an Admin API access token', () => pm.expect(json.access_token).to.be.a('string').and.not.empty);",
+              "const scopes = String(json.scope || '').split(',').map(scope => scope.trim()).filter(Boolean);",
+              "pm.test('Granted scope includes write_products', () => pm.expect(scopes).to.include('write_products'));",
+              "if (json.access_token && scopes.includes('write_products')) {",
+              "  pm.collectionVariables.set('admin_token', json.access_token);",
+              "  pm.collectionVariables.set('admin_token_scopes', scopes.join(','));",
+              "  const lifetimeSeconds = Number(json.expires_in || 0);",
+              "  pm.collectionVariables.set('admin_token_expires_at', lifetimeSeconds ? String(Date.now() + Math.max(lifetimeSeconds - 60, 0) * 1000) : '');",
+              "  console.log('Admin API token saved. Granted scopes:', scopes.join(', '));",
+              "} else if (json.access_token) {",
+              "  pm.collectionVariables.unset('admin_token');",
+              "  pm.collectionVariables.unset('admin_token_expires_at');",
+              "  console.error('Token was not saved because write_products is missing. Add write_products to the app version, release it, reinstall/reauthorize the app, and run request 00 again.');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {"type": "noauth"},
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/x-www-form-urlencoded", "type": "text"}
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {"key": "grant_type", "value": "client_credentials", "type": "text"},
+            {"key": "client_id", "value": "{{client_id}}", "type": "text"},
+            {"key": "client_secret", "value": "{{client_secret}}", "type": "text"}
+          ]
+        },
+        "url": "https://{{shop}}/admin/oauth/access_token",
+        "description": "For apps created in Shopify Dev Dashboard when the app and store are in the same Shopify organization. Before running, release/install an app version with write_products. This request obtains a short-lived Admin API token, verifies write_products, saves it to admin_token, and records its expiry. Run it again when the token expires. If your store is outside the app organization, use the app installation/OAuth flow and paste that Admin API token into admin_token instead."
+      }
+    },
+    {
+      "name": "01 - Find product and save GID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "pm.test('Product was found', () => pm.expect(json.data && json.data.product).to.be.ok);",
+              "if (json.data && json.data.product && json.data.product.id) {",
+              "  pm.collectionVariables.set('product_gid', json.data.product.id);",
+              "  console.log('Saved product_gid:', json.data.product.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query GetProductId($identifier: ProductIdentifierInput!) {\n  product: productByIdentifier(identifier: $identifier) {\n    id\n    title\n    handle\n    category { id name }\n  }\n}",
+            "variables": "{\n  \"identifier\": {\n    \"handle\": \"{{product_handle}}\"\n  }\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "Looks up the product by handle and automatically stores the returned gid://shopify/Product/... value in the collection variable product_gid."
+      }
+    },
+    {
+      "name": "01A - Read comprehensive product details",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('product_gid')) { throw new Error('Run request 01 first so product_gid is populated'); }"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "pm.test('Product was returned', () => pm.expect(json.data?.product).to.be.ok);",
+              "const firstVariantId = json.data?.product?.variants?.nodes?.[0]?.id;",
+              "if (firstVariantId) {",
+              "  pm.collectionVariables.set('variant_gid', firstVariantId);",
+              "  console.log('Saved first variant as variant_gid:', firstVariantId);",
+              "}",
+              "const paged = ['collections', 'media', 'variants', 'metafields'].filter(key => json.data?.product?.[key]?.pageInfo?.hasNextPage);",
+              "if (paged.length) console.warn('Additional pages exist for:', paged.join(', '), 'Use the returned endCursor to paginate if the product exceeds this request limits.');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query ReadComprehensiveProduct($id: ID!) {\n  product(id: $id) {\n    id\n    legacyResourceId\n    title\n    handle\n    description\n    descriptionHtml\n    vendor\n    productType\n    status\n    tags\n    templateSuffix\n    isGiftCard\n    hasOnlyDefaultVariant\n    hasOutOfStockVariants\n    totalInventory\n    tracksInventory\n    createdAt\n    updatedAt\n    publishedAt\n    onlineStoreUrl\n    onlineStorePreviewUrl\n    category { id name fullName }\n    seo { title description }\n    priceRangeV2 {\n      minVariantPrice { amount currencyCode }\n      maxVariantPrice { amount currencyCode }\n    }\n    options {\n      id\n      name\n      position\n      values\n      optionValues { id name }\n    }\n    collections(first: 250) {\n      nodes { id title handle updatedAt }\n      pageInfo { hasNextPage endCursor }\n    }\n    media(first: 250) {\n      nodes { ...ProductMediaFields }\n      pageInfo { hasNextPage endCursor }\n    }\n    variants(first: 100) {\n      nodes {\n        id\n        legacyResourceId\n        title\n        displayName\n        sku\n        barcode\n        price\n        compareAtPrice\n        taxable\n        inventoryPolicy\n        inventoryQuantity\n        position\n        createdAt\n        updatedAt\n        selectedOptions { name value }\n        image { id altText url width height }\n        media(first: 20) { nodes { ...ProductMediaFields } pageInfo { hasNextPage endCursor } }\n        metafields(first: 20) {\n          nodes { id namespace key type value jsonValue createdAt updatedAt }\n          pageInfo { hasNextPage endCursor }\n        }\n      }\n      pageInfo { hasNextPage endCursor }\n    }\n    metafields(first: 250) {\n      nodes {\n        id\n        namespace\n        key\n        type\n        value\n        jsonValue\n        createdAt\n        updatedAt\n        definition { id name description access { storefront } }\n      }\n      pageInfo { hasNextPage endCursor }\n    }\n  }\n}\nfragment ProductMediaFields on Media {\n  alt\n  mediaContentType\n  status\n  preview { image { id altText url width height } status }\n  ... on MediaImage { id image { id altText url width height } }\n  ... on Video { id originalSource { format height mimeType url width } sources { format height mimeType url width } }\n  ... on ExternalVideo { id host originUrl embedUrl }\n  ... on Model3d { id originalSource { format mimeType url } sources { format mimeType url } }\n}",
+            "variables": "{\n  \"id\": \"{{product_gid}}\"\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "Returns a comprehensive product snapshot: core fields, SEO, category, price range, options, collections, media, variants, product metafields, and the first page of variant metafields. GraphQL has no 'all fields' wildcard and connections are paginated. This request reads up to 100 variants, 250 product metafields/media/collections, and 20 metafields/media per variant; inspect pageInfo.hasNextPage for unusually large products. It also saves the first variant ID to variant_gid."
+      }
+    },
+    {
+      "name": "01B - Optional - PATCH-style update product and metafields",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('product_gid')) { throw new Error('Run request 01 first so product_gid is populated'); }",
+              "console.warn('This request writes product data. Edit the variables body and remove every field you do not intend to change before sending.');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "const errors = json.data?.productUpdate?.userErrors || [];",
+              "pm.test('Product update has no user errors', () => pm.expect(errors).to.be.empty);",
+              "if (errors.length) console.error(errors);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation PatchProductAndMetafields($product: ProductUpdateInput!) {\n  productUpdate(product: $product) {\n    product {\n      id\n      title\n      handle\n      descriptionHtml\n      vendor\n      productType\n      status\n      tags\n      templateSuffix\n      seo { title description }\n      category { id name fullName }\n      metafields(first: 250) { nodes { id namespace key type value updatedAt } }\n      updatedAt\n    }\n    userErrors { field message code }\n  }\n}",
+            "variables": "{\n  \"product\": {\n    \"id\": \"{{product_gid}}\",\n    \"title\": \"Ember Hojicha\",\n    \"handle\": \"ember-hojicha\",\n    \"redirectNewHandle\": true,\n    \"descriptionHtml\": \"<p>A warm, smooth and gently roasted tea.</p>\",\n    \"vendor\": \"Charaideo Reserves\",\n    \"productType\": \"Tea\",\n    \"status\": \"ACTIVE\",\n    \"tags\": [\"hojicha\", \"roasted-tea\", \"evening-tea\"],\n    \"templateSuffix\": \"\",\n    \"seo\": {\n      \"title\": \"Ember Hojicha | Charaideo Reserves\",\n      \"description\": \"A warm, smooth and gently roasted tea suited to hot, iced and latte preparation.\"\n    },\n    \"metafields\": [\n      {\"namespace\": \"custom\", \"key\": \"roast\", \"type\": \"number_integer\", \"value\": \"5\"},\n      {\"namespace\": \"custom\", \"key\": \"best_time\", \"type\": \"single_line_text_field\", \"value\": \"Evening\"}\n    ]\n  }\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "Shopify Admin GraphQL uses POST mutations rather than HTTP PATCH. productUpdate has PATCH semantics: omitted fields remain unchanged. Remove fields you do not want to modify. tags replaces the complete tag list; handle changes can create a redirect when redirectNewHandle is true. The metafields array updates only the listed metafields. Use request 03 to update the full Charaideo metafield set."
+      }
+    },
+    {
+      "name": "01C - Optional - PATCH-style update product variants",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('product_gid')) { throw new Error('Run request 01 first so product_gid is populated'); }",
+              "if (!pm.collectionVariables.get('variant_gid')) { throw new Error('Run request 01A to save the first variant_gid, or set variant_gid manually'); }",
+              "console.warn('This request writes variant data. Edit the sample values before sending. Inventory quantities require separate inventory mutations.');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "const errors = json.data?.productVariantsBulkUpdate?.userErrors || [];",
+              "pm.test('Variant update has no user errors', () => pm.expect(errors).to.be.empty);",
+              "if (errors.length) console.error(errors);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation PatchProductVariants($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {\n  productVariantsBulkUpdate(productId: $productId, variants: $variants, allowPartialUpdates: false) {\n    product { id title updatedAt }\n    productVariants {\n      id\n      title\n      sku\n      barcode\n      price\n      compareAtPrice\n      taxable\n      inventoryPolicy\n      selectedOptions { name value }\n      updatedAt\n    }\n    userErrors { field message code }\n  }\n}",
+            "variables": "{\n  \"productId\": \"{{product_gid}}\",\n  \"variants\": [\n    {\n      \"id\": \"{{variant_gid}}\",\n      \"price\": \"18.00\",\n      \"compareAtPrice\": \"22.00\",\n      \"sku\": \"CR-HOJ-050\",\n      \"barcode\": \"\",\n      \"taxable\": true,\n      \"inventoryPolicy\": \"DENY\"\n    }\n  ]\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "PATCH-style variant update using Shopify's productVariantsBulkUpdate mutation. Omitted variant fields remain unchanged. Add more objects to variants to update several variants in one request. Inventory quantity is not a product-variant field update; use Shopify inventory mutations with an inventory item and location."
+      }
+    },
+    {
+      "name": "02 - Create all product metafield definitions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "const failures = [];",
+              "Object.entries(json.data || {}).forEach(([name, result]) => {",
+              "  (result.userErrors || []).forEach(error => failures.push(name + ': ' + error.message));",
+              "});",
+              "if (failures.length) console.warn('Definition messages (existing definitions can be ignored):', failures);",
+              "pm.test('Definition request returned data', () => pm.expect(json.data).to.be.an('object'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation CreateCharaideoDefinitions {\n  roast: metafieldDefinitionCreate(definition: {name: \"Roast\", namespace: \"custom\", key: \"roast\", type: \"number_integer\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}, validations: [{name: \"min\", value: \"1\"}, {name: \"max\", value: \"5\"}]}) { ...DefinitionResult }\n  body: metafieldDefinitionCreate(definition: {name: \"Body\", namespace: \"custom\", key: \"body\", type: \"number_integer\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}, validations: [{name: \"min\", value: \"1\"}, {name: \"max\", value: \"5\"}]}) { ...DefinitionResult }\n  sweetness: metafieldDefinitionCreate(definition: {name: \"Sweetness\", namespace: \"custom\", key: \"sweetness\", type: \"number_integer\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}, validations: [{name: \"min\", value: \"1\"}, {name: \"max\", value: \"5\"}]}) { ...DefinitionResult }\n  astringency: metafieldDefinitionCreate(definition: {name: \"Astringency\", namespace: \"custom\", key: \"astringency\", type: \"number_integer\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}, validations: [{name: \"min\", value: \"1\"}, {name: \"max\", value: \"5\"}]}) { ...DefinitionResult }\n  caffeineScore: metafieldDefinitionCreate(definition: {name: \"Caffeine score\", namespace: \"custom\", key: \"caffeine_score\", type: \"number_integer\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}, validations: [{name: \"min\", value: \"1\"}, {name: \"max\", value: \"5\"}]}) { ...DefinitionResult }\n  bitterness: metafieldDefinitionCreate(definition: {name: \"Bitterness\", namespace: \"custom\", key: \"bitterness\", type: \"number_integer\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}, validations: [{name: \"min\", value: \"1\"}, {name: \"max\", value: \"5\"}]}) { ...DefinitionResult }\n  bestTime: metafieldDefinitionCreate(definition: {name: \"Best time\", namespace: \"custom\", key: \"best_time\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  milkPairing: metafieldDefinitionCreate(definition: {name: \"Milk pairing\", namespace: \"custom\", key: \"milk_pairing\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  tastingNotes: metafieldDefinitionCreate(definition: {name: \"Tasting notes\", namespace: \"custom\", key: \"tasting_notes\", type: \"list.single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  characterSummary: metafieldDefinitionCreate(definition: {name: \"Character summary\", namespace: \"custom\", key: \"character_summary\", type: \"multi_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  recipeHot: metafieldDefinitionCreate(definition: {name: \"Hot recipe\", namespace: \"custom\", key: \"recipe_hot\", type: \"json\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  recipeIced: metafieldDefinitionCreate(definition: {name: \"Iced recipe\", namespace: \"custom\", key: \"recipe_iced\", type: \"json\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  recipeLatte: metafieldDefinitionCreate(definition: {name: \"Latte recipe\", namespace: \"custom\", key: \"recipe_latte\", type: \"json\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  process: metafieldDefinitionCreate(definition: {name: \"Process\", namespace: \"custom\", key: \"process\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  teaStyle: metafieldDefinitionCreate(definition: {name: \"Tea style\", namespace: \"custom\", key: \"tea_style\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  lotNumber: metafieldDefinitionCreate(definition: {name: \"Lot number\", namespace: \"custom\", key: \"lot_number\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  isThisTeaYes: metafieldDefinitionCreate(definition: {name: \"You will love this tea if\", namespace: \"custom\", key: \"is_this_tea_yes\", type: \"list.single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  isThisTeaNo: metafieldDefinitionCreate(definition: {name: \"This tea may not suit you if\", namespace: \"custom\", key: \"is_this_tea_no\", type: \"list.single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  whyChooseTea: metafieldDefinitionCreate(definition: {name: \"Why we chose this tea\", namespace: \"custom\", key: \"why_choose_tea\", type: \"multi_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  whyChooseAttribution: metafieldDefinitionCreate(definition: {name: \"Quote attribution\", namespace: \"custom\", key: \"why_choose_attribution\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  origin: metafieldDefinitionCreate(definition: {name: \"Origin\", namespace: \"custom\", key: \"origin\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  estate: metafieldDefinitionCreate(definition: {name: \"Estate\", namespace: \"custom\", key: \"estate\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  cultivar: metafieldDefinitionCreate(definition: {name: \"Cultivar\", namespace: \"custom\", key: \"cultivar\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  grade: metafieldDefinitionCreate(definition: {name: \"Grade\", namespace: \"custom\", key: \"grade\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  harvest: metafieldDefinitionCreate(definition: {name: \"Harvest\", namespace: \"custom\", key: \"harvest\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  flush: metafieldDefinitionCreate(definition: {name: \"Flush\", namespace: \"custom\", key: \"flush\", type: \"single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  pluckDate: metafieldDefinitionCreate(definition: {name: \"Pluck date\", namespace: \"custom\", key: \"pluck_date\", type: \"date\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  ingredients: metafieldDefinitionCreate(definition: {name: \"Ingredients\", namespace: \"custom\", key: \"ingredients\", type: \"list.single_line_text_field\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n  netWeight: metafieldDefinitionCreate(definition: {name: \"Net weight\", namespace: \"custom\", key: \"net_weight\", type: \"weight\", ownerType: PRODUCT, access: {storefront: PUBLIC_READ}}) { ...DefinitionResult }\n}\nfragment DefinitionResult on MetafieldDefinitionCreatePayload {\n  createdDefinition { id name namespace key access { storefront } type { name } }\n  userErrors { field message code }\n}",
+            "variables": "{}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "Creates all 29 PRODUCT metafield definitions with PUBLIC_READ storefront access. Existing definitions return a message for that alias and can be left in place if their types match. Run once per store."
+      }
+    },
+    {
+      "name": "03 - Set all product page metafield values",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('product_gid')) { throw new Error('Run request 01 first so product_gid is populated'); }"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "const editorialErrors = json.data?.editorial?.userErrors || [];",
+              "const recordErrors = json.data?.teaRecord?.userErrors || [];",
+              "pm.test('Editorial metafields were saved', () => pm.expect(editorialErrors).to.be.empty);",
+              "pm.test('Tea record metafields were saved', () => pm.expect(recordErrors).to.be.empty);",
+              "if (editorialErrors.length || recordErrors.length) console.error({editorialErrors, recordErrors});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation SetAllProductPageMetafields($editorial: [MetafieldsSetInput!]!, $teaRecord: [MetafieldsSetInput!]!) {\n  editorial: metafieldsSet(metafields: $editorial) {\n    metafields { id namespace key type value updatedAt }\n    userErrors { field message code }\n  }\n  teaRecord: metafieldsSet(metafields: $teaRecord) {\n    metafields { id namespace key type value updatedAt }\n    userErrors { field message code }\n  }\n}",
+            "variables": "{\n  \"editorial\": [\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"roast\", \"type\": \"number_integer\", \"value\": \"5\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"body\", \"type\": \"number_integer\", \"value\": \"4\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"sweetness\", \"type\": \"number_integer\", \"value\": \"4\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"astringency\", \"type\": \"number_integer\", \"value\": \"1\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"caffeine_score\", \"type\": \"number_integer\", \"value\": \"2\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"bitterness\", \"type\": \"number_integer\", \"value\": \"1\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"best_time\", \"type\": \"single_line_text_field\", \"value\": \"Evening\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"milk_pairing\", \"type\": \"single_line_text_field\", \"value\": \"Excellent\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"tasting_notes\", \"type\": \"list.single_line_text_field\", \"value\": \"[\\\"Toasted rice\\\",\\\"Brown sugar\\\",\\\"Hazelnut\\\",\\\"Light smoke\\\"]\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"character_summary\", \"type\": \"multi_line_text_field\", \"value\": \"Pan-roasting changes this green tea into something warmer, smoother and more rounded.\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"recipe_hot\", \"type\": \"json\", \"value\": \"{\\\"title\\\":\\\"Hot Hojicha\\\",\\\"description\\\":\\\"Warm, rounded and quietly roasted.\\\",\\\"items\\\":[{\\\"label\\\":\\\"Tea\\\",\\\"value\\\":\\\"1.5 tsp\\\"},{\\\"label\\\":\\\"Water\\\",\\\"value\\\":\\\"200 ml\\\"},{\\\"label\\\":\\\"Temperature\\\",\\\"value\\\":\\\"85–90°C\\\"},{\\\"label\\\":\\\"Steep\\\",\\\"value\\\":\\\"2 minutes\\\"},{\\\"label\\\":\\\"Re-steep\\\",\\\"value\\\":\\\"1×\\\"}]}\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"recipe_iced\", \"type\": \"json\", \"value\": \"{\\\"title\\\":\\\"Iced Hojicha\\\",\\\"description\\\":\\\"Clean, refreshing and lightly roasted over ice.\\\",\\\"items\\\":[{\\\"label\\\":\\\"Tea\\\",\\\"value\\\":\\\"2 tsp\\\"},{\\\"label\\\":\\\"Water\\\",\\\"value\\\":\\\"150 ml hot\\\"},{\\\"label\\\":\\\"Temperature\\\",\\\"value\\\":\\\"85–90°C\\\"},{\\\"label\\\":\\\"Steep\\\",\\\"value\\\":\\\"2 minutes\\\"},{\\\"label\\\":\\\"Serve\\\",\\\"value\\\":\\\"Pour over ice\\\"}]}\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"recipe_latte\", \"type\": \"json\", \"value\": \"{\\\"title\\\":\\\"Hojicha Latte\\\",\\\"description\\\":\\\"Creamy, roasted and naturally suited to milk.\\\",\\\"items\\\":[{\\\"label\\\":\\\"Tea\\\",\\\"value\\\":\\\"2 tsp\\\"},{\\\"label\\\":\\\"Water\\\",\\\"value\\\":\\\"60 ml hot\\\"},{\\\"label\\\":\\\"Milk\\\",\\\"value\\\":\\\"150 ml steamed\\\"},{\\\"label\\\":\\\"Sweetener\\\",\\\"value\\\":\\\"Optional jaggery\\\"},{\\\"label\\\":\\\"Method\\\",\\\"value\\\":\\\"Whisk, then combine\\\"}]}\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"process\", \"type\": \"single_line_text_field\", \"value\": \"Pan-roasted\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"tea_style\", \"type\": \"single_line_text_field\", \"value\": \"Hojicha\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"lot_number\", \"type\": \"single_line_text_field\", \"value\": \"CR-HOJ-01\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"is_this_tea_yes\", \"type\": \"list.single_line_text_field\", \"value\": \"[\\\"You prefer smooth, roasted flavours\\\",\\\"Green tea often tastes too grassy to you\\\",\\\"You like tea with milk\\\",\\\"You want an evening-friendly cup\\\"]\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"is_this_tea_no\", \"type\": \"list.single_line_text_field\", \"value\": \"[\\\"You want a bright floral tea\\\",\\\"You prefer a strong malty breakfast Assam\\\",\\\"You specifically want a fresh vegetal green tea\\\"]\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"why_choose_tea\", \"type\": \"multi_line_text_field\", \"value\": \"There are hundreds of teas produced in Assam. This one made us curious—not because it tasted like what we expected from Assam, but because it did not.\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"why_choose_attribution\", \"type\": \"single_line_text_field\", \"value\": \"Kamalika · Founder, Charaideo Reserves\"}\n  ],\n  \"teaRecord\": [\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"origin\", \"type\": \"single_line_text_field\", \"value\": \"Assam, India\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"estate\", \"type\": \"single_line_text_field\", \"value\": \"Chota Tingrai Tea Estate\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"cultivar\", \"type\": \"single_line_text_field\", \"value\": \"Camellia sinensis var. assamica\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"grade\", \"type\": \"single_line_text_field\", \"value\": \"Whole leaf\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"harvest\", \"type\": \"single_line_text_field\", \"value\": \"2026\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"flush\", \"type\": \"single_line_text_field\", \"value\": \"Second flush\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"pluck_date\", \"type\": \"date\", \"value\": \"2026-06-15\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"ingredients\", \"type\": \"list.single_line_text_field\", \"value\": \"[\\\"100% Assam green tea\\\"]\"},\n    {\"ownerId\": \"{{product_gid}}\", \"namespace\": \"custom\", \"key\": \"net_weight\", \"type\": \"weight\", \"value\": \"{\\\"value\\\":50,\\\"unit\\\":\\\"GRAMS\\\"}\"}\n  ]\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "Writes all 29 custom metafields in one HTTP request. It uses two aliased metafieldsSet operations because Shopify permits at most 25 inputs per operation. Edit the sample values before sending. The two batches are individually atomic, not jointly atomic."
+      }
+    },
+    {
+      "name": "04 - Verify product metafields",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {"type": "text/javascript", "exec": ["if (!pm.collectionVariables.get('product_gid')) { throw new Error('Run request 01 first so product_gid is populated'); }"]}
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "pm.test('Product was returned', () => pm.expect(json.data && json.data.product).to.be.ok);",
+              "const nodes = json.data?.product?.metafields?.nodes || [];",
+              "pm.test('All 29 custom metafields are present', () => pm.expect(nodes.length).to.be.at.least(29));",
+              "console.table(nodes.map(({namespace, key, type, value}) => ({namespace, key, type, value})));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "query VerifyProductMetafields($id: ID!) {\n  product(id: $id) {\n    id\n    title\n    handle\n    category { id name }\n    variants(first: 20) { nodes { id title sku selectedOptions { name value } } }\n    metafields(first: 100, namespace: \"custom\") {\n      nodes { id namespace key type value updatedAt definition { id name access { storefront } } }\n    }\n  }\n}",
+            "variables": "{\n  \"id\": \"{{product_gid}}\"\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json"
+      }
+    },
+    {
+      "name": "05 - Optional - Assign Shopify product category",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.collectionVariables.get('product_gid')) { throw new Error('Run request 01 first so product_gid is populated'); }",
+              "if (!pm.collectionVariables.get('category_gid')) { console.warn('Skipping optional category request because category_gid is empty'); pm.execution.skipRequest(); }"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('No top-level GraphQL errors', () => pm.expect(json.errors || []).to.be.empty);",
+              "pm.test('Category update has no user errors', () => pm.expect(json.data?.productUpdate?.userErrors || []).to.be.empty);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json", "type": "text"}],
+        "body": {
+          "mode": "graphql",
+          "graphql": {
+            "query": "mutation AssignProductCategory($product: ProductUpdateInput!) {\n  productUpdate(product: $product) {\n    product { id title category { id name } }\n    userErrors { field message code }\n  }\n}",
+            "variables": "{\n  \"product\": {\n    \"id\": \"{{product_gid}}\",\n    \"category\": \"{{category_gid}}\"\n  }\n}"
+          }
+        },
+        "url": "https://{{shop}}/admin/api/{{admin_api_version}}/graphql.json",
+        "description": "Optional. Set category_gid to a real gid://shopify/TaxonomyCategory/... value. This request skips automatically when category_gid is blank. Category attribute metafields such as shopify.tea-variety require taxonomy metaobject GIDs and are intentionally not written as free text."
+      }
+    }
+  ]
+}

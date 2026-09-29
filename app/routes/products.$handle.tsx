@@ -17,6 +17,7 @@ import {getJudgeMeProductReviews} from '~/lib/judgeme.server';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {ProductReviews} from '~/components/ProductReviews';
 import {ProductItem} from '~/components/ProductItem';
+import {ProductEditorialSections} from '~/components/ProductEditorialSections';
 import {measureStorefront} from '~/lib/monitoring.server';
 import {getProductOriginLabel} from '~/lib/product-origin';
 import {
@@ -56,13 +57,14 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     throw new Error('Expected product handle to be defined');
   }
 
-  const [{product}, productOriginLabel] = await Promise.all([
+  const [{product}, productOriginLabel, taxonomyAttributes] = await Promise.all([
     measureStorefront(context.monitor, 'product', () =>
       storefront.query(PRODUCT_QUERY, {
         variables: {handle, selectedOptions: getSelectedProductOptions(request)},
       }),
     ),
     loadProductOriginLabel(context, handle),
+    loadProductTaxonomyAttributes(context, handle),
   ]);
 
   if (!product?.id) {
@@ -76,9 +78,36 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     productOriginLabel,
     product: {
       ...product,
+      ...taxonomyAttributes,
       descriptionHtml: sanitizeStorefrontHtml(product.descriptionHtml),
     },
   };
+}
+
+async function loadProductTaxonomyAttributes(
+  context: Route.LoaderArgs['context'],
+  handle: string,
+) {
+  try {
+    const {product} = await context.storefront.query(
+      PRODUCT_TAXONOMY_ATTRIBUTES_QUERY,
+      {variables: {handle}},
+    );
+
+    return {
+      taxonomyTeaVariety: product?.taxonomyTeaVariety ?? null,
+      taxonomyTeaInputType: product?.taxonomyTeaInputType ?? null,
+      taxonomyTasteProfile: product?.taxonomyTasteProfile ?? null,
+    };
+  } catch {
+    // Category attributes require metaobject access. Custom product metafields
+    // remain available when that optional Storefront API permission is absent.
+    return {
+      taxonomyTeaVariety: null,
+      taxonomyTeaInputType: null,
+      taxonomyTasteProfile: null,
+    };
+  }
 }
 
 /**
@@ -224,7 +253,7 @@ export default function Product() {
     selectedOrFirstAvailableVariant: selectedVariant,
   });
 
-  const {title, descriptionHtml} = product;
+  const {title} = product;
   const rating = parseRating(product.reviewRating?.value);
   const reviewCount = Number(product.reviewCount?.value || 0);
   const hasReviews = rating !== null && reviewCount > 0;
@@ -286,7 +315,11 @@ export default function Product() {
               <><span className="product-stars" aria-hidden="true">☆☆☆☆☆</span><strong>0 reviews</strong></>
             )}
           </a>
-          {product.tastingNotes?.value && <p className="product-taste-line">{product.tastingNotes.value}</p>}
+          {product.tastingNotes?.value && (
+            <p className="product-taste-line">
+              {formatSpecification(product.tastingNotes.value)}
+            </p>
+          )}
           <ProductPrice
             price={selectedVariant?.price}
             compareAtPrice={selectedVariant?.compareAtPrice}
@@ -302,20 +335,10 @@ export default function Product() {
         </div>
       </section>
 
-      <section className="product-information" aria-labelledby="product-story-title">
-        <div className="product-story">
-          <span className="eyebrow">The character of this cup</span>
-          <h2 id="product-story-title">A cup with<br /><em>a sense of place.</em></h2>
-          <div dangerouslySetInnerHTML={{__html: descriptionHtml}} />
-        </div>
-        <div className="product-information-sections">
-          {product.tastingNotes?.value && <details open><summary>Tasting notes</summary><p>{product.tastingNotes.value}</p></details>}
-          <details open><summary>Your brewing ritual</summary><p>{product.brewingSuggestion?.value || 'Follow the brewing directions on your pack. Use freshly drawn water and adjust the steep to your taste.'}</p></details>
-          <details><summary>Delivery & care</summary><p>Shipping is calculated at checkout. Keep your tea sealed, cool, and dry, away from strong aromas.</p></details>
-        </div>
-      </section>
-
-      <TeaSpecifications product={product} selectedVariant={selectedVariant} />
+      <ProductEditorialSections
+        product={product}
+        selectedVariant={selectedVariant}
+      />
 
       <section className="product-reviews" id="customer-notes" aria-labelledby="customer-notes-title">
         <div className="product-reviews-heading">
@@ -397,7 +420,7 @@ export default function Product() {
   );
 }
 
-function TeaSpecifications({
+export function TeaSpecifications({
   product,
   selectedVariant,
 }: {
@@ -552,6 +575,7 @@ const PRODUCT_FRAGMENT = `#graphql
     vendor
     handle
     productType
+    category { name }
     tastingNotes: metafield(namespace: "custom", key: "tasting_notes") { value }
     brewingSuggestion: metafield(namespace: "custom", key: "brewing_suggestion") { value }
     netWeight: metafield(namespace: "custom", key: "net_weight") { value }
@@ -568,6 +592,25 @@ const PRODUCT_FRAGMENT = `#graphql
     shelfLife: metafield(namespace: "custom", key: "shelf_life") { value }
     allergens: metafield(namespace: "custom", key: "allergens") { value }
     certifications: metafield(namespace: "custom", key: "certifications") { value }
+    roast: metafield(namespace: "custom", key: "roast") { value }
+    body: metafield(namespace: "custom", key: "body") { value }
+    sweetness: metafield(namespace: "custom", key: "sweetness") { value }
+    astringency: metafield(namespace: "custom", key: "astringency") { value }
+    caffeineScore: metafield(namespace: "custom", key: "caffeine_score") { value }
+    bitterness: metafield(namespace: "custom", key: "bitterness") { value }
+    bestTime: metafield(namespace: "custom", key: "best_time") { value }
+    milkPairing: metafield(namespace: "custom", key: "milk_pairing") { value }
+    characterSummary: metafield(namespace: "custom", key: "character_summary") { value }
+    recipeHot: metafield(namespace: "custom", key: "recipe_hot") { value }
+    recipeIced: metafield(namespace: "custom", key: "recipe_iced") { value }
+    recipeLatte: metafield(namespace: "custom", key: "recipe_latte") { value }
+    process: metafield(namespace: "custom", key: "process") { value }
+    teaStyle: metafield(namespace: "custom", key: "tea_style") { value }
+    lotNumber: metafield(namespace: "custom", key: "lot_number") { value }
+    isThisTeaYes: metafield(namespace: "custom", key: "is_this_tea_yes") { value }
+    isThisTeaNo: metafield(namespace: "custom", key: "is_this_tea_no") { value }
+    whyChooseTea: metafield(namespace: "custom", key: "why_choose_tea") { value }
+    whyChooseAttribution: metafield(namespace: "custom", key: "why_choose_attribution") { value }
     reviewRating: metafield(namespace: "reviews", key: "rating") { value }
     reviewCount: metafield(namespace: "reviews", key: "rating_count") { value }
     descriptionHtml
@@ -712,6 +755,44 @@ const PRODUCT_ORIGIN_TAG_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     product(handle: $handle) {
       tags
+    }
+  }
+` as const;
+
+const PRODUCT_TAXONOMY_ATTRIBUTES_QUERY = `#graphql
+  query ProductTaxonomyAttributes(
+    $country: CountryCode
+    $language: LanguageCode
+    $handle: String!
+  ) @inContext(country: $country, language: $language) {
+    product(handle: $handle) {
+      taxonomyTeaVariety: metafield(namespace: "shopify", key: "tea-variety") {
+        references(first: 10) {
+          nodes {
+            ... on Metaobject {
+              label: field(key: "label") { value }
+            }
+          }
+        }
+      }
+      taxonomyTeaInputType: metafield(namespace: "shopify", key: "tea-input-type") {
+        references(first: 10) {
+          nodes {
+            ... on Metaobject {
+              label: field(key: "label") { value }
+            }
+          }
+        }
+      }
+      taxonomyTasteProfile: metafield(namespace: "shopify", key: "taste-profile") {
+        references(first: 10) {
+          nodes {
+            ... on Metaobject {
+              label: field(key: "label") { value }
+            }
+          }
+        }
+      }
     }
   }
 ` as const;
