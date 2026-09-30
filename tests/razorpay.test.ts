@@ -294,7 +294,7 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
 
     assert.equal(await launch, true);
     assert.equal(opened, true);
-    ((options?.modal as {ondismiss?: () => void})?.ondismiss)?.();
+    (options?.modal as {ondismiss?: () => void})?.ondismiss?.();
   } finally {
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, 'window');
