@@ -16,6 +16,7 @@ import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razo
 import {
   createShopifyOrder,
   buildShopifyOrderInput,
+  classifyRazorpayCheckoutState,
   razorpayOrderIntegrationReady,
   validateCapturedRazorpayPayment,
   validateRazorpayOrderForShopify,
@@ -25,6 +26,7 @@ import {
 import {
   classifyRazorpayFailure,
   createRazorpayMagicOrder,
+  razorpayCredentials,
   verifyRazorpayPayment,
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
@@ -40,6 +42,23 @@ test('Razorpay validates Shopify variants and converts INR to paise', () => {
   const form = new FormData();
   form.set('products', JSON.stringify(products));
   assert.deepEqual(parseRazorpayCheckoutProducts(form.get('products')), products);
+});
+
+test('Razorpay credentials require a test or live Key ID', () => {
+  assert.deepEqual(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'rzp_live_public',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    {keyId: 'rzp_live_public', keySecret: 'secret'},
+  );
+  assert.equal(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'public',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    null,
+  );
 });
 
 test('Razorpay CSP permits checkout risk detection without broad script access', () => {
@@ -237,6 +256,7 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
   const script = new EventTarget();
   const originalFetch = globalThis.fetch;
   let opened = false;
+  let options: Record<string, unknown> | undefined;
   Object.assign(globalThis, {
     fetch: async () =>
       Response.json({
@@ -261,6 +281,9 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
     await Promise.resolve();
     Object.assign((globalThis as any).window, {
       Razorpay: class {
+        constructor(received: Record<string, unknown>) {
+          options = received;
+        }
         on() {}
         open() {
           opened = true;
@@ -271,6 +294,7 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
 
     assert.equal(await launch, true);
     assert.equal(opened, true);
+    (options?.modal as {ondismiss?: () => void})?.ondismiss?.();
   } finally {
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, 'window');
@@ -376,6 +400,29 @@ test('Razorpay final order and captured payment are validated before Shopify', (
   );
 });
 
+test('Razorpay checkout states distinguish prepaid, COD and incomplete orders', () => {
+  assert.equal(classifyRazorpayCheckoutState(magicOrder), 'prepaid');
+  assert.equal(
+    classifyRazorpayCheckoutState({
+      ...magicOrder,
+      status: 'placed',
+      amount_paid: 0,
+      amount_due: magicOrder.amount,
+    }),
+    'cod',
+  );
+  assert.equal(
+    classifyRazorpayCheckoutState({
+      ...magicOrder,
+      status: 'created',
+      amount_paid: 0,
+      amount_due: magicOrder.amount,
+    }),
+    'pending',
+  );
+  assert.throws(() => classifyRazorpayCheckoutState({...magicOrder, amount_due: 1}));
+});
+
 test('Shopify order input records payment, addresses, shipping and idempotency key', () => {
   const {lines} = validateRazorpayOrderForShopify(magicOrder, magicOrder.id);
   const input = buildShopifyOrderInput({
@@ -451,18 +498,34 @@ test('Razorpay signatures and webhook event targets are verified', async () => {
       event: 'payment.captured',
       payload: {payment: {entity: {id: paymentId, order_id: orderId}}},
     }),
-    {orderId, paymentId},
+    null,
+  );
+  assert.deepEqual(
+    razorpayWebhookTarget({
+      event: 'order.paid',
+      payload: {order: {entity: {id: orderId}}},
+    }),
+    {orderId, expectedStatus: 'paid'},
   );
   assert.deepEqual(
     razorpayWebhookTarget({
       event: 'order.placed',
       payload: {order: {entity: {id: orderId}}},
     }),
-    {orderId},
+    null,
+  );
+  assert.deepEqual(
+    razorpayWebhookTarget({
+      event: 'payment.pending',
+      payload: {payment: {entity: {id: paymentId, order_id: orderId}}},
+    }),
+    {orderId, expectedStatus: 'placed'},
   );
   assert.equal(razorpayWebhookTarget({event: 'refund.processed'}), null);
   assert.equal(isRazorpayReconciliationEvent({event: 'order.paid'}), true);
-  assert.equal(isRazorpayReconciliationEvent({event: 'payment.captured'}), true);
+  assert.equal(isRazorpayReconciliationEvent({event: 'payment.pending'}), true);
+  assert.equal(isRazorpayReconciliationEvent({event: 'order.placed'}), false);
+  assert.equal(isRazorpayReconciliationEvent({event: 'payment.captured'}), false);
   assert.equal(isRazorpayReconciliationEvent({event: 'refund.processed'}), false);
 });
 
@@ -508,6 +571,51 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
     variables: {order: {sourceIdentifier: string}};
   };
   assert.equal(mutation.variables.order.sourceIdentifier, magicOrder.id);
+});
+
+test('Shopify client-credentials token is scoped and reused until expiry', async () => {
+  const {lines} = validateRazorpayOrderForShopify(magicOrder, magicOrder.id);
+  const calls: string[] = [];
+  const responses = [
+    Response.json({
+      access_token: 'cached-admin-token',
+      expires_in: 86_399,
+      scope: 'read_orders,write_orders',
+    }),
+    Response.json({data: {orders: {nodes: []}}}),
+    Response.json({
+      data: {
+        orderCreate: {
+          order: {id: 'gid://shopify/Order/2', name: '#1002'},
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL) => {
+    calls.push(String(input));
+    return responses.shift()!;
+  }) as typeof fetch;
+
+  const result = await createShopifyOrder(
+    {
+      SHOPIFY_ADMIN_STORE_DOMAIN: 'cache-test.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'cache-client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_KEY_ID: 'rzp_test_public',
+      RAZORPAY_KEY_SECRET: 'razorpay-secret',
+    } as Env,
+    magicOrder,
+    lines,
+    capturedPayment,
+    fetcher,
+  );
+
+  assert.equal(result.created, true);
+  assert.equal(
+    calls.filter((url) => url.endsWith('/admin/oauth/access_token')).length,
+    1,
+  );
 });
 
 test('Razorpay readiness accepts a separate canonical Admin store domain', () => {

@@ -68,7 +68,9 @@ test('Razorpay webhook rejects malformed reconciliation events but ignores unrel
   const secret = 'webhook-secret';
   for (const [payload, expectedStatus] of [
     [{event: 'order.paid', payload: {}}, 400],
-    [{event: 'payment.captured', payload: {payment: {entity: {}}}}, 400],
+    [{event: 'payment.pending', payload: {payment: {entity: {}}}}, 400],
+    [{event: 'order.placed', payload: {order: {entity: {}}}}, 204],
+    [{event: 'payment.captured', payload: {payment: {entity: {}}}}, 204],
     [{event: 'refund.processed', payload: {}}, 204],
   ] as const) {
     const rawBody = JSON.stringify(payload);

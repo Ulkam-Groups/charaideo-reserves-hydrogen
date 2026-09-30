@@ -20,6 +20,9 @@ type Pages = {
       "articleHandle": string;
     };
   };
+  "/api/checkout/razorpay/status": {
+    params: {};
+  };
   "/api/checkout/razorpay/verify": {
     params: {};
   };
@@ -171,11 +174,15 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/api/checkout/razorpay/verify" | "/api/checkout/razorpay/order" | "/checkout/razorpay/success" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/api/shipping-estimate" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/webhooks/razorpay" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/favicon.ico" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/health" | "/search" | "/cart" | "/cart/:lines" | "/*";
+    page: "/" | "/blogs/:blogHandle/:articleHandle" | "/api/checkout/razorpay/status" | "/api/checkout/razorpay/verify" | "/api/checkout/razorpay/order" | "/checkout/razorpay/success" | "/sitemap/:type/:page.xml" | "/blogs/:blogHandle" | "/webhooks/orders-create" | "/api/shipping-estimate" | "/collections/:handle" | "/account/authorize" | "/agent/buyer-claims" | "/api/blend-checkout" | "/collections" | "/webhooks/razorpay" | "/policies/:handle" | "/products/:handle" | "/account/logout" | "/collections/all" | "/policies" | "/account/login" | "/api/admin/teas" | "/discount/:code" | "/pages/:handle" | "/favicon.ico" | "/sitemap.xml" | "/api/waitlist" | "/blogs" | "/reserve-list" | "/robots.txt" | "/account" | "/account/orders" | "/account/orders/:id" | "/account/addresses" | "/account/profile" | "/account/*" | "/sign-in" | "/blends" | "/health" | "/search" | "/cart" | "/cart/:lines" | "/*";
   };
   "routes/blogs.$blogHandle.$articleHandle.tsx": {
     id: "routes/blogs.$blogHandle.$articleHandle";
     page: "/blogs/:blogHandle/:articleHandle";
+  };
+  "routes/api.checkout.razorpay.status.ts": {
+    id: "routes/api.checkout.razorpay.status";
+    page: "/api/checkout/razorpay/status";
   };
   "routes/api.checkout.razorpay.verify.ts": {
     id: "routes/api.checkout.razorpay.verify";
@@ -354,6 +361,7 @@ type RouteFiles = {
 type RouteModules = {
   "root": typeof import("./app/root.tsx");
   "routes/blogs.$blogHandle.$articleHandle": typeof import("./app/routes/blogs.$blogHandle.$articleHandle.tsx");
+  "routes/api.checkout.razorpay.status": typeof import("./app/routes/api.checkout.razorpay.status.ts");
   "routes/api.checkout.razorpay.verify": typeof import("./app/routes/api.checkout.razorpay.verify.ts");
   "routes/api.checkout.razorpay.order": typeof import("./app/routes/api.checkout.razorpay.order.ts");
   "routes/checkout.razorpay.success": typeof import("./app/routes/checkout.razorpay.success.tsx");

@@ -26,9 +26,10 @@ Checkout.
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`,
 `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`,
 `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay
-Magic Checkout. The app
-installation must grant only `read_orders,write_orders`. Secrets are used only
-by server routes. The storefront creates Razorpay orders with authoritative
+Magic Checkout. When `PUBLIC_STORE_DOMAIN` is a custom storefront domain, also
+set `SHOPIFY_ADMIN_STORE_DOMAIN` to the canonical `*.myshopify.com` domain.
+The app installation must grant only `read_orders,write_orders`. Secrets are
+used only by server routes. The storefront creates Razorpay orders with authoritative
 Shopify prices, opens `magic-checkout.js`, verifies the returned signature,
 fetches the Razorpay order/payment to confirm its final state and amount, and
 then creates the matching Shopify order.
@@ -39,10 +40,12 @@ and COD fees are owned by the Shiprocket connection in Razorpay's Shipping
 Setup; do not configure a custom Shipping Info API URL while Shiprocket is the
 selected shipping service. Configure the payment webhook URL as
 `/webhooks/razorpay`, use the dedicated `RAZORPAY_WEBHOOK_SECRET`, and subscribe
-to `payment.captured`, `order.paid`, and `order.placed`. Webhook
-deliveries repeat the server-side reconciliation so browser closure cannot lose
-an order. Duplicate deliveries look up Shopify orders by Razorpay
-`sourceIdentifier` before creation. Coupons are disabled until promotion rules
+only to `order.paid` for prepaid checkout. When COD is enabled, also subscribe to
+`payment.pending`; the server fetches the associated Razorpay order and requires
+its final status to be `placed` before creating a pending Shopify order. The browser callback verifies payment
+but does not write an order; the canonical order webhook is the sole writer, so
+browser and webhook requests cannot race. Duplicate deliveries look up Shopify orders by Razorpay
+`sourceIdentifier` before creation and cache Razorpay event IDs for 48 hours. Coupons are disabled until promotion rules
 and endpoints are defined.
 
 Before enabling this in production, test one prepaid and one COD order through
@@ -50,6 +53,12 @@ Razorpay Magic Checkout and confirm Shiprocket serviceability and fees, the
 resulting Shopify orders, discounts, and analytics. The vendor script may use additional origins that
 must be added to the Content Security Policy after checking its live network
 requests.
+
+COD can remain disabled in Razorpay without changing the storefront. When Razorpay
+enables COD and the webhook is subscribed to `payment.pending`, the browser status
+check recognises the session-bound `placed` order, waits for the webhook-created
+Shopify order, clears the cart, and shows a COD-specific confirmation. The status
+check never creates an order; `/webhooks/razorpay` remains the single writer.
 
 ## Checkout policy
 
