@@ -385,6 +385,7 @@ test('Shopify order input records payment, addresses, shipping and idempotency k
     test: true,
   });
   assert.equal(input.sourceIdentifier, magicOrder.id);
+  assert.equal('sourceName' in input, false);
   assert.equal(input.shippingAddress.countryCode, 'IN');
   assert.equal(input.shippingLines?.[0].priceSet.shopMoney.amount, '10.00');
   assert.equal('transactions' in input, true);
