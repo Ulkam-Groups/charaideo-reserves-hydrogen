@@ -498,7 +498,7 @@ test('Razorpay signatures and webhook event targets are verified', async () => {
       event: 'payment.captured',
       payload: {payment: {entity: {id: paymentId, order_id: orderId}}},
     }),
-    {orderId, paymentId, expectedStatus: 'paid'},
+    null,
   );
   assert.deepEqual(
     razorpayWebhookTarget({
@@ -525,7 +525,7 @@ test('Razorpay signatures and webhook event targets are verified', async () => {
   assert.equal(isRazorpayReconciliationEvent({event: 'order.paid'}), false);
   assert.equal(isRazorpayReconciliationEvent({event: 'payment.pending'}), true);
   assert.equal(isRazorpayReconciliationEvent({event: 'order.placed'}), false);
-  assert.equal(isRazorpayReconciliationEvent({event: 'payment.captured'}), true);
+  assert.equal(isRazorpayReconciliationEvent({event: 'payment.captured'}), false);
   assert.equal(isRazorpayReconciliationEvent({event: 'refund.processed'}), false);
 });
 
