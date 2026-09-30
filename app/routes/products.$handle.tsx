@@ -254,6 +254,21 @@ export default function Product() {
   });
 
   const {title} = product;
+  const [displayTitle, ...titleQualifiers] = title
+    .split(/\s*\|\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const productSubtitle =
+    titleQualifiers.join(' · ') ||
+    [product.estate?.value, product.origin?.value]
+      .filter(Boolean)
+      .join(' · ');
+  const quickFacts = [
+    ['Origin', product.origin?.value || product.estate?.value],
+    ['Tea style', product.teaStyle?.value || product.productType],
+    ['Grade', product.grade?.value],
+    ['Caffeine', product.caffeineLevel?.value],
+  ].filter((fact): fact is [string, string] => Boolean(fact[1]));
   const rating = parseRating(product.reviewRating?.value);
   const reviewCount = Number(product.reviewCount?.value || 0);
   const hasReviews = rating !== null && reviewCount > 0;
@@ -307,7 +322,8 @@ export default function Product() {
         </div>
         <div className="product-main">
           <div className="product-index"><span>Reserve / {product.productType || 'Our selection'}</span><span>CR · TEA</span></div>
-          <h1>{title}</h1>
+          <h1>{displayTitle || title}</h1>
+          {productSubtitle && <p className="product-subtitle">{productSubtitle}</p>}
           <a className={`product-review-summary${hasReviews ? '' : ' product-review-summary--empty'}`} href="#customer-notes">
             {hasReviews ? (
               <><span className="product-stars" aria-hidden="true">★★★★★</span><strong>{rating.toFixed(1)}</strong><span>{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></>
@@ -332,6 +348,16 @@ export default function Product() {
             <li><span aria-hidden="true">◇</span> Packed fresh in Assam</li>
             <li><span aria-hidden="true">◇</span> Secure checkout</li>
           </ul>
+          {quickFacts.length > 0 && (
+            <dl className="product-quick-facts" aria-label="Tea highlights">
+              {quickFacts.slice(0, 4).map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{formatSpecification(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </section>
 

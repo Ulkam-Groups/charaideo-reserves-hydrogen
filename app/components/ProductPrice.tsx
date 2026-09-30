@@ -47,6 +47,7 @@ export function ProductPrice({
       ) : (
         <span>&nbsp;</span>
       )}
+      {price && <small>Inclusive of taxes</small>}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import {useState, type FormEvent} from 'react';
+import {useAnalytics} from '@shopify/hydrogen';
 
 type DeliveryResult = {
   serviceable: boolean;
@@ -8,6 +9,7 @@ type DeliveryResult = {
 };
 
 export function DeliveryEstimate() {
+  const {publish} = useAnalytics();
   const [pincode, setPincode] = useState('');
   const [result, setResult] = useState<DeliveryResult | null>(null);
   const [error, setError] = useState('');
@@ -39,6 +41,10 @@ export function DeliveryEstimate() {
       }
 
       setResult(payload);
+      publish('custom_delivery_checked', {
+        serviceable: payload.serviceable,
+        estimatedDays: payload.estimatedDays,
+      });
     } catch {
       setError('Could not check delivery right now. Please try again.');
     } finally {
@@ -48,57 +54,61 @@ export function DeliveryEstimate() {
 
   return (
     <section className="delivery-estimate" aria-labelledby="delivery-estimate-title">
-      <div className="delivery-estimate-heading">
-        <h2 id="delivery-estimate-title">Check delivery</h2>
-        <p>Estimated arrival to your pincode</p>
-      </div>
-      <form
-        autoComplete="off"
-        className="delivery-estimate-form"
-        onSubmit={checkDelivery}
-      >
-        <label className="visually-hidden" htmlFor="delivery-pincode">
-          Delivery pincode
-        </label>
-        <input
-          id="delivery-pincode"
-          name="pincode"
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          pattern="[0-9]{6}"
-          maxLength={6}
-          placeholder="Enter 6-digit pincode"
-          value={pincode}
-          onChange={(event) => {
-            setPincode(event.target.value.replace(/\D/g, '').slice(0, 6));
-            setResult(null);
-            setError('');
-          }}
-        />
-        <button type="submit" disabled={pending}>
-          {pending ? 'Checking…' : 'Check'}
-        </button>
-      </form>
-      <div className="delivery-estimate-result" aria-live="polite" aria-atomic="true">
-        {error && <p className="delivery-estimate-error">{error}</p>}
-        {result?.serviceable && (
-          <p className="delivery-estimate-success">
-            <span aria-hidden="true">✓</span>
-            {deliveryMessage(result)}
-          </p>
-        )}
-        {result?.serviceable === false && (
-          <p className="delivery-estimate-error">
-            Delivery is not currently available to this pincode.
-          </p>
-        )}
-      </div>
-      {result?.serviceable && (
-        <p className="delivery-estimate-note">
-          Courier estimate only; the final delivery date may change after dispatch.
-        </p>
-      )}
+      <details className="delivery-estimate-disclosure">
+        <summary id="delivery-estimate-title">
+          <span>Check delivery</span>
+          <small>Enter your pincode for an arrival estimate</small>
+        </summary>
+        <div className="delivery-estimate-body">
+          <form
+            autoComplete="off"
+            className="delivery-estimate-form"
+            onSubmit={checkDelivery}
+          >
+            <label className="visually-hidden" htmlFor="delivery-pincode">
+              Delivery pincode
+            </label>
+            <input
+              id="delivery-pincode"
+              name="pincode"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              placeholder="Enter 6-digit pincode"
+              value={pincode}
+              onChange={(event) => {
+                setPincode(event.target.value.replace(/\D/g, '').slice(0, 6));
+                setResult(null);
+                setError('');
+              }}
+            />
+            <button type="submit" disabled={pending}>
+              {pending ? 'Checking…' : 'Check'}
+            </button>
+          </form>
+          <div className="delivery-estimate-result" aria-live="polite" aria-atomic="true">
+            {error && <p className="delivery-estimate-error">{error}</p>}
+            {result?.serviceable && (
+              <p className="delivery-estimate-success">
+                <span aria-hidden="true">✓</span>
+                {deliveryMessage(result)}
+              </p>
+            )}
+            {result?.serviceable === false && (
+              <p className="delivery-estimate-error">
+                Delivery is not currently available to this pincode.
+              </p>
+            )}
+          </div>
+          {result?.serviceable && (
+            <p className="delivery-estimate-note">
+              Courier estimate only; the final delivery date may change after dispatch.
+            </p>
+          )}
+        </div>
+      </details>
     </section>
   );
 }
