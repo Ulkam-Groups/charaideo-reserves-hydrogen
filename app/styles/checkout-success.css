@@ -221,6 +221,32 @@
   color: #132a1f;
   font: 500 clamp(2.2rem, 4vw, 3.4rem)/1 var(--serif);
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.checkout-success-identifiers {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.checkout-success-identifiers div {
+  display: grid;
+  gap: 2px;
+}
+
+.checkout-success-identifiers dt {
+  color: #927457;
+  font: 600 9px/1.4 var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.checkout-success-identifiers dd {
+  margin: 0;
+  color: #334a3e;
+  font: 500 12px/1.5 var(--sans);
+  overflow-wrap: anywhere;
 }
 
 .checkout-success-card-note {
