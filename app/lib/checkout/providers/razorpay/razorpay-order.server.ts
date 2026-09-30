@@ -221,7 +221,6 @@ export function buildShopifyOrderInput({
     presentmentCurrency: 'INR',
     fulfillmentStatus: 'UNFULFILLED',
     sourceIdentifier: order.id,
-    sourceName: 'Razorpay Magic Checkout',
     tags: ['razorpay', 'magic-checkout', payment ? 'prepaid' : 'cod'],
     note: `Razorpay Magic Checkout order ${order.id}`,
     customAttributes: [
