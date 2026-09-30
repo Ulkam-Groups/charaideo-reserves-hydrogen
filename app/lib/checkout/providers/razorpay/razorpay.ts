@@ -32,47 +32,34 @@ export type RazorpayCheckoutSnapshotLine = {
   unitPricePaise: number;
 };
 
-const RAZORPAY_RECONCILIATION_EVENTS = new Set([
-  'payment.captured',
-  'order.paid',
-  'order.placed',
-]);
+const RAZORPAY_RECONCILIATION_EVENTS = new Set(['order.paid', 'order.placed']);
 
 export function isRazorpayReconciliationEvent(value: unknown): boolean {
   return (
     Boolean(value) &&
     typeof value === 'object' &&
-    RAZORPAY_RECONCILIATION_EVENTS.has(
-      String((value as {event?: unknown}).event ?? ''),
-    )
+    RAZORPAY_RECONCILIATION_EVENTS.has(String((value as {event?: unknown}).event ?? ''))
   );
 }
 
 export function razorpayWebhookTarget(value: unknown): {
   orderId: string;
-  paymentId?: string;
+  expectedStatus: 'paid' | 'placed';
 } | null {
   if (!value || typeof value !== 'object') return null;
   const event = value as {
     event?: unknown;
     payload?: {
       order?: {entity?: {id?: unknown}};
-      payment?: {entity?: {id?: unknown; order_id?: unknown}};
     };
   };
-  if (event.event === 'payment.captured') {
-    const payment = event.payload?.payment?.entity;
-    return typeof payment?.id === 'string' &&
-      typeof payment.order_id === 'string' &&
-      /^pay_[A-Za-z0-9]+$/.test(payment.id) &&
-      /^order_[A-Za-z0-9]+$/.test(payment.order_id)
-      ? {orderId: payment.order_id, paymentId: payment.id}
-      : null;
-  }
   if (event.event === 'order.paid' || event.event === 'order.placed') {
     const orderId = event.payload?.order?.entity?.id;
     return typeof orderId === 'string' && /^order_[A-Za-z0-9]+$/.test(orderId)
-      ? {orderId}
+      ? {
+          orderId,
+          expectedStatus: event.event === 'order.paid' ? 'paid' : 'placed',
+        }
       : null;
   }
   return null;
@@ -205,26 +192,28 @@ export function decodeRazorpayCheckoutSnapshot(
     .map(([, value]) => value);
   if (!chunks.length || chunks.some((value) => typeof value !== 'string')) return null;
 
-  const lines = (chunks as string[]).flatMap((chunk) => chunk.split(',')).map((record) => {
-    const match = /^(\d+):(\d+):(\d+)$/.exec(record);
-    if (!match) return null;
-    const quantity = Number(match[2]);
-    const unitPricePaise = Number(match[3]);
-    if (
-      !Number.isSafeInteger(quantity) ||
-      quantity < 1 ||
-      quantity > 100 ||
-      !Number.isSafeInteger(unitPricePaise) ||
-      unitPricePaise < 0
-    ) {
-      return null;
-    }
-    return {
-      variantId: `gid://shopify/ProductVariant/${match[1]}`,
-      quantity,
-      unitPricePaise,
-    };
-  });
+  const lines = (chunks as string[])
+    .flatMap((chunk) => chunk.split(','))
+    .map((record) => {
+      const match = /^(\d+):(\d+):(\d+)$/.exec(record);
+      if (!match) return null;
+      const quantity = Number(match[2]);
+      const unitPricePaise = Number(match[3]);
+      if (
+        !Number.isSafeInteger(quantity) ||
+        quantity < 1 ||
+        quantity > 100 ||
+        !Number.isSafeInteger(unitPricePaise) ||
+        unitPricePaise < 0
+      ) {
+        return null;
+      }
+      return {
+        variantId: `gid://shopify/ProductVariant/${match[1]}`,
+        quantity,
+        unitPricePaise,
+      };
+    });
   return lines.length > 25 || lines.some((line) => line === null)
     ? null
     : (lines as RazorpayCheckoutSnapshotLine[]);

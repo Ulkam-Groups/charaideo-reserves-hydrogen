@@ -40,10 +40,10 @@ and COD fees are owned by the Shiprocket connection in Razorpay's Shipping
 Setup; do not configure a custom Shipping Info API URL while Shiprocket is the
 selected shipping service. Configure the payment webhook URL as
 `/webhooks/razorpay`, use the dedicated `RAZORPAY_WEBHOOK_SECRET`, and subscribe
-to `payment.captured`, `order.paid`, and `order.placed`. Webhook
-deliveries repeat the server-side reconciliation so browser closure cannot lose
-an order. Duplicate deliveries look up Shopify orders by Razorpay
-`sourceIdentifier` before creation. Coupons are disabled until promotion rules
+only to `order.paid` and `order.placed`. The browser callback verifies payment
+but does not write an order; the canonical order webhook is the sole writer, so
+browser and webhook requests cannot race. Duplicate deliveries look up Shopify orders by Razorpay
+`sourceIdentifier` before creation and cache Razorpay event IDs for 48 hours. Coupons are disabled until promotion rules
 and endpoints are defined.
 
 Before enabling this in production, test one prepaid and one COD order through

@@ -3,9 +3,7 @@ import {
   decodeRazorpayCheckoutSnapshot,
   type RazorpayCheckoutSnapshotLine,
 } from './razorpay.ts';
-import {
-  razorpayCredentials,
-} from './razorpay.server.ts';
+import {razorpayCredentials} from './razorpay.server.ts';
 
 const ADMIN_API_VERSION = '2026-07';
 
@@ -162,9 +160,7 @@ async function getAdminAccessToken(
 }
 
 function adminCredentials(env: Env): ShopifyAdminCredentials | null {
-  const domain = (
-    env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
-  )?.trim();
+  const domain = (env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN)?.trim();
   const clientId = env.SHOPIFY_ADMIN_CLIENT_ID?.trim();
   const clientSecret = env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim();
   if (
@@ -209,9 +205,7 @@ function mailingAddress(value: RazorpayAddress | undefined) {
     ...(stringValue(value.line1) ? {address1: stringValue(value.line1)} : {}),
     ...(stringValue(value.line2) ? {address2: stringValue(value.line2)} : {}),
     ...(stringValue(value.city, 100) ? {city: stringValue(value.city, 100)} : {}),
-    ...(stringValue(value.state, 100)
-      ? {province: stringValue(value.state, 100)}
-      : {}),
+    ...(stringValue(value.state, 100) ? {province: stringValue(value.state, 100)} : {}),
     ...(stringValue(value.zipcode, 20) ? {zip: stringValue(value.zipcode, 20)} : {}),
     ...(stringValue(value.contact, 30) ? {phone: stringValue(value.contact, 30)} : {}),
     countryCode,
@@ -365,22 +359,19 @@ async function adminGraphql<T>({
   fetcher: typeof fetch;
 }): Promise<T> {
   const execute = async (forceRefresh = false) =>
-    fetcher(
-      `https://${credentials.domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': await getAdminAccessToken(
-            credentials,
-            fetcher,
-            forceRefresh,
-          ),
-        },
-        body: JSON.stringify({query, variables}),
-        signal: AbortSignal.timeout(10_000),
+    fetcher(`https://${credentials.domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': await getAdminAccessToken(
+          credentials,
+          fetcher,
+          forceRefresh,
+        ),
       },
-    );
+      body: JSON.stringify({query, variables}),
+      signal: AbortSignal.timeout(10_000),
+    });
   let response = await execute();
   if (response.status === 401) {
     invalidateAdminToken(credentials);
@@ -403,18 +394,11 @@ export async function createShopifyOrder(
   fetcher: typeof fetch,
 ) {
   const credentials = adminCredentials(env);
-  if (!credentials) throw new RazorpayReconciliationError('Shopify order API is not configured');
-  const query = `source_identifier:${order.id}`;
-  const existing = await adminGraphql<{orders: {nodes: Array<{id: string; name: string}>}}>({
-    credentials,
-    fetcher,
-    query: `query RazorpayExistingOrder($query: String!) {
-      orders(first: 1, query: $query) { nodes { id name } }
-    }`,
-    variables: {query},
-  });
-  if (existing.orders.nodes[0]) {
-    return {...existing.orders.nodes[0], created: false};
+  if (!credentials)
+    throw new RazorpayReconciliationError('Shopify order API is not configured');
+  const existing = await findShopifyOrder(env, order.id, fetcher);
+  if (existing) {
+    return {...existing, created: false};
   }
 
   const result = await adminGraphql<{
@@ -455,6 +439,31 @@ export async function createShopifyOrder(
   return {...result.orderCreate.order, created: true};
 }
 
+export async function findShopifyOrder(
+  env: Env,
+  orderId: string,
+  fetcher: typeof fetch = fetch,
+) {
+  if (!/^order_[A-Za-z0-9]+$/.test(orderId)) {
+    throw new RazorpayReconciliationError('Invalid Razorpay order ID');
+  }
+  const credentials = adminCredentials(env);
+  if (!credentials) {
+    throw new RazorpayReconciliationError('Shopify order API is not configured');
+  }
+  const existing = await adminGraphql<{
+    orders: {nodes: Array<{id: string; name: string}>};
+  }>({
+    credentials,
+    fetcher,
+    query: `query RazorpayExistingOrder($query: String!) {
+      orders(first: 1, query: $query) { nodes { id name } }
+    }`,
+    variables: {query: `source_identifier:${orderId}`},
+  });
+  return existing.orders.nodes[0] ?? null;
+}
+
 async function fetchCapturedPayment(
   razorpay: RazorpayOxygen,
   order: RazorpayMagicOrderDetails,
@@ -473,16 +482,14 @@ async function fetchCapturedPayment(
   return validateCapturedRazorpayPayment(captured, order);
 }
 
-async function reconcileRazorpayOrderOnce({
+async function fetchValidatedRazorpayOrder({
   env,
   orderId,
   paymentId,
-  fetcher = fetch,
 }: {
   env: Env;
   orderId: string;
   paymentId?: string;
-  fetcher?: typeof fetch;
 }) {
   if (!/^order_[A-Za-z0-9]+$/.test(orderId)) {
     throw new RazorpayReconciliationError('Invalid Razorpay order ID');
@@ -509,6 +516,43 @@ async function reconcileRazorpayOrderOnce({
   } else {
     throw new RazorpayReconciliationError('Razorpay order is not payable');
   }
+  return {razorpayOrder: order, lines, payment};
+}
+
+export function verifyRazorpayOrderPayment(input: {
+  env: Env;
+  orderId: string;
+  paymentId: string;
+}) {
+  return fetchValidatedRazorpayOrder(input).then((result) => {
+    if (!result.payment) {
+      throw new RazorpayReconciliationError('Razorpay payment is not captured');
+    }
+    return result;
+  });
+}
+
+async function reconcileRazorpayOrderOnce({
+  env,
+  orderId,
+  paymentId,
+  expectedStatus,
+  fetcher = fetch,
+}: {
+  env: Env;
+  orderId: string;
+  paymentId?: string;
+  expectedStatus?: 'paid' | 'placed';
+  fetcher?: typeof fetch;
+}) {
+  const {
+    razorpayOrder: order,
+    lines,
+    payment,
+  } = await fetchValidatedRazorpayOrder({env, orderId, paymentId});
+  if (expectedStatus && order.status !== expectedStatus) {
+    return {shopifyOrder: null, razorpayOrder: order, payment};
+  }
   const shopifyOrder = await createShopifyOrder(env, order, lines, payment, fetcher);
   return {shopifyOrder, razorpayOrder: order, payment};
 }
@@ -534,7 +578,7 @@ export function reconcileRazorpayOrder(
 export function razorpayOrderIntegrationReady(env: Env) {
   return Boolean(
     razorpayCredentials(env) &&
-      adminCredentials(env) &&
-      env.RAZORPAY_WEBHOOK_SECRET?.trim(),
+    adminCredentials(env) &&
+    env.RAZORPAY_WEBHOOK_SECRET?.trim(),
   );
 }

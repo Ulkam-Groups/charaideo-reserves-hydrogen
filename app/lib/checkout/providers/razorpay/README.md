@@ -14,7 +14,7 @@ Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZ
 
 Use Live Mode Razorpay keys and a Live Mode webhook together in production. The webhook secret is a separate value from the Razorpay API key secret and must exactly match `RAZORPAY_WEBHOOK_SECRET`. Keep `SESSION_SECRET`, both Razorpay secrets, and the Shopify Admin client secret server-only.
 
-Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, keep Shiprocket connected and selected in Shipping Setup; Razorpay then obtains pincode serviceability, shipping fees, COD availability, and COD fees from that dashboard integration. Do not configure a custom Shipping Info API URL at the same time. Configure `/webhooks/razorpay` with a dedicated secret and the `payment.captured`, `order.paid`, and `order.placed` events. The first two reconcile prepaid orders; `order.placed` is required to reconcile COD orders. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
+Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, keep Shiprocket connected and selected in Shipping Setup; Razorpay then obtains pincode serviceability, shipping fees, COD availability, and COD fees from that dashboard integration. Do not configure a custom Shipping Info API URL at the same time. Configure `/webhooks/razorpay` with a dedicated secret and only the `order.paid` and `order.placed` events. `order.paid` is the sole Shopify-order writer for prepaid orders and `order.placed` is the sole writer for COD orders. Do not subscribe this endpoint to `payment.captured`: Razorpay emits both payment and order events for one payment, and using both as writers can race. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
 
 ## Razorpay steps 1-9
 
@@ -24,9 +24,9 @@ Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Das
 4. Razorpay's Shiprocket connection supplies serviceability, shipping charges, COD availability, and COD fees; the storefront does not duplicate that decision in an API route.
 5. Get/Apply Promotions APIs are not applicable while `show_coupons` is `false`. Implement both endpoints and their real business rules before enabling coupons.
 6. `razorpay.client.ts` loads the created `order_id` into `magic-checkout.js` with `one_click_checkout: true`, a handler, and payment failure handling. Prefill is omitted because this storefront does not collect verified contact details before checkout.
-7. `/api/checkout/razorpay/verify` binds the returned order to the server session and verifies the HMAC-SHA256 signature with the server-only key secret.
-8. Verification and signed webhooks fetch the Razorpay order/payment and require the final prepaid state (`paid` order plus `captured` payment) before creating a Shopify order.
-9. Reconciliation fetches the final order details, validates totals and address data, and creates the Shopify order through Admin GraphQL. `sourceIdentifier` lookup plus in-flight coalescing makes retries safe.
+7. `/api/checkout/razorpay/verify` binds the returned order to the server session, verifies the HMAC-SHA256 signature, and confirms the captured payment. It never creates the Shopify order.
+8. The signed `order.paid` webhook is the only prepaid writer. The signed `order.placed` webhook writes only while the Razorpay order is still in the COD `placed` state. The success page polls Shopify briefly when webhook delivery follows the browser callback.
+9. Reconciliation fetches the final order details, validates totals and address data, and creates the Shopify order through Admin GraphQL. Successful `x-razorpay-event-id` values are cached for 48 hours, while `sourceIdentifier` lookup and in-flight coalescing protect sequential retries; the single-writer event design prevents the browser/webhook race.
 
 Dashboard enablement, public URL reachability, webhook subscriptions and test/live key mode cannot be proven by repository tests; verify them in each deployed environment.
 

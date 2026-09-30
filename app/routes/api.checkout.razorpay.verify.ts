@@ -6,7 +6,10 @@ import {
   razorpayCredentials,
   verifyRazorpayPayment,
 } from '~/lib/checkout/providers/razorpay/razorpay.server';
-import {reconcileRazorpayOrder} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
+import {
+  findShopifyOrder,
+  verifyRazorpayOrderPayment,
+} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -53,20 +56,29 @@ export async function action({request, context}: ActionFunctionArgs) {
     if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
       return json({error: 'Payment verification failed'}, 400);
     }
-    const {shopifyOrder} = await reconcileRazorpayOrder({
+    await verifyRazorpayOrderPayment({
       env: context.env,
       orderId,
       paymentId,
     });
+    const shopifyOrder = await findShopifyOrder(context.env, orderId);
     context.session.unset('razorpayOrderId');
     context.session.set('razorpayPaymentVerified', {
       razorpayOrderId: orderId,
-      shopifyOrderId: shopifyOrder.id,
-      shopifyOrderName: shopifyOrder.name,
+      shopifyOrderId: shopifyOrder?.id ?? null,
+      shopifyOrderName: shopifyOrder?.name ?? null,
+      verifiedAt: Date.now(),
     });
+    try {
+      const cart = await context.cart.get();
+      const lineIds = cart?.lines.nodes.map((line: {id: string}) => line.id) ?? [];
+      if (lineIds.length) await context.cart.removeLines(lineIds);
+    } catch (error) {
+      context.monitor?.failure('checkout.razorpay.cart_clear.failure', {}, error);
+    }
     return json({redirectTo: '/checkout/razorpay/success'});
   } catch (error) {
     context.monitor?.failure('checkout.razorpay.verify.failure', {}, error);
-    return json({error: 'Payment verification or order creation failed'}, 502);
+    return json({error: 'Payment verification failed'}, 502);
   }
 }

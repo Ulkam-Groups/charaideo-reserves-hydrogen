@@ -7,6 +7,15 @@ import {
 } from '~/lib/checkout/providers/razorpay/razorpay';
 
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
+const WEBHOOK_EVENT_TTL_SECONDS = 48 * 60 * 60;
+
+function webhookEventCacheKey(eventId: string | null) {
+  return eventId && /^[A-Za-z0-9_-]{1,200}$/.test(eventId)
+    ? new Request(
+        `https://razorpay-webhook-events.internal/${encodeURIComponent(eventId)}`,
+      )
+    : null;
+}
 
 export async function action({request, context}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -29,6 +38,18 @@ export async function action({request, context}: ActionFunctionArgs) {
   if (!(await verifyRazorpayWebhook(rawBody, signature, secret))) {
     return new Response('Unauthorized', {status: 401});
   }
+  const eventCacheKey = webhookEventCacheKey(
+    request.headers.get('x-razorpay-event-id')?.trim() ?? null,
+  );
+  if (eventCacheKey) {
+    try {
+      if (await context.reviewsCache.match(eventCacheKey)) {
+        return new Response(null, {status: 200});
+      }
+    } catch {
+      // Event-ID caching is a retry guard; sourceIdentifier lookup remains the fallback.
+    }
+  }
 
   let payload: unknown;
   try {
@@ -45,6 +66,20 @@ export async function action({request, context}: ActionFunctionArgs) {
 
   try {
     await reconcileRazorpayOrder({...target, env: context.env});
+    if (eventCacheKey) {
+      try {
+        await context.reviewsCache.put(
+          eventCacheKey,
+          new Response(null, {
+            headers: {
+              'Cache-Control': `public, max-age=${WEBHOOK_EVENT_TTL_SECONDS}`,
+            },
+          }),
+        );
+      } catch {
+        // A cache failure must not make Razorpay retry a completed reconciliation.
+      }
+    }
     return new Response(null, {status: 200});
   } catch (error) {
     context.monitor?.failure('checkout.razorpay.webhook.failure', {}, error);
