@@ -6,10 +6,6 @@ import {
   razorpayCredentials,
   verifyRazorpayPayment,
 } from '~/lib/checkout/providers/razorpay/razorpay.server';
-import {
-  findShopifyOrder,
-  verifyRazorpayOrderPayment,
-} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -52,34 +48,24 @@ export async function action({request, context}: ActionFunctionArgs) {
     return json({error: 'Invalid payment verification'}, 400);
   }
 
-  try {
-    if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
-      return json({error: 'Payment verification failed'}, 400);
-    }
-    await verifyRazorpayOrderPayment({
-      env: context.env,
-      orderId,
-      paymentId,
-    });
-    const shopifyOrder = await findShopifyOrder(context.env, orderId);
-    context.session.unset('razorpayOrderId');
-    context.session.set('razorpayPaymentVerified', {
-      razorpayOrderId: orderId,
-      shopifyOrderId: shopifyOrder?.id ?? null,
-      shopifyOrderName: shopifyOrder?.name ?? null,
-      paymentMethod: 'prepaid',
-      verifiedAt: Date.now(),
-    });
-    try {
-      const cart = await context.cart.get();
-      const lineIds = cart?.lines.nodes.map((line: {id: string}) => line.id) ?? [];
-      if (lineIds.length) await context.cart.removeLines(lineIds);
-    } catch (error) {
-      context.monitor?.failure('checkout.razorpay.cart_clear.failure', {}, error);
-    }
-    return json({redirectTo: '/checkout/razorpay/success'});
-  } catch (error) {
-    context.monitor?.failure('checkout.razorpay.verify.failure', {}, error);
-    return json({error: 'Payment verification failed'}, 502);
+  if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
+    return json({error: 'Payment verification failed'}, 400);
   }
+
+  context.session.unset('razorpayOrderId');
+  context.session.set('razorpayPaymentVerified', {
+    razorpayOrderId: orderId,
+    shopifyOrderId: null,
+    shopifyOrderName: null,
+    paymentMethod: 'prepaid',
+    verifiedAt: Date.now(),
+  });
+  try {
+    const cart = await context.cart.get();
+    const lineIds = cart?.lines.nodes.map((line: {id: string}) => line.id) ?? [];
+    if (lineIds.length) await context.cart.removeLines(lineIds);
+  } catch (error) {
+    context.monitor?.failure('checkout.razorpay.cart_clear.failure', {}, error);
+  }
+  return json({redirectTo: '/checkout/razorpay/success'});
 }
