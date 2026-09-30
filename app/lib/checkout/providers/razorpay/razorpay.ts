@@ -32,7 +32,7 @@ export type RazorpayCheckoutSnapshotLine = {
   unitPricePaise: number;
 };
 
-const RAZORPAY_RECONCILIATION_EVENTS = new Set(['order.paid', 'order.placed']);
+const RAZORPAY_RECONCILIATION_EVENTS = new Set(['order.paid', 'payment.pending']);
 
 export function isRazorpayReconciliationEvent(value: unknown): boolean {
   return (
@@ -51,15 +51,22 @@ export function razorpayWebhookTarget(value: unknown): {
     event?: unknown;
     payload?: {
       order?: {entity?: {id?: unknown}};
+      payment?: {entity?: {order_id?: unknown}};
     };
   };
-  if (event.event === 'order.paid' || event.event === 'order.placed') {
+  if (event.event === 'order.paid') {
     const orderId = event.payload?.order?.entity?.id;
     return typeof orderId === 'string' && /^order_[A-Za-z0-9]+$/.test(orderId)
       ? {
           orderId,
-          expectedStatus: event.event === 'order.paid' ? 'paid' : 'placed',
+          expectedStatus: 'paid',
         }
+      : null;
+  }
+  if (event.event === 'payment.pending') {
+    const orderId = event.payload?.payment?.entity?.order_id;
+    return typeof orderId === 'string' && /^order_[A-Za-z0-9]+$/.test(orderId)
+      ? {orderId, expectedStatus: 'placed'}
       : null;
   }
   return null;
