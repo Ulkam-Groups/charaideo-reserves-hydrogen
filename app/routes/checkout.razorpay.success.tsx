@@ -1,13 +1,11 @@
 import {
   Link,
   redirect,
-  useRevalidator,
   type HeadersFunction,
   type LoaderFunctionArgs,
   type MetaFunction,
 } from 'react-router';
-import {useEffect, useState} from 'react';
-import {findShopifyOrder} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
+import {reconcileRazorpayOrder} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 import checkoutSuccessStyles from '~/styles/checkout-success.css?url';
 
 export const links = () => [{rel: 'stylesheet', href: checkoutSuccessStyles}];
@@ -26,73 +24,80 @@ export const headers: HeadersFunction = () => ({
 
 export async function loader({context}: LoaderFunctionArgs) {
   const result = context.session.get('razorpayPaymentVerified') as unknown;
-  if (
-    !result ||
-    typeof result !== 'object' ||
-    typeof (result as {razorpayOrderId?: unknown}).razorpayOrderId !== 'string'
-  ) {
+  if (!result || typeof result !== 'object') {
     throw redirect('/cart');
   }
   const verified = result as {
-    razorpayOrderId: string;
+    razorpayOrderId?: unknown;
     razorpayPaymentId?: unknown;
+    shopifyOrderId?: unknown;
     shopifyOrderName?: unknown;
     paymentMethod?: unknown;
   };
-  const razorpayOrderId = /^order_[A-Za-z0-9]+$/.test(verified.razorpayOrderId)
-    ? verified.razorpayOrderId
-    : null;
-  if (!razorpayOrderId) throw redirect('/cart');
-  const razorpayPaymentId =
+  let shopifyOrderId =
+    typeof verified.shopifyOrderId === 'string' &&
+    /^gid:\/\/shopify\/Order\/\d+$/.test(verified.shopifyOrderId)
+      ? verified.shopifyOrderId
+      : null;
+  let orderName =
+    typeof verified.shopifyOrderName === 'string' &&
+    verified.shopifyOrderName.length > 0 &&
+    verified.shopifyOrderName.length <= 100
+      ? verified.shopifyOrderName
+      : null;
+  let razorpayPaymentId =
     typeof verified.razorpayPaymentId === 'string' &&
     /^pay_[A-Za-z0-9]+$/.test(verified.razorpayPaymentId)
       ? verified.razorpayPaymentId
       : null;
   const paymentMethod = verified.paymentMethod === 'cod' ? 'cod' : 'prepaid';
-  let orderName =
-    typeof verified.shopifyOrderName === 'string' ? verified.shopifyOrderName : null;
-  if (!orderName) {
+  if ((!shopifyOrderId || !orderName) && paymentMethod === 'prepaid') {
+    const razorpayOrderId =
+      typeof verified.razorpayOrderId === 'string' &&
+      /^order_[A-Za-z0-9]+$/.test(verified.razorpayOrderId)
+        ? verified.razorpayOrderId
+        : null;
+    if (!razorpayOrderId) throw redirect('/cart');
     try {
-      orderName = (await findShopifyOrder(context.env, razorpayOrderId))?.name ?? null;
+      const reconciled = await reconcileRazorpayOrder({
+        env: context.env,
+        orderId: razorpayOrderId,
+        ...(razorpayPaymentId ? {paymentId: razorpayPaymentId} : {}),
+        expectedStatus: 'paid',
+      });
+      shopifyOrderId = reconciled.shopifyOrder.id;
+      orderName = reconciled.shopifyOrder.name;
+      razorpayPaymentId = reconciled.payment?.id ?? razorpayPaymentId;
+      context.session.set('razorpayPaymentVerified', {
+        ...verified,
+        razorpayPaymentId,
+        shopifyOrderId,
+        shopifyOrderName: orderName,
+      });
     } catch (error) {
       context.monitor?.failure(
-        'checkout.razorpay.confirmation_lookup.failure',
+        'checkout.razorpay.confirmation_reconcile.failure',
         {},
         error,
       );
+      throw new Response('Unable to confirm Shopify order', {status: 502});
     }
   }
-  if (orderName) context.session.unset('razorpayPaymentVerified');
-  return {orderName, paymentMethod, razorpayOrderId, razorpayPaymentId};
+  if (!shopifyOrderId || !orderName) throw redirect('/cart');
+  return {orderName, shopifyOrderId, paymentMethod, razorpayPaymentId};
 }
 
 export default function RazorpayCheckoutSuccess({
   loaderData,
 }: {
   loaderData: {
-    orderName: string | null;
+    orderName: string;
+    shopifyOrderId: string;
     paymentMethod: 'prepaid' | 'cod';
-    razorpayOrderId: string;
     razorpayPaymentId: string | null;
   };
 }) {
-  const revalidator = useRevalidator();
-  const isPending = !loaderData.orderName;
-  const [pollCount, setPollCount] = useState(0);
-  const confirmationDelayed = isPending && pollCount >= 30;
   const isCod = loaderData.paymentMethod === 'cod';
-
-  useEffect(() => {
-    if (!isPending || pollCount >= 30) return;
-    const timeout = window.setTimeout(
-      () => {
-        setPollCount((count) => count + 1);
-        revalidator.revalidate();
-      },
-      pollCount < 10 ? 2_000 : 5_000,
-    );
-    return () => window.clearTimeout(timeout);
-  }, [isPending, pollCount, revalidator]);
 
   return (
     <main className="checkout-success-page">
@@ -104,26 +109,14 @@ export default function RazorpayCheckoutSuccess({
               {isCod ? 'Cash on delivery' : 'Payment complete'}
             </p>
             <h1 id="order-confirmed-title">
-              {isPending
-                ? isCod
-                  ? 'Order received'
-                  : 'Payment confirmed'
-                : 'Your reserve'}
+              Your reserve
               <br />
-              <em>{isPending ? 'Order is processing.' : 'is confirmed.'}</em>
+              <em>is confirmed.</em>
             </h1>
             <p className="checkout-success-intro">
               {isCod
-                ? isPending
-                  ? confirmationDelayed
-                    ? 'Your COD order was received, but confirmation is taking longer than expected. Please contact us before placing another order.'
-                    : 'Your COD order was received. We are finalising it now. You can safely leave this page; confirmation will follow.'
-                  : 'Thank you for choosing a tea kept in reserve. Your order is confirmed and payment will be collected on delivery.'
-                : isPending
-                  ? confirmationDelayed
-                    ? 'Your payment is secure, but order confirmation is taking longer than expected. You can contact us for help without paying again.'
-                    : 'Your payment is secure. We are creating your order now. You can safely leave this page; confirmation will follow.'
-                  : 'Thank you for choosing a tea kept in reserve. Your payment has been verified and your order is now with us.'}
+                ? 'Thank you for choosing a tea kept in reserve. Your order is confirmed and payment will be collected on delivery.'
+                : 'Thank you for choosing a tea kept in reserve. Your payment has been verified and your Shopify order is now with us.'}
             </p>
 
             <div className="checkout-success-actions">
@@ -161,19 +154,13 @@ export default function RazorpayCheckoutSuccess({
               </svg>
             </div>
 
-            <p className="checkout-success-card-label">
-              {isPending ? 'Razorpay order ID' : 'Shopify order reference'}
-            </p>
-            <p className="checkout-success-order-name">
-              {loaderData.orderName ?? loaderData.razorpayOrderId}
-            </p>
+            <p className="checkout-success-card-label">Shopify order reference</p>
+            <p className="checkout-success-order-name">{loaderData.orderName}</p>
             <dl className="checkout-success-identifiers">
-              {!isPending && (
-                <div>
-                  <dt>Razorpay order ID</dt>
-                  <dd>{loaderData.razorpayOrderId}</dd>
-                </div>
-              )}
+              <div>
+                <dt>Shopify order ID</dt>
+                <dd>{loaderData.shopifyOrderId}</dd>
+              </div>
               {loaderData.razorpayPaymentId && (
                 <div>
                   <dt>Payment ID</dt>
@@ -182,11 +169,7 @@ export default function RazorpayCheckoutSuccess({
               )}
             </dl>
             <p className="checkout-success-card-note">
-              {isPending
-                ? confirmationDelayed
-                  ? 'Please do not pay again. Contact us if confirmation does not arrive shortly.'
-                  : 'Please do not place or pay for this order again while confirmation completes.'
-                : 'Keep this reference for any questions about your order.'}
+              Keep this reference for any questions about your order.
             </p>
 
             <ol className="checkout-success-progress">
@@ -201,15 +184,11 @@ export default function RazorpayCheckoutSuccess({
                   </small>
                 </span>
               </li>
-              <li className={isPending ? undefined : 'is-complete'}>
+              <li className="is-complete">
                 <span className="checkout-success-progress-marker" aria-hidden="true" />
                 <span>
-                  <strong>{isPending ? 'Creating order' : 'Order placed'}</strong>
-                  <small>
-                    {isPending
-                      ? 'Confirmation is in progress'
-                      : `${loaderData.orderName} is confirmed`}
-                  </small>
+                  <strong>Order placed</strong>
+                  <small>{loaderData.orderName} is confirmed</small>
                 </span>
               </li>
               <li>

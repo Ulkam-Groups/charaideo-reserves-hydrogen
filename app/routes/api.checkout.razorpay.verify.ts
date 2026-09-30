@@ -6,6 +6,7 @@ import {
   razorpayCredentials,
   verifyRazorpayPayment,
 } from '~/lib/checkout/providers/razorpay/razorpay.server';
+import {reconcileRazorpayOrder} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -48,19 +49,30 @@ export async function action({request, context}: ActionFunctionArgs) {
     return json({error: 'Invalid payment verification'}, 400);
   }
 
-  if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
-    return json({error: 'Payment verification failed'}, 400);
+  let shopifyOrder: {id: string; name: string};
+  try {
+    if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
+      return json({error: 'Payment verification failed'}, 400);
+    }
+    ({shopifyOrder} = await reconcileRazorpayOrder({
+      env: context.env,
+      orderId,
+      paymentId,
+      expectedStatus: 'paid',
+    }));
+    context.session.unset('razorpayOrderId');
+    context.session.set('razorpayPaymentVerified', {
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      shopifyOrderId: shopifyOrder.id,
+      shopifyOrderName: shopifyOrder.name,
+      paymentMethod: 'prepaid',
+      verifiedAt: Date.now(),
+    });
+  } catch (error) {
+    context.monitor?.failure('checkout.razorpay.verify.failure', {}, error);
+    return json({error: 'Payment verification or order creation failed'}, 502);
   }
-
-  context.session.unset('razorpayOrderId');
-  context.session.set('razorpayPaymentVerified', {
-    razorpayOrderId: orderId,
-    razorpayPaymentId: paymentId,
-    shopifyOrderId: null,
-    shopifyOrderName: null,
-    paymentMethod: 'prepaid',
-    verifiedAt: Date.now(),
-  });
   try {
     const cart = await context.cart.get();
     const lineIds = cart?.lines.nodes.map((line: {id: string}) => line.id) ?? [];
