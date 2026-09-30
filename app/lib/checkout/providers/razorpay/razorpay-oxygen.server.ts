@@ -8,6 +8,7 @@ type FetchBackedApi = {
   rq: {
     defaults: {
       adapter: string;
+      timeout: number;
       env: {
         fetch: typeof globalThis.fetch;
         Request: null;
@@ -39,6 +40,7 @@ export default class RazorpayOxygen {
     // a browser-style Request whose initializer is not fully supported by workerd.
     const request = (api as unknown as FetchBackedApi).rq.defaults;
     request.adapter = 'fetch';
+    request.timeout = 10_000;
     request.env = {
       fetch: globalThis.fetch,
       Request: null,

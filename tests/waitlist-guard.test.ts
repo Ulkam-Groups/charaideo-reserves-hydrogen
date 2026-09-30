@@ -60,6 +60,17 @@ test('waitlist policy is centralized at 3 per minute and 6 per day', () => {
   ]);
 });
 
+test('Razorpay browser endpoints have centralized abuse limits', () => {
+  assert.deepEqual(API_RATE_LIMITS['/api/checkout/razorpay/order'].limits, [
+    {max: 10, windowMs: 60_000},
+    {max: 50, windowMs: 86_400_000},
+  ]);
+  assert.deepEqual(API_RATE_LIMITS['/api/checkout/razorpay/verify'].limits, [
+    {max: 30, windowMs: 60_000},
+    {max: 200, windowMs: 86_400_000},
+  ]);
+});
+
 test('waitlist enforces both windows for one Oxygen buyer IP', async () => {
   const entries = new Map<string, Response>();
   const cache = {

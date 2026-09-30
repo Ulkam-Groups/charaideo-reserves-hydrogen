@@ -26,9 +26,10 @@ Checkout.
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`,
 `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`,
 `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay
-Magic Checkout. The app
-installation must grant only `read_orders,write_orders`. Secrets are used only
-by server routes. The storefront creates Razorpay orders with authoritative
+Magic Checkout. When `PUBLIC_STORE_DOMAIN` is a custom storefront domain, also
+set `SHOPIFY_ADMIN_STORE_DOMAIN` to the canonical `*.myshopify.com` domain.
+The app installation must grant only `read_orders,write_orders`. Secrets are
+used only by server routes. The storefront creates Razorpay orders with authoritative
 Shopify prices, opens `magic-checkout.js`, verifies the returned signature,
 fetches the Razorpay order/payment to confirm its final state and amount, and
 then creates the matching Shopify order.

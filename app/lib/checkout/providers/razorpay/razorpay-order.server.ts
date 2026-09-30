@@ -56,7 +56,110 @@ type ShopifyAdminCredentials = {
   clientSecret: string;
 };
 
+type ShopifyAdminToken = {
+  domain: string;
+  clientId: string;
+  accessToken: string;
+  expiresAt: number;
+};
+
+let cachedAdminToken: ShopifyAdminToken | null = null;
+let adminTokenRequest: {
+  domain: string;
+  clientId: string;
+  promise: Promise<string>;
+} | null = null;
+
 export class RazorpayReconciliationError extends Error {}
+
+function invalidateAdminToken(credentials: ShopifyAdminCredentials) {
+  if (
+    cachedAdminToken?.domain === credentials.domain &&
+    cachedAdminToken.clientId === credentials.clientId
+  ) {
+    cachedAdminToken = null;
+  }
+}
+
+async function getAdminAccessToken(
+  credentials: ShopifyAdminCredentials,
+  fetcher: typeof fetch,
+  forceRefresh = false,
+) {
+  if (
+    !forceRefresh &&
+    cachedAdminToken?.domain === credentials.domain &&
+    cachedAdminToken.clientId === credentials.clientId &&
+    Date.now() < cachedAdminToken.expiresAt - 60_000
+  ) {
+    return cachedAdminToken.accessToken;
+  }
+  if (
+    !forceRefresh &&
+    adminTokenRequest?.domain === credentials.domain &&
+    adminTokenRequest.clientId === credentials.clientId
+  ) {
+    return adminTokenRequest.promise;
+  }
+
+  const request = (async () => {
+    const response = await fetcher(
+      `https://${credentials.domain}/admin/oauth/access_token`,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+          grant_type: 'client_credentials',
+          client_id: credentials.clientId,
+          client_secret: credentials.clientSecret,
+        }),
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
+    if (!response.ok) {
+      throw new RazorpayReconciliationError('Shopify authentication failed');
+    }
+    const token = (await response.json()) as {
+      access_token?: unknown;
+      expires_in?: unknown;
+      scope?: unknown;
+    };
+    if (typeof token.access_token !== 'string') {
+      throw new RazorpayReconciliationError('Shopify authentication failed');
+    }
+    if (typeof token.scope === 'string') {
+      const scopes = new Set(token.scope.split(',').map((scope) => scope.trim()));
+      if (!scopes.has('read_orders') || !scopes.has('write_orders')) {
+        throw new RazorpayReconciliationError(
+          'Shopify app is missing required order scopes',
+        );
+      }
+    }
+    if (
+      typeof token.expires_in === 'number' &&
+      Number.isSafeInteger(token.expires_in) &&
+      token.expires_in > 60
+    ) {
+      cachedAdminToken = {
+        domain: credentials.domain,
+        clientId: credentials.clientId,
+        accessToken: token.access_token,
+        expiresAt: Date.now() + token.expires_in * 1000,
+      };
+    }
+    return token.access_token;
+  })();
+  adminTokenRequest = {
+    domain: credentials.domain,
+    clientId: credentials.clientId,
+    promise: request,
+  };
+  try {
+    return await request;
+  } finally {
+    if (adminTokenRequest?.promise === request) adminTokenRequest = null;
+  }
+}
 
 function adminCredentials(env: Env): ShopifyAdminCredentials | null {
   const domain = (
@@ -261,35 +364,28 @@ async function adminGraphql<T>({
   variables: Record<string, unknown>;
   fetcher: typeof fetch;
 }): Promise<T> {
-  const tokenResponse = await fetcher(
-    `https://${credentials.domain}/admin/oauth/access_token`,
-    {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: credentials.clientId,
-        client_secret: credentials.clientSecret,
-      }),
-    },
-  );
-  if (!tokenResponse.ok) throw new RazorpayReconciliationError('Shopify authentication failed');
-  const token = (await tokenResponse.json()) as {access_token?: unknown};
-  if (typeof token.access_token !== 'string') {
-    throw new RazorpayReconciliationError('Shopify authentication failed');
-  }
-
-  const response = await fetcher(
-    `https://${credentials.domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': token.access_token,
+  const execute = async (forceRefresh = false) =>
+    fetcher(
+      `https://${credentials.domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': await getAdminAccessToken(
+            credentials,
+            fetcher,
+            forceRefresh,
+          ),
+        },
+        body: JSON.stringify({query, variables}),
+        signal: AbortSignal.timeout(10_000),
       },
-      body: JSON.stringify({query, variables}),
-    },
-  );
+    );
+  let response = await execute();
+  if (response.status === 401) {
+    invalidateAdminToken(credentials);
+    response = await execute(true);
+  }
   if (!response.ok) throw new RazorpayReconciliationError('Shopify order API failed');
   const result = (await response.json()) as {data?: T; errors?: unknown[]};
   if (result.errors?.length || !result.data) {

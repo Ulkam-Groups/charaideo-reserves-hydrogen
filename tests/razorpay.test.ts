@@ -25,6 +25,7 @@ import {
 import {
   classifyRazorpayFailure,
   createRazorpayMagicOrder,
+  razorpayCredentials,
   verifyRazorpayPayment,
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
@@ -40,6 +41,23 @@ test('Razorpay validates Shopify variants and converts INR to paise', () => {
   const form = new FormData();
   form.set('products', JSON.stringify(products));
   assert.deepEqual(parseRazorpayCheckoutProducts(form.get('products')), products);
+});
+
+test('Razorpay credentials require a test or live Key ID', () => {
+  assert.deepEqual(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'rzp_live_public',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    {keyId: 'rzp_live_public', keySecret: 'secret'},
+  );
+  assert.equal(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'public',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    null,
+  );
 });
 
 test('Razorpay CSP permits checkout risk detection without broad script access', () => {
@@ -508,6 +526,51 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
     variables: {order: {sourceIdentifier: string}};
   };
   assert.equal(mutation.variables.order.sourceIdentifier, magicOrder.id);
+});
+
+test('Shopify client-credentials token is scoped and reused until expiry', async () => {
+  const {lines} = validateRazorpayOrderForShopify(magicOrder, magicOrder.id);
+  const calls: string[] = [];
+  const responses = [
+    Response.json({
+      access_token: 'cached-admin-token',
+      expires_in: 86_399,
+      scope: 'read_orders,write_orders',
+    }),
+    Response.json({data: {orders: {nodes: []}}}),
+    Response.json({
+      data: {
+        orderCreate: {
+          order: {id: 'gid://shopify/Order/2', name: '#1002'},
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL) => {
+    calls.push(String(input));
+    return responses.shift()!;
+  }) as typeof fetch;
+
+  const result = await createShopifyOrder(
+    {
+      SHOPIFY_ADMIN_STORE_DOMAIN: 'cache-test.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'cache-client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_KEY_ID: 'rzp_test_public',
+      RAZORPAY_KEY_SECRET: 'razorpay-secret',
+    } as Env,
+    magicOrder,
+    lines,
+    capturedPayment,
+    fetcher,
+  );
+
+  assert.equal(result.created, true);
+  assert.equal(
+    calls.filter((url) => url.endsWith('/admin/oauth/access_token')).length,
+    1,
+  );
 });
 
 test('Razorpay readiness accepts a separate canonical Admin store domain', () => {
