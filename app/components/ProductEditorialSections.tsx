@@ -31,6 +31,12 @@ type ProductEditorialData = {
   flush?: MetafieldValue;
   pluckDate?: MetafieldValue;
   ingredients?: MetafieldValue;
+  caffeineLevel?: MetafieldValue;
+  brewingSuggestion?: MetafieldValue;
+  storage?: MetafieldValue;
+  shelfLife?: MetafieldValue;
+  allergens?: MetafieldValue;
+  certifications?: MetafieldValue;
   process?: MetafieldValue;
   teaStyle?: MetafieldValue;
   lotNumber?: MetafieldValue;
@@ -284,6 +290,12 @@ function TeaRecord({
     ['Grade', product.grade?.value],
     ['Harvest', harvest],
     ['Ingredients', formatValue(product.ingredients?.value)],
+    ['Caffeine level', product.caffeineLevel?.value],
+    ['Preparation', product.brewingSuggestion?.value],
+    ['Storage', product.storage?.value],
+    ['Shelf life', product.shelfLife?.value],
+    ['Allergens', product.allergens?.value],
+    ['Certifications', product.certifications?.value],
     ['Lot', product.lotNumber?.value],
     ['Pack size', formatValue(product.netWeight?.value) || packSizes || selectedWeight],
     ['SKU', selectedVariant?.sku],

@@ -1,5 +1,5 @@
 import {Link, useNavigate, useRouteLoaderData} from 'react-router';
-import {Money, type MappedProductOptions} from '@shopify/hydrogen';
+import {Money, type MappedProductOptions, useAnalytics} from '@shopify/hydrogen';
 import type {
   Maybe,
   ProductOptionValueSwatch,
@@ -23,6 +23,7 @@ export function ProductForm({
 }) {
   const navigate = useNavigate();
   const {open} = useAside();
+  const {publish} = useAnalytics();
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const buyNowVariantId = selectedVariant?.id;
   const [checkoutError, setCheckoutError] = useState('');
@@ -55,6 +56,11 @@ export function ProductForm({
   const selectedSize = selectedVariant?.selectedOptions.find(
     (option) => option.name.toLowerCase() === 'size',
   )?.value;
+  const selectedWeightInGrams = weightInGrams(selectedSize);
+  const pricePerGram =
+    selectedVariant && selectedWeightInGrams
+      ? Number(selectedVariant.price.amount) / selectedWeightInGrams
+      : null;
 
   return (
     <div className="product-form">
@@ -120,6 +126,11 @@ export function ProductForm({
                       disabled={!exists}
                       onClick={() => {
                         if (!selected) {
+                          publish('custom_product_variant_selected', {
+                            optionName: option.name,
+                            optionValue: name,
+                            available,
+                          });
                           void navigate(`?${variantUriQuery}`, {
                             replace: true,
                             preventScrollReset: true,
@@ -136,6 +147,17 @@ export function ProductForm({
           </div>
         );
       })}
+      {pricePerGram && selectedVariant && (
+        <p className="product-unit-price">
+          <Money
+            data={{
+              amount: pricePerGram.toFixed(2),
+              currencyCode: selectedVariant.price.currencyCode,
+            }}
+          />{' '}
+          per gram
+        </p>
+      )}
       <div className="product-purchase-meta">
         <p
           className={`product-stock product-stock--${
@@ -203,6 +225,10 @@ export function ProductForm({
             }
             onClick={async () => {
               setCheckoutPending(true);
+              publish('custom_buy_now_started', {
+                quantity,
+                variantId: buyNowVariantId,
+              });
               const utmParams = new URLSearchParams(
                 [...new URLSearchParams(window.location.search)].filter(([key]) =>
                   key.startsWith('utm_'),
@@ -239,10 +265,7 @@ export function ProductForm({
       </p>
       <DeliveryEstimate />
       {showMobileBar && selectedVariant?.availableForSale && (
-        <aside
-          className="product-mobile-purchase-bar"
-          aria-label="Quick purchase"
-        >
+        <aside className="product-mobile-purchase-bar" aria-label="Quick purchase">
           <div>
             <span>{selectedVariant.product.title}</span>
             <strong>
@@ -269,6 +292,15 @@ export function ProductForm({
       )}
     </div>
   );
+}
+
+function weightInGrams(value?: string) {
+  if (!value) return null;
+  const match = value.trim().match(/([\d.]+)\s*(kg|kilograms?|g|grams?)\b/i);
+  if (!match) return null;
+  const amount = Number(match[1]);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return /^(kg|kilogram)/i.test(match[2]) ? amount * 1000 : amount;
 }
 
 function ProductOptionSwatch({
