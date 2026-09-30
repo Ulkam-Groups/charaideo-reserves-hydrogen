@@ -55,6 +55,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   context.session.unset('razorpayOrderId');
   context.session.set('razorpayPaymentVerified', {
     razorpayOrderId: orderId,
+    razorpayPaymentId: paymentId,
     shopifyOrderId: null,
     shopifyOrderName: null,
     paymentMethod: 'prepaid',

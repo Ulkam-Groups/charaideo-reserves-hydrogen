@@ -35,16 +35,25 @@ export async function loader({context}: LoaderFunctionArgs) {
   }
   const verified = result as {
     razorpayOrderId: string;
+    razorpayPaymentId?: unknown;
     shopifyOrderName?: unknown;
     paymentMethod?: unknown;
   };
+  const razorpayOrderId = /^order_[A-Za-z0-9]+$/.test(verified.razorpayOrderId)
+    ? verified.razorpayOrderId
+    : null;
+  if (!razorpayOrderId) throw redirect('/cart');
+  const razorpayPaymentId =
+    typeof verified.razorpayPaymentId === 'string' &&
+    /^pay_[A-Za-z0-9]+$/.test(verified.razorpayPaymentId)
+      ? verified.razorpayPaymentId
+      : null;
   const paymentMethod = verified.paymentMethod === 'cod' ? 'cod' : 'prepaid';
   let orderName =
     typeof verified.shopifyOrderName === 'string' ? verified.shopifyOrderName : null;
   if (!orderName) {
     try {
-      orderName =
-        (await findShopifyOrder(context.env, verified.razorpayOrderId))?.name ?? null;
+      orderName = (await findShopifyOrder(context.env, razorpayOrderId))?.name ?? null;
     } catch (error) {
       context.monitor?.failure(
         'checkout.razorpay.confirmation_lookup.failure',
@@ -54,13 +63,18 @@ export async function loader({context}: LoaderFunctionArgs) {
     }
   }
   if (orderName) context.session.unset('razorpayPaymentVerified');
-  return {orderName, paymentMethod};
+  return {orderName, paymentMethod, razorpayOrderId, razorpayPaymentId};
 }
 
 export default function RazorpayCheckoutSuccess({
   loaderData,
 }: {
-  loaderData: {orderName: string | null; paymentMethod: 'prepaid' | 'cod'};
+  loaderData: {
+    orderName: string | null;
+    paymentMethod: 'prepaid' | 'cod';
+    razorpayOrderId: string;
+    razorpayPaymentId: string | null;
+  };
 }) {
   const revalidator = useRevalidator();
   const isPending = !loaderData.orderName;
@@ -103,12 +117,12 @@ export default function RazorpayCheckoutSuccess({
                 ? isPending
                   ? confirmationDelayed
                     ? 'Your COD order was received, but confirmation is taking longer than expected. Please contact us before placing another order.'
-                    : 'Your COD order was received. We are finalising it now; this page will update automatically.'
+                    : 'Your COD order was received. We are finalising it now. You can safely leave this page; confirmation will follow.'
                   : 'Thank you for choosing a tea kept in reserve. Your order is confirmed and payment will be collected on delivery.'
                 : isPending
                   ? confirmationDelayed
                     ? 'Your payment is secure, but order confirmation is taking longer than expected. You can contact us for help without paying again.'
-                    : 'Your payment is secure. We are creating your order now; this page will update automatically.'
+                    : 'Your payment is secure. We are creating your order now. You can safely leave this page; confirmation will follow.'
                   : 'Thank you for choosing a tea kept in reserve. Your payment has been verified and your order is now with us.'}
             </p>
 
@@ -148,16 +162,30 @@ export default function RazorpayCheckoutSuccess({
             </div>
 
             <p className="checkout-success-card-label">
-              {isPending ? 'Order status' : 'Order reference'}
+              {isPending ? 'Razorpay order ID' : 'Shopify order reference'}
             </p>
             <p className="checkout-success-order-name">
-              {loaderData.orderName ?? 'Confirming…'}
+              {loaderData.orderName ?? loaderData.razorpayOrderId}
             </p>
+            <dl className="checkout-success-identifiers">
+              {!isPending && (
+                <div>
+                  <dt>Razorpay order ID</dt>
+                  <dd>{loaderData.razorpayOrderId}</dd>
+                </div>
+              )}
+              {loaderData.razorpayPaymentId && (
+                <div>
+                  <dt>Payment ID</dt>
+                  <dd>{loaderData.razorpayPaymentId}</dd>
+                </div>
+              )}
+            </dl>
             <p className="checkout-success-card-note">
               {isPending
                 ? confirmationDelayed
                   ? 'Please do not pay again. Contact us if confirmation does not arrive shortly.'
-                  : 'Please keep this page open while confirmation completes.'
+                  : 'Please do not place or pay for this order again while confirmation completes.'
                 : 'Keep this reference for any questions about your order.'}
             </p>
 

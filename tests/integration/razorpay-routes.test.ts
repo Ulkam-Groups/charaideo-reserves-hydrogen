@@ -128,6 +128,7 @@ test('Razorpay verification accepts a signed callback without upstream API calls
   assert.deepEqual(removedLineIds, ['line-1']);
   assert.deepEqual(verifiedSession, {
     razorpayOrderId: orderId,
+    razorpayPaymentId: paymentId,
     shopifyOrderId: null,
     shopifyOrderName: null,
     paymentMethod: 'prepaid',
