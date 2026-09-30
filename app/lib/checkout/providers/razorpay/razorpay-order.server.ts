@@ -219,7 +219,6 @@ export function buildShopifyOrderInput({
     ...(phone ? {phone} : {}),
     currency: 'INR',
     presentmentCurrency: 'INR',
-    fulfillmentStatus: 'UNFULFILLED',
     sourceIdentifier: order.id,
     tags: ['razorpay', 'magic-checkout', payment ? 'prepaid' : 'cod'],
     note: `Razorpay Magic Checkout order ${order.id}`,
@@ -294,6 +293,7 @@ async function adminGraphql<T>({
   if (!response.ok) throw new RazorpayReconciliationError('Shopify order API failed');
   const result = (await response.json()) as {data?: T; errors?: unknown[]};
   if (result.errors?.length || !result.data) {
+    console.error('Shopify Admin GraphQL request failed', result.errors ?? []);
     throw new RazorpayReconciliationError('Shopify order API returned errors');
   }
   return result.data;
@@ -350,6 +350,10 @@ export async function createShopifyOrder(
     },
   });
   if (result.orderCreate.userErrors.length || !result.orderCreate.order) {
+    console.error(
+      'Shopify rejected Razorpay order creation',
+      result.orderCreate.userErrors,
+    );
     throw new RazorpayReconciliationError('Shopify rejected the Razorpay order');
   }
   return {...result.orderCreate.order, created: true};
