@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHmac} from 'node:crypto';
 import test from 'node:test';
 
 import type {ActionFunctionArgs} from 'react-router';
@@ -72,6 +73,67 @@ test('Razorpay verification is bound to the server-side order id', async () => {
 
   assert.equal(response.status, 400);
   assert.equal(unset, false);
+});
+
+test('Razorpay verification accepts a signed callback without upstream API calls', async () => {
+  const orderId = 'order_signed123';
+  const paymentId = 'pay_signed123';
+  const keySecret = 'razorpay-key-secret';
+  const signature = createHmac('sha256', keySecret)
+    .update(`${orderId}|${paymentId}`)
+    .digest('hex');
+  let verifiedSession: unknown;
+  let orderSessionUnset = false;
+  let removedLineIds: string[] = [];
+
+  const response = await verifyAction({
+    request: formRequest(
+      '/api/checkout/razorpay/verify',
+      new URLSearchParams({
+        razorpay_order_id: orderId,
+        razorpay_payment_id: paymentId,
+        razorpay_signature: signature,
+      }),
+    ),
+    params: {},
+    context: {
+      env: {
+        CHECKOUT_PROVIDER: 'razorpay',
+        RAZORPAY_KEY_ID: 'rzp_test_public',
+        RAZORPAY_KEY_SECRET: keySecret,
+      },
+      session: {
+        get: (key: string) => (key === 'razorpayOrderId' ? orderId : undefined),
+        unset: (key: string) => {
+          if (key === 'razorpayOrderId') orderSessionUnset = true;
+        },
+        set: (key: string, value: unknown) => {
+          if (key === 'razorpayPaymentVerified') verifiedSession = value;
+        },
+      },
+      cart: {
+        get: async () => ({lines: {nodes: [{id: 'line-1'}]}}),
+        removeLines: async (lineIds: string[]) => {
+          removedLineIds = lineIds;
+        },
+      },
+    },
+  } as unknown as ActionFunctionArgs);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    redirectTo: '/checkout/razorpay/success',
+  });
+  assert.equal(orderSessionUnset, true);
+  assert.deepEqual(removedLineIds, ['line-1']);
+  assert.deepEqual(verifiedSession, {
+    razorpayOrderId: orderId,
+    shopifyOrderId: null,
+    shopifyOrderName: null,
+    paymentMethod: 'prepaid',
+    verifiedAt: (verifiedSession as {verifiedAt: number}).verifiedAt,
+  });
+  assert.equal(typeof (verifiedSession as {verifiedAt: unknown}).verifiedAt, 'number');
 });
 
 test('Razorpay browser endpoints are unavailable when FastRR is selected', async () => {
