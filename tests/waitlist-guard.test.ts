@@ -69,6 +69,10 @@ test('Razorpay browser endpoints have centralized abuse limits', () => {
     {max: 30, windowMs: 60_000},
     {max: 200, windowMs: 86_400_000},
   ]);
+  assert.deepEqual(API_RATE_LIMITS['/api/checkout/razorpay/status'].limits, [
+    {max: 40, windowMs: 60_000},
+    {max: 300, windowMs: 86_400_000},
+  ]);
 });
 
 test('waitlist enforces both windows for one Oxygen buyer IP', async () => {

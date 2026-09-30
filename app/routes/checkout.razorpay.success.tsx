@@ -36,7 +36,9 @@ export async function loader({context}: LoaderFunctionArgs) {
   const verified = result as {
     razorpayOrderId: string;
     shopifyOrderName?: unknown;
+    paymentMethod?: unknown;
   };
+  const paymentMethod = verified.paymentMethod === 'cod' ? 'cod' : 'prepaid';
   let orderName =
     typeof verified.shopifyOrderName === 'string' ? verified.shopifyOrderName : null;
   if (!orderName) {
@@ -52,18 +54,19 @@ export async function loader({context}: LoaderFunctionArgs) {
     }
   }
   if (orderName) context.session.unset('razorpayPaymentVerified');
-  return {orderName};
+  return {orderName, paymentMethod};
 }
 
 export default function RazorpayCheckoutSuccess({
   loaderData,
 }: {
-  loaderData: {orderName: string | null};
+  loaderData: {orderName: string | null; paymentMethod: 'prepaid' | 'cod'};
 }) {
   const revalidator = useRevalidator();
   const isPending = !loaderData.orderName;
   const [pollCount, setPollCount] = useState(0);
   const confirmationDelayed = isPending && pollCount >= 30;
+  const isCod = loaderData.paymentMethod === 'cod';
 
   useEffect(() => {
     if (!isPending || pollCount >= 30) return;
@@ -84,19 +87,29 @@ export default function RazorpayCheckoutSuccess({
           <div className="checkout-success-copy">
             <p className="checkout-success-eyebrow">
               <span aria-hidden="true" />
-              Payment complete
+              {isCod ? 'Cash on delivery' : 'Payment complete'}
             </p>
             <h1 id="order-confirmed-title">
-              {isPending ? 'Payment confirmed' : 'Your reserve'}
+              {isPending
+                ? isCod
+                  ? 'Order received'
+                  : 'Payment confirmed'
+                : 'Your reserve'}
               <br />
               <em>{isPending ? 'Order is processing.' : 'is confirmed.'}</em>
             </h1>
             <p className="checkout-success-intro">
-              {isPending
-                ? confirmationDelayed
-                  ? 'Your payment is secure, but order confirmation is taking longer than expected. You can contact us for help without paying again.'
-                  : 'Your payment is secure. We are creating your order now; this page will update automatically.'
-                : 'Thank you for choosing a tea kept in reserve. Your payment has been verified and your order is now with us.'}
+              {isCod
+                ? isPending
+                  ? confirmationDelayed
+                    ? 'Your COD order was received, but confirmation is taking longer than expected. Please contact us before placing another order.'
+                    : 'Your COD order was received. We are finalising it now; this page will update automatically.'
+                  : 'Thank you for choosing a tea kept in reserve. Your order is confirmed and payment will be collected on delivery.'
+                : isPending
+                  ? confirmationDelayed
+                    ? 'Your payment is secure, but order confirmation is taking longer than expected. You can contact us for help without paying again.'
+                    : 'Your payment is secure. We are creating your order now; this page will update automatically.'
+                  : 'Thank you for choosing a tea kept in reserve. Your payment has been verified and your order is now with us.'}
             </p>
 
             <div className="checkout-success-actions">
@@ -152,8 +165,12 @@ export default function RazorpayCheckoutSuccess({
               <li className="is-complete">
                 <span className="checkout-success-progress-marker" aria-hidden="true" />
                 <span>
-                  <strong>Payment verified</strong>
-                  <small>Completed securely</small>
+                  <strong>
+                    {isCod ? 'Cash on delivery selected' : 'Payment verified'}
+                  </strong>
+                  <small>
+                    {isCod ? 'Payment due on delivery' : 'Completed securely'}
+                  </small>
                 </span>
               </li>
               <li className={isPending ? undefined : 'is-complete'}>
@@ -177,7 +194,8 @@ export default function RazorpayCheckoutSuccess({
             </ol>
 
             <p className="checkout-success-payment-note">
-              <span aria-hidden="true" /> Paid securely with Razorpay
+              <span aria-hidden="true" />{' '}
+              {isCod ? 'Cash on delivery via Razorpay' : 'Paid securely with Razorpay'}
             </p>
           </aside>
         </div>

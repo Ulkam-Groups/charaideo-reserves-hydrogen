@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import type {ActionFunctionArgs} from 'react-router';
 import {action as orderAction} from '../../app/routes/api.checkout.razorpay.order.ts';
+import {action as statusAction} from '../../app/routes/api.checkout.razorpay.status.ts';
 import {action as verifyAction} from '../../app/routes/api.checkout.razorpay.verify.ts';
 
 const origin = 'https://store.example';
@@ -95,6 +96,12 @@ test('Razorpay browser endpoints are unavailable when FastRR is selected', async
     params: {},
     context,
   } as unknown as ActionFunctionArgs);
+  const status = await statusAction({
+    request: formRequest('/api/checkout/razorpay/status', new URLSearchParams()),
+    params: {},
+    context,
+  } as unknown as ActionFunctionArgs);
   assert.equal(order.status, 404);
   assert.equal(verify.status, 404);
+  assert.equal(status.status, 404);
 });

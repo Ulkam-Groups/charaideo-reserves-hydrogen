@@ -52,6 +52,12 @@ resulting Shopify orders, discounts, and analytics. The vendor script may use ad
 must be added to the Content Security Policy after checking its live network
 requests.
 
+COD can remain disabled in Razorpay without changing the storefront. When Razorpay
+enables COD and the webhook is subscribed to `order.placed`, the browser status
+check recognises the session-bound `placed` order, waits for the webhook-created
+Shopify order, clears the cart, and shows a COD-specific confirmation. The status
+check never creates an order; `/webhooks/razorpay` remains the single writer.
+
 ## Checkout policy
 
 Only ordinary Shopify products can be purchased. The former custom tea blend

@@ -27,6 +27,7 @@ Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Das
 7. `/api/checkout/razorpay/verify` binds the returned order to the server session, verifies the HMAC-SHA256 signature, and confirms the captured payment. It never creates the Shopify order.
 8. The signed `order.paid` webhook is the only prepaid writer. The signed `order.placed` webhook writes only while the Razorpay order is still in the COD `placed` state. The success page polls Shopify briefly when webhook delivery follows the browser callback.
 9. Reconciliation fetches the final order details, validates totals and address data, and creates the Shopify order through Admin GraphQL. Successful `x-razorpay-event-id` values are cached for 48 hours, while `sourceIdentifier` lookup and in-flight coalescing protect sequential retries; the single-writer event design prevents the browser/webhook race.
+10. COD may remain disabled without a code or environment toggle. Once Razorpay enables it and `order.placed` is subscribed, the browser polls the session-bound order status, waits for the webhook-created Shopify order, clears the cart, and opens the same confirmation route with COD-specific payment messaging.
 
 Dashboard enablement, public URL reachability, webhook subscriptions and test/live key mode cannot be proven by repository tests; verify them in each deployed environment.
 

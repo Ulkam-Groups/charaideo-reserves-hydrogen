@@ -33,6 +33,12 @@ export const API_RATE_LIMITS = {
       {max: 200, windowMs: 86_400_000},
     ],
   },
+  '/api/checkout/razorpay/status': {
+    limits: [
+      {max: 40, windowMs: 60_000},
+      {max: 300, windowMs: 86_400_000},
+    ],
+  },
   '/agent/buyer-claims': null, // Read-only Shopify chat proxy.
   '/cart': null, // Hydrogen cart actions; protected by form and session checks.
   '/cart/:lines': null, // Cart permalink.

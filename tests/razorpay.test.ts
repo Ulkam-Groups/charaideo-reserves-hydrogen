@@ -16,6 +16,7 @@ import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razo
 import {
   createShopifyOrder,
   buildShopifyOrderInput,
+  classifyRazorpayCheckoutState,
   razorpayOrderIntegrationReady,
   validateCapturedRazorpayPayment,
   validateRazorpayOrderForShopify,
@@ -255,6 +256,7 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
   const script = new EventTarget();
   const originalFetch = globalThis.fetch;
   let opened = false;
+  let options: Record<string, unknown> | undefined;
   Object.assign(globalThis, {
     fetch: async () =>
       Response.json({
@@ -279,6 +281,9 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
     await Promise.resolve();
     Object.assign((globalThis as any).window, {
       Razorpay: class {
+        constructor(received: Record<string, unknown>) {
+          options = received;
+        }
         on() {}
         open() {
           opened = true;
@@ -289,6 +294,7 @@ test('Razorpay client waits for the deferred checkout script after navigation', 
 
     assert.equal(await launch, true);
     assert.equal(opened, true);
+    ((options?.modal as {ondismiss?: () => void})?.ondismiss)?.();
   } finally {
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, 'window');
@@ -392,6 +398,29 @@ test('Razorpay final order and captured payment are validated before Shopify', (
       magicOrder.id,
     ),
   );
+});
+
+test('Razorpay checkout states distinguish prepaid, COD and incomplete orders', () => {
+  assert.equal(classifyRazorpayCheckoutState(magicOrder), 'prepaid');
+  assert.equal(
+    classifyRazorpayCheckoutState({
+      ...magicOrder,
+      status: 'placed',
+      amount_paid: 0,
+      amount_due: magicOrder.amount,
+    }),
+    'cod',
+  );
+  assert.equal(
+    classifyRazorpayCheckoutState({
+      ...magicOrder,
+      status: 'created',
+      amount_paid: 0,
+      amount_due: magicOrder.amount,
+    }),
+    'pending',
+  );
+  assert.throws(() => classifyRazorpayCheckoutState({...magicOrder, amount_due: 1}));
 });
 
 test('Shopify order input records payment, addresses, shipping and idempotency key', () => {

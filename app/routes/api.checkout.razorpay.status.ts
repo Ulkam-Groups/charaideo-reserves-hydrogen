@@ -3,12 +3,8 @@ import {resolveCheckoutProvider} from '~/lib/checkout/provider';
 import {enforceApiRateLimit} from '~/lib/api-rate-limit.server';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
-  razorpayCredentials,
-  verifyRazorpayPayment,
-} from '~/lib/checkout/providers/razorpay/razorpay.server';
-import {
+  fetchRazorpayCheckoutState,
   findShopifyOrder,
-  verifyRazorpayOrderPayment,
 } from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 function json(body: unknown, status = 200) {
@@ -19,7 +15,7 @@ function json(body: unknown, status = 200) {
 }
 
 export async function action({request, context}: ActionFunctionArgs) {
-  const form = await readProtectedForm(request, {methods: ['POST'], maxBytes: 4_096});
+  const form = await readProtectedForm(request, {methods: ['POST'], maxBytes: 256});
   if (form instanceof Response) return form;
 
   if (resolveCheckoutProvider(context.env.CHECKOUT_PROVIDER) !== 'razorpay') {
@@ -29,45 +25,34 @@ export async function action({request, context}: ActionFunctionArgs) {
     const limited = await enforceApiRateLimit(
       request,
       context.reviewsCache,
-      '/api/checkout/razorpay/verify',
+      '/api/checkout/razorpay/status',
     );
     if (limited) return limited;
   }
-  const credentials = razorpayCredentials(context.env);
-  if (!credentials) return json({error: 'Checkout is not configured'}, 503);
 
-  const orderId = form.get('razorpay_order_id');
-  const paymentId = form.get('razorpay_payment_id');
-  const signature = form.get('razorpay_signature');
-  const expectedOrderId = context.session.get('razorpayOrderId');
-  if (
-    typeof orderId !== 'string' ||
-    typeof paymentId !== 'string' ||
-    typeof signature !== 'string' ||
-    !/^order_[A-Za-z0-9]+$/.test(orderId) ||
-    !/^pay_[A-Za-z0-9]+$/.test(paymentId) ||
-    !/^[a-f0-9]{64}$/i.test(signature) ||
-    orderId !== expectedOrderId
-  ) {
-    return json({error: 'Invalid payment verification'}, 400);
+  const orderId = context.session.get('razorpayOrderId');
+  if (typeof orderId !== 'string' || !/^order_[A-Za-z0-9]+$/.test(orderId)) {
+    return json({error: 'Checkout session is unavailable'}, 400);
   }
 
   try {
-    if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
-      return json({error: 'Payment verification failed'}, 400);
-    }
-    await verifyRazorpayOrderPayment({
+    const checkoutState = await fetchRazorpayCheckoutState({
       env: context.env,
       orderId,
-      paymentId,
     });
+    if (checkoutState !== 'cod') {
+      return json({status: checkoutState});
+    }
+
     const shopifyOrder = await findShopifyOrder(context.env, orderId);
+    if (!shopifyOrder) return json({status: 'processing'});
+
     context.session.unset('razorpayOrderId');
     context.session.set('razorpayPaymentVerified', {
       razorpayOrderId: orderId,
-      shopifyOrderId: shopifyOrder?.id ?? null,
-      shopifyOrderName: shopifyOrder?.name ?? null,
-      paymentMethod: 'prepaid',
+      shopifyOrderId: shopifyOrder.id,
+      shopifyOrderName: shopifyOrder.name,
+      paymentMethod: 'cod',
       verifiedAt: Date.now(),
     });
     try {
@@ -77,9 +62,10 @@ export async function action({request, context}: ActionFunctionArgs) {
     } catch (error) {
       context.monitor?.failure('checkout.razorpay.cart_clear.failure', {}, error);
     }
-    return json({redirectTo: '/checkout/razorpay/success'});
+
+    return json({status: 'confirmed', redirectTo: '/checkout/razorpay/success'});
   } catch (error) {
-    context.monitor?.failure('checkout.razorpay.verify.failure', {}, error);
-    return json({error: 'Payment verification failed'}, 502);
+    context.monitor?.failure('checkout.razorpay.status.failure', {}, error);
+    return json({error: 'Unable to confirm checkout status'}, 502);
   }
 }

@@ -482,15 +482,7 @@ async function fetchCapturedPayment(
   return validateCapturedRazorpayPayment(captured, order);
 }
 
-async function fetchValidatedRazorpayOrder({
-  env,
-  orderId,
-  paymentId,
-}: {
-  env: Env;
-  orderId: string;
-  paymentId?: string;
-}) {
+async function fetchRazorpayOrderSnapshot({env, orderId}: {env: Env; orderId: string}) {
   if (!/^order_[A-Za-z0-9]+$/.test(orderId)) {
     throw new RazorpayReconciliationError('Invalid Razorpay order ID');
   }
@@ -504,14 +496,51 @@ async function fetchValidatedRazorpayOrder({
     await razorpay.orders.fetch(orderId),
     orderId,
   );
-  let payment: RazorpayPaymentDetails | null;
-  if (order.status === 'paid') {
-    payment = await fetchCapturedPayment(razorpay, order, paymentId);
-  } else if (
-    order.status === 'placed' &&
-    integer(order.amount_paid, 'paid amount') === 0 &&
-    integer(order.amount_due, 'amount due') === order.amount
+  return {razorpay, order, lines};
+}
+
+export function classifyRazorpayCheckoutState(
+  order: RazorpayMagicOrderDetails,
+): 'pending' | 'prepaid' | 'cod' {
+  const amount = integer(order.amount, 'amount');
+  const amountPaid = integer(order.amount_paid, 'paid amount');
+  const amountDue = integer(order.amount_due, 'amount due');
+  if (order.status === 'paid' && amountPaid === amount && amountDue === 0) {
+    return 'prepaid';
+  }
+  if (order.status === 'placed' && amountPaid === 0 && amountDue === amount) {
+    return 'cod';
+  }
+  if (
+    (order.status === 'created' || order.status === 'attempted') &&
+    amountPaid === 0 &&
+    amountDue === amount
   ) {
+    return 'pending';
+  }
+  throw new RazorpayReconciliationError('Razorpay order has an invalid checkout state');
+}
+
+export async function fetchRazorpayCheckoutState(input: {env: Env; orderId: string}) {
+  const {order} = await fetchRazorpayOrderSnapshot(input);
+  return classifyRazorpayCheckoutState(order);
+}
+
+async function fetchValidatedRazorpayOrder({
+  env,
+  orderId,
+  paymentId,
+}: {
+  env: Env;
+  orderId: string;
+  paymentId?: string;
+}) {
+  const {razorpay, order, lines} = await fetchRazorpayOrderSnapshot({env, orderId});
+  let payment: RazorpayPaymentDetails | null;
+  const checkoutState = classifyRazorpayCheckoutState(order);
+  if (checkoutState === 'prepaid') {
+    payment = await fetchCapturedPayment(razorpay, order, paymentId);
+  } else if (checkoutState === 'cod') {
     payment = null;
   } else {
     throw new RazorpayReconciliationError('Razorpay order is not payable');
@@ -551,7 +580,9 @@ async function reconcileRazorpayOrderOnce({
     payment,
   } = await fetchValidatedRazorpayOrder({env, orderId, paymentId});
   if (expectedStatus && order.status !== expectedStatus) {
-    return {shopifyOrder: null, razorpayOrder: order, payment};
+    throw new RazorpayReconciliationError(
+      'Razorpay order has not reached the expected webhook state',
+    );
   }
   const shopifyOrder = await createShopifyOrder(env, order, lines, payment, fetcher);
   return {shopifyOrder, razorpayOrder: order, payment};
