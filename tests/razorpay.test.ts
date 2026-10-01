@@ -7,8 +7,10 @@ import {
   decodeRazorpayCheckoutSnapshot,
   encodeRazorpayCheckoutSnapshot,
   inrToPaise,
+  isRazorpayPrepaidShadowEvent,
   isRazorpayReconciliationEvent,
   parseRazorpayCheckoutProducts,
+  razorpayPaidWebhookTarget,
   razorpayWebhookTarget,
   type RazorpayOrderLine,
 } from '../app/lib/checkout/providers/razorpay/razorpay.ts';
@@ -458,6 +460,27 @@ test('Razorpay signatures and webhook event targets are verified', async () => {
     razorpayWebhookTarget({
       event: 'payment.captured',
       payload: {payment: {entity: {id: paymentId, order_id: orderId}}},
+    }),
+    null,
+  );
+  assert.equal(isRazorpayPrepaidShadowEvent({event: 'order.paid'}), true);
+  assert.deepEqual(
+    razorpayPaidWebhookTarget({
+      event: 'order.paid',
+      payload: {
+        order: {entity: {id: orderId}},
+        payment: {entity: {id: paymentId, order_id: orderId}},
+      },
+    }),
+    {orderId, paymentId},
+  );
+  assert.equal(
+    razorpayPaidWebhookTarget({
+      event: 'order.paid',
+      payload: {
+        order: {entity: {id: orderId}},
+        payment: {entity: {id: paymentId, order_id: 'order_different'}},
+      },
     }),
     null,
   );

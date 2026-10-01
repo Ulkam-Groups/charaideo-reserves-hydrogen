@@ -18,11 +18,28 @@ webhook behavior.
 
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to enable this provider. Set `SHOPIFY_ADMIN_STORE_DOMAIN` to the shop's canonical `*.myshopify.com` domain when `PUBLIC_STORE_DOMAIN` points elsewhere; otherwise the public domain is used. The Shopify app installation needs `read_orders,write_orders`. `RAZORPAY_BUSINESS_NAME` is optional and defaults to `Charaideo Reserves`.
 
+`RAZORPAY_WEBHOOK_SHADOW_ENABLED=true` enables PR 5C observation for signed `order.paid` webhooks. Shadow mode validates the event contract, fetches the authoritative Razorpay order and payment, verifies the captured state and server-authored Draft Order anchor, and emits safe operational telemetry. It acknowledges the webhook without contacting Shopify. Keep this flag separate from `RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED`; 5C must not become an order writer until its live evidence is reviewed and PR 5D is implemented separately.
+
+`RAZORPAY_WEBHOOK_RECOVERY_ENABLED=true` enables PR 5D recovery for signed
+`order.paid` webhooks. Recovery is valid only with
+`RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED=true`. The webhook fetches the authoritative
+Razorpay order and captured payment, requires the server-authored Draft Order GID,
+and invokes the same `reconcileRazorpayOrder` command as browser verification. It
+cannot fall back to `orderCreate`: a missing, invalid, or mismatched anchor is safely
+marked ineligible without a Shopify write. The response is `204` after reconciliation
+returns the Shopify order, or after a permanently ineligible legacy event; transient
+failures return `500` so Razorpay can retry. Enabling recovery without the Draft Order
+flag returns `503` before any external call. Duplicate or concurrent signals read
+the single Order attached to the completed Draft Order instead of creating another
+one. When recovery is enabled it takes precedence over shadow mode. Set it to `false`
+to restore the proven browser-writer plus read-only-shadow behavior without a code
+rollback.
+
 `RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED=true` enables the Draft Order reconciliation path. Before creating the Razorpay order, the order endpoint creates an uncompleted Shopify Draft Order and stores its GID in both the Razorpay order notes (`shopify_draft_order_id`) and the server session. After a captured payment is fully validated, browser verification updates that exact draft with the verified address, shipping charge, Razorpay IDs and payment method, requires the recalculated Shopify total to equal the captured Razorpay amount, and calls `draftOrderComplete`. A replay reads the order already attached to the completed draft rather than creating another order. The Shopify app installation needs `read_draft_orders,write_draft_orders` for this path.
 
 When the flag is false, the proven `sourceIdentifier` lookup plus `orderCreate` path remains unchanged. When the flag is true, Razorpay orders created before the feature was enabled and therefore lacking `shopify_draft_order_id` also use the legacy path so an in-flight paid checkout is not stranded during deployment. If Razorpay order creation fails before an order ID is returned, the newly-created draft is deleted on a best-effort basis. The flag-enabled path was live-tested successfully on 2026-10-01 and is the production configuration; use false only as an explicit rollback.
 
-Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, keep Shiprocket connected and selected in Shipping Setup; Razorpay then obtains pincode serviceability, shipping fees, COD availability, and COD fees from that dashboard integration. Do not configure a custom Shipping Info API URL at the same time. The signed browser callback at `/api/checkout/razorpay/verify` is the sole prepaid Shopify-order writer. The webhook endpoint acknowledges `payment.captured` and `order.paid` without writing, preventing those events from racing the browser callback and creating duplicate Shopify orders. The legacy `order.placed` COD webhook path is unchanged but must not be enabled until COD event support is revalidated. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
+Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, keep Shiprocket connected and selected in Shipping Setup; Razorpay then obtains pincode serviceability, shipping fees, COD availability, and COD fees from that dashboard integration. Do not configure a custom Shipping Info API URL at the same time. With recovery disabled, the signed browser callback at `/api/checkout/razorpay/verify` remains the sole prepaid Shopify-order writer and signed webhooks cannot write. With PR 5D recovery enabled, only `order.paid` may join the browser callback as a trigger for the same anchored Draft Order command. `payment.captured` remains acknowledged without writing. The legacy `order.placed` COD webhook path is unchanged but must not be enabled until COD event support is revalidated. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
 
 ## Razorpay steps 1-9
 

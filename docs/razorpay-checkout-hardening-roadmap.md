@@ -485,6 +485,17 @@ This storefront does not currently have a general-purpose database. The approved
 3. **PR 5C — webhook shadow mode:** Validate and observe `order.paid` deliveries without allowing the webhook to complete a draft.
 4. **PR 5D — recovery mode:** After live shadow evidence, allow the canonical webhook and browser callback to invoke the same draft-completion command. Shopify's durable Draft Order-to-Order relationship is the shared idempotency boundary.
 
+PR 5C implementation status: complete and live-validated on 2026-10-01. The signed
+`order.paid` delivery returned `204`, authoritative shadow validation reported
+`outcome=eligible`, and the webhook performed no Shopify write.
+
+PR 5D implementation status: implemented behind
+`RAZORPAY_WEBHOOK_RECOVERY_ENABLED` and pending its independent live deployment
+gate. Recovery and browser verification call the same anchored reconciliation
+command. Recovery fails closed instead of using legacy `orderCreate`, waits for the
+durable Shopify result before acknowledging, and can be disabled without reverting
+code.
+
 This alternative is limited to reconciliation for this checkout. It is not a substitute for a general event database: webhook event IDs, attempt histories and long-lived failure states still require durable storage if those records become requirements.
 
 ## Mandatory prerequisite: durable atomic idempotency

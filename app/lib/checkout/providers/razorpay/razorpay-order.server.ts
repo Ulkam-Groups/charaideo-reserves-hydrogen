@@ -760,17 +760,55 @@ async function fetchCapturedPayment(
   return validateCapturedRazorpayPayment(captured, order);
 }
 
+/**
+ * Read-only validation used by webhook shadow mode. It deliberately performs
+ * Razorpay API reads only: no Shopify authentication, query, or mutation.
+ */
+export async function inspectRazorpayPrepaidOrder({
+  env,
+  orderId,
+  paymentId,
+  fetcher = fetch,
+}: {
+  env: Env;
+  orderId: string;
+  paymentId: string;
+  fetcher?: typeof fetch;
+}) {
+  if (!/^order_[A-Za-z0-9]+$/.test(orderId) || !/^pay_[A-Za-z0-9]+$/.test(paymentId)) {
+    throw new RazorpayReconciliationError('Invalid Razorpay webhook target');
+  }
+  const credentials = razorpayCredentials(env);
+  if (!credentials) throw new RazorpayReconciliationError('Razorpay is not configured');
+  const razorpay = new RazorpayOxygen({
+    key_id: credentials.keyId,
+    key_secret: credentials.keySecret,
+  });
+  const {order} = validateRazorpayOrderForShopify(
+    await razorpay.orders.fetch(orderId),
+    orderId,
+  );
+  const payment = await fetchCapturedPayment(razorpay, order, paymentId);
+  const draftOrderId = razorpayDraftOrderId(order);
+  if (!draftOrderId) {
+    throw new RazorpayReconciliationError('Shopify draft order anchor is missing');
+  }
+  return {orderId: order.id, paymentId: payment.id, draftOrderId};
+}
+
 async function reconcileRazorpayOrderOnce({
   env,
   orderId,
   paymentId,
   draftOrderId,
+  requireDraftOrderAnchor = false,
   fetcher = fetch,
 }: {
   env: Env;
   orderId: string;
   paymentId?: string;
   draftOrderId?: string;
+  requireDraftOrderAnchor?: boolean;
   fetcher?: typeof fetch;
 }) {
   if (!/^order_[A-Za-z0-9]+$/.test(orderId)) {
@@ -799,6 +837,14 @@ async function reconcileRazorpayOrderOnce({
     throw new RazorpayReconciliationError('Razorpay order is not payable');
   }
   const anchoredDraftOrderId = razorpayDraftOrderId(order);
+  if (
+    requireDraftOrderAnchor &&
+    (!payment || !razorpayDraftOrderAnchorEnabled(env) || !anchoredDraftOrderId)
+  ) {
+    throw new RazorpayReconciliationError(
+      'Razorpay checkout draft order anchor is required for webhook recovery',
+    );
+  }
   if (
     draftOrderId !== undefined &&
     (!/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrderId) ||
