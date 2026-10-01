@@ -17,6 +17,7 @@ import {
   deleteRazorpayDraftOrderAnchor,
   razorpayDraftOrderAnchorEnabled,
   razorpayOrderIntegrationReady,
+  RazorpayReconciliationError,
 } from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 type VariantNode = {
@@ -221,15 +222,19 @@ export async function action({request, context}: ActionFunctionArgs) {
       }
     }
     const failure = classifyRazorpayFailure(error);
+    const code =
+      error instanceof RazorpayReconciliationError && error.code
+        ? error.code
+        : failure.code;
     context.monitor?.failure(
       'checkout.razorpay.order.failure',
-      {...failure.tags, stage},
+      {...failure.tags, code, stage},
       error,
     );
     return json(
       {
         error: 'Unable to create checkout order',
-        code: failure.code,
+        code,
         stage,
       },
       502,

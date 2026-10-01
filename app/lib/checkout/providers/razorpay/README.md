@@ -18,6 +18,20 @@ webhook behavior.
 
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to enable this provider. Set `SHOPIFY_ADMIN_STORE_DOMAIN` to the shop's canonical `*.myshopify.com` domain when `PUBLIC_STORE_DOMAIN` points elsewhere; otherwise the public domain is used. The Shopify app installation needs `read_orders,write_orders,read_draft_orders,write_draft_orders`. `RAZORPAY_BUSINESS_NAME` is optional and defaults to `Charaideo Reserves`.
 
+PR 1 operational hardening keeps the checkout ownership and success contract unchanged.
+Razorpay SDK calls and Shopify authentication/GraphQL calls have 10-second upstream
+timeouts. Shopify client-credentials tokens are reused inside an Oxygen worker until
+60 seconds before their reported expiry, and simultaneous token requests are
+coalesced. A Shopify GraphQL `401` invalidates the cached token and permits exactly
+one refresh/retry. When Shopify returns its documented `scope` field, the current
+Draft Order path requires `write_orders` and `write_draft_orders`; Shopify write
+scopes include the corresponding read access. Missing write capabilities fail before
+GraphQL. A GraphQL `THROTTLED` error
+is retried once after a delay calculated from `extensions.cost.throttleStatus`, capped
+at two seconds. Mutation `userErrors` are never automatically retried. The PR 1 code
+and automated gates must not be treated as Production proof until its low-value live
+deployment gate is recorded.
+
 `RAZORPAY_WEBHOOK_SHADOW_ENABLED=true` enables the read-only PR 5C observation mode for signed `order.paid` webhooks when recovery is disabled. Shadow mode validates the event contract, fetches the authoritative Razorpay order and payment, verifies the captured state and server-authored Draft Order anchor, and emits safe operational telemetry. It acknowledges the webhook without contacting Shopify. This flag is now an optional diagnostic/rollback mode; recovery takes precedence when `RAZORPAY_WEBHOOK_RECOVERY_ENABLED=true`.
 
 `RAZORPAY_WEBHOOK_RECOVERY_ENABLED=true` enables PR 5D recovery for signed

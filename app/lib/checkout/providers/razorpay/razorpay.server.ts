@@ -12,6 +12,7 @@ export type RazorpayFailure = {
     | 'RAZORPAY_AUTHENTICATION_FAILED'
     | 'RAZORPAY_ORDER_REJECTED'
     | 'RAZORPAY_RATE_LIMITED'
+    | 'RAZORPAY_PROVIDER_TIMEOUT'
     | 'RAZORPAY_PROVIDER_UNAVAILABLE'
     | 'RAZORPAY_RUNTIME_FAILURE';
   tags: Record<string, string | number>;
@@ -22,6 +23,9 @@ export function classifyRazorpayFailure(error: unknown): RazorpayFailure {
     error && typeof error === 'object'
       ? (error as {
           statusCode?: unknown;
+          code?: unknown;
+          name?: unknown;
+          message?: unknown;
           error?: {code?: unknown};
         })
       : null;
@@ -36,8 +40,15 @@ export function classifyRazorpayFailure(error: unknown): RazorpayFailure {
     typeof value?.error?.code === 'string' && /^[A-Z0-9_]{1,64}$/.test(value.error.code)
       ? value.error.code
       : undefined;
+  const timedOut =
+    value?.name === 'AbortError' ||
+    value?.code === 'ECONNABORTED' ||
+    value?.code === 'ETIMEDOUT' ||
+    (typeof value?.message === 'string' && /\btimeout\b|\btimed out\b/i.test(value.message));
   const reason =
-    statusCode === 401 || statusCode === 403
+    timedOut
+      ? 'timeout'
+      : statusCode === 401 || statusCode === 403
       ? 'authentication'
       : statusCode === 400 || statusCode === 422
         ? 'order_rejected'
@@ -47,7 +58,9 @@ export function classifyRazorpayFailure(error: unknown): RazorpayFailure {
             ? 'provider_unavailable'
             : 'runtime';
   const code: RazorpayFailure['code'] =
-    reason === 'authentication'
+    reason === 'timeout'
+      ? 'RAZORPAY_PROVIDER_TIMEOUT'
+      : reason === 'authentication'
       ? 'RAZORPAY_AUTHENTICATION_FAILED'
       : reason === 'order_rejected'
         ? 'RAZORPAY_ORDER_REJECTED'
@@ -102,7 +115,9 @@ function constantTimeHexEqual(left: string, right: string) {
 export function razorpayCredentials(env: Env): RazorpayCredentials | null {
   const keyId = env.RAZORPAY_KEY_ID?.trim();
   const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
-  return keyId && keySecret ? {keyId, keySecret} : null;
+  return keyId && /^rzp_(?:test|live)_[A-Za-z0-9]+$/.test(keyId) && keySecret
+    ? {keyId, keySecret}
+    : null;
 }
 
 export async function createRazorpayMagicOrder({

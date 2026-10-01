@@ -56,7 +56,21 @@ type ShopifyAdminCredentials = {
   clientSecret: string;
 };
 
-export class RazorpayReconciliationError extends Error {}
+type RazorpayReconciliationFailureCode =
+  | 'SHOPIFY_AUTHENTICATION_FAILED'
+  | 'SHOPIFY_GRAPHQL_THROTTLED'
+  | 'SHOPIFY_ORDER_WRITE_FAILED'
+  | 'SHOPIFY_REQUIRED_SCOPE_MISSING';
+
+export class RazorpayReconciliationError extends Error {
+  readonly code?: RazorpayReconciliationFailureCode;
+
+  constructor(message: string, code?: RazorpayReconciliationFailureCode) {
+    super(message);
+    this.name = 'RazorpayReconciliationError';
+    this.code = code;
+  }
+}
 
 const RAZORPAY_FINALIZATION_RETRY_DELAYS_MS = [250, 750, 1_500] as const;
 
@@ -88,6 +102,7 @@ export function razorpayVerificationFailureCode(error: unknown) {
   if (!(error instanceof RazorpayReconciliationError)) {
     return 'CHECKOUT_VERIFICATION_FAILED';
   }
+  if (error.code) return error.code;
   if (isPendingRazorpayFinalization(error)) return 'RAZORPAY_PAYMENT_NOT_FINAL';
   if (error.message.startsWith('Shopify')) return 'SHOPIFY_ORDER_WRITE_FAILED';
   return 'RAZORPAY_ORDER_DATA_INVALID';
@@ -285,18 +300,83 @@ export function buildShopifyOrderInput({
   };
 }
 
-async function adminGraphql<T>({
-  credentials,
-  query,
-  variables,
-  fetcher,
-}: {
-  credentials: ShopifyAdminCredentials;
-  query: string;
-  variables: Record<string, unknown>;
-  fetcher: typeof fetch;
-}): Promise<T> {
-  const tokenResponse = await fetcher(
+const SHOPIFY_REQUEST_TIMEOUT_MS = 10_000;
+const SHOPIFY_TOKEN_EXPIRY_BUFFER_MS = 60_000;
+const SHOPIFY_THROTTLE_MAX_WAIT_MS = 2_000;
+
+type ShopifyAdminToken = {
+  accessToken: string;
+  expiresAt: number;
+  scopes?: ReadonlySet<string>;
+};
+
+type ShopifyTokenCacheEntry = {
+  token?: ShopifyAdminToken;
+  inFlight?: Promise<ShopifyAdminToken>;
+};
+
+const shopifyTokenCaches = new WeakMap<
+  typeof fetch,
+  Map<string, ShopifyTokenCacheEntry>
+>();
+
+function tokenCache(fetcher: typeof fetch) {
+  let cache = shopifyTokenCaches.get(fetcher);
+  if (!cache) {
+    cache = new Map();
+    shopifyTokenCaches.set(fetcher, cache);
+  }
+  return cache;
+}
+
+function tokenCacheKey(credentials: ShopifyAdminCredentials) {
+  return `${credentials.domain}\n${credentials.clientId}`;
+}
+
+function assertRequiredScopes(
+  scopes: ReadonlySet<string> | undefined,
+  requiredScopes: readonly string[],
+) {
+  if (!scopes) return;
+  const missing = requiredScopes.filter((scope) => !scopes.has(scope));
+  if (missing.length) {
+    throw new RazorpayReconciliationError(
+      'Shopify required access scope is missing',
+      'SHOPIFY_REQUIRED_SCOPE_MISSING',
+    );
+  }
+}
+
+export async function fetchShopifyAdminWithTimeout(
+  fetcher: typeof fetch,
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs = SHOPIFY_REQUEST_TIMEOUT_MS,
+) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetcher(input, {...init, signal: controller.signal});
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new RazorpayReconciliationError(
+        'Shopify request timed out',
+        'SHOPIFY_ORDER_WRITE_FAILED',
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function requestShopifyAdminToken(
+  credentials: ShopifyAdminCredentials,
+  fetcher: typeof fetch,
+  requiredScopes: readonly string[],
+): Promise<ShopifyAdminToken> {
+  const tokenResponse = await fetchShopifyAdminWithTimeout(
+    fetcher,
     `https://${credentials.domain}/admin/oauth/access_token`,
     {
       method: 'POST',
@@ -308,31 +388,193 @@ async function adminGraphql<T>({
       }),
     },
   );
-  if (!tokenResponse.ok)
-    throw new RazorpayReconciliationError('Shopify authentication failed');
-  const token = (await tokenResponse.json()) as {access_token?: unknown};
-  if (typeof token.access_token !== 'string') {
-    throw new RazorpayReconciliationError('Shopify authentication failed');
+  if (!tokenResponse.ok) {
+    throw new RazorpayReconciliationError(
+      'Shopify authentication failed',
+      'SHOPIFY_AUTHENTICATION_FAILED',
+    );
   }
+  const value = (await tokenResponse.json()) as {
+    access_token?: unknown;
+    expires_in?: unknown;
+    scope?: unknown;
+  };
+  if (typeof value.access_token !== 'string' || !value.access_token) {
+    throw new RazorpayReconciliationError(
+      'Shopify authentication failed',
+      'SHOPIFY_AUTHENTICATION_FAILED',
+    );
+  }
+  const scopes =
+    typeof value.scope === 'string'
+      ? new Set(value.scope.split(/[\s,]+/).filter(Boolean))
+      : undefined;
+  assertRequiredScopes(scopes, requiredScopes);
+  const expiresIn =
+    typeof value.expires_in === 'number' && Number.isFinite(value.expires_in)
+      ? Math.max(0, value.expires_in)
+      : 0;
+  return {
+    accessToken: value.access_token,
+    expiresAt: Date.now() + expiresIn * 1_000,
+    scopes,
+  };
+}
 
-  const response = await fetcher(
-    `https://${credentials.domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': token.access_token,
-      },
-      body: JSON.stringify({query, variables}),
-    },
-  );
-  if (!response.ok) throw new RazorpayReconciliationError('Shopify order API failed');
-  const result = (await response.json()) as {data?: T; errors?: unknown[]};
-  if (result.errors?.length || !result.data) {
-    console.error('Shopify Admin GraphQL request failed', result.errors ?? []);
-    throw new RazorpayReconciliationError('Shopify order API returned errors');
+async function getShopifyAdminToken(
+  credentials: ShopifyAdminCredentials,
+  fetcher: typeof fetch,
+  requiredScopes: readonly string[],
+  forceRefresh = false,
+) {
+  const cache = tokenCache(fetcher);
+  const key = tokenCacheKey(credentials);
+  if (forceRefresh) cache.delete(key);
+  let entry = cache.get(key);
+  if (!entry) {
+    entry = {};
+    cache.set(key, entry);
   }
-  return result.data;
+  if (
+    entry.token &&
+    Date.now() < entry.token.expiresAt - SHOPIFY_TOKEN_EXPIRY_BUFFER_MS
+  ) {
+    assertRequiredScopes(entry.token.scopes, requiredScopes);
+    return entry.token.accessToken;
+  }
+  if (!entry.inFlight) {
+    entry.inFlight = requestShopifyAdminToken(credentials, fetcher, requiredScopes)
+      .then((token) => {
+        entry!.token = token;
+        return token;
+      })
+      .finally(() => {
+        entry!.inFlight = undefined;
+      });
+  }
+  const token = await entry.inFlight;
+  assertRequiredScopes(token.scopes, requiredScopes);
+  return token.accessToken;
+}
+
+type ShopifyGraphqlError = {
+  extensions?: {code?: unknown};
+};
+
+type ShopifyGraphqlResult<T> = {
+  data?: T;
+  errors?: ShopifyGraphqlError[];
+  extensions?: {
+    cost?: {
+      requestedQueryCost?: unknown;
+      throttleStatus?: {
+        currentlyAvailable?: unknown;
+        restoreRate?: unknown;
+      };
+    };
+  };
+};
+
+function shopifyThrottleDelay(result: ShopifyGraphqlResult<unknown>) {
+  const cost = result.extensions?.cost;
+  const requested = cost?.requestedQueryCost;
+  const available = cost?.throttleStatus?.currentlyAvailable;
+  const restoreRate = cost?.throttleStatus?.restoreRate;
+  if (
+    typeof requested !== 'number' ||
+    typeof available !== 'number' ||
+    typeof restoreRate !== 'number' ||
+    restoreRate <= 0
+  ) {
+    return 250;
+  }
+  return Math.min(
+    SHOPIFY_THROTTLE_MAX_WAIT_MS,
+    Math.max(25, Math.ceil(((requested - available) / restoreRate) * 1_000)),
+  );
+}
+
+async function adminGraphql<T>({
+  credentials,
+  query,
+  variables,
+  fetcher,
+  requiredScopes,
+}: {
+  credentials: ShopifyAdminCredentials;
+  query: string;
+  variables: Record<string, unknown>;
+  fetcher: typeof fetch;
+  requiredScopes: readonly string[];
+}): Promise<T> {
+  let refreshedAuthentication = false;
+  let refreshAuthentication = false;
+  let retriedThrottle = false;
+  for (;;) {
+    const token = await getShopifyAdminToken(
+      credentials,
+      fetcher,
+      requiredScopes,
+      refreshAuthentication,
+    );
+    refreshAuthentication = false;
+    const response = await fetchShopifyAdminWithTimeout(
+      fetcher,
+      `https://${credentials.domain}/admin/api/${ADMIN_API_VERSION}/graphql.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Shopify-Access-Token': token,
+        },
+        body: JSON.stringify({query, variables}),
+      },
+    );
+    if (response.status === 401 && !refreshedAuthentication) {
+      refreshedAuthentication = true;
+      refreshAuthentication = true;
+      continue;
+    }
+    if (response.status === 401) {
+      throw new RazorpayReconciliationError(
+        'Shopify authentication failed',
+        'SHOPIFY_AUTHENTICATION_FAILED',
+      );
+    }
+    if (!response.ok) {
+      throw new RazorpayReconciliationError(
+        'Shopify order API failed',
+        'SHOPIFY_ORDER_WRITE_FAILED',
+      );
+    }
+    const result = (await response.json()) as ShopifyGraphqlResult<T>;
+    const throttled = result.errors?.some(
+      (error) => error.extensions?.code === 'THROTTLED',
+    );
+    if (throttled && !retriedThrottle) {
+      retriedThrottle = true;
+      await new Promise((resolve) =>
+        setTimeout(resolve, shopifyThrottleDelay(result),
+      ));
+      continue;
+    }
+    if (throttled) {
+      throw new RazorpayReconciliationError(
+        'Shopify Admin GraphQL request was throttled',
+        'SHOPIFY_GRAPHQL_THROTTLED',
+      );
+    }
+    if (result.errors?.length || !result.data) {
+      console.error('Shopify Admin GraphQL request failed', {
+        errorCount: result.errors?.length ?? 0,
+      });
+      throw new RazorpayReconciliationError(
+        'Shopify order API returned errors',
+        'SHOPIFY_ORDER_WRITE_FAILED',
+      );
+    }
+    return result.data;
+  }
 }
 
 export async function createRazorpayDraftOrderAnchor({
@@ -381,6 +623,7 @@ export async function createRazorpayDraftOrderAnchor({
   }>({
     credentials,
     fetcher,
+    requiredScopes: ['write_draft_orders'],
     query: `mutation CreateRazorpayDraftOrder($input: DraftOrderInput!) {
       draftOrderCreate(input: $input) {
         draftOrder { id name status }
@@ -439,6 +682,7 @@ export async function deleteRazorpayDraftOrderAnchor({
   }>({
     credentials,
     fetcher,
+    requiredScopes: ['write_draft_orders'],
     query: `mutation DeleteRazorpayDraftOrder($input: DraftOrderDeleteInput!) {
       draftOrderDelete(input: $input) {
         deletedId
@@ -546,6 +790,7 @@ async function getRazorpayDraftOrder({
   const result = await adminGraphql<{draftOrder: RazorpayDraftOrderState | null}>({
     credentials,
     fetcher,
+    requiredScopes: ['write_draft_orders'],
     query: `query RazorpayDraftOrder($id: ID!) {
       draftOrder(id: $id) {
         id
@@ -599,6 +844,7 @@ export async function completeRazorpayDraftOrder({
   }>({
     credentials,
     fetcher,
+    requiredScopes: ['write_draft_orders'],
     query: `mutation UpdateRazorpayDraftOrder($id: ID!, $input: DraftOrderInput!) {
       draftOrderUpdate(id: $id, input: $input) {
         draftOrder {
@@ -646,6 +892,7 @@ export async function completeRazorpayDraftOrder({
     completed = await adminGraphql({
       credentials,
       fetcher,
+      requiredScopes: ['write_draft_orders'],
       query: `mutation CompleteRazorpayDraftOrder($id: ID!) {
         draftOrderComplete(id: $id) {
           draftOrder { id status order { id name } }
@@ -695,6 +942,7 @@ export async function createShopifyOrder(
   }>({
     credentials,
     fetcher,
+    requiredScopes: ['write_orders'],
     query: `query RazorpayExistingOrder($query: String!) {
       orders(first: 1, query: $query) { nodes { id name } }
     }`,
@@ -712,6 +960,7 @@ export async function createShopifyOrder(
   }>({
     credentials,
     fetcher,
+    requiredScopes: ['write_orders'],
     query: `mutation CreateRazorpayOrder($order: OrderCreateOrderInput!, $options: OrderCreateOptionsInput) {
       orderCreate(order: $order, options: $options) {
         order { id name }

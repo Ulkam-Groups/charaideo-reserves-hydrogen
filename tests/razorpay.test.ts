@@ -20,6 +20,7 @@ import {
   createRazorpayDraftOrderAnchor,
   completeRazorpayDraftOrder,
   createShopifyOrder,
+  fetchShopifyAdminWithTimeout,
   buildRazorpayDraftOrderFinalInput,
   buildShopifyOrderInput,
   deleteRazorpayDraftOrderAnchor,
@@ -33,9 +34,11 @@ import {
   type RazorpayMagicOrderDetails,
   type RazorpayPaymentDetails,
 } from '../app/lib/checkout/providers/razorpay/razorpay-order.server.ts';
+import RazorpayOxygen from '../app/lib/checkout/providers/razorpay/razorpay-oxygen.server.ts';
 import {
   classifyRazorpayFailure,
   createRazorpayMagicOrder,
+  razorpayCredentials,
   verifyRazorpayPayment,
   verifyRazorpayWebhook,
 } from '../app/lib/checkout/providers/razorpay/razorpay.server.ts';
@@ -143,6 +146,61 @@ test('Razorpay API failures expose only safe operational classifications', () =>
     code: 'RAZORPAY_RUNTIME_FAILURE',
     tags: {provider: 'razorpay', reason: 'runtime'},
   });
+  assert.deepEqual(
+    classifyRazorpayFailure(
+      Object.assign(new Error('timeout of 10000ms exceeded'), {
+        code: 'ECONNABORTED',
+      }),
+    ),
+    {
+      code: 'RAZORPAY_PROVIDER_TIMEOUT',
+      tags: {provider: 'razorpay', reason: 'timeout'},
+    },
+  );
+});
+
+test('Razorpay credentials accept only documented live and test key IDs', () => {
+  assert.deepEqual(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'rzp_live_AbCd1234',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    {keyId: 'rzp_live_AbCd1234', keySecret: 'secret'},
+  );
+  assert.deepEqual(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'rzp_test_AbCd1234',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    {keyId: 'rzp_test_AbCd1234', keySecret: 'secret'},
+  );
+  assert.equal(
+    razorpayCredentials({
+      RAZORPAY_KEY_ID: 'public-looking-but-invalid',
+      RAZORPAY_KEY_SECRET: 'secret',
+    } as Env),
+    null,
+  );
+});
+
+test('Razorpay Oxygen aborts an upstream SDK request after its timeout', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = ((_input: RequestInfo | URL, init?: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () =>
+        reject(new DOMException('Aborted', 'AbortError')),
+      );
+    })) as typeof fetch;
+  try {
+    const client = new RazorpayOxygen({
+      key_id: 'rzp_test_public',
+      key_secret: 'test-secret',
+      timeoutMs: 5,
+    });
+    await assert.rejects(() => client.orders.fetch('order_timeout123'));
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('Razorpay Magic order contains authoritative line totals', () => {
@@ -1131,4 +1189,326 @@ test('Shopify duplicate lookup skips order creation and user errors fail closed'
     createShopifyOrder(env, magicOrder, lines, capturedPayment, (async () =>
       graphqlErrorResponses.shift()!) as typeof fetch),
   );
+});
+
+test('Shopify Admin token requests are cached and simultaneous requests coalesce', async () => {
+  let authenticationCalls = 0;
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      authenticationCalls += 1;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      return Response.json({
+        access_token: 'cached-admin-token',
+        expires_in: 86_399,
+        scope: 'read_orders,write_orders,read_draft_orders,write_draft_orders',
+      });
+    }
+    graphqlCalls += 1;
+    return Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {
+            id: `gid://shopify/DraftOrder/${graphqlCalls}`,
+            name: `#D${graphqlCalls}`,
+            status: 'OPEN',
+          },
+          userErrors: [],
+        },
+      },
+    });
+  }) as typeof fetch;
+  const env = {
+    PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+    SHOPIFY_ADMIN_CLIENT_ID: 'cached-client',
+    SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+  } as Env;
+
+  await Promise.all([
+    createRazorpayDraftOrderAnchor({env, lines: [orderLine], source: 'product', fetcher}),
+    createRazorpayDraftOrderAnchor({env, lines: [orderLine], source: 'cart', fetcher}),
+  ]);
+  await createRazorpayDraftOrderAnchor({
+    env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+
+  assert.equal(authenticationCalls, 1);
+  assert.equal(graphqlCalls, 3);
+});
+
+test('Shopify Admin GraphQL refreshes authentication once after a 401', async () => {
+  const calls: Array<{url: string; token: string | null}> = [];
+  let authenticationCalls = 0;
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    calls.push({
+      url,
+      token: new Headers(init?.headers).get('X-Shopify-Access-Token'),
+    });
+    if (url.endsWith('/admin/oauth/access_token')) {
+      authenticationCalls += 1;
+      return Response.json({
+        access_token: `admin-token-${authenticationCalls}`,
+        expires_in: 86_399,
+        scope: 'read_orders write_orders read_draft_orders write_draft_orders',
+      });
+    }
+    graphqlCalls += 1;
+    if (graphqlCalls === 1) return new Response(null, {status: 401});
+    return Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {id: 'gid://shopify/DraftOrder/401', name: '#D401', status: 'OPEN'},
+          userErrors: [],
+        },
+      },
+    });
+  }) as typeof fetch;
+
+  await createRazorpayDraftOrderAnchor({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'refresh-client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+    } as Env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+
+  assert.equal(authenticationCalls, 2);
+  assert.equal(graphqlCalls, 2);
+  assert.deepEqual(
+    calls.filter(({url}) => url.endsWith('/graphql.json')).map(({token}) => token),
+    ['admin-token-1', 'admin-token-2'],
+  );
+});
+
+test('Shopify Admin token scope validation fails before GraphQL', async () => {
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith('/admin/oauth/access_token')) {
+      return Response.json({
+        access_token: 'under-scoped-token',
+        expires_in: 86_399,
+        scope: 'read_orders write_orders',
+      });
+    }
+    graphqlCalls += 1;
+    throw new Error('GraphQL must not run with missing Draft Order scopes');
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () =>
+      createRazorpayDraftOrderAnchor({
+        env: {
+          PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+          SHOPIFY_ADMIN_CLIENT_ID: 'under-scoped-client',
+          SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+          RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+        } as Env,
+        lines: [orderLine],
+        source: 'product',
+        fetcher,
+      }),
+    (error: unknown) =>
+      error instanceof RazorpayReconciliationError &&
+      error.code === 'SHOPIFY_REQUIRED_SCOPE_MISSING',
+  );
+  assert.equal(graphqlCalls, 0);
+});
+
+test('Shopify write scopes satisfy the corresponding read capabilities', async () => {
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith('/admin/oauth/access_token')) {
+      return Response.json({
+        access_token: 'write-scoped-token',
+        expires_in: 86_399,
+        scope: 'write_orders write_draft_orders',
+      });
+    }
+    graphqlCalls += 1;
+    return Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/200',
+            name: '#D200',
+            status: 'OPEN',
+          },
+          userErrors: [],
+        },
+      },
+    });
+  }) as typeof fetch;
+
+  await createRazorpayDraftOrderAnchor({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'write-scoped-client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+    } as Env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+  assert.equal(graphqlCalls, 1);
+});
+
+test('Shopify Admin GraphQL retries a throttled response at most once', async () => {
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith('/admin/oauth/access_token')) {
+      return Response.json({
+        access_token: 'throttle-token',
+        expires_in: 86_399,
+        scope: 'read_orders write_orders read_draft_orders write_draft_orders',
+      });
+    }
+    graphqlCalls += 1;
+    if (graphqlCalls === 1) {
+      return Response.json({
+        errors: [{message: 'Throttled', extensions: {code: 'THROTTLED'}}],
+        extensions: {
+          cost: {
+            requestedQueryCost: 1,
+            throttleStatus: {currentlyAvailable: 1, restoreRate: 100},
+          },
+        },
+      });
+    }
+    return Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {id: 'gid://shopify/DraftOrder/429', name: '#D429', status: 'OPEN'},
+          userErrors: [],
+        },
+      },
+    });
+  }) as typeof fetch;
+
+  await createRazorpayDraftOrderAnchor({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'throttle-client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+    } as Env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+  assert.equal(graphqlCalls, 2);
+});
+
+test('Shopify Admin request timeout aborts the upstream fetch', async () => {
+  let observedSignal: AbortSignal | null = null;
+  const fetcher = ((_input: RequestInfo | URL, init?: RequestInit) =>
+    new Promise<Response>((_resolve, reject) => {
+      observedSignal = init?.signal ?? null;
+      init?.signal?.addEventListener('abort', () =>
+        reject(new DOMException('Aborted', 'AbortError')),
+      );
+    })) as typeof fetch;
+
+  await assert.rejects(
+    () => fetchShopifyAdminWithTimeout(fetcher, 'https://example.com', {}, 5),
+    (error: unknown) =>
+      error instanceof RazorpayReconciliationError &&
+      error.code === 'SHOPIFY_ORDER_WRITE_FAILED',
+  );
+  assert.equal((observedSignal as AbortSignal | null)?.aborted, true);
+});
+
+test('Shopify Admin tokens inside the expiry buffer are not reused', async () => {
+  let authenticationCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith('/admin/oauth/access_token')) {
+      authenticationCalls += 1;
+      return Response.json({
+        access_token: `short-token-${authenticationCalls}`,
+        expires_in: 60,
+        scope: 'read_orders write_orders read_draft_orders write_draft_orders',
+      });
+    }
+    return Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {id: 'gid://shopify/DraftOrder/60', name: '#D60', status: 'OPEN'},
+          userErrors: [],
+        },
+      },
+    });
+  }) as typeof fetch;
+  const env = {
+    PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+    SHOPIFY_ADMIN_CLIENT_ID: 'short-token-client',
+    SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+  } as Env;
+
+  await createRazorpayDraftOrderAnchor({
+    env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+  await createRazorpayDraftOrderAnchor({
+    env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+  assert.equal(authenticationCalls, 2);
+});
+
+test('Shopify Admin GraphQL does not retry a second throttle response', async () => {
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    if (String(input).endsWith('/admin/oauth/access_token')) {
+      return Response.json({
+        access_token: 'twice-throttled-token',
+        expires_in: 86_399,
+        scope: 'read_orders write_orders read_draft_orders write_draft_orders',
+      });
+    }
+    graphqlCalls += 1;
+    return Response.json({
+      errors: [{extensions: {code: 'THROTTLED'}}],
+      extensions: {
+        cost: {
+          requestedQueryCost: 1,
+          throttleStatus: {currentlyAvailable: 1, restoreRate: 100},
+        },
+      },
+    });
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () =>
+      createRazorpayDraftOrderAnchor({
+        env: {
+          PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+          SHOPIFY_ADMIN_CLIENT_ID: 'twice-throttled-client',
+          SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+          RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+        } as Env,
+        lines: [orderLine],
+        source: 'product',
+        fetcher,
+      }),
+    (error: unknown) =>
+      error instanceof RazorpayReconciliationError &&
+      error.code === 'SHOPIFY_GRAPHQL_THROTTLED',
+  );
+  assert.equal(graphqlCalls, 2);
 });
