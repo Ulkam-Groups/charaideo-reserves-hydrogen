@@ -14,8 +14,11 @@ import {
 } from '../app/lib/checkout/providers/razorpay/razorpay.ts';
 import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razorpay.client.ts';
 import {
+  createRazorpayDraftOrderAnchor,
   createShopifyOrder,
   buildShopifyOrderInput,
+  deleteRazorpayDraftOrderAnchor,
+  razorpayDraftOrderAnchorEnabled,
   RazorpayReconciliationError,
   razorpayOrderIntegrationReady,
   razorpayVerificationFailureCode,
@@ -562,6 +565,128 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
     variables: {order: {sourceIdentifier: string}};
   };
   assert.equal(mutation.variables.order.sourceIdentifier, magicOrder.id);
+});
+
+test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft', async () => {
+  assert.equal(razorpayDraftOrderAnchorEnabled({} as Env), false);
+  assert.equal(
+    razorpayDraftOrderAnchorEnabled({
+      RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: ' true ',
+    } as Env),
+    true,
+  );
+
+  const calls: Array<{url: string; init?: RequestInit}> = [];
+  const responses = [
+    Response.json({access_token: 'admin-token'}),
+    Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/123',
+            name: '#D1',
+            status: 'OPEN',
+          },
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({url: String(input), init});
+    return responses.shift()!;
+  }) as typeof fetch;
+
+  const draft = await createRazorpayDraftOrderAnchor({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    } as Env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+
+  assert.deepEqual(draft, {
+    id: 'gid://shopify/DraftOrder/123',
+    name: '#D1',
+    status: 'OPEN',
+  });
+  const request = JSON.parse(String(calls[1].init?.body)) as {
+    query: string;
+    variables: {
+      input: {
+        lineItems: Array<{
+          variantId: string;
+          quantity: number;
+          priceOverride: {amount: string; currencyCode: string};
+        }>;
+        tags: string[];
+        visibleToCustomer: boolean;
+      };
+    };
+  };
+  assert.match(request.query, /draftOrderCreate/);
+  assert.deepEqual(request.variables.input.lineItems, [
+    {
+      variantId: orderLine.variantId,
+      quantity: 2,
+      priceOverride: {amount: '499.00', currencyCode: 'INR'},
+    },
+  ]);
+  assert.deepEqual(request.variables.input.tags, [
+    'razorpay',
+    'magic-checkout',
+    'checkout-draft',
+  ]);
+  assert.equal(request.variables.input.visibleToCustomer, false);
+});
+
+test('Razorpay draft anchor cleanup deletes only a valid draft GID', async () => {
+  const calls: Array<{url: string; init?: RequestInit}> = [];
+  const responses = [
+    Response.json({access_token: 'admin-token'}),
+    Response.json({
+      data: {
+        draftOrderDelete: {
+          deletedId: 'gid://shopify/DraftOrder/123',
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({url: String(input), init});
+    return responses.shift()!;
+  }) as typeof fetch;
+  const env = {
+    PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+    SHOPIFY_ADMIN_CLIENT_ID: 'client',
+    SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+  } as Env;
+
+  assert.equal(
+    await deleteRazorpayDraftOrderAnchor({
+      env,
+      draftOrderId: 'not-a-draft',
+      fetcher,
+    }),
+    false,
+  );
+  assert.equal(calls.length, 0);
+  assert.equal(
+    await deleteRazorpayDraftOrderAnchor({
+      env,
+      draftOrderId: 'gid://shopify/DraftOrder/123',
+      fetcher,
+    }),
+    true,
+  );
+  const request = JSON.parse(String(calls[1].init?.body)) as {
+    variables: {input: {id: string}};
+  };
+  assert.equal(request.variables.input.id, 'gid://shopify/DraftOrder/123');
 });
 
 test('Razorpay readiness accepts a separate canonical Admin store domain', () => {

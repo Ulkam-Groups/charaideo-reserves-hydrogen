@@ -12,7 +12,12 @@ import {
   createRazorpayMagicOrder,
   razorpayCredentials,
 } from '~/lib/checkout/providers/razorpay/razorpay.server';
-import {razorpayOrderIntegrationReady} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
+import {
+  createRazorpayDraftOrderAnchor,
+  deleteRazorpayDraftOrderAnchor,
+  razorpayDraftOrderAnchorEnabled,
+  razorpayOrderIntegrationReady,
+} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 type VariantNode = {
   id: string;
@@ -29,6 +34,7 @@ type RazorpayOrderStage =
   | 'cart_lookup'
   | 'variant_lookup'
   | 'checkout_payload'
+  | 'shopify_draft_create'
   | 'razorpay_order_create'
   | 'session_persist';
 
@@ -98,8 +104,9 @@ export async function action({request, context}: ActionFunctionArgs) {
     return json({error: 'Invalid checkout request'}, 400);
   }
 
-  let stage: RazorpayOrderStage =
-    source === 'cart' ? 'cart_lookup' : 'variant_lookup';
+  let stage: RazorpayOrderStage = source === 'cart' ? 'cart_lookup' : 'variant_lookup';
+  let draftOrderId: string | undefined;
+  let razorpayOrderCreated = false;
 
   try {
     let lines: RazorpayOrderLine[];
@@ -158,6 +165,16 @@ export async function action({request, context}: ActionFunctionArgs) {
       );
     }
 
+    if (razorpayDraftOrderAnchorEnabled(context.env)) {
+      stage = 'shopify_draft_create';
+      const draftOrder = await createRazorpayDraftOrderAnchor({
+        env: context.env,
+        lines,
+        source,
+      });
+      draftOrderId = draftOrder.id;
+    }
+
     stage = 'razorpay_order_create';
     const order = await createRazorpayMagicOrder({
       credentials,
@@ -165,6 +182,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       source,
       expectedAmount,
       notes: {
+        ...(draftOrderId ? {shopify_draft_order_id: draftOrderId} : {}),
         ...(typeof form.get('couponCode') === 'string'
           ? {coupon: String(form.get('couponCode')).slice(0, 100)}
           : {}),
@@ -173,8 +191,14 @@ export async function action({request, context}: ActionFunctionArgs) {
           : {}),
       },
     });
+    razorpayOrderCreated = true;
     stage = 'session_persist';
     context.session.set('razorpayOrderId', order.id);
+    if (draftOrderId) {
+      context.session.set('razorpayDraftOrderId', draftOrderId);
+    } else {
+      context.session.unset('razorpayDraftOrderId');
+    }
 
     return json({
       keyId: credentials.keyId,
@@ -182,6 +206,20 @@ export async function action({request, context}: ActionFunctionArgs) {
       businessName: context.env.RAZORPAY_BUSINESS_NAME?.trim() || 'Charaideo Reserves',
     });
   } catch (error) {
+    if (draftOrderId && !razorpayOrderCreated) {
+      try {
+        await deleteRazorpayDraftOrderAnchor({
+          env: context.env,
+          draftOrderId,
+        });
+      } catch (cleanupError) {
+        context.monitor?.failure(
+          'checkout.razorpay.draft.cleanup.failure',
+          {stage},
+          cleanupError,
+        );
+      }
+    }
     const failure = classifyRazorpayFailure(error);
     context.monitor?.failure(
       'checkout.razorpay.order.failure',

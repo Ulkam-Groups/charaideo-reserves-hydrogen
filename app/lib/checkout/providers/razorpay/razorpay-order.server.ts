@@ -1,7 +1,9 @@
 import RazorpayOxygen from './razorpay-oxygen.server.ts';
 import {
   decodeRazorpayCheckoutSnapshot,
+  inrToPaise,
   type RazorpayCheckoutSnapshotLine,
+  type RazorpayOrderLine,
 } from './razorpay.ts';
 import {razorpayCredentials} from './razorpay.server.ts';
 
@@ -104,6 +106,10 @@ function adminCredentials(env: Env): ShopifyAdminCredentials | null {
     return null;
   }
   return {domain, clientId, clientSecret};
+}
+
+export function razorpayDraftOrderAnchorEnabled(env: Env) {
+  return env.RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED?.trim().toLowerCase() === 'true';
 }
 
 function integer(value: unknown, name: string): number {
@@ -327,6 +333,125 @@ async function adminGraphql<T>({
     throw new RazorpayReconciliationError('Shopify order API returned errors');
   }
   return result.data;
+}
+
+export async function createRazorpayDraftOrderAnchor({
+  env,
+  lines,
+  source,
+  fetcher = fetch,
+}: {
+  env: Env;
+  lines: RazorpayOrderLine[];
+  source: 'cart' | 'product';
+  fetcher?: typeof fetch;
+}) {
+  const credentials = adminCredentials(env);
+  if (!credentials) {
+    throw new RazorpayReconciliationError('Shopify draft order API is not configured');
+  }
+  if (!lines.length || lines.length > 499) {
+    throw new RazorpayReconciliationError('Shopify draft order lines are invalid');
+  }
+
+  const lineItems = lines.map((line) => {
+    if (
+      !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(line.variantId) ||
+      !Number.isSafeInteger(line.quantity) ||
+      line.quantity < 1 ||
+      line.currencyCode !== 'INR'
+    ) {
+      throw new RazorpayReconciliationError('Shopify draft order line is invalid');
+    }
+    return {
+      variantId: line.variantId,
+      quantity: line.quantity,
+      priceOverride: {
+        amount: (inrToPaise(line.unitPrice) / 100).toFixed(2),
+        currencyCode: 'INR',
+      },
+    };
+  });
+
+  const result = await adminGraphql<{
+    draftOrderCreate: {
+      draftOrder: {id: string; name: string; status: string} | null;
+      userErrors: Array<{field?: string[]; message: string}>;
+    };
+  }>({
+    credentials,
+    fetcher,
+    query: `mutation CreateRazorpayDraftOrder($input: DraftOrderInput!) {
+      draftOrderCreate(input: $input) {
+        draftOrder { id name status }
+        userErrors { field message }
+      }
+    }`,
+    variables: {
+      input: {
+        lineItems,
+        presentmentCurrencyCode: 'INR',
+        visibleToCustomer: false,
+        allowDiscountCodesInCheckout: false,
+        tags: ['razorpay', 'magic-checkout', 'checkout-draft'],
+        note: 'Pending Razorpay Magic Checkout payment',
+        customAttributes: [
+          {key: 'checkout_provider', value: 'razorpay'},
+          {key: 'checkout_source', value: source},
+        ],
+      },
+    },
+  });
+
+  const draftOrder = result.draftOrderCreate.draftOrder;
+  if (
+    result.draftOrderCreate.userErrors.length ||
+    !draftOrder ||
+    !/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrder.id)
+  ) {
+    console.error(
+      'Shopify rejected Razorpay draft order creation',
+      result.draftOrderCreate.userErrors,
+    );
+    throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
+  }
+  return draftOrder;
+}
+
+export async function deleteRazorpayDraftOrderAnchor({
+  env,
+  draftOrderId,
+  fetcher = fetch,
+}: {
+  env: Env;
+  draftOrderId: string;
+  fetcher?: typeof fetch;
+}) {
+  if (!/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrderId)) return false;
+  const credentials = adminCredentials(env);
+  if (!credentials) return false;
+
+  const result = await adminGraphql<{
+    draftOrderDelete: {
+      deletedId: string | null;
+      userErrors: Array<{field?: string[]; message: string}>;
+    };
+  }>({
+    credentials,
+    fetcher,
+    query: `mutation DeleteRazorpayDraftOrder($input: DraftOrderDeleteInput!) {
+      draftOrderDelete(input: $input) {
+        deletedId
+        userErrors { field message }
+      }
+    }`,
+    variables: {input: {id: draftOrderId}},
+  });
+
+  return (
+    result.draftOrderDelete.userErrors.length === 0 &&
+    result.draftOrderDelete.deletedId === draftOrderId
+  );
 }
 
 export async function createShopifyOrder(
