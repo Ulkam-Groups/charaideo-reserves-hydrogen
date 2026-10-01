@@ -2,6 +2,12 @@
 
 This folder contains all Razorpay-specific checkout code and configuration.
 
+The canonical production flow, invariants, rollout evidence, rollback behavior, and
+regression checklist are documented in
+[`docs/razorpay-checkout-architecture.md`](../../../../../docs/razorpay-checkout-architecture.md).
+Read that document before changing checkout ownership, Draft Order completion, or
+webhook behavior.
+
 - `razorpay.ts` contains SSR-safe validation and Magic Checkout order payload construction.
 - `razorpay.client.ts` creates an order through the storefront, opens `magic-checkout.js`, and submits the payment result for server verification.
 - `razorpay.server.ts` creates orders with the official `razorpay` SDK and verifies signatures with Oxygen's Web Crypto API without exposing the key secret.
@@ -14,13 +20,13 @@ Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZ
 
 `RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED=true` enables the Draft Order reconciliation path. Before creating the Razorpay order, the order endpoint creates an uncompleted Shopify Draft Order and stores its GID in both the Razorpay order notes (`shopify_draft_order_id`) and the server session. After a captured payment is fully validated, browser verification updates that exact draft with the verified address, shipping charge, Razorpay IDs and payment method, requires the recalculated Shopify total to equal the captured Razorpay amount, and calls `draftOrderComplete`. A replay reads the order already attached to the completed draft rather than creating another order. The Shopify app installation needs `read_draft_orders,write_draft_orders` for this path.
 
-When the flag is false, the proven `sourceIdentifier` lookup plus `orderCreate` path remains unchanged. When the flag is true, Razorpay orders created before the feature was enabled and therefore lacking `shopify_draft_order_id` also use the legacy path so an in-flight paid checkout is not stranded during deployment. If Razorpay order creation fails before an order ID is returned, the newly-created draft is deleted on a best-effort basis. Keep the flag false until each deployment is ready for a controlled low-value transaction.
+When the flag is false, the proven `sourceIdentifier` lookup plus `orderCreate` path remains unchanged. When the flag is true, Razorpay orders created before the feature was enabled and therefore lacking `shopify_draft_order_id` also use the legacy path so an in-flight paid checkout is not stranded during deployment. If Razorpay order creation fails before an order ID is returned, the newly-created draft is deleted on a best-effort basis. The flag-enabled path was live-tested successfully on 2026-10-01 and is the production configuration; use false only as an explicit rollback.
 
 Magic Checkout must also be enabled on the Razorpay account. In the Razorpay Dashboard, keep Shiprocket connected and selected in Shipping Setup; Razorpay then obtains pincode serviceability, shipping fees, COD availability, and COD fees from that dashboard integration. Do not configure a custom Shipping Info API URL at the same time. The signed browser callback at `/api/checkout/razorpay/verify` is the sole prepaid Shopify-order writer. The webhook endpoint acknowledges `payment.captured` and `order.paid` without writing, preventing those events from racing the browser callback and creating duplicate Shopify orders. The legacy `order.placed` COD webhook path is unchanged but must not be enabled until COD event support is revalidated. Coupons are deliberately hidden (`show_coupons: false`) until real promotion lookup and apply rules are implemented. All secrets must remain server-only.
 
 ## Razorpay steps 1-9
 
-1. Enable Magic Checkout in the Razorpay account. Keep Shiprocket connected and serviceability enabled in Shipping Setup. If COD is enabled there, subscribe the payment webhook to `order.placed` before accepting COD orders.
+1. Enable Magic Checkout in the Razorpay account. Keep Shiprocket connected and serviceability enabled in Shipping Setup. Keep COD disabled until its actual dashboard event and payload are captured and contract-tested; do not assume `order.placed` is available.
 2. Leave the custom Shipping Info API URL unset while Shiprocket is the selected shipping service. Promotion URLs are intentionally not configured while coupons are disabled.
 3. `/api/checkout/razorpay/order` creates the server-side Razorpay order with authoritative Shopify prices, `line_items_total`, line items and a reconciliation snapshot.
 4. Razorpay's Shiprocket connection supplies serviceability, shipping charges, COD availability, and COD fees; the storefront does not duplicate that decision in an API route.

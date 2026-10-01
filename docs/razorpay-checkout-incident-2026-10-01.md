@@ -1,5 +1,10 @@
 # Razorpay checkout incident — 2026-10-01
 
+> Historical incident record. The current production architecture now uses the PR 5A
+> and PR 5B Shopify Draft Order anchor with the feature flag enabled. See
+> [`razorpay-checkout-architecture.md`](./razorpay-checkout-architecture.md) for the
+> authoritative current flow.
+
 ## Summary
 
 Razorpay payments completed successfully, but Shopify order creation was intermittently or completely failing. Earlier in the incident, a single payment could also create two Shopify orders.
@@ -233,4 +238,3 @@ For every checkout-related release, verify all of the following in the productio
 - `3f7ba50` — beginning of the broad reconciliation redesign associated with the no-order regression.
 - `ece19e1` — restored the known-good implementation plus narrow duplicate prevention.
 - `adc7474` — added bounded Razorpay finalization retries and safe verification diagnostics.
-

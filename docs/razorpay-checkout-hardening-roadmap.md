@@ -1,5 +1,10 @@
 # Razorpay checkout hardening roadmap
 
+> Planning document. PR 5A and PR 5B have now been implemented and live-tested with
+> the Draft Order anchor enabled. See
+> [`razorpay-checkout-architecture.md`](./razorpay-checkout-architecture.md) for the
+> authoritative current production flow and regression rules.
+
 ## Purpose
 
 This document defines how to recover the useful engineering improvements from PR #35 without changing the currently working Razorpay prepaid checkout transaction.
