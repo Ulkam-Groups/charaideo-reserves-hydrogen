@@ -2,11 +2,68 @@ import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import test from 'node:test';
 
-import type {ActionFunctionArgs} from 'react-router';
+import type {ActionFunctionArgs, LoaderFunctionArgs} from 'react-router';
 import {action as orderAction} from '../../app/routes/api.checkout.razorpay.order.ts';
 import {action as verifyAction} from '../../app/routes/api.checkout.razorpay.verify.ts';
+import {loader as successLoader} from '../../app/routes/checkout.razorpay.success.tsx';
 
 const origin = 'https://store.example';
+
+test('Razorpay success uses only verified session references and performs no lookup', () => {
+  const session = new Map<string, unknown>([
+    [
+      'razorpayPaymentVerified',
+      {
+        shopifyOrderId: 'gid://shopify/Order/1018',
+        shopifyOrderName: '#1018',
+        razorpayOrderId: 'order_abc123',
+        razorpayPaymentId: 'pay_abc123',
+      },
+    ],
+  ]);
+  const result = successLoader({
+    request: new Request(`${origin}/checkout/razorpay/success`),
+    params: {},
+    context: {
+      session: {
+        get: (key: string) => session.get(key),
+        unset: (key: string) => session.delete(key),
+      },
+    },
+  } as unknown as LoaderFunctionArgs);
+
+  assert.deepEqual(result.data, {
+    shopifyOrderName: '#1018',
+    razorpayOrderId: 'order_abc123',
+    razorpayPaymentId: 'pay_abc123',
+  });
+  assert.equal(
+    new Headers(result.init?.headers).get('Cache-Control'),
+    'private, no-store',
+  );
+  assert.equal(session.has('razorpayPaymentVerified'), false);
+});
+
+test('Razorpay success rejects confirmation without a Shopify order ID', () => {
+  const session = new Map<string, unknown>([
+    ['razorpayPaymentVerified', {shopifyOrderName: '#1018'}],
+  ]);
+
+  assert.throws(
+    () =>
+      successLoader({
+        request: new Request(`${origin}/checkout/razorpay/success`),
+        params: {},
+        context: {
+          session: {
+            get: (key: string) => session.get(key),
+            unset: (key: string) => session.delete(key),
+          },
+        },
+      } as unknown as LoaderFunctionArgs),
+    (error: unknown) => error instanceof Response && error.status === 302,
+  );
+});
 
 function formRequest(path: string, body: URLSearchParams) {
   return new Request(`${origin}${path}`, {
@@ -321,6 +378,7 @@ test('Razorpay verification completes its feature-flagged draft anchor', async (
     assert.equal(session.has('razorpayDraftOrderId'), false);
     assert.deepEqual(session.get('razorpayPaymentVerified'), {
       razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
       shopifyOrderId: 'gid://shopify/Order/1018',
       shopifyOrderName: '#1018',
     });

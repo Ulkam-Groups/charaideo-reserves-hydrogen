@@ -10,6 +10,7 @@ import {
 } from 'react-router';
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
+import {CheckoutConfirmationProgress} from '~/components/CheckoutConfirmationProgress';
 import {HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
@@ -85,15 +86,13 @@ export async function loader({context}: Route.LoaderArgs) {
     checkoutProvider === 'razorpay' &&
     Boolean(
       env.RAZORPAY_KEY_ID?.trim() &&
-        env.RAZORPAY_KEY_SECRET?.trim() &&
-        env.RAZORPAY_WEBHOOK_SECRET?.trim() &&
-        env.SHOPIFY_ADMIN_CLIENT_ID?.trim() &&
-        env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim() &&
-        /^[a-z0-9][a-z0-9.-]*\.myshopify\.com$/i.test(
-          (
-            env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
-          )?.trim() ?? '',
-        ),
+      env.RAZORPAY_KEY_SECRET?.trim() &&
+      env.RAZORPAY_WEBHOOK_SECRET?.trim() &&
+      env.SHOPIFY_ADMIN_CLIENT_ID?.trim() &&
+      env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim() &&
+      /^[a-z0-9][a-z0-9.-]*\.myshopify\.com$/i.test(
+        (env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN)?.trim() ?? '',
+      ),
     );
 
   const [header, chapterAnnouncementResult] = await Promise.all([
@@ -103,15 +102,19 @@ export async function loader({context}: Route.LoaderArgs) {
         cache: storefront.CacheLong(),
       }),
     ),
-    measureOptionalStorefront(context.monitor, 'global_notices', () =>
-      storefront.query(GLOBAL_NOTICES_QUERY, {
-        cache: storefront.CacheShort({maxAge: 30, staleWhileRevalidate: 60}),
-      }) as Promise<ChapterAnnouncementResult>,
+    measureOptionalStorefront(
+      context.monitor,
+      'global_notices',
+      () =>
+        storefront.query(GLOBAL_NOTICES_QUERY, {
+          cache: storefront.CacheShort({maxAge: 30, staleWhileRevalidate: 60}),
+        }) as Promise<ChapterAnnouncementResult>,
     ),
   ]);
-  const chapter = chapterAnnouncementResult?.collections.nodes.find(
-    (collection) => collection.title.trim().toLocaleLowerCase() === 'chapter i',
-  ) ?? null;
+  const chapter =
+    chapterAnnouncementResult?.collections.nodes.find(
+      (collection) => collection.title.trim().toLocaleLowerCase() === 'chapter i',
+    ) ?? null;
   const stockedChapterProduct = chapter
     ? selectStockedChapterProduct(chapter.products.nodes)
     : null;
@@ -151,14 +154,13 @@ export async function loader({context}: Route.LoaderArgs) {
           ? `/?join=${encodeURIComponent(chapterAnnouncement.handle)}#chapter-collection`
           : '/reserve-list',
     displayOrder: 1,
-    tone: chapterAnnouncement.state === 'open' ? ('success' as const) : ('default' as const),
+    tone:
+      chapterAnnouncement.state === 'open' ? ('success' as const) : ('default' as const),
     state: chapterAnnouncement.state,
   };
   const notices = [
     chapterNotice,
-    ...parseStorefrontNotices(
-      chapterAnnouncementResult?.metaobjects.nodes ?? [],
-    ),
+    ...parseStorefrontNotices(chapterAnnouncementResult?.metaobjects.nodes ?? []),
   ].sort(
     (left, right) =>
       left.displayOrder - right.displayOrder || left.id.localeCompare(right.id),
@@ -174,9 +176,7 @@ export async function loader({context}: Route.LoaderArgs) {
     chatShopDomain,
     checkoutProvider,
     checkoutReady:
-      checkoutProvider === 'fastrr'
-        ? Boolean(fastrrSellerDomain)
-        : razorpayReady,
+      checkoutProvider === 'fastrr' ? Boolean(fastrrSellerDomain) : razorpayReady,
     fastrrSellerDomain,
     sentryDsn:
       monitoringEnabled(env.SENTRY_ENABLED) && sentryIngestOrigin(env.SENTRY_DSN)
@@ -257,11 +257,9 @@ export default function App() {
             <Outlet />
           </PageLayout>
         </Analytics.Provider>
+        <CheckoutConfirmationProgress />
         {data.fastrrSellerDomain && (
-          <Script
-            waitForHydration
-            src={FASTRR_ASSETS.script}
-          />
+          <Script waitForHydration src={FASTRR_ASSETS.script} />
         )}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />

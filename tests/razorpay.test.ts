@@ -15,6 +15,7 @@ import {
   type RazorpayOrderLine,
 } from '../app/lib/checkout/providers/razorpay/razorpay.ts';
 import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razorpay.client.ts';
+import {CHECKOUT_CONFIRMATION_EVENT} from '../app/lib/checkout/checkout-progress.ts';
 import {
   createRazorpayDraftOrderAnchor,
   completeRazorpayDraftOrder,
@@ -185,6 +186,7 @@ test('Razorpay client creates an order before opening Magic Checkout', async () 
   let options: Record<string, unknown> | undefined;
   let paymentFailed: (() => void) | undefined;
   let resolveRedirect!: (value: string) => void;
+  const confirmationStates: boolean[] = [];
   const redirected = new Promise<string>((resolve) => {
     resolveRedirect = resolve;
   });
@@ -212,7 +214,11 @@ test('Razorpay client creates an order before opening Magic Checkout', async () 
         }
       },
       location: {assign: resolveRedirect},
-      dispatchEvent() {},
+      dispatchEvent(event: CustomEvent<{active?: boolean}>) {
+        if (event.type === CHECKOUT_CONFIRMATION_EVENT) {
+          confirmationStates.push(event.detail.active === true);
+        }
+      },
     },
   });
 
@@ -236,7 +242,65 @@ test('Razorpay client creates an order before opening Magic Checkout', async () 
       razorpay_payment_id: 'pay_123',
       razorpay_signature: 'a'.repeat(64),
     });
+    assert.deepEqual(confirmationStates, [true]);
     assert.equal(await redirected, '/checkout/razorpay/success');
+  } finally {
+    globalThis.fetch = originalFetch;
+    Reflect.deleteProperty(globalThis, 'window');
+  }
+});
+
+test('Razorpay client removes confirmation progress when verification fails', async () => {
+  let options: Record<string, unknown> | undefined;
+  const confirmationStates: boolean[] = [];
+  const checkoutErrors: string[] = [];
+  const responses = [
+    Response.json({
+      keyId: 'rzp_test_public',
+      orderId: 'order_failed_verify',
+      businessName: 'Charaideo Reserves',
+    }),
+    Response.json({error: 'Payment verification failed'}, {status: 502}),
+  ];
+  const originalFetch = globalThis.fetch;
+  Object.assign(globalThis, {
+    fetch: async () => responses.shift()!,
+    window: {
+      Razorpay: class {
+        constructor(received: Record<string, unknown>) {
+          options = received;
+        }
+        on() {}
+        open() {}
+      },
+      location: {assign() {}},
+      dispatchEvent(event: CustomEvent<{active?: boolean; message?: string}>) {
+        if (event.type === CHECKOUT_CONFIRMATION_EVENT) {
+          confirmationStates.push(event.detail.active === true);
+        }
+        if (event.type === 'checkout:error' && typeof event.detail.message === 'string') {
+          checkoutErrors.push(event.detail.message);
+        }
+      },
+    },
+  });
+
+  try {
+    assert.equal(
+      await startRazorpayCheckout({
+        source: 'product',
+        products: [{variantId: 'gid://shopify/ProductVariant/12345', quantity: 1}],
+      }),
+      true,
+    );
+    (options?.handler as (response: Record<string, string>) => void)({
+      razorpay_order_id: 'order_failed_verify',
+      razorpay_payment_id: 'pay_failed_verify',
+      razorpay_signature: 'a'.repeat(64),
+    });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.deepEqual(confirmationStates, [true, false]);
+    assert.equal(checkoutErrors.length, 1);
   } finally {
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, 'window');

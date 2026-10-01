@@ -1,7 +1,7 @@
 # Razorpay checkout hardening roadmap
 
-> Planning document. PR 5A and PR 5B have now been implemented and live-tested with
-> the Draft Order anchor enabled. See
+> Planning and release-history document. PR 5A through PR 5D have been implemented,
+> live-tested, and merged to `main`. See
 > [`razorpay-checkout-architecture.md`](./razorpay-checkout-architecture.md) for the
 > authoritative current production flow and regression rules.
 
@@ -28,8 +28,8 @@ Create Razorpay order on the server
   -> fetch the Razorpay order and payment
   -> retry only while paid/captured state is still propagating
   -> validate status, amount, currency and checkout snapshot
-  -> look up Shopify by Razorpay sourceIdentifier
-  -> create the Shopify order if it does not exist
+  -> resolve the server-created Shopify Draft Order anchor
+  -> update, total-check and complete that exact Draft Order
   -> require a real Shopify order ID and order name
   -> store the confirmation in the session
   -> redirect to /checkout/razorpay/success
@@ -41,21 +41,31 @@ The required completion invariant is:
 
 The success page must never display confirmation based only on a Razorpay payment ID.
 
+With PR 5D enabled, a signed `order.paid` webhook is the recovery trigger when the
+browser cannot finish this sequence. It does not use a separate creation path: it
+fetches authoritative Razorpay state and invokes the same anchored reconciliation
+command. Whichever signal arrives second reads the Order already attached to the
+completed Draft Order.
+
 ## Current webhook and event behavior
 
 ### Prepaid checkout
 
-The current code does **not** use either `payment.captured` or `order.paid` as a Shopify-order writer.
+PR 5D allows the browser callback and signed `order.paid` webhook to trigger the same
+anchored reconciliation command. This is not two independent writers: both resolve
+and complete the same Shopify Draft Order, whose attached Order is the durable result.
 
-| Signal                                  | Current behavior                                                       |
-| --------------------------------------- | ---------------------------------------------------------------------- |
-| Browser `/api/checkout/razorpay/verify` | Sole prepaid Shopify-order writer                                      |
-| Fetched Razorpay payment state          | Must be `status=captured` and `captured=true`                          |
-| `payment.captured` webhook              | Signature is validated, then the event is acknowledged without writing |
-| `order.paid` webhook                    | Signature is validated, then the event is acknowledged without writing |
-| `payment.failed` webhook                | Not a reconciliation event; currently acknowledged without writing     |
+| Signal                                  | Current behavior                                                                 |
+| --------------------------------------- | -------------------------------------------------------------------------------- |
+| Browser `/api/checkout/razorpay/verify` | Validates the signed callback and invokes anchored reconciliation                 |
+| Fetched Razorpay payment state          | Must be `status=captured` and `captured=true`                                    |
+| `payment.captured` webhook              | Signature is validated, then the event is acknowledged without writing           |
+| `order.paid` webhook                    | With recovery enabled, validates authoritative state and reconciles the anchor    |
+| `payment.failed` webhook                | Not a reconciliation event; currently acknowledged without writing               |
 
-This distinction is important: the code checks for a **captured payment state**, but it does not use the `payment.captured` webhook event to create the Shopify order.
+This distinction is important: the code requires a **captured payment state**, but
+the `payment.captured` webhook event is not a Shopify writer. Only `order.paid` has
+passed the live recovery contract.
 
 ### COD checkout
 
@@ -76,7 +86,8 @@ Every pull request in this roadmap must preserve all of these invariants:
 1. The server creates the Razorpay order using Shopify-authoritative prices.
 2. The payment signature is verified with the session-bound Razorpay order ID.
 3. A prepaid order is fulfilled only after the payment is confirmed captured.
-4. Exactly one component owns prepaid Shopify order creation.
+4. Every prepaid completion trigger uses the same anchored reconciliation command;
+   no trigger may independently call `orderCreate` for an anchored checkout.
 5. The success response contains a real Shopify order ID and order name.
 6. The cart and checkout session are not cleared before Shopify order creation succeeds.
 7. A transient Razorpay final-state delay is retried for a short bounded period.
@@ -415,7 +426,9 @@ If the Shopify order ID or name is absent, redirect to a safe recovery/error rou
 ## UI behavior
 
 - Display the Shopify order name, such as `#1012`, as the primary order reference.
-- The Razorpay order and payment IDs may be stored for support but should not replace the Shopify order number shown to the customer.
+- Display the already-verified Razorpay order and payment IDs as secondary support
+  references without making another API call. They must not replace the Shopify order
+  number shown to the customer.
 - State clearly that payment is verified and the Shopify order is confirmed.
 - Include links to return home, browse teas and contact support.
 - Keep `Cache-Control: no-store, private`.
@@ -435,7 +448,10 @@ If the Shopify order ID or name is absent, redirect to a safe recovery/error rou
 
 ## Prohibited behavior
 
-- No `Confirming…` state for prepaid checkout.
+- No success or order-confirmed claim while prepaid checkout is still being verified.
+  A non-dismissible progress overlay may say `Payment submitted` and `Confirming your
+  order` after the Razorpay success callback, but it must disappear on verification
+  failure and must never replace the verified success page.
 - No success-page polling.
 - No `/api/checkout/razorpay/status` dependency.
 - No success message based on payment verification alone.
@@ -489,12 +505,22 @@ PR 5C implementation status: complete and live-validated on 2026-10-01. The sign
 `order.paid` delivery returned `204`, authoritative shadow validation reported
 `outcome=eligible`, and the webhook performed no Shopify write.
 
-PR 5D implementation status: implemented behind
-`RAZORPAY_WEBHOOK_RECOVERY_ENABLED` and pending its independent live deployment
-gate. Recovery and browser verification call the same anchored reconciliation
-command. Recovery fails closed instead of using legacy `orderCreate`, waits for the
-durable Shopify result before acknowledging, and can be disabled without reverting
-code.
+PR 5D implementation status: complete, independently live-validated on 2026-10-01,
+and merged to `main`. With `RAZORPAY_WEBHOOK_RECOVERY_ENABLED=true`, recovery and
+browser verification call the same anchored reconciliation command. Recovery fails
+closed instead of using legacy `orderCreate`, waits for the durable Shopify result
+before acknowledging, and can be disabled without reverting code.
+
+The Production evidence covered both signal orderings:
+
+| Test | Oxygen result | Safe correlation | What it proved |
+| --- | --- | --- | --- |
+| Browser completed first | `order.paid`, HTTP `204`, `outcome=already_completed`, event ID present | `f72c8da27ede` | The webhook returned the Shopify Order already attached to the completed draft and did not create a duplicate. |
+| Browser closed after payment | `order.paid`, HTTP `204`, `outcome=completed`, event ID present | `9f5e6e2e61d3` | The webhook recovered the captured payment and completed the anchored draft without the browser callback. |
+
+The matching Oxygen request IDs are recorded in the canonical architecture document.
+They are operational evidence, not idempotency keys. Shopify's completed Draft Order
+and its attached Order remain the durable duplicate-prevention boundary.
 
 This alternative is limited to reconciliation for this checkout. It is not a substitute for a general event database: webhook event IDs, attempt histories and long-lived failure states still require durable storage if those records become requirements.
 
@@ -531,7 +557,9 @@ For Magic Checkout prepaid recovery:
 - Use `order.paid` as the canonical completion event after confirming live delivery on the account.
 - Keep `payment.captured` for monitoring or as a deliberately designed fallback, not as an independent uncoordinated writer.
 - Verify every webhook using the raw request body and `RAZORPAY_WEBHOOK_SECRET`.
-- Store and deduplicate `x-razorpay-event-id` in the durable store when available.
+- Record only whether `x-razorpay-event-id` is present. There is no event database, so
+  do not claim event-ID deduplication; resource-level idempotency comes from the
+  completed Shopify Draft Order.
 - Fetch the Razorpay order/payment server-side; do not trust webhook payload values as the final authority.
 - Treat webhook delivery as at-least-once and potentially out of order.
 
@@ -560,20 +588,28 @@ COD remains disabled until all of these conditions are satisfied:
 
 Do not infer COD readiness merely because an event is listed in general documentation.
 
-## Rollout phases
+## Rollout phases and completed status
 
 ### Phase A — shadow mode
 
 - Receive and verify webhooks.
-- Persist event metadata and compare expected reconciliation outcomes.
+- Emit privacy-safe event-ID presence, outcome, and hashed correlation telemetry.
 - Do not allow webhooks to create Shopify orders.
 - Run for enough real prepaid transactions to confirm delivery reliability.
+
+Completed on 2026-10-01 with a signed `order.paid`, HTTP `204`, and
+`outcome=eligible` while the webhook performed no Shopify write.
 
 ### Phase B — recovery-only mode
 
 - Browser `/verify` remains the normal writer.
-- Webhook reconciliation runs only when the durable record has no completed Shopify order after a defined delay.
+- Webhook reconciliation immediately queries the anchored Draft Order; an already
+  completed draft returns its attached Order without another completion mutation.
 - Both paths use the atomic claim.
+
+Completed on 2026-10-01. The browser-first case produced
+`outcome=already_completed`; the browser-closed case produced `outcome=completed`.
+Both returned HTTP `204` and converged on the anchored Shopify result.
 
 ### Phase C — canonical webhook mode, optional
 
@@ -581,13 +617,18 @@ Do not infer COD readiness merely because an event is listed in general document
 - Browser verification still uses the same durable command for immediate confirmation.
 - Keep a rollback flag that restores browser-primary behavior without a code rollback.
 
+Not required for the approved architecture. The browser remains the fast synchronous
+path and `order.paid` remains the durable recovery path. Do not promote the webhook
+to an exclusive primary writer without a separate design and live gate.
+
 ## Required automated tests
 
 1. Two concurrent reconciliation calls result in one Shopify mutation.
 2. Browser callback and `order.paid` arriving simultaneously create one order.
-3. Duplicate webhook event IDs are acknowledged without reprocessing.
-4. Different event IDs for the same Razorpay order still create one order.
-5. A worker restart does not lose idempotency state.
+3. Replaying the same webhook event returns the order already attached to the draft.
+4. Different event IDs for the same Razorpay order still result in one order.
+5. A worker restart does not lose resource-level idempotency because it is stored in
+   Shopify's Draft Order-to-Order relationship, not process memory.
 6. A failed Shopify mutation can be retried according to its safe failure classification.
 7. A permanent Shopify validation error is not retried indefinitely.
 8. Webhooks with invalid signatures never reach reconciliation.
@@ -663,8 +704,10 @@ Run this matrix after every PR:
 | Normal captured payment                  | One Shopify order and one Shiprocket order                 |
 | Razorpay final state delayed briefly     | Bounded retry, then one Shopify order                      |
 | Browser verification replayed            | Existing Shopify order returned; no duplicate              |
-| `payment.captured` webhook replayed      | Acknowledged; no Shopify write in the current architecture |
-| `order.paid` webhook replayed            | Acknowledged; no Shopify write in the current architecture |
+| `payment.captured` webhook replayed      | Acknowledged; no Shopify write                             |
+| `order.paid` after browser completion    | Existing attached Shopify order; no duplicate              |
+| Browser closed after captured payment    | `order.paid` completes the anchor; one Shopify order        |
+| `order.paid` webhook replayed            | Existing attached Shopify order; no duplicate              |
 | Invalid Razorpay signature               | Rejected; no Shopify call                                  |
 | Session order ID mismatch                | Rejected; no Shopify call                                  |
 | Shopify mutation `userErrors`            | Failure returned; no false success page                    |

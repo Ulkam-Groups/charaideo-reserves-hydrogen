@@ -6,6 +6,7 @@ type CapturedRequest = {path: string; fields: Record<string, string>};
 export async function isolateRazorpayCheckout(
   context: BrowserContext,
   requests: CapturedRequest[],
+  {verificationDelayMs = 0}: {verificationDelayMs?: number} = {},
 ) {
   await context.addInitScript(() => {
     Object.assign(window, {
@@ -38,6 +39,9 @@ export async function isolateRazorpayCheckout(
       });
     } else if (url.pathname === '/api/checkout/razorpay/verify') {
       capture(request);
+      if (verificationDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, verificationDelayMs));
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

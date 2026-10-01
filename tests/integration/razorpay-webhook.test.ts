@@ -469,6 +469,7 @@ test('Razorpay browser and recovery webhook complete one anchored order and repl
     assert.equal(completionMutations, 1);
     assert.deepEqual(session.get('razorpayPaymentVerified'), {
       razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
       shopifyOrderId: shopifyOrder.id,
       shopifyOrderName: shopifyOrder.name,
     });

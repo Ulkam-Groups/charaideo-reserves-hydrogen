@@ -1,5 +1,6 @@
 import type {CheckoutInput} from '../../checkout.ts';
 import {dispatchCheckoutError} from '../../checkout-errors.ts';
+import {dispatchCheckoutConfirmation} from '../../checkout-progress.ts';
 import {RAZORPAY_ASSETS} from './razorpay.config.ts';
 
 type RazorpayPaymentResponse = {
@@ -109,6 +110,7 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       order_id: order.orderId,
       show_coupons: false,
       handler(response) {
+        dispatchCheckoutConfirmation(true);
         void postForm('/api/checkout/razorpay/verify', {
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
@@ -123,6 +125,7 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
             window.location.assign(result.redirectTo);
           })
           .catch(() => {
+            dispatchCheckoutConfirmation(false);
             dispatchCheckoutError(
               'Payment was received, but order confirmation is still processing. Please contact support if it does not appear shortly.',
             );
@@ -130,6 +133,7 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       },
     });
     checkout.on('payment.failed', () => {
+      dispatchCheckoutConfirmation(false);
       dispatchCheckoutError(
         'Payment could not be completed. Please check the details and try again.',
       );
