@@ -37,6 +37,7 @@ declare global {
     RAZORPAY_KEY_ID?: string;
     RAZORPAY_KEY_SECRET?: string;
     RAZORPAY_WEBHOOK_SECRET?: string;
+    RAZORPAY_WEBHOOK_SHADOW_ENABLED?: string;
     RAZORPAY_BUSINESS_NAME?: string;
     RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED?: string;
     SHOPIFY_ADMIN_CLIENT_ID?: string;

@@ -34,6 +34,39 @@ export type RazorpayCheckoutSnapshotLine = {
 
 const RAZORPAY_RECONCILIATION_EVENTS = new Set(['order.placed']);
 
+export function isRazorpayPrepaidShadowEvent(value: unknown): boolean {
+  return (
+    Boolean(value) &&
+    typeof value === 'object' &&
+    (value as {event?: unknown}).event === 'order.paid'
+  );
+}
+
+export function razorpayPaidWebhookTarget(value: unknown): {
+  orderId: string;
+  paymentId: string;
+} | null {
+  if (!isRazorpayPrepaidShadowEvent(value)) return null;
+  const payload = (
+    value as {
+      payload?: {
+        order?: {entity?: {id?: unknown}};
+        payment?: {entity?: {id?: unknown; order_id?: unknown}};
+      };
+    }
+  ).payload;
+  const orderId = payload?.order?.entity?.id;
+  const paymentId = payload?.payment?.entity?.id;
+  const paymentOrderId = payload?.payment?.entity?.order_id;
+  return typeof orderId === 'string' &&
+    /^order_[A-Za-z0-9]+$/.test(orderId) &&
+    typeof paymentId === 'string' &&
+    /^pay_[A-Za-z0-9]+$/.test(paymentId) &&
+    paymentOrderId === orderId
+    ? {orderId, paymentId}
+    : null;
+}
+
 export function isRazorpayReconciliationEvent(value: unknown): boolean {
   return (
     Boolean(value) &&

@@ -86,6 +86,7 @@ CHECKOUT_PROVIDER=razorpay
 RAZORPAY_KEY_ID
 RAZORPAY_KEY_SECRET
 RAZORPAY_WEBHOOK_SECRET
+RAZORPAY_WEBHOOK_SHADOW_ENABLED=true  # PR 5C observation only
 SHOPIFY_ADMIN_CLIENT_ID
 SHOPIFY_ADMIN_CLIENT_SECRET
 RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED=true
@@ -319,16 +320,52 @@ POST /webhooks/razorpay
 It enforces POST, a bounded raw body, and HMAC verification using
 `RAZORPAY_WEBHOOK_SECRET` before parsing JSON.
 
-| Event                                 | Current production behavior                                                                             |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `payment.captured`                    | Authenticated and acknowledged; no Shopify write.                                                       |
-| `order.paid`                          | Authenticated and acknowledged; no Shopify write.                                                       |
-| `payment.failed` and unrelated events | Authenticated and acknowledged; no Shopify write.                                                       |
-| legacy `order.placed`                 | Parsed as a reconciliation event in code, but COD is disabled and this path is not production-approved. |
+| Event                                 | Current production behavior                                                                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `payment.captured`                    | Authenticated and acknowledged; no Shopify write.                                                                                                       |
+| `order.paid`                          | Authenticated and acknowledged; with the 5C shadow flag, authoritative Razorpay state is inspected asynchronously, but there is still no Shopify write. |
+| `payment.failed` and unrelated events | Authenticated and acknowledged; no Shopify write.                                                                                                       |
+| legacy `order.placed`                 | Parsed as a reconciliation event in code, but COD is disabled and this path is not production-approved.                                                 |
 
 Do not make a prepaid webhook a writer until it calls the same anchored reconciliation
 command and live shadow-mode evidence proves the selected event is delivered reliably.
 Never allow a webhook to call a separate `orderCreate` path for an anchored checkout.
+
+### PR 5C shadow-mode contract
+
+`RAZORPAY_WEBHOOK_SHADOW_ENABLED=true` enables observation without changing order
+ownership. After raw-body HMAC verification, an `order.paid` payload must contain a
+valid order ID and payment ID, and the payment entity's `order_id` must match the order
+entity. Shadow mode then fetches both entities from Razorpay and applies the same
+currency, amount, captured-state, checkout-snapshot, and Draft Order anchor validation
+used by reconciliation.
+
+The work is scheduled with Oxygen `waitUntil` so the endpoint can acknowledge the
+signed webhook immediately. The observation never authenticates with Shopify and never
+queries, updates, completes, or creates a Shopify resource. Failures are telemetry, not
+webhook retries, during shadow mode.
+
+Oxygen emits a safe `Razorpay webhook shadow observation` record containing only:
+
+```text
+event=order.paid
+outcome=eligible|ineligible|invalid_payload
+eventIdPresent=true|false
+correlation=<12-character SHA-256 prefix, when an order ID was valid>
+```
+
+It must not log the raw webhook body, full order/payment IDs, signature, customer data,
+or provider secrets.
+
+Before PR 5D begins, a live 5C transaction must prove:
+
+- Razorpay delivers `order.paid` to `/webhooks/razorpay` with a successful response.
+- Shadow telemetry reports `outcome=eligible`.
+- The event contains matching order/payment IDs and a usable Draft Order anchor.
+- Normal browser verification still performs the only Shopify completion.
+- The webhook causes no additional Shopify Admin GraphQL operation.
+- Exactly one Shopify order and one Shiprocket order are produced.
+- Replaying the signed event remains read-only.
 
 ## Feature-flag behavior and rollback
 
@@ -460,7 +497,8 @@ For the current flag-enabled architecture, a successful test must prove:
 Handle these only in separate, independently deployed PRs:
 
 - Reuse or lifecycle cleanup of abandoned Draft Orders.
-- Webhook shadow observation, followed by anchored recovery for browser-closed payments.
+- Complete live validation of webhook shadow observation, followed by a separate
+  anchored-recovery PR for browser-closed payments.
 - Durable webhook event audit/history if required.
 - COD only after the real event contract is captured and tested.
 - Rate limiting that cannot strand an already-paid customer.
