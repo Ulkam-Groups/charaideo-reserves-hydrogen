@@ -54,9 +54,11 @@ export async function action({request, context}: ActionFunctionArgs) {
         env: context.env,
         orderId,
         paymentId,
+        draftOrderId: context.session.get('razorpayDraftOrderId') as string | undefined,
       }),
     );
     context.session.unset('razorpayOrderId');
+    context.session.unset('razorpayDraftOrderId');
     context.session.set('razorpayPaymentVerified', {
       razorpayOrderId: orderId,
       shopifyOrderId: shopifyOrder.id,

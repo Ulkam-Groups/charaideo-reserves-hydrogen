@@ -14,8 +14,13 @@ import {
 } from '../app/lib/checkout/providers/razorpay/razorpay.ts';
 import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razorpay.client.ts';
 import {
+  createRazorpayDraftOrderAnchor,
+  completeRazorpayDraftOrder,
   createShopifyOrder,
+  buildRazorpayDraftOrderFinalInput,
   buildShopifyOrderInput,
+  deleteRazorpayDraftOrderAnchor,
+  razorpayDraftOrderAnchorEnabled,
   RazorpayReconciliationError,
   razorpayOrderIntegrationReady,
   razorpayVerificationFailureCode,
@@ -562,6 +567,416 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
     variables: {order: {sourceIdentifier: string}};
   };
   assert.equal(mutation.variables.order.sourceIdentifier, magicOrder.id);
+});
+
+test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft', async () => {
+  assert.equal(razorpayDraftOrderAnchorEnabled({} as Env), false);
+  assert.equal(
+    razorpayDraftOrderAnchorEnabled({
+      RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: ' true ',
+    } as Env),
+    true,
+  );
+
+  const calls: Array<{url: string; init?: RequestInit}> = [];
+  const responses = [
+    Response.json({access_token: 'admin-token'}),
+    Response.json({
+      data: {
+        draftOrderCreate: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/123',
+            name: '#D1',
+            status: 'OPEN',
+          },
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({url: String(input), init});
+    return responses.shift()!;
+  }) as typeof fetch;
+
+  const draft = await createRazorpayDraftOrderAnchor({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    } as Env,
+    lines: [orderLine],
+    source: 'product',
+    fetcher,
+  });
+
+  assert.deepEqual(draft, {
+    id: 'gid://shopify/DraftOrder/123',
+    name: '#D1',
+    status: 'OPEN',
+  });
+  const request = JSON.parse(String(calls[1].init?.body)) as {
+    query: string;
+    variables: {
+      input: {
+        lineItems: Array<{
+          variantId: string;
+          quantity: number;
+          priceOverride: {amount: string; currencyCode: string};
+        }>;
+        tags: string[];
+        visibleToCustomer: boolean;
+      };
+    };
+  };
+  assert.match(request.query, /draftOrderCreate/);
+  assert.deepEqual(request.variables.input.lineItems, [
+    {
+      variantId: orderLine.variantId,
+      quantity: 2,
+      priceOverride: {amount: '499.00', currencyCode: 'INR'},
+    },
+  ]);
+  assert.deepEqual(request.variables.input.tags, [
+    'razorpay',
+    'magic-checkout',
+    'checkout-draft',
+  ]);
+  assert.equal(request.variables.input.visibleToCustomer, false);
+});
+
+test('Razorpay draft finalization adds verified delivery and payment metadata', () => {
+  const input = buildRazorpayDraftOrderFinalInput({
+    order: {...magicOrder, notes: {...magicOrder.notes, source: 'product'}},
+    payment: capturedPayment,
+  });
+
+  assert.equal(input.shippingAddress.countryCode, 'IN');
+  assert.equal(input.shippingLine?.priceWithCurrency.amount, '10.00');
+  assert.equal(input.shippingLine?.priceWithCurrency.currencyCode, 'INR');
+  assert.deepEqual(input.tags, ['razorpay', 'magic-checkout', 'prepaid']);
+  assert.deepEqual(input.customAttributes, [
+    {key: 'checkout_provider', value: 'razorpay'},
+    {key: 'checkout_source', value: 'product'},
+    {key: 'razorpay_order_id', value: magicOrder.id},
+    {key: 'razorpay_payment_id', value: capturedPayment.id},
+    {key: 'razorpay_payment_method', value: 'upi'},
+  ]);
+});
+
+test('Razorpay draft completion updates, total-checks and completes one Shopify order', async () => {
+  const queries: string[] = [];
+  let updateInput: Record<string, unknown> | undefined;
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      return Response.json({access_token: 'admin-token'});
+    }
+    const request = JSON.parse(String(init?.body)) as {
+      query: string;
+      variables: Record<string, unknown>;
+    };
+    queries.push(request.query);
+    if (request.query.includes('query RazorpayDraftOrder')) {
+      return Response.json({
+        data: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/123',
+            status: 'OPEN',
+            totalPriceSet: {
+              presentmentMoney: {amount: '998.00', currencyCode: 'INR'},
+            },
+            order: null,
+          },
+        },
+      });
+    }
+    if (request.query.includes('mutation UpdateRazorpayDraftOrder')) {
+      updateInput = request.variables.input as Record<string, unknown>;
+      return Response.json({
+        data: {
+          draftOrderUpdate: {
+            draftOrder: {
+              id: 'gid://shopify/DraftOrder/123',
+              status: 'OPEN',
+              totalPriceSet: {
+                presentmentMoney: {amount: '1008.00', currencyCode: 'INR'},
+              },
+              order: null,
+            },
+            userErrors: [],
+          },
+        },
+      });
+    }
+    if (request.query.includes('mutation CompleteRazorpayDraftOrder')) {
+      return Response.json({
+        data: {
+          draftOrderComplete: {
+            draftOrder: {
+              id: 'gid://shopify/DraftOrder/123',
+              status: 'COMPLETED',
+              order: {id: 'gid://shopify/Order/1016', name: '#1016'},
+            },
+            userErrors: [],
+          },
+        },
+      });
+    }
+    throw new Error(`Unexpected request: ${url}`);
+  }) as typeof fetch;
+
+  const result = await completeRazorpayDraftOrder({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    } as Env,
+    draftOrderId: 'gid://shopify/DraftOrder/123',
+    order: {...magicOrder, notes: {...magicOrder.notes, source: 'product'}},
+    payment: capturedPayment,
+    fetcher,
+  });
+
+  assert.deepEqual(result, {
+    id: 'gid://shopify/Order/1016',
+    name: '#1016',
+    created: true,
+  });
+  assert.equal(queries.length, 3);
+  assert.equal(
+    queries.some((query) => query.includes('orderCreate')),
+    false,
+  );
+  assert.equal(
+    (updateInput?.shippingLine as {priceWithCurrency: {amount: string}}).priceWithCurrency
+      .amount,
+    '10.00',
+  );
+});
+
+test('Razorpay draft completion fails closed when Shopify recalculates a different total', async () => {
+  const operations: string[] = [];
+  let draftQueries = 0;
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      return Response.json({access_token: 'admin-token'});
+    }
+    const request = JSON.parse(String(init?.body)) as {query: string};
+    operations.push(request.query);
+    if (request.query.includes('query RazorpayDraftOrder')) {
+      draftQueries += 1;
+      return Response.json({
+        data: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/123',
+            status: 'OPEN',
+            totalPriceSet: {
+              presentmentMoney: {amount: '998.00', currencyCode: 'INR'},
+            },
+            order: null,
+          },
+        },
+      });
+    }
+    if (request.query.includes('mutation UpdateRazorpayDraftOrder')) {
+      return Response.json({
+        data: {
+          draftOrderUpdate: {
+            draftOrder: {
+              id: 'gid://shopify/DraftOrder/123',
+              status: 'OPEN',
+              totalPriceSet: {
+                presentmentMoney: {amount: '1007.99', currencyCode: 'INR'},
+              },
+              order: null,
+            },
+            userErrors: [],
+          },
+        },
+      });
+    }
+    throw new Error(`Unexpected request: ${url}`);
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () =>
+      completeRazorpayDraftOrder({
+        env: {
+          PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+          SHOPIFY_ADMIN_CLIENT_ID: 'client',
+          SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+        } as Env,
+        draftOrderId: 'gid://shopify/DraftOrder/123',
+        order: magicOrder,
+        payment: capturedPayment,
+        fetcher,
+      }),
+    /Shopify rejected the Razorpay draft order/,
+  );
+  assert.equal(draftQueries, 1);
+  assert.equal(
+    operations.some((operation) =>
+      operation.includes('mutation CompleteRazorpayDraftOrder'),
+    ),
+    false,
+  );
+});
+
+test('Razorpay draft completion replay returns the order already attached to the draft', async () => {
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL) => {
+    const url = String(input);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      return Response.json({access_token: 'admin-token'});
+    }
+    graphqlCalls += 1;
+    return Response.json({
+      data: {
+        draftOrder: {
+          id: 'gid://shopify/DraftOrder/123',
+          status: 'COMPLETED',
+          totalPriceSet: {
+            presentmentMoney: {amount: '1008.00', currencyCode: 'INR'},
+          },
+          order: {id: 'gid://shopify/Order/1016', name: '#1016'},
+        },
+      },
+    });
+  }) as typeof fetch;
+
+  const result = await completeRazorpayDraftOrder({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    } as Env,
+    draftOrderId: 'gid://shopify/DraftOrder/123',
+    order: magicOrder,
+    payment: capturedPayment,
+    fetcher,
+  });
+
+  assert.deepEqual(result, {
+    id: 'gid://shopify/Order/1016',
+    name: '#1016',
+    created: false,
+  });
+  assert.equal(graphqlCalls, 1);
+});
+
+test('Razorpay draft completion recovers when the mutation response is lost', async () => {
+  let draftQueries = 0;
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      return Response.json({access_token: 'admin-token'});
+    }
+    const request = JSON.parse(String(init?.body)) as {query: string};
+    if (request.query.includes('query RazorpayDraftOrder')) {
+      draftQueries += 1;
+      return Response.json({
+        data: {
+          draftOrder: {
+            id: 'gid://shopify/DraftOrder/123',
+            status: draftQueries === 1 ? 'OPEN' : 'COMPLETED',
+            totalPriceSet: {
+              presentmentMoney: {amount: '1008.00', currencyCode: 'INR'},
+            },
+            order:
+              draftQueries === 1 ? null : {id: 'gid://shopify/Order/1016', name: '#1016'},
+          },
+        },
+      });
+    }
+    if (request.query.includes('mutation UpdateRazorpayDraftOrder')) {
+      return Response.json({
+        data: {
+          draftOrderUpdate: {
+            draftOrder: {
+              id: 'gid://shopify/DraftOrder/123',
+              status: 'OPEN',
+              totalPriceSet: {
+                presentmentMoney: {amount: '1008.00', currencyCode: 'INR'},
+              },
+              order: null,
+            },
+            userErrors: [],
+          },
+        },
+      });
+    }
+    if (request.query.includes('mutation CompleteRazorpayDraftOrder')) {
+      throw new TypeError('connection closed after mutation');
+    }
+    throw new Error(`Unexpected request: ${url}`);
+  }) as typeof fetch;
+
+  const result = await completeRazorpayDraftOrder({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    } as Env,
+    draftOrderId: 'gid://shopify/DraftOrder/123',
+    order: magicOrder,
+    payment: capturedPayment,
+    fetcher,
+  });
+
+  assert.deepEqual(result, {
+    id: 'gid://shopify/Order/1016',
+    name: '#1016',
+    created: false,
+  });
+  assert.equal(draftQueries, 2);
+});
+
+test('Razorpay draft anchor cleanup deletes only a valid draft GID', async () => {
+  const calls: Array<{url: string; init?: RequestInit}> = [];
+  const responses = [
+    Response.json({access_token: 'admin-token'}),
+    Response.json({
+      data: {
+        draftOrderDelete: {
+          deletedId: 'gid://shopify/DraftOrder/123',
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({url: String(input), init});
+    return responses.shift()!;
+  }) as typeof fetch;
+  const env = {
+    PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+    SHOPIFY_ADMIN_CLIENT_ID: 'client',
+    SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+  } as Env;
+
+  assert.equal(
+    await deleteRazorpayDraftOrderAnchor({
+      env,
+      draftOrderId: 'not-a-draft',
+      fetcher,
+    }),
+    false,
+  );
+  assert.equal(calls.length, 0);
+  assert.equal(
+    await deleteRazorpayDraftOrderAnchor({
+      env,
+      draftOrderId: 'gid://shopify/DraftOrder/123',
+      fetcher,
+    }),
+    true,
+  );
+  const request = JSON.parse(String(calls[1].init?.body)) as {
+    variables: {input: {id: string}};
+  };
+  assert.equal(request.variables.input.id, 'gid://shopify/DraftOrder/123');
 });
 
 test('Razorpay readiness accepts a separate canonical Admin store domain', () => {
