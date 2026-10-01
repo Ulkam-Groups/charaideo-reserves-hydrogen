@@ -565,8 +565,23 @@ Verification classifies failures into safe public codes such as:
 RAZORPAY_PAYMENT_NOT_FINAL
 RAZORPAY_ORDER_DATA_INVALID
 SHOPIFY_ORDER_WRITE_FAILED
+SHOPIFY_AUTHENTICATION_FAILED
+SHOPIFY_REQUIRED_SCOPE_MISSING
+SHOPIFY_GRAPHQL_THROTTLED
 CHECKOUT_VERIFICATION_FAILED
 ```
+
+PR 1 adds operational resilience without changing this architecture's writers or
+success boundary. Razorpay SDK calls and Shopify authentication/GraphQL requests are
+bounded to 10 seconds. Shopify client-credentials tokens are cached per worker and
+shop/client identity until 60 seconds before `expires_in`, simultaneous token requests
+coalesce, and one HTTP `401` causes one forced refresh and one retry. When the token
+response includes `scope`, `write_orders` and `write_draft_orders` are validated
+before GraphQL; each write scope includes corresponding read access. A top-level
+`THROTTLED` GraphQL error may be retried once after a
+bounded delay calculated from `extensions.cost.throttleStatus`; mutation `userErrors`
+are not retried. The cache and retries are availability optimizations only and do not
+participate in payment or order idempotency.
 
 GraphQL HTTP success does not mean mutation success. Every operation must check both
 top-level GraphQL errors and mutation `userErrors` and must validate the returned

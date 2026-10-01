@@ -105,6 +105,10 @@ Every pull request in this roadmap must preserve all of these invariants:
 
 Add upstream timeouts, Shopify Admin authentication reuse and configuration validation without changing which endpoint creates the Shopify order or when checkout is considered complete.
 
+> Implementation status: code-complete and awaiting the independent Production
+> deployment gate. Do not begin PR 2 until the live checks at the end of this section
+> pass and an observation cycle completes.
+
 ## Changes to implement
 
 ### Razorpay client timeout
@@ -135,9 +139,15 @@ Add upstream timeouts, Shopify Admin authentication reuse and configuration vali
 - When the token response provides scopes, require:
 
   ```text
-  read_orders
   write_orders
+  write_draft_orders
   ```
+
+  The Draft Order scopes were added to the original plan because PR 5A-5D are now the
+  Production architecture. Shopify write scopes include the corresponding read
+  access, so separately requiring `read_orders` or `read_draft_orders` would reject a
+  valid least-privilege installation. If the Draft Order anchor is explicitly
+  disabled, only `write_orders` is required.
 
 - Treat missing required scopes as a permanent configuration failure.
 - Return a safe failure code without exposing token contents.
