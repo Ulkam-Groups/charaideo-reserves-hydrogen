@@ -12,7 +12,7 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
   context,
 }) => {
   const requests: Array<{path: string; fields: Record<string, string>}> = [];
-  await isolateRazorpayCheckout(context, requests);
+  await isolateRazorpayCheckout(context, requests, {verificationDelayMs: 250});
 
   const response = await page.goto('/collections/all');
   const csp = response?.headers()['content-security-policy'] ?? '';
@@ -77,6 +77,10 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
       razorpay_signature: 'a'.repeat(64),
     });
   });
+  await expect(page.getByRole('status')).toContainText('Confirming your order');
+  await expect(page.getByRole('status')).toContainText(
+    "Please keep this page open. Don't press Back or close this tab",
+  );
   await expect.poll(() => requests.length).toBe(3);
   expect(requests[2]).toEqual({
     path: '/api/checkout/razorpay/verify',
@@ -87,4 +91,5 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
     },
   });
   await expect(page).toHaveURL(/\/cart\?razorpay_verified=1$/);
+  await expect(page.getByText('Confirming your order')).toHaveCount(0);
 });
