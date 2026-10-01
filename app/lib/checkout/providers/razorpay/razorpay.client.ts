@@ -3,9 +3,9 @@ import {dispatchCheckoutError} from '../../checkout-errors.ts';
 import {RAZORPAY_ASSETS} from './razorpay.config.ts';
 
 type RazorpayPaymentResponse = {
-  razorpay_order_id?: unknown;
-  razorpay_payment_id?: unknown;
-  razorpay_signature?: unknown;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
 };
 
 type RazorpayCheckoutInstance = {
@@ -20,7 +20,6 @@ type RazorpayCheckoutConstructor = new (options: {
   order_id: string;
   show_coupons: boolean;
   handler(response: RazorpayPaymentResponse): void;
-  modal?: {ondismiss?(): void};
 }) => RazorpayCheckoutInstance;
 
 declare global {
@@ -103,49 +102,6 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       return false;
     }
 
-    let statusTimer: ReturnType<typeof setTimeout> | undefined;
-    let statusChecks = 0;
-    let dismissed = false;
-    let checking = false;
-    const stopStatusChecks = () => {
-      if (statusTimer !== undefined) clearTimeout(statusTimer);
-      statusTimer = undefined;
-    };
-    const checkCheckoutStatus = async () => {
-      if (checking || statusChecks >= 100) return;
-      checking = true;
-      statusChecks += 1;
-      try {
-        const response = await postForm('/api/checkout/razorpay/status', {});
-        if (!response.ok) {
-          if (dismissed) return;
-        } else {
-          const result = (await response.json()) as {
-            status?: unknown;
-            redirectTo?: unknown;
-          };
-          if (result.status === 'confirmed' && typeof result.redirectTo === 'string') {
-            stopStatusChecks();
-            window.location.assign(result.redirectTo);
-            return;
-          }
-          if (result.status === 'prepaid' || (dismissed && result.status === 'pending')) {
-            stopStatusChecks();
-            return;
-          }
-          if (dismissed && result.status !== 'processing') {
-            stopStatusChecks();
-            return;
-          }
-        }
-      } catch {
-        if (dismissed) return;
-      } finally {
-        checking = false;
-      }
-      statusTimer = setTimeout(checkCheckoutStatus, 3_000);
-    };
-
     const checkout = new Razorpay({
       key: order.keyId,
       one_click_checkout: true,
@@ -153,15 +109,6 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       order_id: order.orderId,
       show_coupons: false,
       handler(response) {
-        if (
-          typeof response.razorpay_order_id !== 'string' ||
-          typeof response.razorpay_payment_id !== 'string' ||
-          typeof response.razorpay_signature !== 'string'
-        ) {
-          void checkCheckoutStatus();
-          return;
-        }
-        stopStatusChecks();
         void postForm('/api/checkout/razorpay/verify', {
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
@@ -181,12 +128,6 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
             );
           });
       },
-      modal: {
-        ondismiss() {
-          dismissed = true;
-          void checkCheckoutStatus();
-        },
-      },
     });
     checkout.on('payment.failed', () => {
       dispatchCheckoutError(
@@ -194,7 +135,6 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       );
     });
     checkout.open();
-    statusTimer = setTimeout(checkCheckoutStatus, 1_500);
     return true;
   } catch {
     return false;

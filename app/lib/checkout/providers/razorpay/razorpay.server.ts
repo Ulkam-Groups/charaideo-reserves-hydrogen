@@ -102,11 +102,7 @@ function constantTimeHexEqual(left: string, right: string) {
 export function razorpayCredentials(env: Env): RazorpayCredentials | null {
   const keyId = env.RAZORPAY_KEY_ID?.trim();
   const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
-  return keyId &&
-    /^rzp_(?:test|live)_[A-Za-z0-9]+$/.test(keyId) &&
-    keySecret
-    ? {keyId, keySecret}
-    : null;
+  return keyId && keySecret ? {keyId, keySecret} : null;
 }
 
 export async function createRazorpayMagicOrder({

@@ -67,10 +67,9 @@ test('Razorpay webhook validates raw body and rejects oversized payloads', async
 test('Razorpay webhook rejects malformed reconciliation events but ignores unrelated events', async () => {
   const secret = 'webhook-secret';
   for (const [payload, expectedStatus] of [
-    [{event: 'payment.pending', payload: {payment: {entity: {}}}}, 400],
-    [{event: 'payment.captured', payload: {payment: {entity: {}}}}, 204],
     [{event: 'order.paid', payload: {}}, 204],
-    [{event: 'order.placed', payload: {order: {entity: {}}}}, 204],
+    [{event: 'payment.captured', payload: {payment: {entity: {}}}}, 204],
+    [{event: 'order.placed', payload: {}}, 400],
     [{event: 'refund.processed', payload: {}}, 204],
   ] as const) {
     const rawBody = JSON.stringify(payload);

@@ -1,7 +1,6 @@
 import type {ActionFunctionArgs} from 'react-router';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
-import {enforceApiRateLimit} from '~/lib/api-rate-limit.server';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
   inrToPaise,
@@ -87,14 +86,6 @@ export async function action({request, context}: ActionFunctionArgs) {
 
   if (resolveCheckoutProvider(context.env.CHECKOUT_PROVIDER) !== 'razorpay') {
     return json({error: 'Checkout provider is unavailable'}, 404);
-  }
-  if (request.headers.has('oxygen-buyer-ip')) {
-    const limited = await enforceApiRateLimit(
-      request,
-      context.reviewsCache,
-      '/api/checkout/razorpay/order',
-    );
-    if (limited) return limited;
   }
   const credentials = razorpayCredentials(context.env);
   if (!credentials || !razorpayOrderIntegrationReady(context.env)) {

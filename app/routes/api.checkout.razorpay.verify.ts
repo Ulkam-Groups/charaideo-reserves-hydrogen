@@ -1,6 +1,5 @@
 import type {ActionFunctionArgs} from 'react-router';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
-import {enforceApiRateLimit} from '~/lib/api-rate-limit.server';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
   razorpayCredentials,
@@ -22,14 +21,6 @@ export async function action({request, context}: ActionFunctionArgs) {
   if (resolveCheckoutProvider(context.env.CHECKOUT_PROVIDER) !== 'razorpay') {
     return json({error: 'Checkout provider is unavailable'}, 404);
   }
-  if (request.headers.has('oxygen-buyer-ip')) {
-    const limited = await enforceApiRateLimit(
-      request,
-      context.reviewsCache,
-      '/api/checkout/razorpay/verify',
-    );
-    if (limited) return limited;
-  }
   const credentials = razorpayCredentials(context.env);
   if (!credentials) return json({error: 'Checkout is not configured'}, 503);
 
@@ -49,36 +40,24 @@ export async function action({request, context}: ActionFunctionArgs) {
     return json({error: 'Invalid payment verification'}, 400);
   }
 
-  let shopifyOrder: {id: string; name: string};
   try {
     if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
       return json({error: 'Payment verification failed'}, 400);
     }
-    ({shopifyOrder} = await reconcileRazorpayOrder({
+    const {shopifyOrder} = await reconcileRazorpayOrder({
       env: context.env,
       orderId,
       paymentId,
-      expectedStatus: 'paid',
-    }));
+    });
     context.session.unset('razorpayOrderId');
     context.session.set('razorpayPaymentVerified', {
       razorpayOrderId: orderId,
-      razorpayPaymentId: paymentId,
       shopifyOrderId: shopifyOrder.id,
       shopifyOrderName: shopifyOrder.name,
-      paymentMethod: 'prepaid',
-      verifiedAt: Date.now(),
     });
+    return json({redirectTo: '/checkout/razorpay/success'});
   } catch (error) {
     context.monitor?.failure('checkout.razorpay.verify.failure', {}, error);
     return json({error: 'Payment verification or order creation failed'}, 502);
   }
-  try {
-    const cart = await context.cart.get();
-    const lineIds = cart?.lines.nodes.map((line: {id: string}) => line.id) ?? [];
-    if (lineIds.length) await context.cart.removeLines(lineIds);
-  } catch (error) {
-    context.monitor?.failure('checkout.razorpay.cart_clear.failure', {}, error);
-  }
-  return json({redirectTo: '/checkout/razorpay/success'});
 }
