@@ -42,13 +42,13 @@ The success page must never display confirmation based only on a Razorpay paymen
 
 The current code does **not** use either `payment.captured` or `order.paid` as a Shopify-order writer.
 
-| Signal | Current behavior |
-|---|---|
-| Browser `/api/checkout/razorpay/verify` | Sole prepaid Shopify-order writer |
-| Fetched Razorpay payment state | Must be `status=captured` and `captured=true` |
-| `payment.captured` webhook | Signature is validated, then the event is acknowledged without writing |
-| `order.paid` webhook | Signature is validated, then the event is acknowledged without writing |
-| `payment.failed` webhook | Not a reconciliation event; currently acknowledged without writing |
+| Signal                                  | Current behavior                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| Browser `/api/checkout/razorpay/verify` | Sole prepaid Shopify-order writer                                      |
+| Fetched Razorpay payment state          | Must be `status=captured` and `captured=true`                          |
+| `payment.captured` webhook              | Signature is validated, then the event is acknowledged without writing |
+| `order.paid` webhook                    | Signature is validated, then the event is acknowledged without writing |
+| `payment.failed` webhook                | Not a reconciliation event; currently acknowledged without writing     |
 
 This distinction is important: the code checks for a **captured payment state**, but it does not use the `payment.captured` webhook event to create the Shopify order.
 
@@ -471,39 +471,32 @@ Add recovery for customers who close the browser after payment, without recreati
 
 This is a separate architecture project. Do not begin it until PRs 1–4 are stable in production.
 
+## Hydrogen implementation without an external database
+
+This storefront does not currently have a general-purpose database. The approved incremental alternative uses a Shopify Draft Order as the durable, Shopify-owned checkout anchor:
+
+1. **PR 5A — shadow anchor:** Create the Draft Order before the Razorpay order and copy its GID into the server-authored Razorpay order notes and checkout session. Continue using the legacy final `orderCreate` writer. This phase proves scope, schema and production connectivity without changing final-order creation.
+2. **PR 5B — browser completion:** After signature, Razorpay order, payment and amount validation, update the anchored draft with verified buyer, shipping and payment metadata, verify Shopify's recalculated INR total, and call `draftOrderComplete`. Query the draft before completion and after ambiguous completion failures so retries return its one attached order. Keep the legacy path when the flag is false and for older in-flight Razorpay orders without an anchor.
+3. **PR 5C — webhook shadow mode:** Validate and observe `order.paid` deliveries without allowing the webhook to complete a draft.
+4. **PR 5D — recovery mode:** After live shadow evidence, allow the canonical webhook and browser callback to invoke the same draft-completion command. Shopify's durable Draft Order-to-Order relationship is the shared idempotency boundary.
+
+This alternative is limited to reconciliation for this checkout. It is not a substitute for a general event database: webhook event IDs, attempt histories and long-lived failure states still require durable storage if those records become requirements.
+
 ## Mandatory prerequisite: durable atomic idempotency
 
-Before allowing both browser callbacks and webhooks to initiate reconciliation, introduce a durable record keyed by:
+Before allowing both browser callbacks and webhooks to initiate reconciliation, every Razorpay order must contain one valid `shopify_draft_order_id` written by the server when that Razorpay order is created. Both signals must resolve that same GID and use `draftOrderComplete`; neither signal may independently call `orderCreate` for an anchored checkout.
 
-```text
-razorpay_order_id
-```
+The completed Draft Order and its attached Shopify Order are the durable result. An in-memory `Map` can still coalesce duplicate work inside one Oxygen isolate, but it is only an optimization and is never the correctness boundary. Oxygen Cache is not used as a lock.
 
-The store must support an atomic create/claim or compare-and-set operation. Oxygen Cache and an in-memory `Map` are not sufficient.
+Before webhook recovery is enabled, prove with integration and live replay tests that:
 
-Suggested state model:
+- A completed draft always returns its already-attached order.
+- Concurrent or repeated completion cannot attach a second order.
+- An ambiguous mutation failure is followed by a fresh draft query before retrying.
+- The Razorpay order ID and payment ID survive as Shopify custom attributes.
+- Invalid or mismatched draft GIDs fail closed.
 
-```text
-received
-processing
-shopify_created
-completed
-retryable_failure
-permanent_failure
-```
-
-Persist at least:
-
-- Razorpay order ID.
-- Razorpay payment ID for prepaid checkout.
-- Reconciliation status.
-- Shopify order ID and order name.
-- Attempt count.
-- Last safe failure code.
-- Created and updated timestamps.
-- Processed Razorpay event IDs when available.
-
-Do not store secrets or full customer payloads in the idempotency record.
+If processed webhook event IDs, attempt histories, failure states or operational audit records become requirements, add a real durable event store for those records. Do not store secrets or full customer payloads in it.
 
 ## One reconciliation command
 
@@ -513,7 +506,7 @@ The browser callback and webhook must call the same server-side command:
 reconcileRazorpayOrder(razorpay_order_id)
 ```
 
-That command must atomically claim the record before Shopify creation. Only the owner of the claim may call `orderCreate`. Other callers must read or wait for the durable result.
+For anchored prepaid checkouts, that command must query and complete the same Draft Order. Callers that arrive after completion return the attached Shopify Order. `orderCreate` remains only as a compatibility fallback for flag-off operation and older in-flight Razorpay orders created without a draft anchor.
 
 ## Prepaid webhook policy
 
@@ -649,19 +642,19 @@ Every PR must:
 
 Run this matrix after every PR:
 
-| Scenario | Expected result |
-|---|---|
-| Normal captured payment | One Shopify order and one Shiprocket order |
-| Razorpay final state delayed briefly | Bounded retry, then one Shopify order |
-| Browser verification replayed | Existing Shopify order returned; no duplicate |
-| `payment.captured` webhook replayed | Acknowledged; no Shopify write in the current architecture |
-| `order.paid` webhook replayed | Acknowledged; no Shopify write in the current architecture |
-| Invalid Razorpay signature | Rejected; no Shopify call |
-| Session order ID mismatch | Rejected; no Shopify call |
-| Shopify mutation `userErrors` | Failure returned; no false success page |
-| Shopify HTTP/GraphQL failure | Safe failure; session/cart retained for recovery |
-| Cart-clear failure after Shopify success | Order remains successful; failure logged separately |
-| FastRR feature enabled instead | Razorpay routes unavailable; FastRR behavior unchanged |
+| Scenario                                 | Expected result                                            |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| Normal captured payment                  | One Shopify order and one Shiprocket order                 |
+| Razorpay final state delayed briefly     | Bounded retry, then one Shopify order                      |
+| Browser verification replayed            | Existing Shopify order returned; no duplicate              |
+| `payment.captured` webhook replayed      | Acknowledged; no Shopify write in the current architecture |
+| `order.paid` webhook replayed            | Acknowledged; no Shopify write in the current architecture |
+| Invalid Razorpay signature               | Rejected; no Shopify call                                  |
+| Session order ID mismatch                | Rejected; no Shopify call                                  |
+| Shopify mutation `userErrors`            | Failure returned; no false success page                    |
+| Shopify HTTP/GraphQL failure             | Safe failure; session/cart retained for recovery           |
+| Cart-clear failure after Shopify success | Order remains successful; failure logged separately        |
+| FastRR feature enabled instead           | Razorpay routes unavailable; FastRR behavior unchanged     |
 
 ## Reference documentation
 
@@ -670,3 +663,7 @@ Run this matrix after every PR:
 - Shopify `orderCreate`: https://shopify.dev/docs/api/admin-graphql/latest/mutations/orderCreate
 - Shopify Admin GraphQL rate limits: https://shopify.dev/docs/apps/build/apis/graphql-admin/rate-limits
 
+
+### Usefull commands
+> git restore --worktree -- .react-router                                                          
+> npm run deploy:oxygen -- --env production --force --metadata-description "PR 5B Razorpay draft-order anchor production test"
