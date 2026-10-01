@@ -801,12 +801,14 @@ async function reconcileRazorpayOrderOnce({
   orderId,
   paymentId,
   draftOrderId,
+  requireDraftOrderAnchor = false,
   fetcher = fetch,
 }: {
   env: Env;
   orderId: string;
   paymentId?: string;
   draftOrderId?: string;
+  requireDraftOrderAnchor?: boolean;
   fetcher?: typeof fetch;
 }) {
   if (!/^order_[A-Za-z0-9]+$/.test(orderId)) {
@@ -835,6 +837,14 @@ async function reconcileRazorpayOrderOnce({
     throw new RazorpayReconciliationError('Razorpay order is not payable');
   }
   const anchoredDraftOrderId = razorpayDraftOrderId(order);
+  if (
+    requireDraftOrderAnchor &&
+    (!payment || !razorpayDraftOrderAnchorEnabled(env) || !anchoredDraftOrderId)
+  ) {
+    throw new RazorpayReconciliationError(
+      'Razorpay checkout draft order anchor is required for webhook recovery',
+    );
+  }
   if (
     draftOrderId !== undefined &&
     (!/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrderId) ||

@@ -1,8 +1,10 @@
 import type {ActionFunctionArgs} from 'react-router';
 import {
   inspectRazorpayPrepaidOrder,
+  razorpayDraftOrderAnchorEnabled,
   razorpayVerificationFailureCode,
   reconcileRazorpayOrder,
+  retryPendingRazorpayFinalization,
 } from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 import {verifyRazorpayWebhook} from '~/lib/checkout/providers/razorpay/razorpay.server';
 import {
@@ -16,6 +18,10 @@ const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
 function shadowEnabled(env: Env) {
   return env.RAZORPAY_WEBHOOK_SHADOW_ENABLED?.trim().toLowerCase() === 'true';
+}
+
+function recoveryEnabled(env: Env) {
+  return env.RAZORPAY_WEBHOOK_RECOVERY_ENABLED?.trim().toLowerCase() === 'true';
 }
 
 async function safeCorrelation(value: string) {
@@ -55,10 +61,71 @@ export async function action({request, context}: ActionFunctionArgs) {
   }
 
   if (isRazorpayPrepaidShadowEvent(payload)) {
-    if (!shadowEnabled(context.env)) return new Response(null, {status: 204});
-
     const target = razorpayPaidWebhookTarget(payload);
     const eventIdPresent = Boolean(request.headers.get('x-razorpay-event-id'));
+    if (recoveryEnabled(context.env)) {
+      if (!target) return new Response('Invalid event payload', {status: 400});
+
+      const correlation = await safeCorrelation(target.orderId);
+      if (!razorpayDraftOrderAnchorEnabled(context.env)) {
+        const code = 'RAZORPAY_WEBHOOK_RECOVERY_MISCONFIGURED';
+        context.monitor?.failure(
+          'checkout.razorpay.webhook.recovery.failure',
+          {event: 'order.paid', code, eventIdPresent},
+          new Error(code),
+        );
+        console.error('Razorpay webhook recovery observation', {
+          event: 'order.paid',
+          outcome: 'failed',
+          code,
+          eventIdPresent,
+          correlation,
+        });
+        return new Response('Recovery is not configured', {status: 503});
+      }
+      try {
+        const {shopifyOrder} = await retryPendingRazorpayFinalization(() =>
+          reconcileRazorpayOrder({
+            ...target,
+            env: context.env,
+            requireDraftOrderAnchor: true,
+          }),
+        );
+        context.monitor?.count('checkout.razorpay.webhook.recovery', {
+          event: 'order.paid',
+          outcome: shopifyOrder.created ? 'completed' : 'already_completed',
+          eventIdPresent,
+        });
+        console.info('Razorpay webhook recovery observation', {
+          event: 'order.paid',
+          outcome: shopifyOrder.created ? 'completed' : 'already_completed',
+          eventIdPresent,
+          correlation,
+        });
+        return new Response(null, {status: 204});
+      } catch (error) {
+        const code = razorpayVerificationFailureCode(error);
+        const retryable = code !== 'RAZORPAY_ORDER_DATA_INVALID';
+        context.monitor?.failure(
+          'checkout.razorpay.webhook.recovery.failure',
+          {event: 'order.paid', code, eventIdPresent},
+          error,
+        );
+        console.error('Razorpay webhook recovery observation', {
+          event: 'order.paid',
+          outcome: retryable ? 'failed' : 'ineligible',
+          code,
+          eventIdPresent,
+          correlation,
+        });
+        return retryable
+          ? new Response('Reconciliation failed', {status: 500})
+          : new Response(null, {status: 204});
+      }
+    }
+
+    if (!shadowEnabled(context.env)) return new Response(null, {status: 204});
+
     if (!target) {
       context.monitor?.count('checkout.razorpay.webhook.shadow', {
         event: 'order.paid',
