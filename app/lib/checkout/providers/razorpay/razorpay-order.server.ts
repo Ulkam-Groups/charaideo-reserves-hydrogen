@@ -3,9 +3,7 @@ import {
   decodeRazorpayCheckoutSnapshot,
   type RazorpayCheckoutSnapshotLine,
 } from './razorpay.ts';
-import {
-  razorpayCredentials,
-} from './razorpay.server.ts';
+import {razorpayCredentials} from './razorpay.server.ts';
 
 const ADMIN_API_VERSION = '2026-07';
 
@@ -58,10 +56,43 @@ type ShopifyAdminCredentials = {
 
 export class RazorpayReconciliationError extends Error {}
 
+const RAZORPAY_FINALIZATION_RETRY_DELAYS_MS = [250, 750, 1_500] as const;
+
+function isPendingRazorpayFinalization(error: unknown) {
+  return (
+    error instanceof RazorpayReconciliationError &&
+    (error.message === 'Razorpay payment is not captured' ||
+      error.message === 'Razorpay order is not payable')
+  );
+}
+
+export async function retryPendingRazorpayFinalization<T>(
+  operation: () => Promise<T>,
+  wait: (milliseconds: number) => Promise<void> = (milliseconds) =>
+    new Promise((resolve) => setTimeout(resolve, milliseconds)),
+) {
+  for (const delay of [0, ...RAZORPAY_FINALIZATION_RETRY_DELAYS_MS]) {
+    if (delay) await wait(delay);
+    try {
+      return await operation();
+    } catch (error) {
+      if (!isPendingRazorpayFinalization(error) || delay === 1_500) throw error;
+    }
+  }
+  throw new RazorpayReconciliationError('Razorpay payment is not captured');
+}
+
+export function razorpayVerificationFailureCode(error: unknown) {
+  if (!(error instanceof RazorpayReconciliationError)) {
+    return 'CHECKOUT_VERIFICATION_FAILED';
+  }
+  if (isPendingRazorpayFinalization(error)) return 'RAZORPAY_PAYMENT_NOT_FINAL';
+  if (error.message.startsWith('Shopify')) return 'SHOPIFY_ORDER_WRITE_FAILED';
+  return 'RAZORPAY_ORDER_DATA_INVALID';
+}
+
 function adminCredentials(env: Env): ShopifyAdminCredentials | null {
-  const domain = (
-    env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
-  )?.trim();
+  const domain = (env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN)?.trim();
   const clientId = env.SHOPIFY_ADMIN_CLIENT_ID?.trim();
   const clientSecret = env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim();
   if (
@@ -106,9 +137,7 @@ function mailingAddress(value: RazorpayAddress | undefined) {
     ...(stringValue(value.line1) ? {address1: stringValue(value.line1)} : {}),
     ...(stringValue(value.line2) ? {address2: stringValue(value.line2)} : {}),
     ...(stringValue(value.city, 100) ? {city: stringValue(value.city, 100)} : {}),
-    ...(stringValue(value.state, 100)
-      ? {province: stringValue(value.state, 100)}
-      : {}),
+    ...(stringValue(value.state, 100) ? {province: stringValue(value.state, 100)} : {}),
     ...(stringValue(value.zipcode, 20) ? {zip: stringValue(value.zipcode, 20)} : {}),
     ...(stringValue(value.contact, 30) ? {phone: stringValue(value.contact, 30)} : {}),
     countryCode,
@@ -273,7 +302,8 @@ async function adminGraphql<T>({
       }),
     },
   );
-  if (!tokenResponse.ok) throw new RazorpayReconciliationError('Shopify authentication failed');
+  if (!tokenResponse.ok)
+    throw new RazorpayReconciliationError('Shopify authentication failed');
   const token = (await tokenResponse.json()) as {access_token?: unknown};
   if (typeof token.access_token !== 'string') {
     throw new RazorpayReconciliationError('Shopify authentication failed');
@@ -307,9 +337,12 @@ export async function createShopifyOrder(
   fetcher: typeof fetch,
 ) {
   const credentials = adminCredentials(env);
-  if (!credentials) throw new RazorpayReconciliationError('Shopify order API is not configured');
+  if (!credentials)
+    throw new RazorpayReconciliationError('Shopify order API is not configured');
   const query = `source_identifier:${order.id}`;
-  const existing = await adminGraphql<{orders: {nodes: Array<{id: string; name: string}>}}>({
+  const existing = await adminGraphql<{
+    orders: {nodes: Array<{id: string; name: string}>};
+  }>({
     credentials,
     fetcher,
     query: `query RazorpayExistingOrder($query: String!) {
@@ -438,7 +471,7 @@ export function reconcileRazorpayOrder(
 export function razorpayOrderIntegrationReady(env: Env) {
   return Boolean(
     razorpayCredentials(env) &&
-      adminCredentials(env) &&
-      env.RAZORPAY_WEBHOOK_SECRET?.trim(),
+    adminCredentials(env) &&
+    env.RAZORPAY_WEBHOOK_SECRET?.trim(),
   );
 }

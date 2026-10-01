@@ -16,7 +16,10 @@ import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razo
 import {
   createShopifyOrder,
   buildShopifyOrderInput,
+  RazorpayReconciliationError,
   razorpayOrderIntegrationReady,
+  razorpayVerificationFailureCode,
+  retryPendingRazorpayFinalization,
   validateCapturedRazorpayPayment,
   validateRazorpayOrderForShopify,
   type RazorpayMagicOrderDetails,
@@ -471,6 +474,50 @@ test('Razorpay signatures and webhook event targets are verified', async () => {
   assert.equal(isRazorpayReconciliationEvent({event: 'order.paid'}), false);
   assert.equal(isRazorpayReconciliationEvent({event: 'payment.captured'}), false);
   assert.equal(isRazorpayReconciliationEvent({event: 'refund.processed'}), false);
+});
+
+test('Razorpay verification retries only while payment finalization is pending', async () => {
+  let attempts = 0;
+  const waits: number[] = [];
+  const result = await retryPendingRazorpayFinalization(
+    async () => {
+      attempts += 1;
+      if (attempts < 3) {
+        throw new RazorpayReconciliationError('Razorpay payment is not captured');
+      }
+      return 'ready';
+    },
+    async (milliseconds) => {
+      waits.push(milliseconds);
+    },
+  );
+  assert.equal(result, 'ready');
+  assert.equal(attempts, 3);
+  assert.deepEqual(waits, [250, 750]);
+
+  let permanentAttempts = 0;
+  await assert.rejects(() =>
+    retryPendingRazorpayFinalization(
+      async () => {
+        permanentAttempts += 1;
+        throw new RazorpayReconciliationError('Shopify authentication failed');
+      },
+      async () => {},
+    ),
+  );
+  assert.equal(permanentAttempts, 1);
+  assert.equal(
+    razorpayVerificationFailureCode(
+      new RazorpayReconciliationError('Razorpay payment is not captured'),
+    ),
+    'RAZORPAY_PAYMENT_NOT_FINAL',
+  );
+  assert.equal(
+    razorpayVerificationFailureCode(
+      new RazorpayReconciliationError('Shopify authentication failed'),
+    ),
+    'SHOPIFY_ORDER_WRITE_FAILED',
+  );
 });
 
 test('Shopify creation checks for an existing Razorpay order before mutation', async () => {

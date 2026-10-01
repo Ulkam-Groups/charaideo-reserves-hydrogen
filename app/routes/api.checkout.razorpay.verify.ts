@@ -2,10 +2,15 @@ import type {ActionFunctionArgs} from 'react-router';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
+  classifyRazorpayFailure,
   razorpayCredentials,
   verifyRazorpayPayment,
 } from '~/lib/checkout/providers/razorpay/razorpay.server';
-import {reconcileRazorpayOrder} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
+import {
+  reconcileRazorpayOrder,
+  retryPendingRazorpayFinalization,
+  razorpayVerificationFailureCode,
+} from '~/lib/checkout/providers/razorpay/razorpay-order.server';
 
 function json(body: unknown, status = 200) {
   return Response.json(body, {
@@ -44,11 +49,13 @@ export async function action({request, context}: ActionFunctionArgs) {
     if (!(await verifyRazorpayPayment({credentials, orderId, paymentId, signature}))) {
       return json({error: 'Payment verification failed'}, 400);
     }
-    const {shopifyOrder} = await reconcileRazorpayOrder({
-      env: context.env,
-      orderId,
-      paymentId,
-    });
+    const {shopifyOrder} = await retryPendingRazorpayFinalization(() =>
+      reconcileRazorpayOrder({
+        env: context.env,
+        orderId,
+        paymentId,
+      }),
+    );
     context.session.unset('razorpayOrderId');
     context.session.set('razorpayPaymentVerified', {
       razorpayOrderId: orderId,
@@ -57,7 +64,20 @@ export async function action({request, context}: ActionFunctionArgs) {
     });
     return json({redirectTo: '/checkout/razorpay/success'});
   } catch (error) {
-    context.monitor?.failure('checkout.razorpay.verify.failure', {}, error);
-    return json({error: 'Payment verification or order creation failed'}, 502);
+    const reconciliationCode = razorpayVerificationFailureCode(error);
+    const code =
+      reconciliationCode === 'CHECKOUT_VERIFICATION_FAILED'
+        ? classifyRazorpayFailure(error).code
+        : reconciliationCode;
+    context.monitor?.failure('checkout.razorpay.verify.failure', {code}, error);
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        scope: 'checkout.razorpay.verify',
+        code,
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+      }),
+    );
+    return json({error: 'Payment verification or order creation failed', code}, 502);
   }
 }
