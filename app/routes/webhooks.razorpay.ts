@@ -13,6 +13,14 @@ import {
   razorpayPaidWebhookTarget,
   razorpayWebhookTarget,
 } from '~/lib/checkout/providers/razorpay/razorpay';
+import {
+  checkoutCorrelation,
+  checkoutCount,
+  checkoutFailure,
+  checkoutLog,
+  checkoutRequestId,
+  checkoutResponse,
+} from '~/lib/checkout/checkout-observability.server';
 
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
@@ -24,54 +32,88 @@ function recoveryEnabled(env: Env) {
   return env.RAZORPAY_WEBHOOK_RECOVERY_ENABLED?.trim().toLowerCase() === 'true';
 }
 
-async function safeCorrelation(value: string) {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest).slice(0, 6), (byte) =>
-    byte.toString(16).padStart(2, '0'),
-  ).join('');
+function safeEventName(payload: unknown) {
+  const event =
+    payload && typeof payload === 'object' && 'event' in payload
+      ? (payload as {event?: unknown}).event
+      : undefined;
+  return typeof event === 'string' && /^[a-z_]+(?:\.[a-z_]+)+$/.test(event)
+    ? event.slice(0, 64)
+    : 'unknown';
 }
 
 export async function action({request, context}: ActionFunctionArgs) {
+  const requestId = checkoutRequestId(request, context);
+  const respond = (
+    body: BodyInit | null,
+    status: number,
+    headers?: HeadersInit,
+  ) => checkoutResponse(body, status, requestId, headers);
   if (request.method !== 'POST') {
-    return new Response('Method not allowed', {
-      status: 405,
-      headers: {Allow: 'POST'},
-    });
+    return respond('Method not allowed', 405, {Allow: 'POST'});
   }
   const secret = context.env.RAZORPAY_WEBHOOK_SECRET?.trim();
   const signature = request.headers.get('x-razorpay-signature');
-  if (!secret || !signature) return new Response('Unauthorized', {status: 401});
+  if (!secret || !signature) {
+    checkoutCount(
+      context.monitor,
+      'razorpay.webhook.invalid_signature',
+      requestId,
+      {reason: secret ? 'missing' : 'not_configured'},
+    );
+    return respond('Unauthorized', 401);
+  }
   const declaredLength = Number(request.headers.get('content-length') || 0);
   if (!Number.isFinite(declaredLength) || declaredLength > MAX_WEBHOOK_BODY_BYTES) {
-    return new Response('Payload too large', {status: 413});
+    return respond('Payload too large', 413);
   }
   const rawBody = await request.text();
   if (new TextEncoder().encode(rawBody).byteLength > MAX_WEBHOOK_BODY_BYTES) {
-    return new Response('Payload too large', {status: 413});
+    return respond('Payload too large', 413);
   }
   if (!(await verifyRazorpayWebhook(rawBody, signature, secret))) {
-    return new Response('Unauthorized', {status: 401});
+    checkoutCount(
+      context.monitor,
+      'razorpay.webhook.invalid_signature',
+      requestId,
+    );
+    checkoutLog({
+      level: 'warn',
+      scope: 'checkout.razorpay.webhook',
+      stage: 'signature_verification',
+      code: 'RAZORPAY_SIGNATURE_INVALID',
+      requestId,
+      status: 401,
+    });
+    return respond('Unauthorized', 401);
   }
 
   let payload: unknown;
   try {
     payload = JSON.parse(rawBody);
   } catch {
-    return new Response('Invalid payload', {status: 400});
+    return respond('Invalid payload', 400);
   }
+
+  const receivedEvent = safeEventName(payload);
+  checkoutCount(context.monitor, 'razorpay.webhook.received', requestId, {
+    event: receivedEvent,
+  });
 
   if (isRazorpayPrepaidShadowEvent(payload)) {
     const target = razorpayPaidWebhookTarget(payload);
     const eventIdPresent = Boolean(request.headers.get('x-razorpay-event-id'));
     if (recoveryEnabled(context.env)) {
-      if (!target) return new Response('Invalid event payload', {status: 400});
+      if (!target) return respond('Invalid event payload', 400);
 
-      const correlation = await safeCorrelation(target.orderId);
+      const correlation = await checkoutCorrelation(target.orderId);
       if (!razorpayDraftOrderAnchorEnabled(context.env)) {
         const code = 'RAZORPAY_WEBHOOK_RECOVERY_MISCONFIGURED';
-        context.monitor?.failure(
+        checkoutFailure(
+          context.monitor,
           'checkout.razorpay.webhook.recovery.failure',
-          {event: 'order.paid', code, eventIdPresent},
+          requestId,
+          {event: 'order.paid', code, eventIdPresent, correlation},
           new Error(code),
         );
         console.error('Razorpay webhook recovery observation', {
@@ -80,8 +122,9 @@ export async function action({request, context}: ActionFunctionArgs) {
           code,
           eventIdPresent,
           correlation,
+          requestId,
         });
-        return new Response('Recovery is not configured', {status: 503});
+        return respond('Recovery is not configured', 503);
       }
       try {
         const {shopifyOrder} = await retryPendingRazorpayFinalization(() =>
@@ -90,25 +133,44 @@ export async function action({request, context}: ActionFunctionArgs) {
             env: context.env,
             requireDraftOrderAnchor: true,
           }),
+          undefined,
+          (attempt, delay) =>
+            checkoutCount(
+              context.monitor,
+              'razorpay.finalization.retry',
+              requestId,
+              {attempt, delay, writer: 'webhook'},
+            ),
         );
-        context.monitor?.count('checkout.razorpay.webhook.recovery', {
+        checkoutCount(context.monitor, 'checkout.razorpay.webhook.recovery', requestId, {
           event: 'order.paid',
           outcome: shopifyOrder.created ? 'completed' : 'already_completed',
           eventIdPresent,
         });
+        checkoutCount(
+          context.monitor,
+          shopifyOrder.created
+            ? 'shopify.order.created'
+            : 'shopify.existing_order.found',
+          requestId,
+          {writer: 'webhook'},
+        );
         console.info('Razorpay webhook recovery observation', {
           event: 'order.paid',
           outcome: shopifyOrder.created ? 'completed' : 'already_completed',
           eventIdPresent,
           correlation,
+          requestId,
         });
-        return new Response(null, {status: 204});
+        return respond(null, 204);
       } catch (error) {
         const code = razorpayVerificationFailureCode(error);
         const retryable = code !== 'RAZORPAY_ORDER_DATA_INVALID';
-        context.monitor?.failure(
+        checkoutFailure(
+          context.monitor,
           'checkout.razorpay.webhook.recovery.failure',
-          {event: 'order.paid', code, eventIdPresent},
+          requestId,
+          {event: 'order.paid', code, eventIdPresent, correlation},
           error,
         );
         console.error('Razorpay webhook recovery observation', {
@@ -117,17 +179,18 @@ export async function action({request, context}: ActionFunctionArgs) {
           code,
           eventIdPresent,
           correlation,
+          requestId,
         });
         return retryable
-          ? new Response('Reconciliation failed', {status: 500})
-          : new Response(null, {status: 204});
+          ? respond('Reconciliation failed', 500)
+          : respond(null, 204);
       }
     }
 
-    if (!shadowEnabled(context.env)) return new Response(null, {status: 204});
+    if (!shadowEnabled(context.env)) return respond(null, 204);
 
     if (!target) {
-      context.monitor?.count('checkout.razorpay.webhook.shadow', {
+      checkoutCount(context.monitor, 'checkout.razorpay.webhook.shadow', requestId, {
         event: 'order.paid',
         outcome: 'invalid_payload',
         eventIdPresent,
@@ -136,16 +199,17 @@ export async function action({request, context}: ActionFunctionArgs) {
         event: 'order.paid',
         outcome: 'invalid_payload',
         eventIdPresent,
+        requestId,
       });
-      return new Response(null, {status: 204});
+      return respond(null, 204);
     }
 
     const observe = async () => {
       let correlation = 'unavailable';
       try {
-        correlation = await safeCorrelation(target.orderId);
+        correlation = await checkoutCorrelation(target.orderId);
         await inspectRazorpayPrepaidOrder({...target, env: context.env});
-        context.monitor?.count('checkout.razorpay.webhook.shadow', {
+        checkoutCount(context.monitor, 'checkout.razorpay.webhook.shadow', requestId, {
           event: 'order.paid',
           outcome: 'eligible',
           eventIdPresent,
@@ -155,12 +219,15 @@ export async function action({request, context}: ActionFunctionArgs) {
           outcome: 'eligible',
           eventIdPresent,
           correlation,
+          requestId,
         });
       } catch (error) {
         const code = razorpayVerificationFailureCode(error);
-        context.monitor?.failure(
+        checkoutFailure(
+          context.monitor,
           'checkout.razorpay.webhook.shadow.failure',
-          {event: 'order.paid', code, eventIdPresent},
+          requestId,
+          {event: 'order.paid', code, eventIdPresent, correlation},
           error,
         );
         console.warn('Razorpay webhook shadow observation', {
@@ -169,6 +236,7 @@ export async function action({request, context}: ActionFunctionArgs) {
           code,
           eventIdPresent,
           correlation,
+          requestId,
         });
       }
     };
@@ -178,21 +246,27 @@ export async function action({request, context}: ActionFunctionArgs) {
     } else {
       await observation;
     }
-    return new Response(null, {status: 204});
+    return respond(null, 204);
   }
 
   const target = razorpayWebhookTarget(payload);
   if (!target) {
     return isRazorpayReconciliationEvent(payload)
-      ? new Response('Invalid event payload', {status: 400})
-      : new Response(null, {status: 204});
+      ? respond('Invalid event payload', 400)
+      : respond(null, 204);
   }
 
   try {
     await reconcileRazorpayOrder({...target, env: context.env});
-    return new Response(null, {status: 200});
+    return respond(null, 200);
   } catch (error) {
-    context.monitor?.failure('checkout.razorpay.webhook.failure', {}, error);
-    return new Response('Reconciliation failed', {status: 500});
+    checkoutFailure(
+      context.monitor,
+      'checkout.razorpay.webhook.failure',
+      requestId,
+      {event: receivedEvent},
+      error,
+    );
+    return respond('Reconciliation failed', 500);
   }
 }

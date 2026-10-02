@@ -5,6 +5,37 @@ export type Monitor = {
   flush(waitUntil: (promise: Promise<unknown>) => void): void;
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function safeRequestId(value?: string | null) {
+  return value && UUID_PATTERN.test(value) ? value : crypto.randomUUID();
+}
+
+export function safeMonitorCount(
+  monitor: Monitor | null | undefined,
+  name: string,
+  tags?: Record<string, string | number | boolean>,
+) {
+  try {
+    monitor?.count(name, tags);
+  } catch {
+    // Monitoring must never change the storefront response.
+  }
+}
+
+export function safeMonitorFailure(
+  monitor: Monitor | null | undefined,
+  name: string,
+  tags?: Record<string, string | number | boolean>,
+  error?: unknown,
+) {
+  try {
+    monitor?.failure(name, tags, error);
+  } catch {
+    // Monitoring must never change the storefront response.
+  }
+}
+
 export function monitoringEnabled(value?: string) {
   return value === 'true';
 }

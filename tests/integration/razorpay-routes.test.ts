@@ -77,11 +77,14 @@ function formRequest(path: string, body: URLSearchParams) {
 }
 
 test('Razorpay order route rejects invalid products before external calls', async () => {
+  const requestId = '11111111-2222-4333-8444-555555555555';
+  const request = formRequest(
+    '/api/checkout/razorpay/order',
+    new URLSearchParams({source: 'product', products: '[]'}),
+  );
+  request.headers.set('X-Request-Id', requestId);
   const response = await orderAction({
-    request: formRequest(
-      '/api/checkout/razorpay/order',
-      new URLSearchParams({source: 'product', products: '[]'}),
-    ),
+    request,
     params: {},
     context: {
       env: {
@@ -98,6 +101,7 @@ test('Razorpay order route rejects invalid products before external calls', asyn
 
   assert.equal(response.status, 400);
   assert.deepEqual(await response.json(), {error: 'Invalid checkout request'});
+  assert.equal(response.headers.get('X-Request-Id'), requestId);
 });
 
 test('Razorpay verification is bound to the server-side order id', async () => {
@@ -129,6 +133,40 @@ test('Razorpay verification is bound to the server-side order id', async () => {
 
   assert.equal(response.status, 400);
   assert.equal(unset, false);
+});
+
+test('Razorpay verification is unchanged when monitoring throws', async () => {
+  const response = await verifyAction({
+    request: formRequest(
+      '/api/checkout/razorpay/verify',
+      new URLSearchParams({
+        razorpay_order_id: 'order_returned',
+        razorpay_payment_id: 'pay_abc123',
+        razorpay_signature: 'a'.repeat(64),
+      }),
+    ),
+    params: {},
+    context: {
+      env: {
+        CHECKOUT_PROVIDER: 'razorpay',
+        RAZORPAY_KEY_ID: 'rzp_test_public',
+        RAZORPAY_KEY_SECRET: 'secret',
+      },
+      session: {get: () => 'order_created_on_server'},
+      monitor: {
+        count() {
+          throw new Error('Sentry unavailable');
+        },
+        failure() {
+          throw new Error('Sentry unavailable');
+        },
+      },
+    },
+  } as unknown as ActionFunctionArgs);
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), {error: 'Invalid payment verification'});
+  assert.match(String(response.headers.get('X-Request-Id')), /^[0-9a-f-]{36}$/i);
 });
 
 test('Razorpay order route can create and persist a feature-flagged draft anchor', async () => {

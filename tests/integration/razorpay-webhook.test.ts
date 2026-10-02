@@ -190,16 +190,22 @@ test('Razorpay order.paid shadow mode validates authoritative payment state with
       requests.some((url) => url.includes('myshopify.com')),
       false,
     );
-    assert.deepEqual(metrics, [
+    assert.equal(metrics.length, 2);
+    assert.equal(metrics[0]?.name, 'razorpay.webhook.received');
+    assert.equal(metrics[0]?.tags?.event, 'order.paid');
+    assert.match(String(metrics[0]?.tags?.requestId), /^[0-9a-f-]{36}$/i);
+    assert.deepEqual(
+      {...metrics[1], tags: {...metrics[1]?.tags, requestId: undefined}},
       {
         name: 'checkout.razorpay.webhook.shadow',
         tags: {
           event: 'order.paid',
           outcome: 'eligible',
           eventIdPresent: true,
+          requestId: undefined,
         },
       },
-    ]);
+    );
   } finally {
     globalThis.fetch = originalFetch;
     console.info = originalInfo;
@@ -251,13 +257,17 @@ test('Razorpay order.paid shadow mode acknowledges invalid contracts without ext
     } as unknown as ActionFunctionArgs);
 
     assert.equal(response.status, 204);
-    assert.deepEqual(metrics, [
+    assert.equal(metrics.length, 2);
+    assert.equal(metrics[0]?.event, 'order.paid');
+    assert.deepEqual(
+      {...metrics[1], requestId: undefined},
       {
         event: 'order.paid',
         outcome: 'invalid_payload',
         eventIdPresent: false,
+        requestId: undefined,
       },
-    ]);
+    );
   } finally {
     globalThis.fetch = originalFetch;
     console.warn = originalWarn;

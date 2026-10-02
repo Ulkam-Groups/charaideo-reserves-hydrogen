@@ -3,6 +3,7 @@ import {createRequestHandler, storefrontRedirect} from '@shopify/hydrogen';
 import {createHydrogenRouterContext} from '~/lib/context';
 import {applySecurityHeaders} from '~/lib/security-headers';
 import {createMonitorIfEnabled} from '~/lib/sentry-client.server';
+import {safeRequestId} from '~/lib/monitoring.server';
 /**
  * Export a fetch handler in module format.
  */
@@ -12,7 +13,7 @@ export default {
     env: Env,
     executionContext: ExecutionContext,
   ): Promise<Response> {
-    const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
+    const requestId = safeRequestId(request.headers.get('x-request-id'));
     const monitor = createMonitorIfEnabled(env.SENTRY_ENABLED, env.SENTRY_DSN, env.SENTRY_ENVIRONMENT, requestId);
     const started = monitor ? performance.now() : 0;
     const routeGroup = monitor ? classifyRoute(new URL(request.url).pathname) : 'other';
@@ -24,6 +25,7 @@ export default {
         env,
         executionContext,
         monitor,
+        requestId,
       );
 
       /**

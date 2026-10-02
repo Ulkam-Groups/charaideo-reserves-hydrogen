@@ -289,6 +289,10 @@ Rollback PR 2 if legitimate checkout attempts return `429` or `503`, if shared-I
 
 # PR 3 — End-to-end checkout observability
 
+**Implementation status (2026-10-02):** code-complete locally; Production payment and
+invalid-request correlation evidence still required before this PR is considered
+live-proven.
+
 ## Objective
 
 Make every failure diagnosable without exposing secrets or changing checkout behavior.

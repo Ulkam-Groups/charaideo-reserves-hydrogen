@@ -32,6 +32,16 @@ at two seconds. Mutation `userErrors` are never automatically retried. The PR 1 
 and automated gates must not be treated as Production proof until its low-value live
 deployment gate is recorded.
 
+PR 3 checkout observability is fail-open and privacy-safe. The order, verification,
+and webhook routes share the server request UUID across the `X-Request-Id` response
+header, structured Oxygen failures, and Sentry. Sentry receives stable stages/codes,
+event/outcome metadata, and a 12-character SHA-256 Razorpay-order correlation only.
+It must never receive customer name, email, phone, address, full transaction IDs,
+signatures, credentials, request bodies, or provider error text. Customer lookup
+remains in the authorized Shopify/Razorpay dashboards; Sentry is an incident index,
+not a customer database. See the canonical architecture document for the metric list
+and live deployment gate.
+
 `RAZORPAY_WEBHOOK_SHADOW_ENABLED=true` enables the read-only PR 5C observation mode for signed `order.paid` webhooks when recovery is disabled. Shadow mode validates the event contract, fetches the authoritative Razorpay order and payment, verifies the captured state and server-authored Draft Order anchor, and emits safe operational telemetry. It acknowledges the webhook without contacting Shopify. This flag is now an optional diagnostic/rollback mode; recovery takes precedence when `RAZORPAY_WEBHOOK_RECOVERY_ENABLED=true`.
 
 `RAZORPAY_WEBHOOK_RECOVERY_ENABLED=true` enables PR 5D recovery for signed

@@ -19,6 +19,13 @@ import {
   razorpayOrderIntegrationReady,
   RazorpayReconciliationError,
 } from '~/lib/checkout/providers/razorpay/razorpay-order.server';
+import {
+  checkoutCount,
+  checkoutFailure,
+  checkoutJson,
+  checkoutLog,
+  checkoutRequestId,
+} from '~/lib/checkout/checkout-observability.server';
 
 type VariantNode = {
   id: string;
@@ -56,13 +63,6 @@ const RAZORPAY_VARIANTS_QUERY = `#graphql
   }
 ` as const;
 
-function json(body: unknown, status = 200) {
-  return Response.json(body, {
-    status,
-    headers: {'Cache-Control': 'no-store'},
-  });
-}
-
 function cartLines(cart: CartApiQueryFragment, origin: string): RazorpayOrderLine[] {
   return cart.lines.nodes.map((line) => {
     const merchandise = line.merchandise;
@@ -88,8 +88,14 @@ function cartLines(cart: CartApiQueryFragment, origin: string): RazorpayOrderLin
 }
 
 export async function action({request, context}: ActionFunctionArgs) {
+  const requestId = checkoutRequestId(request, context);
+  const json = (body: unknown, status = 200) =>
+    checkoutJson(body, status, requestId);
   const form = await readProtectedForm(request, {methods: ['POST'], maxBytes: 16_384});
-  if (form instanceof Response) return form;
+  if (form instanceof Response) {
+    form.headers.set('X-Request-Id', requestId);
+    return form;
+  }
 
   if (resolveCheckoutProvider(context.env.CHECKOUT_PROVIDER) !== 'razorpay') {
     return json({error: 'Checkout provider is unavailable'}, 404);
@@ -102,8 +108,18 @@ export async function action({request, context}: ActionFunctionArgs) {
   const source = form.get('source');
   const requestedProducts = parseRazorpayCheckoutProducts(form.get('products'));
   if ((source !== 'cart' && source !== 'product') || !requestedProducts) {
+    checkoutLog({
+      level: 'warn',
+      scope: 'checkout.razorpay.order',
+      stage: 'request_validation',
+      code: 'INVALID_CHECKOUT_REQUEST',
+      requestId,
+      status: 400,
+    });
     return json({error: 'Invalid checkout request'}, 400);
   }
+
+  checkoutCount(context.monitor, 'razorpay.order.started', requestId, {source});
 
   let stage: RazorpayOrderStage = source === 'cart' ? 'cart_lookup' : 'variant_lookup';
   let draftOrderId: string | undefined;
@@ -201,6 +217,11 @@ export async function action({request, context}: ActionFunctionArgs) {
       context.session.unset('razorpayDraftOrderId');
     }
 
+    checkoutCount(context.monitor, 'razorpay.order.created', requestId, {
+      source,
+      draftAnchor: Boolean(draftOrderId),
+    });
+
     return json({
       keyId: credentials.keyId,
       orderId: order.id,
@@ -214,8 +235,10 @@ export async function action({request, context}: ActionFunctionArgs) {
           draftOrderId,
         });
       } catch (cleanupError) {
-        context.monitor?.failure(
+        checkoutFailure(
+          context.monitor,
           'checkout.razorpay.draft.cleanup.failure',
+          requestId,
           {stage},
           cleanupError,
         );
@@ -226,11 +249,21 @@ export async function action({request, context}: ActionFunctionArgs) {
       error instanceof RazorpayReconciliationError && error.code
         ? error.code
         : failure.code;
-    context.monitor?.failure(
+    checkoutFailure(
+      context.monitor,
       'checkout.razorpay.order.failure',
+      requestId,
       {...failure.tags, code, stage},
       error,
     );
+    checkoutLog({
+      level: 'error',
+      scope: 'checkout.razorpay.order',
+      stage,
+      code,
+      requestId,
+      status: 502,
+    });
     return json(
       {
         error: 'Unable to create checkout order',

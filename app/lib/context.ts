@@ -3,7 +3,11 @@ import {AppSession} from '~/lib/session';
 import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
 import type {Monitor} from '~/lib/monitoring.server';
 
-type AdditionalContextType = {reviewsCache: Cache; monitor: Monitor | null};
+type AdditionalContextType = {
+  reviewsCache: Cache;
+  monitor: Monitor | null;
+  requestId: string;
+};
 
 declare global {
   interface HydrogenAdditionalContext extends AdditionalContextType {}
@@ -18,6 +22,7 @@ export async function createHydrogenRouterContext(
   env: Env,
   executionContext: ExecutionContext,
   monitor: Monitor | null = null,
+  requestId = crypto.randomUUID(),
 ) {
   /**
    * Open a cache instance in the worker and a custom session instance.
@@ -45,7 +50,7 @@ export async function createHydrogenRouterContext(
         queryFragment: CART_QUERY_FRAGMENT,
       },
     },
-    {reviewsCache: cache, monitor},
+    {reviewsCache: cache, monitor, requestId},
   );
 
   return hydrogenContext;
