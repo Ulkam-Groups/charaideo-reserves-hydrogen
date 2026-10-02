@@ -94,6 +94,7 @@ test('storefront CSP permits configured checkout and third-party assets', async 
   for (const origin of [
     'https://fastrr-boost-ui.pickrr.com',
     'https://sr-cdn.shiprocket.in',
+    'https://uc.shiprocket.in',
     'https://otpless.com',
     'https://uptime2.fastrr.com',
     'https://fonts.googleapis.com',

@@ -15,12 +15,16 @@ export const FASTRR_CSP = {
   connectSrc: [
     'https://fastrr-boost-ui.pickrr.com',
     'https://sr-cdn.shiprocket.in',
+    'https://uc.shiprocket.in',
     'https://uptime2.fastrr.com',
     'https://events.pickrr.com',
     'https://cred.club',
     'https://tez.google.com',
   ],
-  frameSrc: ['https://fastrr-boost-ui.pickrr.com'],
+  frameSrc: [
+    'https://fastrr-boost-ui.pickrr.com',
+    'https://sr-cdn.shiprocket.in',
+  ],
   imgSrc: [
     'https://fastrr-boost-ui.pickrr.com',
     'https://sr-cdn.shiprocket.in',
