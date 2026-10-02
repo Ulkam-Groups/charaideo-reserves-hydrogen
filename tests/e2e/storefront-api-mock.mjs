@@ -177,6 +177,47 @@ function execute(operation, variables) {
         product: {...product, collections: {nodes: []}},
         productRecommendations: [],
       };
+    case 'GlobalNotices':
+      return {
+        collections: {
+          nodes: [
+            {
+              title: 'Chapter I',
+              handle: 'chapter-i',
+              products: {
+                nodes: [
+                  {
+                    variants: {
+                      nodes: [{availableForSale: true, currentlyNotInStock: false}],
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        metaobjects: {nodes: []},
+      };
+    case 'ProductOriginTag':
+      return {
+        product: {
+          tags: ['single-estate', 'assam', 'reserve'],
+        },
+      };
+    case 'ProductTaxonomyAttributes':
+      return {
+        product: {
+          taxonomyTeaVariety: {
+            references: {nodes: [{label: {value: 'Assamica'}}]},
+          },
+          taxonomyTeaInputType: {
+            references: {nodes: [{label: {value: 'Loose Leaf'}}]},
+          },
+          taxonomyTasteProfile: {
+            references: {nodes: [{label: {value: 'Malt & Honey'}}]},
+          },
+        },
+      };
     case 'RelatedProductTags':
       return {
         nodes: (variables.productIds || []).map((id) => ({
