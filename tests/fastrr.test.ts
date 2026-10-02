@@ -5,6 +5,18 @@ import {
   type FastrrCheckoutInput,
 } from '../app/lib/checkout/providers/fastrr/fastrr.client.ts';
 import {fastrrVariantId} from '../app/lib/checkout/providers/fastrr/fastrr.ts';
+import {FASTRR_CSP} from '../app/lib/checkout/providers/fastrr/fastrr.config.ts';
+
+test('Fastrr CSP permits only the exact Shiprocket runtime origins it uses', () => {
+  assert.ok(FASTRR_CSP.frameSrc.includes('https://sr-cdn.shiprocket.in'));
+  assert.ok(FASTRR_CSP.connectSrc.includes('https://uc.shiprocket.in'));
+  assert.equal(
+    [...FASTRR_CSP.frameSrc, ...FASTRR_CSP.connectSrc].some((origin) =>
+      origin.includes('*.shiprocket.in'),
+    ),
+    false,
+  );
+});
 
 test('Fastrr receives the numeric Shopify variant ID', () => {
   assert.equal(fastrrVariantId('gid://shopify/ProductVariant/12345'), '12345');

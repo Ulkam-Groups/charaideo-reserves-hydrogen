@@ -13,9 +13,8 @@ import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {getJudgeMeProductReviews} from '~/lib/judgeme.server';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
-import {ProductReviews} from '~/components/ProductReviews';
+import {AsyncProductReviews} from '~/components/AsyncProductReviews';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductEditorialSections} from '~/components/ProductEditorialSections';
 import {measureStorefront} from '~/lib/monitoring.server';
@@ -25,6 +24,11 @@ import {
   rememberRecentProduct,
 } from '~/lib/recent-products';
 import type {ProductFragment} from 'storefrontapi.generated';
+import {settleDeferred} from '~/lib/deferred.server';
+
+// React Router's default deferred-data stream deadline is 4.95 seconds.
+// Optional Shopify recommendations must settle comfortably before that deadline.
+const PDP_DEFERRED_TIMEOUT_MS = 3_500;
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
@@ -39,7 +43,7 @@ export const meta: Route.MetaFunction = ({data}) => {
 export async function loader(args: Route.LoaderArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-  // Start non-critical reviews after the product ID is known, without blocking HTML.
+  // Start non-critical Shopify recommendations without blocking HTML.
   const deferredData = loadDeferredData(args, criticalData.product.id);
 
   return {...deferredData, ...criticalData};
@@ -57,12 +61,16 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     throw new Error('Expected product handle to be defined');
   }
 
+  const productVariables = {
+    handle,
+    selectedOptions: getSelectedProductOptions(request),
+  };
+  const productCache = storefront.CacheShort({
+    maxAge: 60,
+    staleWhileRevalidate: 600,
+  });
   const [{product}, productOriginLabel, taxonomyAttributes] = await Promise.all([
-    measureStorefront(context.monitor, 'product', () =>
-      storefront.query(PRODUCT_QUERY, {
-        variables: {handle, selectedOptions: getSelectedProductOptions(request)},
-      }),
-    ),
+    queryCriticalProduct(context, productVariables, productCache),
     loadProductOriginLabel(context, handle),
     loadProductTaxonomyAttributes(context, handle),
   ]);
@@ -84,6 +92,33 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   };
 }
 
+async function queryCriticalProduct(
+  context: Route.LoaderArgs['context'],
+  variables: {
+    handle: string;
+    selectedOptions: ReturnType<typeof getSelectedProductOptions>;
+  },
+  cache: ReturnType<Route.LoaderArgs['context']['storefront']['CacheShort']>,
+) {
+  const query = (operation: string) =>
+    measureStorefront(context.monitor, operation, () =>
+      context.storefront.query(PRODUCT_QUERY, {
+        variables,
+        cache,
+        displayName: 'Product page',
+      }),
+    );
+
+  try {
+    return await query('product');
+  } catch {
+    // A transient Storefront API failure should not collapse the PDP. The
+    // second request can also be served from stale Oxygen cache when present.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return query('product_retry');
+  }
+}
+
 async function loadProductTaxonomyAttributes(
   context: Route.LoaderArgs['context'],
   handle: string,
@@ -91,7 +126,13 @@ async function loadProductTaxonomyAttributes(
   try {
     const {product} = await context.storefront.query(
       PRODUCT_TAXONOMY_ATTRIBUTES_QUERY,
-      {variables: {handle}},
+      {
+        variables: {handle},
+        cache: context.storefront.CacheShort({
+          maxAge: 300,
+          staleWhileRevalidate: 3600,
+        }),
+      },
     );
 
     return {
@@ -120,14 +161,11 @@ function loadDeferredData(
   shopifyProductGid: string,
 ) {
   return {
-    judgeMeReviews: getJudgeMeProductReviews({
-      cache: context.reviewsCache,
-      shopDomain: context.env.JUDGEME_SHOP_DOMAIN,
-      privateApiToken: context.env.JUDGEME_PRIVATE_API_TOKEN,
-      shopifyProductGid,
-      monitor: context.monitor,
-    }),
-    relatedProducts: loadRelatedProducts(context, shopifyProductGid),
+    relatedProducts: settleDeferred(
+      loadRelatedProducts(context, shopifyProductGid),
+      [],
+      PDP_DEFERRED_TIMEOUT_MS,
+    ),
   };
 }
 
@@ -138,6 +176,10 @@ async function loadProductOriginLabel(
   try {
     const {product} = await context.storefront.query(PRODUCT_ORIGIN_TAG_QUERY, {
       variables: {handle},
+      cache: context.storefront.CacheShort({
+        maxAge: 300,
+        staleWhileRevalidate: 3600,
+      }),
     });
 
     return getProductOriginLabel(product?.tags);
@@ -234,7 +276,7 @@ async function loadRelatedProductTags(
 }
 
 export default function Product() {
-  const {product, productOriginLabel, judgeMeReviews, relatedProducts} =
+  const {product, productOriginLabel, relatedProducts} =
     useLoaderData<typeof loader>();
 
   // Optimistically selects a variant with given available variant information
@@ -372,17 +414,11 @@ export default function Product() {
           <h2 id="customer-notes-title">Reviews & questions.</h2>
           <p>Verified reviews are supplied by Judge.me. Customer questions will appear here when Judge.me Q&amp;A is enabled.</p>
         </div>
-        <Suspense fallback={<ReviewsSkeleton />}>
-          <Await resolve={judgeMeReviews}>
-            {(reviews) => (
-              <ProductReviews
-                data={reviews}
-                fallbackRating={rating}
-                fallbackCount={reviewCount}
-              />
-            )}
-          </Await>
-        </Suspense>
+        <AsyncProductReviews
+          productId={product.id}
+          fallbackRating={rating}
+          fallbackCount={reviewCount}
+        />
         <div className="product-reviews-legacy" aria-hidden="true">
         {hasReviews ? (
           <div className="product-rating-panel">
@@ -402,7 +438,7 @@ export default function Product() {
       </section>
 
       <Suspense fallback={null}>
-        <Await resolve={relatedProducts}>
+        <Await resolve={relatedProducts} errorElement={null}>
           {(products) =>
             products.length > 0 && (
               <section className="product-related" aria-labelledby="related-products-title">
@@ -531,16 +567,6 @@ function formatSpecification(value?: string | null) {
   }
 
   return value;
-}
-
-function ReviewsSkeleton() {
-  return (
-    <div className="product-reviews-loading" aria-label="Loading customer reviews">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
 }
 
 function parseRating(value?: string) {

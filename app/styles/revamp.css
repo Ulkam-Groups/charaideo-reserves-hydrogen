@@ -4191,7 +4191,10 @@ body {
     max-width: 620px;
   }
   .product-purchase .product-gallery {
-    position: static;
+    /* Stop the desktop sticky behavior while keeping positioned badges
+       anchored to the product media instead of the page viewport. */
+    position: relative;
+    top: auto;
   }
 }
 @media (max-width: 640px) {

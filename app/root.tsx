@@ -16,8 +16,6 @@ import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
-import homepageStylesheet from '~/assets/homepage-artifact.css?url';
-import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {
@@ -63,8 +61,6 @@ export function links() {
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
     {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
     {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
-    {rel: 'preload', as: 'style', href: homepageStylesheet},
-    {rel: 'preload', as: 'style', href: brandStoryStylesheet},
   ];
 }
 

@@ -30,11 +30,13 @@ test('internal navigation links prefetch their destination', () => {
   assert.deepEqual(missingPrefetch, []);
 });
 
-test('route-only styles are warmed before navigation', () => {
+test('route-only styles are loaded only by the route that uses them', () => {
   const root = readFileSync('app/root.tsx', 'utf8');
+  const homepage = readFileSync('app/routes/_index.tsx', 'utf8');
 
-  assert.match(root, /rel: 'preload', as: 'style', href: homepageStylesheet/);
-  assert.match(root, /rel: 'preload', as: 'style', href: brandStoryStylesheet/);
+  assert.doesNotMatch(root, /homepageStylesheet|brandStoryStylesheet/);
+  assert.match(homepage, /rel: 'stylesheet', href: artifactStylesheet/);
+  assert.match(homepage, /rel: 'stylesheet', href: brandStoryStylesheet/);
   assert.match(root, /<link rel="stylesheet" href=\{reserveListStylesheet\} \/>/);
 });
 
@@ -43,4 +45,24 @@ test('homepage collection cards keep client-side navigation', () => {
 
   assert.doesNotMatch(homepage, /window\.location\.(?:assign|replace)\(/);
   assert.match(homepage, /void navigate\(href\)/);
+});
+
+test('the product origin pill stays anchored to the gallery on mobile', () => {
+  const styles = readFileSync('app/styles/revamp.css', 'utf8');
+  const anchorComment = 'Stop the desktop sticky behavior';
+  const anchorIndex = styles.indexOf(anchorComment);
+  const tabletProductRules = styles.slice(
+    Math.max(0, anchorIndex - 100),
+    anchorIndex + 260,
+  );
+
+  assert.notEqual(anchorIndex, -1);
+  assert.match(
+    tabletProductRules,
+    /\.product-purchase \.product-gallery \{[\s\S]*?position: relative;[\s\S]*?top: auto;/,
+  );
+  assert.doesNotMatch(
+    tabletProductRules,
+    /\.product-purchase \.product-gallery \{[\s\S]*?position: static;/,
+  );
 });
