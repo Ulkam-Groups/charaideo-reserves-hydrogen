@@ -22,7 +22,7 @@ export async function createHydrogenRouterContext(
   env: Env,
   executionContext: ExecutionContext,
   monitor: Monitor | null = null,
-  requestId = crypto.randomUUID(),
+  requestId: string = crypto.randomUUID(),
 ) {
   /**
    * Open a cache instance in the worker and a custom session instance.
