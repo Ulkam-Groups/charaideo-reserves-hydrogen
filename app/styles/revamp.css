@@ -221,7 +221,11 @@ textarea {
   border: 1px solid #e7ede0;
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 8px 24px rgba(19, 42, 31, 0.06);
+  /* Lift the floating nav visually off the hero; the scrolled state removes this shadow below. */
+  box-shadow:
+    0 18px 40px rgba(19, 42, 31, 0.16),
+    0 5px 14px rgba(19, 42, 31, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   backdrop-filter: none;
 }
 .header.header-solid.header-scrolled .header-inner {
@@ -3590,6 +3594,8 @@ body {
 }
 .revamp-home .home-hero-layout {
   padding-block: clamp(32px, 3.2vw, 48px);
+  /* Lower hero copy and artwork without moving the header or changing the hero's flow height. */
+  transform: translateY(30px);
 }
 .revamp-home h1,
 .revamp-home h2,
