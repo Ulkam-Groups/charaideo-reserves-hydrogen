@@ -13,9 +13,8 @@ import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {getJudgeMeProductReviews} from '~/lib/judgeme.server';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
-import {ProductReviews} from '~/components/ProductReviews';
+import {AsyncProductReviews} from '~/components/AsyncProductReviews';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductEditorialSections} from '~/components/ProductEditorialSections';
 import {measureStorefront} from '~/lib/monitoring.server';
@@ -25,6 +24,11 @@ import {
   rememberRecentProduct,
 } from '~/lib/recent-products';
 import type {ProductFragment} from 'storefrontapi.generated';
+import {settleDeferred} from '~/lib/deferred.server';
+
+// React Router's default deferred-data stream deadline is 4.95 seconds.
+// Optional Shopify recommendations must settle comfortably before that deadline.
+const PDP_DEFERRED_TIMEOUT_MS = 3_500;
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
@@ -39,7 +43,7 @@ export const meta: Route.MetaFunction = ({data}) => {
 export async function loader(args: Route.LoaderArgs) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
-  // Start non-critical reviews after the product ID is known, without blocking HTML.
+  // Start non-critical Shopify recommendations without blocking HTML.
   const deferredData = loadDeferredData(args, criticalData.product.id);
 
   return {...deferredData, ...criticalData};
@@ -157,14 +161,11 @@ function loadDeferredData(
   shopifyProductGid: string,
 ) {
   return {
-    judgeMeReviews: getJudgeMeProductReviews({
-      cache: context.reviewsCache,
-      shopDomain: context.env.JUDGEME_SHOP_DOMAIN,
-      privateApiToken: context.env.JUDGEME_PRIVATE_API_TOKEN,
-      shopifyProductGid,
-      monitor: context.monitor,
-    }),
-    relatedProducts: loadRelatedProducts(context, shopifyProductGid),
+    relatedProducts: settleDeferred(
+      loadRelatedProducts(context, shopifyProductGid),
+      [],
+      PDP_DEFERRED_TIMEOUT_MS,
+    ),
   };
 }
 
@@ -275,7 +276,7 @@ async function loadRelatedProductTags(
 }
 
 export default function Product() {
-  const {product, productOriginLabel, judgeMeReviews, relatedProducts} =
+  const {product, productOriginLabel, relatedProducts} =
     useLoaderData<typeof loader>();
 
   // Optimistically selects a variant with given available variant information
@@ -413,17 +414,11 @@ export default function Product() {
           <h2 id="customer-notes-title">Reviews & questions.</h2>
           <p>Verified reviews are supplied by Judge.me. Customer questions will appear here when Judge.me Q&amp;A is enabled.</p>
         </div>
-        <Suspense fallback={<ReviewsSkeleton />}>
-          <Await resolve={judgeMeReviews}>
-            {(reviews) => (
-              <ProductReviews
-                data={reviews}
-                fallbackRating={rating}
-                fallbackCount={reviewCount}
-              />
-            )}
-          </Await>
-        </Suspense>
+        <AsyncProductReviews
+          productId={product.id}
+          fallbackRating={rating}
+          fallbackCount={reviewCount}
+        />
         <div className="product-reviews-legacy" aria-hidden="true">
         {hasReviews ? (
           <div className="product-rating-panel">
@@ -443,7 +438,7 @@ export default function Product() {
       </section>
 
       <Suspense fallback={null}>
-        <Await resolve={relatedProducts}>
+        <Await resolve={relatedProducts} errorElement={null}>
           {(products) =>
             products.length > 0 && (
               <section className="product-related" aria-labelledby="related-products-title">
@@ -572,16 +567,6 @@ function formatSpecification(value?: string | null) {
   }
 
   return value;
-}
-
-function ReviewsSkeleton() {
-  return (
-    <div className="product-reviews-loading" aria-label="Loading customer reviews">
-      <span />
-      <span />
-      <span />
-    </div>
-  );
 }
 
 function parseRating(value?: string) {
