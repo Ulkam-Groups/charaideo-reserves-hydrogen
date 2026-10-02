@@ -6,8 +6,12 @@ import {
   monitoringEnabled,
   safeErrorStack,
   safeErrorTags,
+  safeMonitorCount,
+  safeMonitorFailure,
+  safeRequestId,
   sentryIngestOrigin,
 } from '../app/lib/monitoring.server.ts';
+import {checkoutCorrelation} from '../app/lib/checkout/checkout-observability.server.ts';
 import {createMonitorIfEnabled} from '../app/lib/sentry-client.server.ts';
 import {
   installMonitoringRecorder,
@@ -25,6 +29,33 @@ test('monitoring requires the exact enabled value', () => {
   assert.equal(
     createMonitorIfEnabled('false', 'https://public@o1.ingest.sentry.io/123'),
     null,
+  );
+});
+
+test('request IDs and checkout correlations cannot carry customer data', async () => {
+  const requestId = safeRequestId('buyer@example.com');
+  assert.match(requestId, /^[0-9a-f-]{36}$/i);
+  assert.doesNotMatch(requestId, /buyer|example/i);
+
+  const correlation = await checkoutCorrelation('order_customerSecret123');
+  assert.match(correlation, /^[0-9a-f]{12}$/);
+  assert.doesNotMatch(correlation, /customer|secret|order/i);
+});
+
+test('throwing checkout monitors cannot change application control flow', () => {
+  const monitor = {
+    count() {
+      throw new Error('monitor unavailable');
+    },
+    duration() {},
+    failure() {
+      throw new Error('monitor unavailable');
+    },
+    flush() {},
+  };
+  assert.doesNotThrow(() => safeMonitorCount(monitor, 'checkout.test'));
+  assert.doesNotThrow(() =>
+    safeMonitorFailure(monitor, 'checkout.test.failure', {stage: 'test'}),
   );
 });
 

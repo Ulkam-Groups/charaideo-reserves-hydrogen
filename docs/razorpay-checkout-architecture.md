@@ -587,6 +587,51 @@ GraphQL HTTP success does not mean mutation success. Every operation must check 
 top-level GraphQL errors and mutation `userErrors` and must validate the returned
 resource ID.
 
+### PR 3 observability contract
+
+PR 3 adds diagnostics only. It does not change the browser/webhook writers, payment
+validation, Draft Order completion, response success criteria, or cart clearing.
+
+Every checkout request has one server-generated UUID. Oxygen responses expose it as
+`X-Request-Id`, structured failure logs include it as `requestId`, and Sentry failure
+events attach the same value. An incoming `X-Request-Id` is accepted only when it is a
+valid UUID; arbitrary header text is replaced so a caller cannot inject customer data
+into logs or Sentry tags.
+
+The order, verification, and webhook paths emit these safe signals:
+
+```text
+razorpay.order.started
+razorpay.order.created
+razorpay.verify.started
+razorpay.verify.succeeded
+razorpay.verify.failed          (stage + safe code)
+razorpay.finalization.retry     (attempt + bounded delay)
+shopify.existing_order.found
+shopify.order.created
+shopify.order.failed            (Shopify failures only)
+razorpay.webhook.received       (validated event name)
+razorpay.webhook.invalid_signature
+```
+
+Verification failures use stable stages such as `request_validation`,
+`session_binding`, `signature_verification`, `razorpay_final_state`,
+`shopify_authentication`, `shopify_order_create`, and `session_confirmation`. Logs and Sentry receive only the
+stage, safe failure code, request ID, safe HTTP status/event metadata, and—after a
+valid Razorpay order ID is known—a 12-character SHA-256 correlation value.
+
+Customer name, email, phone, address, signatures, credentials, full request bodies,
+full Razorpay identifiers, and upstream error messages must never be sent to Sentry
+or Oxygen logs. Shopify GraphQL `userErrors` are logged by count only. A successful
+customer is identified operationally by the Shopify order name already stored in the
+verified session and shown on the success page. For a failure, support searches by
+the response/request UUID and safe transaction correlation, then uses the authorized
+Razorpay and Shopify dashboards—not Sentry—as the source of customer PII.
+
+All monitoring calls are fail-open: a missing, throwing, or unavailable Sentry client
+must not alter the checkout response. PR 3 is code-complete only until its production
+gate proves one successful low-value payment plus one safe invalid pre-payment request.
+
 ## Regression history: patterns that must not return
 
 - Do not add unsupported Shopify input fields such as the previously rejected
@@ -665,7 +710,7 @@ Handle these only in separate, independently deployed PRs:
 - Durable webhook event audit/history if required.
 - COD only after the real event contract is captured and tested.
 - Rate limiting that cannot strand an already-paid customer.
-- Expanded structured observability and alerting.
+- External Sentry alert-rule/dashboard configuration after PR 3 live evidence.
 
 Until webhook recovery is implemented, a customer who closes the browser after the
 payment is captured but before `/verify` completes may require operational recovery.

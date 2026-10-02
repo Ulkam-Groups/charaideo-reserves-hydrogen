@@ -86,9 +86,19 @@ export async function retryPendingRazorpayFinalization<T>(
   operation: () => Promise<T>,
   wait: (milliseconds: number) => Promise<void> = (milliseconds) =>
     new Promise((resolve) => setTimeout(resolve, milliseconds)),
+  onRetry?: (attempt: number, delay: number) => void,
 ) {
+  let attempt = 0;
   for (const delay of [0, ...RAZORPAY_FINALIZATION_RETRY_DELAYS_MS]) {
-    if (delay) await wait(delay);
+    if (delay) {
+      attempt += 1;
+      try {
+        onRetry?.(attempt, delay);
+      } catch {
+        // Observability must not change payment finalization.
+      }
+      await wait(delay);
+    }
     try {
       return await operation();
     } catch (error) {
@@ -652,10 +662,9 @@ export async function createRazorpayDraftOrderAnchor({
     !draftOrder ||
     !/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrder.id)
   ) {
-    console.error(
-      'Shopify rejected Razorpay draft order creation',
-      result.draftOrderCreate.userErrors,
-    );
+    console.error('Shopify rejected Razorpay draft order creation', {
+      userErrorCount: result.draftOrderCreate.userErrors.length,
+    });
     throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
   }
   return draftOrder;
@@ -872,10 +881,9 @@ export async function completeRazorpayDraftOrder({
     total.currencyCode !== 'INR' ||
     inrToPaise(total.amount) !== order.amount
   ) {
-    console.error(
-      'Shopify rejected Razorpay draft order finalization',
-      updated.draftOrderUpdate.userErrors,
-    );
+    console.error('Shopify rejected Razorpay draft order finalization', {
+      userErrorCount: updated.draftOrderUpdate.userErrors.length,
+    });
     throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
   }
 
@@ -919,10 +927,9 @@ export async function completeRazorpayDraftOrder({
     return {...reconciled.order, created: false};
   }
   if (completionError) throw completionError;
-  console.error(
-    'Shopify rejected Razorpay draft order completion',
-    completed?.draftOrderComplete.userErrors ?? [],
-  );
+  console.error('Shopify rejected Razorpay draft order completion', {
+    userErrorCount: completed?.draftOrderComplete.userErrors.length ?? 0,
+  });
   throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
 }
 
@@ -982,10 +989,9 @@ export async function createShopifyOrder(
     },
   });
   if (result.orderCreate.userErrors.length || !result.orderCreate.order) {
-    console.error(
-      'Shopify rejected Razorpay order creation',
-      result.orderCreate.userErrors,
-    );
+    console.error('Shopify rejected Razorpay order creation', {
+      userErrorCount: result.orderCreate.userErrors.length,
+    });
     throw new RazorpayReconciliationError('Shopify rejected the Razorpay order');
   }
   return {...result.orderCreate.order, created: true};
