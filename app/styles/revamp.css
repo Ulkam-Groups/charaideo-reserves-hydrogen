@@ -283,12 +283,12 @@ textarea {
   gap: 6px;
 }
 .header-menu-item {
-  height: 40px;
-  padding: 0 15px;
+  height: 46px;
+  padding: 0 16px;
   border: 1px solid transparent;
   border-radius: 100px;
   color: #42594c;
-  font: 500 13px/1 var(--sans);
+  font: 500 15px/1.2 var(--sans);
   letter-spacing: 0.01em;
   text-transform: none;
   transition:
@@ -308,7 +308,7 @@ textarea {
   color: #315348;
   background: #f0f3ec;
   box-shadow: 0 4px 12px rgba(19, 42, 31, 0.08);
-  transform: translateY(-1px);
+  transform: none;
 }
 .header-menu-item.active,
 .header-menu-item[aria-current='page'] {
@@ -3411,7 +3411,7 @@ html {
   }
   .header-menu-item {
     padding-inline: 11px;
-    font-size: 12px;
+    font-size: 14px;
   }
   button.header-search-trigger {
     width: 164px;
