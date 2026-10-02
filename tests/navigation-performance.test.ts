@@ -61,5 +61,8 @@ test('the product origin pill stays anchored to the gallery on mobile', () => {
     tabletProductRules,
     /\.product-purchase \.product-gallery \{[\s\S]*?position: relative;[\s\S]*?top: auto;/,
   );
-  assert.doesNotMatch(tabletProductRules, /\.product-purchase \.product-gallery \{[\s\S]*?position: static;/);
+  assert.doesNotMatch(
+    tabletProductRules,
+    /\.product-purchase \.product-gallery \{[\s\S]*?position: static;/,
+  );
 });

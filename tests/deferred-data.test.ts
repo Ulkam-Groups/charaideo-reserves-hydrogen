@@ -31,8 +31,5 @@ test('Judge.me is isolated from the PDP loader and Shopify recommendations conta
   assert.match(productRoute, /<AsyncProductReviews/);
   assert.match(asyncReviews, /fetch\(\s*`\/api\/product-reviews/);
   assert.match(asyncReviews, /controller\.abort\(\)/);
-  assert.match(
-    productRoute,
-    /resolve=\{relatedProducts\} errorElement=\{null\}/,
-  );
+  assert.match(productRoute, /resolve=\{relatedProducts\} errorElement=\{null\}/);
 });
