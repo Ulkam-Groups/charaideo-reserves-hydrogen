@@ -57,12 +57,16 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     throw new Error('Expected product handle to be defined');
   }
 
+  const productVariables = {
+    handle,
+    selectedOptions: getSelectedProductOptions(request),
+  };
+  const productCache = storefront.CacheShort({
+    maxAge: 60,
+    staleWhileRevalidate: 600,
+  });
   const [{product}, productOriginLabel, taxonomyAttributes] = await Promise.all([
-    measureStorefront(context.monitor, 'product', () =>
-      storefront.query(PRODUCT_QUERY, {
-        variables: {handle, selectedOptions: getSelectedProductOptions(request)},
-      }),
-    ),
+    queryCriticalProduct(context, productVariables, productCache),
     loadProductOriginLabel(context, handle),
     loadProductTaxonomyAttributes(context, handle),
   ]);
@@ -84,6 +88,33 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   };
 }
 
+async function queryCriticalProduct(
+  context: Route.LoaderArgs['context'],
+  variables: {
+    handle: string;
+    selectedOptions: ReturnType<typeof getSelectedProductOptions>;
+  },
+  cache: ReturnType<Route.LoaderArgs['context']['storefront']['CacheShort']>,
+) {
+  const query = (operation: string) =>
+    measureStorefront(context.monitor, operation, () =>
+      context.storefront.query(PRODUCT_QUERY, {
+        variables,
+        cache,
+        displayName: 'Product page',
+      }),
+    );
+
+  try {
+    return await query('product');
+  } catch {
+    // A transient Storefront API failure should not collapse the PDP. The
+    // second request can also be served from stale Oxygen cache when present.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return query('product_retry');
+  }
+}
+
 async function loadProductTaxonomyAttributes(
   context: Route.LoaderArgs['context'],
   handle: string,
@@ -91,7 +122,13 @@ async function loadProductTaxonomyAttributes(
   try {
     const {product} = await context.storefront.query(
       PRODUCT_TAXONOMY_ATTRIBUTES_QUERY,
-      {variables: {handle}},
+      {
+        variables: {handle},
+        cache: context.storefront.CacheShort({
+          maxAge: 300,
+          staleWhileRevalidate: 3600,
+        }),
+      },
     );
 
     return {
@@ -138,6 +175,10 @@ async function loadProductOriginLabel(
   try {
     const {product} = await context.storefront.query(PRODUCT_ORIGIN_TAG_QUERY, {
       variables: {handle},
+      cache: context.storefront.CacheShort({
+        maxAge: 300,
+        staleWhileRevalidate: 3600,
+      }),
     });
 
     return getProductOriginLabel(product?.tags);

@@ -30,11 +30,13 @@ test('internal navigation links prefetch their destination', () => {
   assert.deepEqual(missingPrefetch, []);
 });
 
-test('route-only styles are warmed before navigation', () => {
+test('route-only styles are loaded only by the route that uses them', () => {
   const root = readFileSync('app/root.tsx', 'utf8');
+  const homepage = readFileSync('app/routes/_index.tsx', 'utf8');
 
-  assert.match(root, /rel: 'preload', as: 'style', href: homepageStylesheet/);
-  assert.match(root, /rel: 'preload', as: 'style', href: brandStoryStylesheet/);
+  assert.doesNotMatch(root, /homepageStylesheet|brandStoryStylesheet/);
+  assert.match(homepage, /rel: 'stylesheet', href: artifactStylesheet/);
+  assert.match(homepage, /rel: 'stylesheet', href: brandStoryStylesheet/);
   assert.match(root, /<link rel="stylesheet" href=\{reserveListStylesheet\} \/>/);
 });
 
