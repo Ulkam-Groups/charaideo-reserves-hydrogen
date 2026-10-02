@@ -220,9 +220,9 @@ textarea {
   transform: translateY(11px);
   border: 1px solid #e7ede0;
   border-radius: 26px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 8px 24px rgba(19, 42, 31, 0.06);
-  backdrop-filter: blur(16px);
+  backdrop-filter: none;
 }
 .header.header-solid.header-scrolled .header-inner {
   width: min(100% - clamp(24px, 5vw, 48px), 1760px);
@@ -4381,11 +4381,5 @@ body {
   }
   .header.header-solid .header-ctas > .header-account {
     right: 40px;
-  }
-}
-
-@media (max-width: 420px) {
-  .header.header-solid .header-inner > .wordmark {
-    width: clamp(96px, calc(100vw - 220px), 142px);
   }
 }
