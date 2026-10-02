@@ -24,7 +24,7 @@
 .reserve-list-main {
   width: min(100%, 1240px);
   margin: 0 auto;
-  padding: 28px 28px 64px;
+  padding: 62px 28px 64px;
 }
 
 .reserve-list-introduction {
@@ -485,7 +485,7 @@
 }
 
 @media (max-width: 760px) {
-  .reserve-list-main {padding: 20px 18px 52px}
+  .reserve-list-main {padding: 62px 18px 52px}
   .reserve-list-introduction {padding: 26px 18px 19px}
   .reserve-list-tabs {width: min(100%, 330px)}
   .reserve-list-tabs button {min-width: 0}
@@ -499,6 +499,7 @@
 
 @media (max-width: 480px) {
   .reserve-list-main {padding-inline: 12px}
+  .reserve-list-main {padding-top: 64px}
   .reserve-list-introduction {padding: 24px 12px 18px}
   .reserve-list-introduction h1 {font-size: 37px}
   .reserve-collection-sections,

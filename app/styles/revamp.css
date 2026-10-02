@@ -14,7 +14,7 @@
   --thread: #e7ede0;
   --serif: 'Fraunces', Georgia, serif;
   --sans: 'General Sans', system-ui, sans-serif;
-  --header-height: 64px;
+  --header-height: 60px;
   --color-dark: #132a1f;
   --color-light: #ffffff;
   --color-brand: #132a1f;
@@ -241,6 +241,8 @@ textarea {
 .header-inner {
   width: min(100% - 48px, 1360px);
   grid-template-columns: 208px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  height: 60px;
   gap: clamp(16px, 2vw, 30px);
   transition:
     width 0.28s ease,
@@ -319,6 +321,7 @@ textarea {
 }
 .header-ctas {
   gap: 7px;
+  height: 38px;
 }
 button.header-search-trigger {
   position: relative;
@@ -327,7 +330,7 @@ button.header-search-trigger {
   justify-content: space-between;
   gap: 12px;
   width: clamp(180px, 17vw, 248px);
-  height: 42px;
+  height: 38px;
   padding: 0 13px 0 17px;
   border: 1px solid #dce3d8;
   border-radius: 100px;
@@ -425,9 +428,9 @@ button.header-search-trigger:hover svg {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  flex: 0 0 42px;
-  width: 42px;
-  height: 42px;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
   padding: 0 !important;
   border: 1px solid #d8e0d5 !important;
   border-radius: 50% !important;
@@ -3478,7 +3481,7 @@ html {
 }
 @media (max-width: 640px) {
   :root {
-    --header-height: 62px;
+    --header-height: 60px;
   }
   .header,
   .header.header-solid,
