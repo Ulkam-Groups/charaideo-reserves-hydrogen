@@ -5,6 +5,7 @@ import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
 import {Image} from '@shopify/hydrogen';
 import {useLoaderData, useNavigate, useRevalidator, useSearchParams} from 'react-router';
+import heroImage from '~/assets/Misty Sunrise Tea Harvest.webp?url';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
@@ -434,8 +435,15 @@ export default function Homepage() {
     children: [
       f("section", {
         className: "home-hero-stage relative overflow-hidden max-w-[100vw]",
-        children: f("div", {
-          className: "relative z-[1] mx-auto max-w-[1280px] px-6 md:px-8",
+        children: [
+          f("img", {
+            className: "home-hero-image",
+            src: heroImage,
+            alt: "",
+            "aria-hidden": true,
+          }, "hero-image"),
+          f("div", {
+          className: "relative z-[2] mx-auto max-w-[1280px] px-6 md:px-8",
           children: y("div", {
             className: "home-hero-layout grid md:grid-cols-[1.05fr_0.95fr] gap-10 md:gap-6 items-center",
             children: [
@@ -505,7 +513,8 @@ export default function Homepage() {
               <HeroBrandArtwork />,
             ],
           }),
-        }),
+          }, "hero-content"),
+        ],
       }),
       f("div", {
         className:
