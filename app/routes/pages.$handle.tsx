@@ -2,7 +2,13 @@ import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/pages.$handle';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
+import aboutHeroImage from '../assets/about-charaideo-reserves-hero.png';
+import aboutStoryStylesheet from '~/styles/about-story-page.css?url';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
+
+export const links: Route.LinksFunction = () => [
+  {rel: 'stylesheet', href: aboutStoryStylesheet},
+];
 
 export const meta: Route.MetaFunction = ({data}) => {
   const description =
@@ -107,7 +113,7 @@ type StaticPageContent = {
 
 function StaticPage({page}: {page: StaticPageContent}) {
   if (page.handle === 'about-us') {
-    return <AboutStoryPage page={page} />;
+    return <AboutStoryPage />;
   }
 
   return (
@@ -125,7 +131,11 @@ function StaticPage({page}: {page: StaticPageContent}) {
         </div>
         <div className="revamp-hero-art contact-hero-art" aria-hidden="true">
           <span className="contact-art-kicker">A note from Assam</span>
-          <span className="contact-art-heading">The conversation<br />starts here.</span>
+          <span className="contact-art-heading">
+            The conversation
+            <br />
+            starts here.
+          </span>
           <span className="contact-art-footer">Charaideo Reserves · Rupai Siding</span>
         </div>
       </section>
@@ -142,8 +152,12 @@ function StaticPage({page}: {page: StaticPageContent}) {
               <p>
                 {section.eyebrow === 'Email' ? (
                   <>
-                    <a href="mailto:kamalika@ulkamgroup.com">kamalika@ulkamgroup.com &#8599;</a>
-                    <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com &#8599;</a>
+                    <a href="mailto:kamalika@ulkamgroup.com">
+                      kamalika@ulkamgroup.com &#8599;
+                    </a>
+                    <a href="mailto:contact@ulkamgroup.com">
+                      contact@ulkamgroup.com &#8599;
+                    </a>
                   </>
                 ) : section.eyebrow === 'Phone' ? (
                   <a href="tel:+918431988910">{section.body} &#8599;</a>
@@ -159,34 +173,82 @@ function StaticPage({page}: {page: StaticPageContent}) {
   );
 }
 
-function AboutStoryPage({page}: {page: StaticPageContent}) {
-  const mission = page.sections.find((section) => section.eyebrow === 'Mission');
-  const vision = page.sections.find((section) => section.eyebrow === 'Vision');
-  const culturalMemory = page.sections.find(
-    (section) => section.eyebrow === 'Cultural memory',
-  );
-
+function AboutStoryPage() {
   return (
-    <div className="content-page content-page-about-us">
-      <section className="about-story">
-        <figure className="about-story-visual">
-          <div className="about-story-frame">
-            <div className="revamp-hero-art" aria-hidden="true">
-              <span>One estate. One harvest.</span>
-            </div>
-          </div>
-          <figcaption>River Thread / Assam / 26.98° N</figcaption>
-        </figure>
-
-        <div className="about-story-copy">
-          <span className="eyebrow">Our story</span>
-          <h1>Charaideo Reserves keeps what others blend away.</h1>
-          <p className="about-story-intro">
-            Charaideo Reserves was born from a deep emotional connection to Assam-its land, its
+    <main className="content-page content-page-about-us about-page">
+      <section className="about-page-hero" aria-labelledby="about-page-title">
+        <div className="about-page-hero-copy">
+          <p className="about-page-kicker">Our story</p>
+          <h1 id="about-page-title">
+            Rooted in Assam.
+            <em>Inspired by heritage.</em>
+          </h1>
+          <p className="about-page-hero-intro">
+            Charaideo was born from a deep emotional connection to Assam—its land, its
             culture, and its timeless tea legacy.
           </p>
+          <div className="about-page-actions">
+            <Link
+              className="about-page-button about-page-button-primary"
+              prefetch="intent"
+              to="/reserve-list"
+            >
+              Explore the Reserve List
+            </Link>
+            <Link
+              className="about-page-button about-page-button-secondary"
+              prefetch="intent"
+              to="/pages/contact"
+            >
+              Talk to us
+            </Link>
+          </div>
+        </div>
 
-          <blockquote>
+        <figure className="about-page-hero-media">
+          <img
+            src={aboutHeroImage}
+            width="2048"
+            height="2048"
+            loading="eager"
+            alt="Charaideo Reserves emblem embossed on textured paper with Assamese-inspired botanical detailing"
+          />
+        </figure>
+      </section>
+
+      <section className="about-page-proof" aria-label="The Charaideo promise">
+        <p className="about-page-proof-label">What we promise</p>
+        <article>
+          <span>01</span>
+          <div>
+            <h2>Single-Garden &amp; Traceable</h2>
+            <p>Every lot QR-linked to its origin, garden and estate</p>
+          </div>
+        </article>
+        <article>
+          <span>02</span>
+          <div>
+            <h2>Whole-leaf Orthodox</h2>
+            <p>No dust, no fannings — only traditional hand-rolled craft</p>
+          </div>
+        </article>
+        <article>
+          <span>03</span>
+          <div>
+            <h2>Direct &amp; Ethical</h2>
+            <p>
+              Direct relationships with the best estates across Assam, grower-first
+              pricing
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section className="about-page-story" aria-labelledby="story-title">
+        <div className="about-page-story-copy">
+          <p className="about-page-kicker">Our story</p>
+          <h2 id="story-title">Rooted in Assam. Inspired by heritage.</h2>
+          <div className="about-page-story-prose">
             <p>
               Growing up in a family of tea planters, tea was never simply a profession
               for my family; it was a way of life. Some of my earliest memories are woven
@@ -199,119 +261,165 @@ function AboutStoryPage({page}: {page: StaticPageContent}) {
               No matter where life led me, Assam always remained home. While building a
               corporate career, I carried a quiet dream within me: to return to my roots
               and create something that would honour the heritage I was raised with. That
-              dream eventually became Charaideo Reserves.
+              dream eventually became Charaideo.
+            </p>
+          </div>
+          <p className="about-page-story-quote">
+            Leaving the corporate world was more than a career change; it was a
+            homecoming. A conscious decision to return to the soil, stories, and
+            traditions that shaped my identity.
+          </p>
+        </div>
+        <div className="about-page-roots">
+          <article>
+            <p className="about-page-kicker">Family roots in Rupai</p>
+            <h3>Where it all began</h3>
+            <p>
+              Our family&apos;s relationship with tea began in garden cultivation —
+              learning to hand-pluck at dawn, to respect the land, its people, and the
+              bold, unmistakable character of Assam.
+            </p>
+          </article>
+          <article>
+            <p className="about-page-kicker">Charaideo Reserves today</p>
+            <h3>A vault, not just a brand</h3>
+            <p>
+              Today, Charaideo is a tea vault preserving single-origin, small-batch teas —
+              where every lot is traceable to its garden and estate, and deeply connected
+              to its origin.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="about-page-purpose" aria-labelledby="purpose-title">
+        <header>
+          <p className="about-page-kicker">Our purpose</p>
+          <h2 id="purpose-title">Mission &amp; Vision</h2>
+        </header>
+        <div className="about-page-purpose-grid">
+          <article>
+            <span>Mission</span>
+            <h3>To rescue real Assam tea from the commodity market.</h3>
+            <p>
+              We started Charaideo because we saw the paradox: Assam grows the
+              world&apos;s finest Orthodox tea, yet most Indians have never tasted it. The
+              best leaves are exported, while what remains for the domestic market is
+              dust, blends without origin, and CTC sold as &quot;Assam tea.&quot;
             </p>
             <p>
-              Leaving the corporate world was more than a career change; it was a
-              conscious decision to return to the soil, stories, and traditions that
-              shaped my identity. Through Charaideo Reserves, I want to carry the spirit of Assam
-              forward-blending heritage with contemporary craftsmanship to create teas
-              that feel authentic, meaningful, and deeply connected to their origin.
+              Our mission is to reverse that. To bring single-garden, whole-leaf,
+              traceable teas back to Indian tables — teas where you know the garden and
+              estate, the pluck date, and the people behind it. Directly sourced,
+              small-batch processed, and sold without disguising it in anonymous blends.
             </p>
-          </blockquote>
-
-          <ol className="about-story-timeline" aria-label="Charaideo Reserves™ story">
-            <li>
-              <span>1990</span>
-              <h2>Family Roots in Rupai, Tinsukia</h2>
-              <p>
-                Our family’s relationship with Assam tea took root in garden
-                cultivation-hand-plucking fresh leaves at dawn and learning to respect the
-                land, its people, and its bold, unmistakable character.
-              </p>
-            </li>
-            <li>
-              <span>2026</span>
-              <h2>Charaideo Reserves - Born in Assam, Shared with the World</h2>
-              <p>
-                A return to roots. Charaideo Reserves was created to bring the spirit of Assam to
-                modern tea lovers around the world through teas that are authentic,
-                meaningful, and deeply connected to their origin.
-              </p>
-            </li>
-          </ol>
-
-          {page.cta && (
-            <Link className="button primary" prefetch="intent" to={page.cta.to}>
-              {page.cta.label} <span aria-hidden="true">↗</span>
-            </Link>
-          )}
+            <p>
+              We are not selling just &quot;chai&quot;. We are selling provenance, fair
+              value to growers, and a ritual that remembers where it came from.
+            </p>
+          </article>
+          <article>
+            <span>Vision</span>
+            <h3>A tea vault that holds culture, not just leaves.</h3>
+            <p>
+              Our vision is to build India&apos;s first heritage tea vault — where tea is
+              treated like wine, with terroir, vintage and story. A vault named after
+              Charaideo, where Ahom kings were laid to rest with reverence, because we
+              believe Assam&apos;s tea heritage deserves the same reverence.
+            </p>
+            <p>
+              We want to make consumers ask: Which garden is this from? Not just &quot;is
+              it strong?&quot; To make North East heritage a daily ritual again — not an
+              exotic footnote. And to ensure that the future of Assam tea is not decided
+              in auction houses and export containers alone, but at Indian tables that
+              finally get to taste what was always theirs.
+            </p>
+          </article>
+        </div>
+        <div className="about-page-purpose-art" aria-hidden="true">
+          <svg
+            className="about-page-purpose-river"
+            viewBox="0 0 1440 180"
+            preserveAspectRatio="none"
+            focusable="false"
+          >
+            <path d="M-30 92 C 300 42, 845 54, 1470 145" />
+          </svg>
+          <span className="about-page-purpose-seal">
+            <svg
+              className="about-page-purpose-seal-mark"
+              viewBox="100 104 130 150"
+              fill="none"
+              focusable="false"
+            >
+              <path
+                d="M106.5 110.5H216.498L223.482 121.849H143.166C142.293 124.468 142.293 127.087 144.912 130.579C150.15 137.563 156.261 141.055 164.118 145.42C172.848 149.785 180.705 152.404 188.562 155.023C195.546 155.896 200.784 159.388 205.149 165.499C207.768 168.991 208.641 174.229 208.641 179.467C208.641 190.816 204.276 203.038 199.038 212.641C192.927 222.244 182.451 231.847 170.229 235.339C163.245 237.958 152.769 236.212 145.785 233.593C136.182 230.101 131.817 224.863 130.071 217.879C129.198 215.26 129.198 213.514 129.198 210.022V122.722L114.357 121.849L106.5 110.5ZM142.293 142.801C145.785 148.039 151.023 154.15 156.261 159.388C164.118 165.499 172.848 169.864 180.705 171.61C184.197 172.483 185.943 172.483 187.689 174.229C188.562 177.721 187.689 182.086 186.816 185.578C185.07 195.181 180.705 203.038 174.594 210.022C169.356 215.26 163.245 219.625 158.88 220.498C154.515 221.371 150.15 219.625 146.658 217.006C144.039 215.26 142.293 213.514 142.293 210.895V142.801Z"
+                fill="currentColor"
+                fillRule="evenodd"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span className="about-page-purpose-place">ASSAM</span>
+            <span className="about-page-purpose-coordinate">
+              26.98<sup>°</sup>
+            </span>
+          </span>
         </div>
       </section>
 
-      <section className="about-purpose">
-        <header className="about-purpose-heading">
-          <span className="eyebrow">Our purpose</span>
-          <h2>Mission &amp; Vision</h2>
-          <i aria-hidden="true" />
-        </header>
-
-        <div className="about-purpose-cards">
-          {[mission, vision].map(
-            (section, index) =>
-              section && (
-                <article key={section.title}>
-                  <span className="about-purpose-icon" aria-hidden="true">
-                    {index === 0 ? '◇' : '⊙'}
-                  </span>
-                  <small>{section.eyebrow}</small>
-                  <h3>{section.title}</h3>
-                  <p>{section.body}</p>
-                </article>
-              ),
-          )}
+      <section className="about-page-founder" aria-labelledby="founder-title">
+        <div className="about-page-founder-card">
+          <img
+            src={kamalikaPortrait}
+            width="420"
+            height="420"
+            loading="lazy"
+            decoding="async"
+            alt="Kamalika Biswas, founder and CEO of Charaideo Reserves"
+          />
         </div>
-
-        <div className="about-founder">
-          <span className="eyebrow">The people</span>
-          <h2>Meet the Founder</h2>
-          <p>The woman behind the Assam tea legacy.</p>
-          <a
-            className="about-founder-portrait"
-            href="https://in.linkedin.com/in/kamalika-biswas"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Kamalika Biswas on LinkedIn"
-          >
-            <img
-              src={kamalikaPortrait}
-              width="420"
-              height="420"
-              loading="lazy"
-              decoding="async"
-              alt="Kamalika Biswas, founder and CEO of Charaideo Reserves™"
-            />
-          </a>
-          <h3>Kamalika Biswas</h3>
-          <strong>Founder &amp; CEO</strong>
+        <div className="about-page-founder-copy">
+          <p className="about-page-kicker">The people</p>
+          <h2 id="founder-title">Meet the Founder</h2>
+          <h3>Kamalika Biswas — Founder &amp; CEO</h3>
           <p>
-            Founder of Ulkam Group, carrying Assam’s tea heritage to the world through
-            Charaideo Reserves™.
+            Founder of Ulkam Group and a daughter of Assam&apos;s tea soil, Kamalika left
+            her corporate career to return to her family&apos;s legacy in Rupai. Through
+            Charaideo Reserves, she carries forward three generations of tea heritage —
+            with a woman&apos;s perspective, a founder&apos;s grit, and a deep respect for
+            the land that raised her.
           </p>
-          <a
-            className="founder-linkedin"
-            href="https://in.linkedin.com/in/kamalika-biswas"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span aria-hidden="true">in</span> LinkedIn
-          </a>
         </div>
       </section>
 
-      <section className="content-body about-story-more">
-        <p>{page.excerpt}</p>
-        <div className="content-section-grid">
-          {culturalMemory && (
-            <article>
-              <span>01 / {culturalMemory.eyebrow}</span>
-              <h2>{culturalMemory.title}</h2>
-              <p>{culturalMemory.body}</p>
-            </article>
-          )}
+      <section className="about-page-close" aria-labelledby="legacy-title">
+        <div>
+          <p className="about-page-kicker">A name that remembers</p>
+          <h2 id="legacy-title">A name that remembers</h2>
+          <p>
+            Charaideo and the Ahom legacy live in the cultural memory of Assam. Our name
+            is an invitation to carry that memory into the everyday: a shared table, a
+            conversation, a cup of tea.
+          </p>
+        </div>
+        <div className="about-page-actions">
+          <Link
+            className="about-page-button about-page-button-primary"
+            prefetch="intent"
+            to="/reserve-list"
+          >
+            Explore the Reserve List
+          </Link>
+          <Link
+            className="about-page-button about-page-button-secondary"
+            prefetch="intent"
+            to="/pages/contact"
+          >
+            Talk to us
+          </Link>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
 
@@ -355,10 +463,10 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
   'about-us': {
     handle: 'about-us',
     id: 'static-about-us',
-    title: 'A place. A people. A pot of tea.',
-    hero: 'Our story / Assam, North East India',
+    title: 'Our Story',
+    hero: 'Our story / Assam, North-East India',
     excerpt:
-      'Bringing Assam tea culture to the world. Bringing North East Indian heritage back to the table.',
+      'Rooted in Assam and inspired by heritage, Charaideo Reserves preserves traceable, single-garden, whole-leaf teas.',
     body: 'Charaideo Reserves was born from a deep emotional connection to Assam, its land, its culture, and its timeless tea legacy. Growing up in a family of tea planters, tea was never simply a profession; it was a way of life.',
     sections: [
       {
@@ -385,7 +493,7 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
     cta: {label: 'Browse catalog', to: '/collections/all'},
     seo: {
       description:
-        'Learn about Charaideo Reserves™, an Assam-origin tea storefront offering orthodox, CTC, spiced, and blended teas.',
+        'Discover the Charaideo Reserves story—three generations of Assam tea heritage, a founder’s homecoming, and a mission to preserve traceable single-garden tea.',
     },
   },
 };
