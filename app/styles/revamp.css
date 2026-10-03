@@ -1880,11 +1880,66 @@ button.header-search-trigger:hover .header-search-ai-icon {
 .account-sidebar,
 .account-panel,
 .account-form-card,
-.account-order-card,
-.signin-panel {
+.account-order-card {
   background: #ffffff;
   border-color: #e7ede0;
   border-radius: 24px;
+}
+
+.signin-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #132a1f;
+}
+
+.signin-panel::before {
+  position: absolute;
+  z-index: 0;
+  top: calc(var(--header-height) + 18px);
+  right: clamp(22px, 3vw, 46px);
+  bottom: clamp(22px, 3vw, 46px);
+  left: clamp(22px, 3vw, 46px);
+  border: 1px solid rgb(231 237 224 / 82%);
+  border-radius: 30% 18% 24% 14% / 10% 16% 12% 18%;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgb(5 20 13 / 24%);
+  content: '';
+  pointer-events: none;
+}
+
+.signin-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.signin-story-seal {
+  position: absolute;
+  top: calc(var(--header-height) + 28px);
+  right: 8%;
+  bottom: auto;
+  left: auto;
+  pointer-events: none;
+}
+
+@media (max-width: 960px) {
+  .signin-panel {
+    padding: 72px clamp(36px, 10vw, 72px);
+  }
+
+  .signin-panel::before {
+    inset: 20px 14px;
+    border-radius: 76px 42px 68px 50px / 54px 46px 72px 60px;
+  }
+
+
+  .signin-story-seal {
+    top: calc(var(--header-height) + 24px);
+    right: 8%;
+  }
+
 }
 .account-menu-link.is-active {
   background: #132a1f;
