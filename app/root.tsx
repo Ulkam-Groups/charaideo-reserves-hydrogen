@@ -410,6 +410,60 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
     const escapeBoundDocuments = new WeakSet<Document>();
     const styledChatRoots = new WeakSet<ShadowRoot>();
     const styledConversationRoots = new WeakSet<ShadowRoot>();
+    let pageScrollPosition: number | null = null;
+    const originalRootOverflow = {
+      value: document.documentElement.style.getPropertyValue('overflow'),
+      priority: document.documentElement.style.getPropertyPriority('overflow'),
+    };
+    const originalBodyPaddingRight = {
+      value: document.body.style.getPropertyValue('padding-right'),
+      priority: document.body.style.getPropertyPriority('padding-right'),
+    };
+
+    const setPageScrollLocked = (locked: boolean) => {
+      if (locked) {
+        if (pageScrollPosition !== null) return;
+
+        pageScrollPosition = window.scrollY;
+        const scrollbarWidth =
+          window.innerWidth - document.documentElement.clientWidth;
+        document.documentElement.style.setProperty('overflow', 'hidden');
+        if (scrollbarWidth > 0) {
+          const currentPaddingRight = Number.parseFloat(
+            getComputedStyle(document.body).paddingRight,
+          );
+          document.body.style.setProperty(
+            'padding-right',
+            `${currentPaddingRight + scrollbarWidth}px`,
+          );
+        }
+        return;
+      }
+
+      if (pageScrollPosition === null) return;
+
+      const previousScrollPosition = pageScrollPosition;
+      pageScrollPosition = null;
+      if (originalRootOverflow.value) {
+        document.documentElement.style.setProperty(
+          'overflow',
+          originalRootOverflow.value,
+          originalRootOverflow.priority,
+        );
+      } else {
+        document.documentElement.style.removeProperty('overflow');
+      }
+      if (originalBodyPaddingRight.value) {
+        document.body.style.setProperty(
+          'padding-right',
+          originalBodyPaddingRight.value,
+          originalBodyPaddingRight.priority,
+        );
+      } else {
+        document.body.style.removeProperty('padding-right');
+      }
+      window.scrollTo(0, previousScrollPosition);
+    };
 
     const closeChatOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
@@ -584,12 +638,14 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
             window.clearTimeout(chatCloseTimer);
             chatCloseTimer = undefined;
           }
+          setPageScrollLocked(true);
           document.documentElement.dataset.shopifyChatOpen = 'true';
         } else if (!chat?.hasAttribute('open')) {
           if (chatCloseTimer !== undefined) {
             window.clearTimeout(chatCloseTimer);
           }
           chatCloseTimer = window.setTimeout(() => {
+            setPageScrollLocked(false);
             delete document.documentElement.dataset.shopifyChatOpen;
             chatCloseTimer = undefined;
           }, SHOPIFY_CHAT_CLOSE_ANIMATION_MS);
@@ -652,6 +708,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       const chat = document.querySelector<HTMLElement>('shopify-chat');
       chat?.removeAttribute('open');
       chat?.removeAttribute('data-prewarming');
+      setPageScrollLocked(false);
       delete document.documentElement.dataset.shopifyChatOpen;
       window.clearTimeout(revealTimer);
       if (warmupTimer !== undefined) window.clearTimeout(warmupTimer);

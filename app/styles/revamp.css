@@ -380,6 +380,9 @@ button.header-search-trigger {
 
   html[data-shopify-chat-open='true']
     header.header.header-solid:not(.header-scrolled)
+    .header-inner,
+  html[data-shopify-chat-open='true']
+    header.header.header-solid.header-scrolled
     .header-inner {
     border-bottom-color: transparent;
     border-radius: 26px 26px 0 0;

@@ -240,6 +240,25 @@ function openShopifyChat(trigger: HTMLElement | null) {
   );
   if (!chat) return;
 
+  const revealChat = () => {
+    if (chat.hasAttribute('open')) return;
+
+    revealShopifyChat(chat, trigger);
+  };
+
+  if (window.scrollY > 0) {
+    window.scrollTo({top: 0, behavior: 'instant'});
+    revealChat();
+    return;
+  }
+
+  revealChat();
+}
+
+function revealShopifyChat(
+  chat: HTMLElement & {show?: () => void},
+  trigger: HTMLElement | null,
+) {
   shopifyChatGeometryCleanup?.();
   shopifyChatGeometryCleanup = null;
   document.documentElement.dataset.shopifyChatOpen = 'true';
