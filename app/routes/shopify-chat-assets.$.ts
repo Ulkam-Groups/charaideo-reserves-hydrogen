@@ -3,6 +3,7 @@ import type {Route} from './+types/shopify-chat-assets.$';
 const CHAT_ASSET_ORIGIN = 'https://cdn.shopify.com';
 const CHAT_ASSET_PREFIX = '/storefront/web-components/';
 const LOCAL_CHAT_ASSET_PREFIX = '/shopify-chat-assets/';
+const ALLOWED_REMOTE_ASSET = /^(?:chat\.js|chat\/agent-runtime-[A-Za-z0-9_-]{6,80}\.js)$/;
 
 export async function loader({request}: Route.LoaderArgs) {
   const requestUrl = new URL(request.url);
@@ -22,6 +23,16 @@ export async function loader({request}: Route.LoaderArgs) {
         },
       },
     );
+  }
+
+  if (!ALLOWED_REMOTE_ASSET.test(assetPath)) {
+    return new Response('Unsupported Shopify chat asset', {
+      status: 404,
+      headers: {
+        'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    });
   }
 
   const upstreamUrl = new URL(
@@ -45,12 +56,12 @@ export async function loader({request}: Route.LoaderArgs) {
       status: 502,
     });
   }
-  const headers = new Headers(upstream.headers);
-  headers.delete('content-encoding');
-  headers.delete('content-length');
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/javascript; charset=utf-8');
   headers.set('Cache-Control', 'public, max-age=300');
+  headers.set('X-Content-Type-Options', 'nosniff');
 
-  const contentType = headers.get('content-type') ?? '';
+  const contentType = upstream.headers.get('content-type') ?? '';
   if (!contentType.includes('javascript')) {
     return new Response(upstream.body, {
       status: upstream.status,

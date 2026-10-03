@@ -90,10 +90,13 @@ export async function loader({request, context}: Route.LoaderArgs) {
     });
   }
 
-  const responseHeaders = new Headers(upstream.headers);
-  responseHeaders.delete('content-encoding');
-  responseHeaders.delete('content-length');
-  responseHeaders.set('Cache-Control', 'private, no-store');
+  const responseHeaders = new Headers({
+    'Cache-Control': 'private, no-store',
+    'Content-Security-Policy': "frame-ancestors 'self'",
+    'Content-Type': upstream.headers.get('content-type') ?? 'text/html; charset=utf-8',
+    'Referrer-Policy': 'no-referrer',
+    'X-Content-Type-Options': 'nosniff',
+  });
 
   const contentType = responseHeaders.get('content-type') ?? '';
   if (contentType.includes('text/html')) {
