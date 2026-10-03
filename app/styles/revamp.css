@@ -2586,10 +2586,11 @@ button.header-search-trigger:hover svg {
 }
 .footer .wordmark--default::after {
   position: absolute;
-  top: 17.5px;
-  left: 44.4px;
+  top: 16.95px;
+  left: 51.75px;
   width: 4.8px;
   height: 4.8px;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   background: #b87936;
   content: '';
