@@ -71,7 +71,7 @@ export function HeaderMenu({
   publicStoreDomain: HeaderProps['publicStoreDomain'];
 }) {
   const className = `header-menu-${viewport}`;
-  const {close, open} = useAside();
+  const {close} = useAside();
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   if (viewport === 'mobile') {
@@ -109,7 +109,16 @@ export function HeaderMenu({
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
-        <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>
+        <button
+          className="header-menu-item reset"
+          onClick={(event) => {
+            close();
+            openShopifyChat(event.currentTarget);
+          }}
+          type="button"
+        >
+          Search
+        </button>
       </nav>
     );
   }
@@ -183,8 +192,6 @@ function HeaderMenuMobileToggle() {
 }
 
 function SearchToggle() {
-  const {open} = useAside();
-
   useEffect(() => {
     const openFromKeyboard = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -202,25 +209,161 @@ function SearchToggle() {
         return;
       }
       event.preventDefault();
-      open('search');
+      openShopifyChat(
+        document.querySelector<HTMLElement>('.header-search-trigger'),
+      );
     };
     window.addEventListener('keydown', openFromKeyboard);
     return () => window.removeEventListener('keydown', openFromKeyboard);
-  }, [open]);
+  }, []);
 
   return (
     <button
-      aria-label="Search teas"
+      aria-label="Ask about our teas"
       className="header-search-trigger reset"
-      onClick={() => open('search')}
-      title="Search teas (/)"
+      onClick={(event) => openShopifyChat(event.currentTarget)}
+      title="Ask about our teas (/)"
       type="button"
     >
-      <span>Search teas</span>
+      <span className="header-search-label">Ask about our teas</span>
       <kbd aria-hidden="true">/</kbd>
       <SearchIcon />
     </button>
   );
+}
+
+let shopifyChatGeometryCleanup: (() => void) | null = null;
+
+function openShopifyChat(trigger: HTMLElement | null) {
+  const chat = document.querySelector<HTMLElement & {show?: () => void}>(
+    'shopify-chat',
+  );
+  if (!chat) return;
+
+  const revealChat = () => {
+    if (chat.hasAttribute('open')) return;
+
+    revealShopifyChat(chat, trigger);
+  };
+
+  if (window.scrollY > 0) {
+    window.scrollTo({top: 0, behavior: 'instant'});
+    revealChat();
+    return;
+  }
+
+  revealChat();
+}
+
+function revealShopifyChat(
+  chat: HTMLElement & {show?: () => void},
+  trigger: HTMLElement | null,
+) {
+  shopifyChatGeometryCleanup?.();
+  shopifyChatGeometryCleanup = null;
+  document.documentElement.dataset.shopifyChatOpen = 'true';
+
+  if (trigger) {
+    const headerSurface = document.querySelector<HTMLElement>('.header-inner');
+    const updatePanelGeometry = () => {
+      const triggerRect = trigger.getBoundingClientRect();
+      const headerRect = headerSurface?.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const panelInset = Math.min(28, Math.max(12, window.innerWidth * 0.02));
+      const panelBottomInset = Math.min(
+        80,
+        Math.max(60, (window.innerHeight * 70) / 900),
+      );
+      const panelLeft = headerRect?.left ?? panelInset;
+      const panelRight =
+        headerRect ? viewportWidth - headerRect.right : panelInset;
+      const panelTop = headerRect?.bottom ?? 92;
+      const panelWidth = Math.max(1, viewportWidth - panelLeft - panelRight);
+      const panelHeight = Math.max(
+        1,
+        window.innerHeight - panelTop - panelBottomInset,
+      );
+      const originX = Math.min(
+        panelWidth,
+        Math.max(0, triggerRect.left + triggerRect.width / 2 - panelLeft),
+      );
+
+      chat.style.setProperty('--charaideo-chat-origin-x', `${originX}px`);
+      chat.style.setProperty('--charaideo-chat-panel-left', `${panelLeft}px`);
+      chat.style.setProperty('--charaideo-chat-panel-right', `${panelRight}px`);
+      chat.style.setProperty('--charaideo-chat-panel-top', `${panelTop}px`);
+      chat.style.setProperty(
+        '--charaideo-chat-panel-bottom',
+        `${panelBottomInset}px`,
+      );
+      chat.style.setProperty(
+        '--charaideo-chat-start-scale-x',
+        String(Math.max(0.08, Math.min(0.42, triggerRect.width / panelWidth))),
+      );
+      chat.style.setProperty(
+        '--charaideo-chat-start-scale-y',
+        String(Math.max(0.035, Math.min(0.16, triggerRect.height / panelHeight))),
+      );
+    };
+
+    const handleHeaderTransitionEnd = (event: TransitionEvent) => {
+      if (event.target === headerSurface) updatePanelGeometry();
+    };
+
+    updatePanelGeometry();
+    window.addEventListener('resize', updatePanelGeometry);
+    window.addEventListener('scroll', updatePanelGeometry, {passive: true});
+    headerSurface?.addEventListener('transitionend', handleHeaderTransitionEnd);
+
+    const headerResizeObserver = headerSurface
+      ? new ResizeObserver(updatePanelGeometry)
+      : null;
+    if (headerSurface) headerResizeObserver?.observe(headerSurface);
+
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(updatePanelGeometry);
+    });
+
+    const closeObserver = new MutationObserver(() => {
+      if (chat.hasAttribute('open')) return;
+      closeObserver.disconnect();
+      window.removeEventListener('resize', updatePanelGeometry);
+      window.removeEventListener('scroll', updatePanelGeometry);
+      headerSurface?.removeEventListener(
+        'transitionend',
+        handleHeaderTransitionEnd,
+      );
+      headerResizeObserver?.disconnect();
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      if (shopifyChatGeometryCleanup === cleanup) {
+        shopifyChatGeometryCleanup = null;
+      }
+    });
+    closeObserver.observe(chat, {
+      attributes: true,
+      attributeFilter: ['open'],
+    });
+
+    const cleanup = () => {
+      closeObserver.disconnect();
+      window.removeEventListener('resize', updatePanelGeometry);
+      window.removeEventListener('scroll', updatePanelGeometry);
+      headerSurface?.removeEventListener(
+        'transitionend',
+        handleHeaderTransitionEnd,
+      );
+      headerResizeObserver?.disconnect();
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+    shopifyChatGeometryCleanup = cleanup;
+  }
+
+  if (typeof chat.show === 'function') chat.show();
+  else chat.setAttribute('open', '');
 }
 
 function CartBadge({count}: {count: number | null}) {
@@ -270,12 +413,7 @@ function CartBanner() {
 }
 
 function SearchIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <circle cx="10.75" cy="10.75" r="6.75" />
-      <path d="m16 16 4 4" />
-    </svg>
-  );
+  return <span aria-hidden="true" className="header-search-ai-icon" />;
 }
 
 function AccountIcon() {

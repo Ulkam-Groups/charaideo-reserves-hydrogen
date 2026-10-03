@@ -344,12 +344,49 @@ button.header-search-trigger {
   letter-spacing: 0;
   cursor: pointer;
   transition:
+    width 380ms cubic-bezier(0.22, 0.8, 0.2, 1),
     border-color 0.2s ease,
     background 0.2s ease,
     box-shadow 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
 }
+
+html[data-shopify-chat-open='true'] button.header-search-trigger {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  html[data-shopify-chat-open='true'] header.header {
+    z-index: 2147483001 !important;
+    pointer-events: none;
+  }
+
+  html[data-shopify-chat-open='true']
+    header.header.header-solid
+    .header-inner,
+  html[data-shopify-chat-open='true']
+    header.header.header-solid.header-scrolled
+    .header-inner {
+    width: min(calc(100% - clamp(64px, 8vw, 136px)), 1760px);
+    pointer-events: auto;
+  }
+
+  html[data-shopify-chat-open='true']
+    header.header.header-solid:not(.header-scrolled)
+    .header-inner,
+  html[data-shopify-chat-open='true']
+    header.header.header-solid.header-scrolled
+    .header-inner {
+    border-bottom-color: transparent;
+    border-radius: 26px 26px 0 0;
+    background: #fff;
+    box-shadow: none;
+  }
+}
+
 button.header-search-trigger::before {
   position: absolute;
   inset: 0;
@@ -401,7 +438,6 @@ button.header-search-trigger:focus-visible {
   outline: 2px solid rgba(19, 42, 31, 0.32);
   outline-offset: 3px;
 }
-.header-search-trigger svg,
 .header-icon-button svg {
   width: 20px;
   height: 20px;
@@ -411,15 +447,26 @@ button.header-search-trigger:focus-visible {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-button.header-search-trigger svg {
+button.header-search-trigger .header-search-ai-icon {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
   width: 28px;
   height: 28px;
-  padding: 5px;
   border-radius: 50%;
   background: #f0f3ec;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-button.header-search-trigger:hover svg {
+
+button.header-search-trigger .header-search-ai-icon::before {
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  content: '';
+  mask: url('../assets/ai-search-stroke-rounded.svg') center / contain no-repeat;
+}
+
+button.header-search-trigger:hover .header-search-ai-icon {
   background: #e5ece2;
   transform: scale(1.04);
 }
@@ -1237,7 +1284,7 @@ button.header-search-trigger:hover svg {
     justify-content: center;
     transform: none;
   }
-  .header.header-solid .header-search-trigger span,
+  .header.header-solid .header-search-trigger .header-search-label,
   .header.header-solid .header-search-trigger kbd {
     display: none;
   }
@@ -2614,6 +2661,9 @@ button.header-search-trigger:hover svg {
 
 /* Make the Shopify chat launcher visible while keeping it clear of the footer. */
 shopify-chat {
+  --charaideo-chat-origin-x: 50%;
+  --charaideo-chat-start-scale-x: 0.18;
+  --charaideo-chat-start-scale-y: 0.055;
   --shopify-chat-activator-offset: 76px;
   --shopify-chat-bg-color: #ffffff;
   --shopify-chat-text-color: #132a1f;
@@ -2622,6 +2672,23 @@ shopify-chat {
   --shopify-chat-activator-font-size: 14px;
   --shopify-chat-border-radius: 16px;
   --shopify-chat-body-font-family: inherit;
+}
+
+/* Initialize Shopify's real chat iframe off-screen, then reveal a warm launcher. */
+shopify-chat[data-prewarming='true'] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-200vw, -200vh) !important;
+  transition: none !important;
+  animation: none !important;
+  contain: strict;
 }
 
 shopify-chat::part(activator) {
@@ -2659,6 +2726,62 @@ shopify-chat::part(activator):focus-visible {
     0 0 0 3px rgb(184 121 54 / 24%);
 }
 
+/* Open the shopping assistant as a search-like panel at the top of the page. */
+shopify-chat::part(dialog) {
+  position: fixed !important;
+  top: var(--charaideo-chat-panel-top, calc(var(--header-height) + 32px)) !important;
+  right: var(--charaideo-chat-panel-right, clamp(12px, 2vw, 28px)) !important;
+  bottom: auto !important;
+  left: var(--charaideo-chat-panel-left, clamp(12px, 2vw, 28px)) !important;
+  width: auto !important;
+  height: calc(100dvh - var(--charaideo-chat-panel-top, calc(var(--header-height) + 32px)) - var(--charaideo-chat-panel-bottom, 40px)) !important;
+  max-height: calc(100dvh - var(--charaideo-chat-panel-top, calc(var(--header-height) + 32px)) - var(--charaideo-chat-panel-bottom, 40px)) !important;
+  margin: 0 !important;
+  border: 1px solid rgb(19 42 31 / 12%) !important;
+  border-top: 0 !important;
+  border-radius: 0 0 22px 22px !important;
+  box-shadow: 0 28px 80px rgb(8 24 16 / 28%) !important;
+  background: #fff !important;
+  opacity: 0 !important;
+  scale: var(--charaideo-chat-start-scale-x)
+    var(--charaideo-chat-start-scale-y) !important;
+  translate: 0 -10px !important;
+  transform-origin: var(--charaideo-chat-origin-x, center) top !important;
+  transition-property: display, opacity, scale, translate !important;
+  transition-duration: 360ms !important;
+  transition-timing-function: cubic-bezier(0.22, 0.8, 0.2, 1) !important;
+  transition-delay: 0s !important;
+  transition-behavior: allow-discrete !important;
+  will-change: opacity, scale, translate;
+}
+
+shopify-chat[open]::part(dialog) {
+  opacity: 1 !important;
+  scale: 1 1 !important;
+  translate: 0 0 !important;
+  transition-delay: 120ms !important;
+}
+
+@starting-style {
+  shopify-chat[open]::part(dialog) {
+    opacity: 0 !important;
+    scale: var(--charaideo-chat-start-scale-x)
+      var(--charaideo-chat-start-scale-y) !important;
+    translate: 0 -10px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  shopify-chat::part(dialog) {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    right: 8px !important;
+    left: 8px !important;
+    height: calc(100dvh - max(16px, env(safe-area-inset-top))) !important;
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top))) !important;
+    border-radius: 18px !important;
+  }
+}
+
 @keyframes chat-launcher-pulse {
   0%,
   100% {
@@ -2674,6 +2797,14 @@ shopify-chat::part(activator):focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  button.header-search-trigger {
+    transition: none;
+  }
+
+  shopify-chat::part(dialog) {
+    transition: none !important;
+  }
+
   shopify-chat::part(activator) {
     animation: none;
     transition: none;
@@ -3467,7 +3598,7 @@ html {
     padding: 0;
     justify-content: center;
   }
-  .header-search-trigger span {
+  .header-search-trigger .header-search-label {
     display: none;
   }
   .catalog-page .products-grid,

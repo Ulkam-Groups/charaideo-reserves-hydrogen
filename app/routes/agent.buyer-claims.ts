@@ -37,6 +37,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
   headers.set('Sec-Shopify-Storefront-Origin', requestUrl.origin);
 
   let upstream: Response;
+  let buyerClaimsFragment = '';
   try {
     upstream = await fetch(upstreamUrl, {
       headers,
@@ -58,6 +59,30 @@ export async function loader({request, context}: Route.LoaderArgs) {
     });
   }
 
+  if (location) {
+    const iframeUrl = new URL(location, upstreamUrl);
+    if (iframeUrl.hostname !== 'storefront-agent-server.shopify.ai') {
+      return new Response('Shopify chat redirected to an unexpected host', {
+        status: 502,
+        headers: noStore,
+      });
+    }
+    buyerClaimsFragment = iframeUrl.hash.slice(1);
+
+    try {
+      upstream = await fetch(iframeUrl, {
+        headers,
+        redirect: 'follow',
+        signal: request.signal,
+      });
+    } catch {
+      return new Response('Shopify chat is temporarily unavailable', {
+        status: 502,
+        headers: noStore,
+      });
+    }
+  }
+
   if (upstream.status === 404) {
     return new Response('Shopify chat is unavailable for this storefront origin', {
       status: 503,
@@ -65,10 +90,36 @@ export async function loader({request, context}: Route.LoaderArgs) {
     });
   }
 
-  const responseHeaders = new Headers(upstream.headers);
-  responseHeaders.delete('content-encoding');
-  responseHeaders.delete('content-length');
-  responseHeaders.set('Cache-Control', 'private, no-store');
+  const responseHeaders = new Headers({
+    'Cache-Control': 'private, no-store',
+    'Content-Security-Policy': "frame-ancestors 'self'",
+    'Content-Type': upstream.headers.get('content-type') ?? 'text/html; charset=utf-8',
+    'Referrer-Policy': 'no-referrer',
+    'X-Content-Type-Options': 'nosniff',
+  });
+
+  const contentType = responseHeaders.get('content-type') ?? '';
+  if (contentType.includes('text/html')) {
+    const html = await upstream.text();
+    const escapedClaimsFragment = buyerClaimsFragment
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const restoreClaimsMarkup = buyerClaimsFragment
+      ? `<meta name="shopify-buyer-claims" content="${escapedClaimsFragment}"><script src="${requestUrl.origin}/shopify-chat-assets/claims-bootstrap.js"></script>`
+      : '';
+    const withClaimsBootstrap = html.replace(
+      /<head(\s[^>]*)?>/i,
+      (head) => `${head}${restoreClaimsMarkup}`,
+    );
+    return new Response(withClaimsBootstrap, {
+      status: upstream.status,
+      statusText: upstream.statusText,
+      headers: responseHeaders,
+    });
+  }
+
   return new Response(upstream.body, {
     status: upstream.status,
     statusText: upstream.statusText,
