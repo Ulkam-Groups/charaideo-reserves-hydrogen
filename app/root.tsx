@@ -32,9 +32,55 @@ import {
 import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
 import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 
-const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
+const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
 const SHOPIFY_CHAT_WARMUP_MS = 120;
 const SHOPIFY_CHAT_REVEAL_FALLBACK_MS = 7_000;
+const SHOPIFY_CHAT_LAYOUT_PROBE_MS = 250;
+const SHOPIFY_CHAT_LAYOUT_PROBE_LIMIT = 80;
+const SHOPIFY_CHAT_TOP_PANEL_STYLE_ID = 'charaideo-chat-top-panel';
+const SHOPIFY_CHAT_TOP_PANEL_CSS = `
+  :host([open]) .desktop-layout .backdrop {
+    display: block !important;
+    opacity: 1 !important;
+    background: rgb(6 17 11 / 62%) !important;
+  }
+`;
+const SHOPIFY_CHAT_TOP_COMPOSER_STYLE_ID = 'charaideo-chat-top-composer';
+const SHOPIFY_CHAT_TOP_COMPOSER_CSS = `
+  .chat {
+    grid-template-rows: auto minmax(0, 1fr) !important;
+  }
+
+  .chat > .composer {
+    grid-row: 1 !important;
+    grid-column: 1 !important;
+    align-self: start !important;
+    margin-top: var(--private-panel-header-height) !important;
+    padding: 0 var(--private-spacing-xl) var(--private-spacing-sm) !important;
+  }
+
+  .chat > .scroll-container {
+    grid-row: 2 !important;
+    grid-column: 1 !important;
+    min-height: 0 !important;
+  }
+
+  .chat > .scroll-container::before {
+    height: var(--private-spacing-sm) !important;
+  }
+
+  .chat > .scroll-container::after {
+    height: var(--private-spacing-xl) !important;
+  }
+
+  .chat > .scroll-feather {
+    display: none !important;
+  }
+
+  .chat > .jump-to-latest {
+    bottom: var(--private-spacing-lg) !important;
+  }
+`;
 const GOOGLE_FONTS_STYLESHEET =
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
 type ChapterAnnouncementResult = {
@@ -307,6 +353,10 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
 
     const idleWindow = window as Window & {
       requestIdleCallback?: (
@@ -318,10 +368,162 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
     let disposed = false;
     let idleHandle: number | undefined;
     let warmupTimer: number | undefined;
+    let layoutProbeTimer: number | undefined;
+    let layoutProbeCount = 0;
+    const watchedFrames = new Set<HTMLIFrameElement>();
+    const styledChatRoots = new WeakSet<ShadowRoot>();
+    const styledConversationRoots = new WeakSet<ShadowRoot>();
+
+    const findInOpenShadowRoots = <T extends Element,>(
+      root: Document | ShadowRoot,
+      selector: string,
+    ): T | null => {
+      const directMatch = root.querySelector<T>(selector);
+      if (directMatch) return directMatch;
+
+      for (const element of root.querySelectorAll<HTMLElement>('*')) {
+        if (!element.shadowRoot) continue;
+        const nestedMatch = findInOpenShadowRoots<T>(element.shadowRoot, selector);
+        if (nestedMatch) return nestedMatch;
+      }
+
+      return null;
+    };
+
+    const installTopComposerLayout = () => {
+      const chat = document.querySelector<HTMLElement>('shopify-chat');
+      if (!chat?.shadowRoot) return false;
+
+      if (!styledChatRoots.has(chat.shadowRoot)) {
+        try {
+          const panelSheet = new CSSStyleSheet();
+          panelSheet.replaceSync(SHOPIFY_CHAT_TOP_PANEL_CSS);
+          chat.shadowRoot.adoptedStyleSheets = [
+            ...chat.shadowRoot.adoptedStyleSheets,
+            panelSheet,
+          ];
+        } catch {
+          if (!chat.shadowRoot.getElementById(SHOPIFY_CHAT_TOP_PANEL_STYLE_ID)) {
+            const style = document.createElement('style');
+            style.id = SHOPIFY_CHAT_TOP_PANEL_STYLE_ID;
+            style.textContent = SHOPIFY_CHAT_TOP_PANEL_CSS;
+            chat.shadowRoot.appendChild(style);
+          }
+        }
+        styledChatRoots.add(chat.shadowRoot);
+      }
+
+      const iframe = findInOpenShadowRoots<HTMLIFrameElement>(
+        chat.shadowRoot,
+        'iframe[part="iframe"]',
+      );
+      if (!iframe) return false;
+
+      if (!watchedFrames.has(iframe)) {
+        iframe.addEventListener('load', startLayoutProbe);
+        watchedFrames.add(iframe);
+      }
+
+      let iframeDocument: Document | null = null;
+      try {
+        iframeDocument = iframe.contentDocument;
+      } catch {
+        return false;
+      }
+      if (!iframeDocument) return false;
+
+      const conversation = findInOpenShadowRoots<HTMLElement>(
+        iframeDocument,
+        'shopify-chat-conversation',
+      );
+      const conversationRoot = conversation?.shadowRoot;
+      if (!conversationRoot) return false;
+
+      const chatLayout = conversationRoot.querySelector<HTMLElement>('.chat');
+      const composer = conversationRoot.querySelector<HTMLElement>('.composer');
+      const scrollContainer =
+        conversationRoot.querySelector<HTMLElement>('.scroll-container');
+      if (!chatLayout || !composer || !scrollContainer) return false;
+
+      if (!styledConversationRoots.has(conversationRoot)) {
+        try {
+          const ChatStyleSheet = iframeDocument.defaultView?.CSSStyleSheet;
+          if (!ChatStyleSheet) throw new Error('Constructed stylesheets unavailable');
+
+          const layoutSheet = new ChatStyleSheet();
+          layoutSheet.replaceSync(SHOPIFY_CHAT_TOP_COMPOSER_CSS);
+          conversationRoot.adoptedStyleSheets = [
+            ...conversationRoot.adoptedStyleSheets,
+            layoutSheet,
+          ];
+        } catch {
+          if (!conversationRoot.getElementById(SHOPIFY_CHAT_TOP_COMPOSER_STYLE_ID)) {
+            const style = iframeDocument.createElement('style');
+            style.id = SHOPIFY_CHAT_TOP_COMPOSER_STYLE_ID;
+            style.textContent = SHOPIFY_CHAT_TOP_COMPOSER_CSS;
+            conversationRoot.appendChild(style);
+          }
+        }
+        styledConversationRoots.add(conversationRoot);
+      }
+
+      // Keep the critical layout inline as well. Shopify's runtime can append
+      // component styles after the shadow root is created, so stylesheet order
+      // alone is not reliable across chat releases.
+      chatLayout.style.setProperty(
+        'grid-template-rows',
+        'auto minmax(0, 1fr)',
+        'important',
+      );
+      composer.style.setProperty('grid-row', '1', 'important');
+      composer.style.setProperty('align-self', 'start', 'important');
+      composer.style.setProperty(
+        'margin-top',
+        'var(--private-panel-header-height)',
+        'important',
+      );
+      scrollContainer.style.setProperty('grid-row', '2', 'important');
+      scrollContainer.style.setProperty('min-height', '0', 'important');
+
+      conversation?.setAttribute('data-composer-position', 'top');
+      return true;
+    };
+
+    function startLayoutProbe() {
+      if (disposed) return;
+      if (layoutProbeTimer !== undefined) window.clearInterval(layoutProbeTimer);
+      layoutProbeCount = 0;
+
+      const probe = () => {
+        layoutProbeCount += 1;
+        const complete =
+          installTopComposerLayout() ||
+          layoutProbeCount >= SHOPIFY_CHAT_LAYOUT_PROBE_LIMIT;
+        if (complete) {
+          if (layoutProbeTimer !== undefined) {
+            window.clearInterval(layoutProbeTimer);
+            layoutProbeTimer = undefined;
+          }
+        }
+        return complete;
+      };
+
+      if (!probe()) {
+        layoutProbeTimer = window.setInterval(probe, SHOPIFY_CHAT_LAYOUT_PROBE_MS);
+      }
+    }
+
+    const openObserver = new MutationObserver((mutations) => {
+      if (mutations.some((mutation) => mutation.attributeName === 'open')) {
+        startLayoutProbe();
+      }
+    });
     const revealTimer = window.setTimeout(() => {
       const chat = document.querySelector<HTMLElement>('shopify-chat');
-      chat?.removeAttribute('open');
-      chat?.removeAttribute('data-prewarming');
+      if (chat?.dataset.prewarming === 'true') {
+        chat.removeAttribute('open');
+        chat.removeAttribute('data-prewarming');
+      }
     }, SHOPIFY_CHAT_REVEAL_FALLBACK_MS);
 
     const warmChat = () => {
@@ -341,6 +543,10 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
     void customElements.whenDefined('shopify-chat').then(() => {
       if (disposed) return;
+
+      const chat = document.querySelector<HTMLElement>('shopify-chat');
+      if (chat) openObserver.observe(chat, {attributes: true});
+      startLayoutProbe();
 
       if (idleWindow.requestIdleCallback) {
         idleHandle = idleWindow.requestIdleCallback(warmChat, {timeout: 1_000});
@@ -368,12 +574,17 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       chat?.removeAttribute('data-prewarming');
       window.clearTimeout(revealTimer);
       if (warmupTimer !== undefined) window.clearTimeout(warmupTimer);
+      if (layoutProbeTimer !== undefined) window.clearInterval(layoutProbeTimer);
       if (idleHandle !== undefined) {
         if (idleWindow.cancelIdleCallback) idleWindow.cancelIdleCallback(idleHandle);
         else window.clearTimeout(idleHandle);
       }
+      openObserver.disconnect();
+      watchedFrames.forEach((iframe) =>
+        iframe.removeEventListener('load', startLayoutProbe),
+      );
     };
-  }, []);
+  }, [mounted]);
 
   if (!mounted) return null;
 

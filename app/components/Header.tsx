@@ -71,7 +71,7 @@ export function HeaderMenu({
   publicStoreDomain: HeaderProps['publicStoreDomain'];
 }) {
   const className = `header-menu-${viewport}`;
-  const {close, open} = useAside();
+  const {close} = useAside();
   const [libraryOpen, setLibraryOpen] = useState(false);
 
   if (viewport === 'mobile') {
@@ -109,7 +109,7 @@ export function HeaderMenu({
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
-        <button className="header-menu-item reset" onClick={() => open('search')} type="button">Search</button>
+        <button className="header-menu-item reset" onClick={openShopifyChat} type="button">Search</button>
       </nav>
     );
   }
@@ -183,8 +183,6 @@ function HeaderMenuMobileToggle() {
 }
 
 function SearchToggle() {
-  const {open} = useAside();
-
   useEffect(() => {
     const openFromKeyboard = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -202,17 +200,17 @@ function SearchToggle() {
         return;
       }
       event.preventDefault();
-      open('search');
+      openShopifyChat();
     };
     window.addEventListener('keydown', openFromKeyboard);
     return () => window.removeEventListener('keydown', openFromKeyboard);
-  }, [open]);
+  }, []);
 
   return (
     <button
       aria-label="Search teas"
       className="header-search-trigger reset"
-      onClick={() => open('search')}
+      onClick={openShopifyChat}
       title="Search teas (/)"
       type="button"
     >
@@ -221,6 +219,16 @@ function SearchToggle() {
       <SearchIcon />
     </button>
   );
+}
+
+function openShopifyChat() {
+  const chat = document.querySelector<HTMLElement & {show?: () => void}>(
+    'shopify-chat',
+  );
+  if (!chat) return;
+
+  if (typeof chat.show === 'function') chat.show();
+  else chat.setAttribute('open', '');
 }
 
 function CartBadge({count}: {count: number | null}) {

@@ -2676,6 +2676,34 @@ shopify-chat::part(activator):focus-visible {
     0 0 0 3px rgb(184 121 54 / 24%);
 }
 
+/* Open the shopping assistant as a search-like panel at the top of the page. */
+shopify-chat::part(dialog) {
+  position: fixed !important;
+  top: calc(var(--header-height) + 18px) !important;
+  right: clamp(12px, 2vw, 28px) !important;
+  bottom: auto !important;
+  left: clamp(12px, 2vw, 28px) !important;
+  width: auto !important;
+  height: calc(100dvh - var(--header-height) - 36px) !important;
+  max-height: calc(100dvh - var(--header-height) - 36px) !important;
+  margin: 0 !important;
+  border: 1px solid rgb(19 42 31 / 12%) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 28px 80px rgb(8 24 16 / 28%) !important;
+  transform-origin: center top !important;
+}
+
+@media (max-width: 767px) {
+  shopify-chat::part(dialog) {
+    top: max(8px, env(safe-area-inset-top)) !important;
+    right: 8px !important;
+    left: 8px !important;
+    height: calc(100dvh - max(16px, env(safe-area-inset-top))) !important;
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top))) !important;
+    border-radius: 18px !important;
+  }
+}
+
 @keyframes chat-launcher-pulse {
   0%,
   100% {
