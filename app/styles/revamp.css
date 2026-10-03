@@ -352,14 +352,10 @@ button.header-search-trigger {
     transform 0.2s ease;
 }
 
-@media (min-width: 901px) {
-  html[data-shopify-chat-open='true'] button.header-search-trigger {
-    width: clamp(300px, 34vw, 520px);
-    border-color: rgb(90 117 102 / 48%);
-    background: #fff;
-    box-shadow: 0 10px 28px rgb(19 42 31 / 16%);
-    transform: translateY(-1px);
-  }
+html[data-shopify-chat-open='true'] button.header-search-trigger {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (min-width: 768px) {
@@ -442,7 +438,6 @@ button.header-search-trigger:focus-visible {
   outline: 2px solid rgba(19, 42, 31, 0.32);
   outline-offset: 3px;
 }
-.header-search-trigger svg,
 .header-icon-button svg {
   width: 20px;
   height: 20px;
@@ -452,15 +447,26 @@ button.header-search-trigger:focus-visible {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-button.header-search-trigger svg {
+button.header-search-trigger .header-search-ai-icon {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
   width: 28px;
   height: 28px;
-  padding: 5px;
   border-radius: 50%;
   background: #f0f3ec;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-button.header-search-trigger:hover svg {
+
+button.header-search-trigger .header-search-ai-icon::before {
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  content: '';
+  mask: url('../assets/ai-search-stroke-rounded.svg') center / contain no-repeat;
+}
+
+button.header-search-trigger:hover .header-search-ai-icon {
   background: #e5ece2;
   transform: scale(1.04);
 }
@@ -1278,7 +1284,7 @@ button.header-search-trigger:hover svg {
     justify-content: center;
     transform: none;
   }
-  .header.header-solid .header-search-trigger span,
+  .header.header-solid .header-search-trigger .header-search-label,
   .header.header-solid .header-search-trigger kbd {
     display: none;
   }
@@ -3592,7 +3598,7 @@ html {
     padding: 0;
     justify-content: center;
   }
-  .header-search-trigger span {
+  .header-search-trigger .header-search-label {
     display: none;
   }
   .catalog-page .products-grid,

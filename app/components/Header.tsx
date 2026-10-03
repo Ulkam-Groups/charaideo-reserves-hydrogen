@@ -219,13 +219,13 @@ function SearchToggle() {
 
   return (
     <button
-      aria-label="Search teas"
+      aria-label="Ask about our teas"
       className="header-search-trigger reset"
       onClick={(event) => openShopifyChat(event.currentTarget)}
-      title="Search teas (/)"
+      title="Ask about our teas (/)"
       type="button"
     >
-      <span>Search teas</span>
+      <span className="header-search-label">Ask about our teas</span>
       <kbd aria-hidden="true">/</kbd>
       <SearchIcon />
     </button>
@@ -413,12 +413,7 @@ function CartBanner() {
 }
 
 function SearchIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24">
-      <circle cx="10.75" cy="10.75" r="6.75" />
-      <path d="m16 16 4 4" />
-    </svg>
-  );
+  return <span aria-hidden="true" className="header-search-ai-icon" />;
 }
 
 function AccountIcon() {
