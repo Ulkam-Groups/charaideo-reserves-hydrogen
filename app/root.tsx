@@ -35,14 +35,49 @@ import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
 const SHOPIFY_CHAT_WARMUP_MS = 120;
 const SHOPIFY_CHAT_REVEAL_FALLBACK_MS = 7_000;
+const SHOPIFY_CHAT_CLOSE_ANIMATION_MS = 380;
 const SHOPIFY_CHAT_LAYOUT_PROBE_MS = 250;
 const SHOPIFY_CHAT_LAYOUT_PROBE_LIMIT = 80;
 const SHOPIFY_CHAT_TOP_PANEL_STYLE_ID = 'charaideo-chat-top-panel';
 const SHOPIFY_CHAT_TOP_PANEL_CSS = `
-  :host([open]) .desktop-layout .backdrop {
+  .backdrop {
+    position: fixed !important;
+    z-index: 0 !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    pointer-events: auto !important;
+    display: none !important;
+    opacity: 0 !important;
+    transition:
+      opacity 300ms ease,
+      display 300ms allow-discrete !important;
+    transition-behavior: allow-discrete !important;
+  }
+
+  :host([open]) .backdrop {
     display: block !important;
     opacity: 1 !important;
     background: rgb(6 17 11 / 62%) !important;
+    transition-delay: 0s !important;
+  }
+
+  @starting-style {
+    :host([open]) .backdrop {
+      opacity: 0 !important;
+    }
+  }
+
+  :host([data-prewarming='true']) .panel,
+  :host([data-prewarming='true']) .backdrop {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .backdrop {
+      transition: none !important;
+    }
   }
 `;
 const SHOPIFY_CHAT_TOP_COMPOSER_STYLE_ID = 'charaideo-chat-top-composer';
@@ -369,10 +404,26 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
     let idleHandle: number | undefined;
     let warmupTimer: number | undefined;
     let layoutProbeTimer: number | undefined;
+    let chatCloseTimer: number | undefined;
     let layoutProbeCount = 0;
     const watchedFrames = new Set<HTMLIFrameElement>();
+    const escapeBoundDocuments = new WeakSet<Document>();
     const styledChatRoots = new WeakSet<ShadowRoot>();
     const styledConversationRoots = new WeakSet<ShadowRoot>();
+
+    const closeChatOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+
+      const chat = document.querySelector<
+        HTMLElement & {close?: () => void}
+      >('shopify-chat');
+      if (!chat?.hasAttribute('open')) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (typeof chat.close === 'function') chat.close();
+      else chat.removeAttribute('open');
+    };
 
     const findInOpenShadowRoots = <T extends Element,>(
       root: Document | ShadowRoot,
@@ -394,23 +445,30 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       const chat = document.querySelector<HTMLElement>('shopify-chat');
       if (!chat?.shadowRoot) return false;
 
-      if (!styledChatRoots.has(chat.shadowRoot)) {
+      const runtime = findInOpenShadowRoots<HTMLElement>(
+        chat.shadowRoot,
+        'shopify-agent-runtime',
+      );
+      const panelRoot = runtime?.shadowRoot;
+      if (!panelRoot) return false;
+
+      if (!styledChatRoots.has(panelRoot)) {
         try {
           const panelSheet = new CSSStyleSheet();
           panelSheet.replaceSync(SHOPIFY_CHAT_TOP_PANEL_CSS);
-          chat.shadowRoot.adoptedStyleSheets = [
-            ...chat.shadowRoot.adoptedStyleSheets,
+          panelRoot.adoptedStyleSheets = [
+            ...panelRoot.adoptedStyleSheets,
             panelSheet,
           ];
         } catch {
-          if (!chat.shadowRoot.getElementById(SHOPIFY_CHAT_TOP_PANEL_STYLE_ID)) {
+          if (!panelRoot.getElementById(SHOPIFY_CHAT_TOP_PANEL_STYLE_ID)) {
             const style = document.createElement('style');
             style.id = SHOPIFY_CHAT_TOP_PANEL_STYLE_ID;
             style.textContent = SHOPIFY_CHAT_TOP_PANEL_CSS;
-            chat.shadowRoot.appendChild(style);
+            panelRoot.appendChild(style);
           }
         }
-        styledChatRoots.add(chat.shadowRoot);
+        styledChatRoots.add(panelRoot);
       }
 
       const iframe = findInOpenShadowRoots<HTMLIFrameElement>(
@@ -431,6 +489,11 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
         return false;
       }
       if (!iframeDocument) return false;
+
+      if (!escapeBoundDocuments.has(iframeDocument)) {
+        iframeDocument.addEventListener('keydown', closeChatOnEscape, true);
+        escapeBoundDocuments.add(iframeDocument);
+      }
 
       const conversation = findInOpenShadowRoots<HTMLElement>(
         iframeDocument,
@@ -515,9 +578,26 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
     const openObserver = new MutationObserver((mutations) => {
       if (mutations.some((mutation) => mutation.attributeName === 'open')) {
+        const chat = document.querySelector<HTMLElement>('shopify-chat');
+        if (chat?.hasAttribute('open') && chat.dataset.prewarming !== 'true') {
+          if (chatCloseTimer !== undefined) {
+            window.clearTimeout(chatCloseTimer);
+            chatCloseTimer = undefined;
+          }
+          document.documentElement.dataset.shopifyChatOpen = 'true';
+        } else if (!chat?.hasAttribute('open')) {
+          if (chatCloseTimer !== undefined) {
+            window.clearTimeout(chatCloseTimer);
+          }
+          chatCloseTimer = window.setTimeout(() => {
+            delete document.documentElement.dataset.shopifyChatOpen;
+            chatCloseTimer = undefined;
+          }, SHOPIFY_CHAT_CLOSE_ANIMATION_MS);
+        }
         startLayoutProbe();
       }
     });
+    window.addEventListener('keydown', closeChatOnEscape, true);
     const revealTimer = window.setTimeout(() => {
       const chat = document.querySelector<HTMLElement>('shopify-chat');
       if (chat?.dataset.prewarming === 'true') {
@@ -572,17 +652,25 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       const chat = document.querySelector<HTMLElement>('shopify-chat');
       chat?.removeAttribute('open');
       chat?.removeAttribute('data-prewarming');
+      delete document.documentElement.dataset.shopifyChatOpen;
       window.clearTimeout(revealTimer);
       if (warmupTimer !== undefined) window.clearTimeout(warmupTimer);
       if (layoutProbeTimer !== undefined) window.clearInterval(layoutProbeTimer);
+      if (chatCloseTimer !== undefined) window.clearTimeout(chatCloseTimer);
       if (idleHandle !== undefined) {
         if (idleWindow.cancelIdleCallback) idleWindow.cancelIdleCallback(idleHandle);
         else window.clearTimeout(idleHandle);
       }
       openObserver.disconnect();
-      watchedFrames.forEach((iframe) =>
-        iframe.removeEventListener('load', startLayoutProbe),
-      );
+      window.removeEventListener('keydown', closeChatOnEscape, true);
+      watchedFrames.forEach((iframe) => {
+        iframe.removeEventListener('load', startLayoutProbe);
+        iframe.contentDocument?.removeEventListener(
+          'keydown',
+          closeChatOnEscape,
+          true,
+        );
+      });
     };
   }, [mounted]);
 

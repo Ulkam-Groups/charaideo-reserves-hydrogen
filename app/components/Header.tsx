@@ -109,7 +109,16 @@ export function HeaderMenu({
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
-        <button className="header-menu-item reset" onClick={openShopifyChat} type="button">Search</button>
+        <button
+          className="header-menu-item reset"
+          onClick={(event) => {
+            close();
+            openShopifyChat(event.currentTarget);
+          }}
+          type="button"
+        >
+          Search
+        </button>
       </nav>
     );
   }
@@ -200,7 +209,9 @@ function SearchToggle() {
         return;
       }
       event.preventDefault();
-      openShopifyChat();
+      openShopifyChat(
+        document.querySelector<HTMLElement>('.header-search-trigger'),
+      );
     };
     window.addEventListener('keydown', openFromKeyboard);
     return () => window.removeEventListener('keydown', openFromKeyboard);
@@ -210,7 +221,7 @@ function SearchToggle() {
     <button
       aria-label="Search teas"
       className="header-search-trigger reset"
-      onClick={openShopifyChat}
+      onClick={(event) => openShopifyChat(event.currentTarget)}
       title="Search teas (/)"
       type="button"
     >
@@ -221,11 +232,116 @@ function SearchToggle() {
   );
 }
 
-function openShopifyChat() {
+let shopifyChatGeometryCleanup: (() => void) | null = null;
+
+function openShopifyChat(trigger: HTMLElement | null) {
   const chat = document.querySelector<HTMLElement & {show?: () => void}>(
     'shopify-chat',
   );
   if (!chat) return;
+
+  shopifyChatGeometryCleanup?.();
+  shopifyChatGeometryCleanup = null;
+  document.documentElement.dataset.shopifyChatOpen = 'true';
+
+  if (trigger) {
+    const headerSurface = document.querySelector<HTMLElement>('.header-inner');
+    const updatePanelGeometry = () => {
+      const triggerRect = trigger.getBoundingClientRect();
+      const headerRect = headerSurface?.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      const panelInset = Math.min(28, Math.max(12, window.innerWidth * 0.02));
+      const panelBottomInset = Math.min(
+        80,
+        Math.max(60, (window.innerHeight * 70) / 900),
+      );
+      const panelLeft = headerRect?.left ?? panelInset;
+      const panelRight =
+        headerRect ? viewportWidth - headerRect.right : panelInset;
+      const panelTop = headerRect?.bottom ?? 92;
+      const panelWidth = Math.max(1, viewportWidth - panelLeft - panelRight);
+      const panelHeight = Math.max(
+        1,
+        window.innerHeight - panelTop - panelBottomInset,
+      );
+      const originX = Math.min(
+        panelWidth,
+        Math.max(0, triggerRect.left + triggerRect.width / 2 - panelLeft),
+      );
+
+      chat.style.setProperty('--charaideo-chat-origin-x', `${originX}px`);
+      chat.style.setProperty('--charaideo-chat-panel-left', `${panelLeft}px`);
+      chat.style.setProperty('--charaideo-chat-panel-right', `${panelRight}px`);
+      chat.style.setProperty('--charaideo-chat-panel-top', `${panelTop}px`);
+      chat.style.setProperty(
+        '--charaideo-chat-panel-bottom',
+        `${panelBottomInset}px`,
+      );
+      chat.style.setProperty(
+        '--charaideo-chat-start-scale-x',
+        String(Math.max(0.08, Math.min(0.42, triggerRect.width / panelWidth))),
+      );
+      chat.style.setProperty(
+        '--charaideo-chat-start-scale-y',
+        String(Math.max(0.035, Math.min(0.16, triggerRect.height / panelHeight))),
+      );
+    };
+
+    const handleHeaderTransitionEnd = (event: TransitionEvent) => {
+      if (event.target === headerSurface) updatePanelGeometry();
+    };
+
+    updatePanelGeometry();
+    window.addEventListener('resize', updatePanelGeometry);
+    window.addEventListener('scroll', updatePanelGeometry, {passive: true});
+    headerSurface?.addEventListener('transitionend', handleHeaderTransitionEnd);
+
+    const headerResizeObserver = headerSurface
+      ? new ResizeObserver(updatePanelGeometry)
+      : null;
+    if (headerSurface) headerResizeObserver?.observe(headerSurface);
+
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(updatePanelGeometry);
+    });
+
+    const closeObserver = new MutationObserver(() => {
+      if (chat.hasAttribute('open')) return;
+      closeObserver.disconnect();
+      window.removeEventListener('resize', updatePanelGeometry);
+      window.removeEventListener('scroll', updatePanelGeometry);
+      headerSurface?.removeEventListener(
+        'transitionend',
+        handleHeaderTransitionEnd,
+      );
+      headerResizeObserver?.disconnect();
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      if (shopifyChatGeometryCleanup === cleanup) {
+        shopifyChatGeometryCleanup = null;
+      }
+    });
+    closeObserver.observe(chat, {
+      attributes: true,
+      attributeFilter: ['open'],
+    });
+
+    const cleanup = () => {
+      closeObserver.disconnect();
+      window.removeEventListener('resize', updatePanelGeometry);
+      window.removeEventListener('scroll', updatePanelGeometry);
+      headerSurface?.removeEventListener(
+        'transitionend',
+        handleHeaderTransitionEnd,
+      );
+      headerResizeObserver?.disconnect();
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+    shopifyChatGeometryCleanup = cleanup;
+  }
 
   if (typeof chat.show === 'function') chat.show();
   else chat.setAttribute('open', '');
