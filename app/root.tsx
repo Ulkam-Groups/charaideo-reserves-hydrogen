@@ -33,6 +33,8 @@ import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
 import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 
 const SHOPIFY_CHAT_SCRIPT = 'https://cdn.shopify.com/storefront/web-components/chat.js';
+const SHOPIFY_CHAT_WARMUP_MS = 120;
+const SHOPIFY_CHAT_REVEAL_FALLBACK_MS = 7_000;
 const GOOGLE_FONTS_STYLESHEET =
   'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap';
 type ChapterAnnouncementResult = {
@@ -59,6 +61,17 @@ type ChapterAnnouncementResult = {
 export function links() {
   return [
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
+    {rel: 'preconnect', href: 'https://cdn.shopify.com', crossOrigin: 'anonymous'},
+    {
+      rel: 'preconnect',
+      href: 'https://storefront-agent-server.shopify.ai',
+      crossOrigin: 'anonymous',
+    },
+    {
+      rel: 'preconnect',
+      href: 'https://messaging-api.shopifyapps.com',
+      crossOrigin: 'anonymous',
+    },
     {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
     {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
   ];
@@ -295,17 +308,71 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
   useEffect(() => {
     setMounted(true);
 
-    if (document.querySelector('script[data-shopify-chat-script]')) return;
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    let disposed = false;
+    let idleHandle: number | undefined;
+    let warmupTimer: number | undefined;
+    const revealTimer = window.setTimeout(() => {
+      const chat = document.querySelector<HTMLElement>('shopify-chat');
+      chat?.removeAttribute('open');
+      chat?.removeAttribute('data-prewarming');
+    }, SHOPIFY_CHAT_REVEAL_FALLBACK_MS);
 
-    // Hydrogen's lazy Script path applies attributes after inserting the
-    // element. A module must have its type set before insertion, otherwise the
-    // browser prepares chat.js as a classic script and rejects import.meta.
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.crossOrigin = 'anonymous';
-    script.src = SHOPIFY_CHAT_SCRIPT;
-    script.dataset.shopifyChatScript = 'true';
-    document.body.appendChild(script);
+    const warmChat = () => {
+      const chat = document.querySelector<HTMLElement>('shopify-chat');
+      if (disposed || !chat || chat.dataset.prewarmStarted === 'true') return;
+
+      chat.dataset.prewarmStarted = 'true';
+      chat.setAttribute('open', '');
+
+      warmupTimer = window.setTimeout(() => {
+        if (disposed) return;
+        chat.removeAttribute('open');
+        chat.removeAttribute('data-prewarming');
+        chat.dataset.prewarmed = 'true';
+      }, SHOPIFY_CHAT_WARMUP_MS);
+    };
+
+    void customElements.whenDefined('shopify-chat').then(() => {
+      if (disposed) return;
+
+      if (idleWindow.requestIdleCallback) {
+        idleHandle = idleWindow.requestIdleCallback(warmChat, {timeout: 1_000});
+      } else {
+        idleHandle = window.setTimeout(warmChat, 0);
+      }
+    });
+
+    if (!document.querySelector('script[data-shopify-chat-script]')) {
+      // Hydrogen's lazy Script path applies attributes after inserting the
+      // element. A module must have its type set before insertion, otherwise the
+      // browser prepares chat.js as a classic script and rejects import.meta.
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.crossOrigin = 'anonymous';
+      script.src = SHOPIFY_CHAT_SCRIPT;
+      script.dataset.shopifyChatScript = 'true';
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      disposed = true;
+      const chat = document.querySelector<HTMLElement>('shopify-chat');
+      chat?.removeAttribute('open');
+      chat?.removeAttribute('data-prewarming');
+      window.clearTimeout(revealTimer);
+      if (warmupTimer !== undefined) window.clearTimeout(warmupTimer);
+      if (idleHandle !== undefined) {
+        if (idleWindow.cancelIdleCallback) idleWindow.cancelIdleCallback(idleHandle);
+        else window.clearTimeout(idleHandle);
+      }
+    };
   }, []);
 
   if (!mounted) return null;
@@ -321,7 +388,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
         }}
       />
       <shopify-store store-domain={storeDomain} country="IN" language="en">
-        <shopify-chat mode="standalone" />
+        <shopify-chat mode="standalone" data-prewarming="true" />
       </shopify-store>
     </>
   );

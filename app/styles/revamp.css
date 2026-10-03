@@ -2624,6 +2624,23 @@ shopify-chat {
   --shopify-chat-body-font-family: inherit;
 }
 
+/* Initialize Shopify's real chat iframe off-screen, then reveal a warm launcher. */
+shopify-chat[data-prewarming='true'] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-200vw, -200vh) !important;
+  transition: none !important;
+  animation: none !important;
+  contain: strict;
+}
+
 shopify-chat::part(activator) {
   justify-content: start;
   width: 46px;
