@@ -216,34 +216,6 @@ function AboutStoryPage() {
         </figure>
       </section>
 
-      <section className="about-page-proof" aria-label="The Charaideo promise">
-        <p className="about-page-proof-label">What we promise</p>
-        <article>
-          <span>01</span>
-          <div>
-            <h2>Single-Garden &amp; Traceable</h2>
-            <p>Every lot QR-linked to its origin, garden and estate</p>
-          </div>
-        </article>
-        <article>
-          <span>02</span>
-          <div>
-            <h2>Whole-leaf Orthodox</h2>
-            <p>No dust, no fannings — only traditional hand-rolled craft</p>
-          </div>
-        </article>
-        <article>
-          <span>03</span>
-          <div>
-            <h2>Direct &amp; Ethical</h2>
-            <p>
-              Direct relationships with the best estates across Assam, grower-first
-              pricing
-            </p>
-          </div>
-        </article>
-      </section>
-
       <section className="about-page-story" aria-labelledby="story-title">
         <div className="about-page-story-copy">
           <p className="about-page-kicker">Our story</p>
@@ -289,6 +261,33 @@ function AboutStoryPage() {
               to its origin.
             </p>
           </article>
+        </div>
+      </section>
+
+      <section className="about-page-founder" aria-labelledby="founder-title">
+        <div className="about-page-founder-panel">
+          <div className="about-page-founder-portrait">
+            <img
+              src={kamalikaPortrait}
+              width="420"
+              height="420"
+              loading="lazy"
+              decoding="async"
+              alt="Kamalika Biswas, founder and CEO of Charaideo Reserves"
+            />
+          </div>
+          <div className="about-page-founder-copy">
+            <p className="about-page-kicker">The people</p>
+            <h2 id="founder-title">Meet the Founder</h2>
+            <h3>Kamalika Biswas — Founder &amp; CEO</h3>
+            <p>
+              Founder of Ulkam Group and a daughter of Assam&apos;s tea soil, Kamalika left
+              her corporate career to return to her family&apos;s legacy in Rupai. Through
+              Charaideo Reserves, she carries forward three generations of tea heritage —
+              with a woman&apos;s perspective, a founder&apos;s grit, and a deep respect for
+              the land that raised her.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -367,29 +366,35 @@ function AboutStoryPage() {
         </div>
       </section>
 
-      <section className="about-page-founder" aria-labelledby="founder-title">
-        <div className="about-page-founder-card">
-          <img
-            src={kamalikaPortrait}
-            width="420"
-            height="420"
-            loading="lazy"
-            decoding="async"
-            alt="Kamalika Biswas, founder and CEO of Charaideo Reserves"
-          />
-        </div>
-        <div className="about-page-founder-copy">
-          <p className="about-page-kicker">The people</p>
-          <h2 id="founder-title">Meet the Founder</h2>
-          <h3>Kamalika Biswas — Founder &amp; CEO</h3>
-          <p>
-            Founder of Ulkam Group and a daughter of Assam&apos;s tea soil, Kamalika left
-            her corporate career to return to her family&apos;s legacy in Rupai. Through
-            Charaideo Reserves, she carries forward three generations of tea heritage —
-            with a woman&apos;s perspective, a founder&apos;s grit, and a deep respect for
-            the land that raised her.
-          </p>
-        </div>
+      <section className="about-page-proof" aria-label="The Charaideo promise">
+        <p className="about-page-proof-label">What we promise</p>
+        <article>
+          <span>01</span>
+          <div>
+            <h2>Single-Garden &amp; Traceable</h2>
+            <p>Every lot QR-linked to its origin, garden and estate</p>
+          </div>
+        </article>
+        <article>
+          <span>02</span>
+          <div>
+            <h2>One Estate. One Harvest.</h2>
+            <p>
+              Each reserve comes from a single garden and harvest — never blended,
+              so its character stays true to its origin
+            </p>
+          </div>
+        </article>
+        <article>
+          <span>03</span>
+          <div>
+            <h2>Direct &amp; Ethical</h2>
+            <p>
+              Direct relationships with the best estates across Assam, grower-first
+              pricing
+            </p>
+          </div>
+        </article>
       </section>
 
       <section className="about-page-close" aria-labelledby="legacy-title">
