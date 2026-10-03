@@ -50,14 +50,8 @@ test('Shopify agent proxy forwards only required headers', async () => {
       'https://storefront-agent-server.shopify.ai/api/store/charaideoreserves/empty_state',
     );
     assert.equal(forwardedHeaders?.get('Accept'), 'application/json');
-    assert.equal(
-      forwardedHeaders?.get('X-Buyer-Claims-Token'),
-      'claims-token',
-    );
-    assert.equal(
-      forwardedHeaders?.get('Shopify-Runtime-Contract'),
-      'required-value',
-    );
+    assert.equal(forwardedHeaders?.get('X-Buyer-Claims-Token'), 'claims-token');
+    assert.equal(forwardedHeaders?.get('Shopify-Runtime-Contract'), 'required-value');
     assert.equal(forwardedHeaders?.has('Authorization'), false);
     assert.equal(forwardedHeaders?.has('Cookie'), false);
     assert.equal(forwardedHeaders?.has('X-Forwarded-For'), false);
@@ -87,9 +81,10 @@ test('Shopify agent proxy rejects other stores, paths, methods, and queries', as
   ];
 
   for (const request of cases) {
-    const response = request.method === 'GET'
-      ? await agentLoader({request, context} as any)
-      : await agentAction({request, context} as any);
+    const response =
+      request.method === 'GET'
+        ? await agentLoader({request, context} as any)
+        : await agentAction({request, context} as any);
     assert.ok(response.status === 400 || response.status === 404);
   }
 });
@@ -109,9 +104,7 @@ test('Shopify agent proxy rejects oversized bodies', async () => {
 
 test('Shopify chat asset proxy exposes only patched chat modules', async () => {
   const response = await assetLoader({
-    request: new Request(
-      'https://store.example/shopify-chat-assets/agent-iframe.js',
-    ),
+    request: new Request('https://store.example/shopify-chat-assets/agent-iframe.js'),
   } as any);
   assert.equal(response.status, 404);
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');

@@ -47,7 +47,10 @@ test('buyer claims route proxies only the configured Shopify store', async () =>
     assert.equal(forwardedHeaders?.get('Referer'), 'https://preview.myshopify.dev/');
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
-    assert.equal(response.headers.get('Content-Security-Policy'), "frame-ancestors 'self'");
+    assert.equal(
+      response.headers.get('Content-Security-Policy'),
+      "frame-ancestors 'self'",
+    );
     assert.equal(response.headers.has('Set-Cookie'), false);
     assert.equal(await response.text(), 'claims');
   } finally {
