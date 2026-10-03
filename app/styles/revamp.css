@@ -358,6 +358,15 @@ html[data-shopify-chat-open='true'] button.header-search-trigger {
   pointer-events: none;
 }
 
+html[data-shopify-chat-open='true']
+  header.header.header-solid
+  .header-inner {
+  border-bottom: 0 !important;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+  box-shadow: none;
+}
+
 @media (min-width: 768px) {
   html[data-shopify-chat-open='true'] header.header {
     z-index: 2147483001 !important;

@@ -109,3 +109,17 @@ test('Shopify chat asset proxy exposes only patched chat modules', async () => {
   assert.equal(response.status, 404);
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
 });
+
+test('claims bootstrap uses the buyer-token store handle for messaging history', async () => {
+  const response = await assetLoader({
+    request: new Request(
+      'https://store.example/shopify-chat-assets/claims-bootstrap.js',
+    ),
+    context,
+  } as any);
+  const script = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(script, /buyerStoreHandle="f5a7fq-re"/);
+  assert.match(script, /url\.searchParams\.set\('store_handle',buyerStoreHandle\)/);
+});

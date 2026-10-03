@@ -5,7 +5,7 @@ const CHAT_ASSET_PREFIX = '/storefront/web-components/';
 const LOCAL_CHAT_ASSET_PREFIX = '/shopify-chat-assets/';
 const ALLOWED_REMOTE_ASSET = /^(?:chat\.js|chat\/agent-runtime-[A-Za-z0-9_-]{6,80}\.js)$/;
 
-export async function loader({request}: Route.LoaderArgs) {
+export async function loader({request, context}: Route.LoaderArgs) {
   const requestUrl = new URL(request.url);
   const assetPath = requestUrl.pathname.slice(LOCAL_CHAT_ASSET_PREFIX.length);
 
@@ -14,8 +14,15 @@ export async function loader({request}: Route.LoaderArgs) {
   }
 
   if (assetPath === 'claims-bootstrap.js') {
+    const buyerStoreDomain = context.env.PUBLIC_STORE_DOMAIN?.trim() ?? '';
+    const buyerStoreHandle = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i.test(
+      buyerStoreDomain,
+    )
+      ? buyerStoreDomain.slice(0, -'.myshopify.com'.length)
+      : '';
+
     return new Response(
-      `const meta=document.querySelector('meta[name="shopify-buyer-claims"]');if(meta?.content){window.location.hash=meta.content;meta.remove();}const originalFetch=globalThis.fetch.bind(globalThis);globalThis.fetch=(input,init)=>{const url=new URL(input instanceof Request?input.url:String(input),window.location.href);if(url.origin==='https://storefront-agent-server.shopify.ai'){url.pathname='/shopify-agent-api'+url.pathname;url.protocol=window.location.protocol;url.host=window.location.host;input=input instanceof Request?new Request(url.toString(),input):url.toString();}return originalFetch(input,init);};`,
+      `const buyerStoreHandle=${JSON.stringify(buyerStoreHandle)};const meta=document.querySelector('meta[name="shopify-buyer-claims"]');if(meta?.content){window.location.hash=meta.content;meta.remove();}const originalFetch=globalThis.fetch.bind(globalThis);globalThis.fetch=(input,init)=>{const url=new URL(input instanceof Request?input.url:String(input),window.location.href);if(url.origin==='https://storefront-agent-server.shopify.ai'){url.pathname='/shopify-agent-api'+url.pathname;url.protocol=window.location.protocol;url.host=window.location.host;input=input instanceof Request?new Request(url.toString(),input):url.toString();}else if(buyerStoreHandle&&url.origin==='https://messaging-api.shopifyapps.com'&&url.pathname.startsWith('/shopify_chat/api/storefront/storefront_agent/')&&url.searchParams.has('store_handle')){url.searchParams.set('store_handle',buyerStoreHandle);input=input instanceof Request?new Request(url.toString(),input):url.toString();}return originalFetch(input,init);};`,
       {
         headers: {
           'Cache-Control': 'no-store',

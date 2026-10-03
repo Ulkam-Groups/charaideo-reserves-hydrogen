@@ -407,6 +407,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
     let chatCloseTimer: number | undefined;
     let layoutProbeCount = 0;
     const watchedFrames = new Set<HTMLIFrameElement>();
+    const redirectedActivatorRoots = new Set<ShadowRoot>();
     const escapeBoundDocuments = new WeakSet<Document>();
     const styledChatRoots = new WeakSet<ShadowRoot>();
     const styledConversationRoots = new WeakSet<ShadowRoot>();
@@ -495,9 +496,34 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       return null;
     };
 
+    const openChatFromNavbar = (event: Event) => {
+      const clickedActivator = event
+        .composedPath()
+        .some(
+          (target) =>
+            target instanceof Element &&
+            target.matches('button[part="activator"]'),
+        );
+      if (!clickedActivator) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      document
+        .querySelector<HTMLButtonElement>('button.header-search-trigger')
+        ?.click();
+    };
+
+    const installActivatorRedirect = (chatRoot: ShadowRoot) => {
+      if (redirectedActivatorRoots.has(chatRoot)) return;
+
+      chatRoot.addEventListener('click', openChatFromNavbar, true);
+      redirectedActivatorRoots.add(chatRoot);
+    };
+
     const installTopComposerLayout = () => {
       const chat = document.querySelector<HTMLElement>('shopify-chat');
       if (!chat?.shadowRoot) return false;
+      installActivatorRedirect(chat.shadowRoot);
 
       const runtime = findInOpenShadowRoots<HTMLElement>(
         chat.shadowRoot,
@@ -505,6 +531,10 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       );
       const panelRoot = runtime?.shadowRoot;
       if (!panelRoot) return false;
+
+      const panel = panelRoot.querySelector<HTMLElement>('.panel');
+      panel?.style.setProperty('border-top', '0', 'important');
+      panel?.style.setProperty('outline', '0', 'important');
 
       if (!styledChatRoots.has(panelRoot)) {
         try {
@@ -530,6 +560,9 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
         'iframe[part="iframe"]',
       );
       if (!iframe) return false;
+
+      iframe.style.setProperty('border', '0', 'important');
+      iframe.style.setProperty('outline', '0', 'important');
 
       if (!watchedFrames.has(iframe)) {
         iframe.addEventListener('load', startLayoutProbe);
@@ -720,6 +753,9 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       }
       openObserver.disconnect();
       window.removeEventListener('keydown', closeChatOnEscape, true);
+      redirectedActivatorRoots.forEach((chatRoot) => {
+        chatRoot.removeEventListener('click', openChatFromNavbar, true);
+      });
       watchedFrames.forEach((iframe) => {
         iframe.removeEventListener('load', startLayoutProbe);
         iframe.contentDocument?.removeEventListener(
