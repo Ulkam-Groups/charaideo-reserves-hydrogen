@@ -3,6 +3,7 @@ import {canStartCheckout, type CheckoutInput} from './checkout.ts';
 import {startFastrrCheckout} from './providers/fastrr/fastrr.client.ts';
 import {fastrrVariantId} from './providers/fastrr/fastrr.ts';
 import {startRazorpayCheckout} from './providers/razorpay/razorpay.client.ts';
+import {metaFastrrCheckoutAttributes} from '../ads/meta/meta-pixel.ts';
 
 export async function startCheckout(
   provider: CheckoutProvider | null | undefined,
@@ -22,5 +23,9 @@ export async function startCheckout(
     ...checkoutData,
     type: source,
     products,
+    cartAttributes: {
+      ...checkoutData.cartAttributes,
+      ...metaFastrrCheckoutAttributes(),
+    },
   });
 }

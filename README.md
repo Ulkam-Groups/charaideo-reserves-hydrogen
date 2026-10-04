@@ -61,10 +61,12 @@ builder and Draft Order checkout endpoint are retired:
 - `/api/admin/teas` returns `404 Not Found`; it must not be re-enabled without
   Shopify session-token authentication and server-side authorization.
 
-The custom `orders/create` subscription and all custom inventory mutations are
-removed. A temporary signed no-op route remains only to acknowledge deliveries
-that were already in flight when the subscription was retired; Shopify remains
-the sole source of ordinary product inventory changes.
+The signed `/webhooks/orders-create` route accepts `orders/create` and
+`orders/paid` only for Meta purchase measurement. Fastrr checkouts tag the order
+with the provider and the visitor's Meta consent state. Consented COD orders are
+reported when created; consented prepaid orders are reported when paid. The
+route performs no Shopify Admin writes, and Shopify remains the sole source of
+ordinary product inventory changes.
 
 ## Homepage chapter inventory reveal
 
@@ -139,8 +141,10 @@ once it is live.
 
 A successful Fastrr `buyDirect` call means the vendor script accepted a launch
 request. It does not prove that payment completed or that an order reached
-Shopify. Order reconciliation requires a Fastrr order reference and a matching
-Shopify order event or feed before an alert can be truthful.
+Shopify. Meta `Purchase` is therefore sent through Conversions API only after a
+signed Shopify order webhook. Configure `SHOPIFY_WEBHOOK_SECRET`,
+`META_CONVERSIONS_API_ACCESS_TOKEN`, and `PUBLIC_META_PIXEL_ID`; use
+`META_TEST_EVENT_CODE` only while validating in Events Manager.
 
 Before production, complete the prioritized checklist in
 [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).

@@ -1,9 +1,16 @@
+import {useEffect, useRef} from 'react';
 import {data, Link, redirect, type LoaderFunctionArgs} from 'react-router';
+import {
+  parseMetaCommercePayload,
+  queueMetaPurchase,
+  type MetaCommercePayload,
+} from '~/lib/ads/meta/meta-pixel';
 
 type CheckoutConfirmation = {
   shopifyOrderName: string;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
+  metaPurchase?: MetaCommercePayload;
 };
 
 function optionalReference(value: unknown, pattern: RegExp) {
@@ -22,6 +29,7 @@ export function loader({context}: LoaderFunctionArgs) {
   }
 
   const confirmation = result as Record<string, unknown>;
+  const metaPurchase = parseMetaCommercePayload(confirmation.metaPurchase);
   context.session.unset('razorpayPaymentVerified');
   return data<CheckoutConfirmation>(
     {
@@ -34,6 +42,7 @@ export function loader({context}: LoaderFunctionArgs) {
         confirmation.razorpayPaymentId,
         /^pay_[A-Za-z0-9]+$/,
       ),
+      ...(metaPurchase ? {metaPurchase} : {}),
     },
     {headers: {'Cache-Control': 'private, no-store'}},
   );
@@ -44,6 +53,14 @@ export default function RazorpayCheckoutSuccess({
 }: {
   loaderData: CheckoutConfirmation;
 }) {
+  const published = useRef(false);
+
+  useEffect(() => {
+    if (!loaderData.metaPurchase || published.current) return;
+    published.current = true;
+    queueMetaPurchase(loaderData.metaPurchase);
+  }, [loaderData.metaPurchase]);
+
   return (
     <main className="checkout-success-page">
       <section className="checkout-success-card" aria-labelledby="order-confirmed-title">

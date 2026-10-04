@@ -32,6 +32,11 @@ declare global {
     WRIT_TO_CUSTOMER_CLIENT_ID?: string;
     WRIT_TO_CUSTOMER_CLIENT_SECRET?: string;
     PUBLIC_SHOPIFY_CHAT_SHOP?: string;
+    PUBLIC_META_PIXEL_ID?: string;
+    META_CONVERSIONS_API_ACCESS_TOKEN?: string;
+    META_GRAPH_API_VERSION?: string;
+    META_TEST_EVENT_CODE?: string;
+    SHOPIFY_WEBHOOK_SECRET?: string;
     CHECKOUT_PROVIDER?: string;
     PUBLIC_FASTRR_SELLER_DOMAIN?: string;
     RAZORPAY_KEY_ID?: string;

@@ -11,6 +11,8 @@ import {
   retryPendingRazorpayFinalization,
   razorpayVerificationFailureCode,
 } from '~/lib/checkout/providers/razorpay/razorpay-order.server';
+import {decodeRazorpayCheckoutSnapshot} from '~/lib/checkout/providers/razorpay/razorpay';
+import {metaContentId} from '~/lib/ads/meta/meta-pixel';
 import {
   checkoutCorrelation,
   checkoutCount,
@@ -145,7 +147,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       return json({error: 'Payment verification failed'}, 400);
     }
     stage = 'razorpay_final_state';
-    const {shopifyOrder} = await retryPendingRazorpayFinalization(() =>
+    const {shopifyOrder, razorpayOrder} = await retryPendingRazorpayFinalization(() =>
       reconcileRazorpayOrder({
         env: context.env,
         orderId,
@@ -168,11 +170,31 @@ export async function action({request, context}: ActionFunctionArgs) {
     stage = 'session_confirmation';
     context.session.unset('razorpayOrderId');
     context.session.unset('razorpayDraftOrderId');
+    const purchaseItems =
+      decodeRazorpayCheckoutSnapshot(razorpayOrder.notes)?.flatMap((line) => {
+        const id = metaContentId(line.variantId);
+        return id
+          ? [
+              {
+                id,
+                quantity: line.quantity,
+                itemPrice: line.unitPricePaise / 100,
+              },
+            ]
+          : [];
+      }) ?? [];
     context.session.set('razorpayPaymentVerified', {
       razorpayOrderId: orderId,
       razorpayPaymentId: paymentId,
       shopifyOrderId: shopifyOrder.id,
       shopifyOrderName: shopifyOrder.name,
+      metaPurchase: {
+        currency: razorpayOrder.currency,
+        eventId: `meta_purchase_${orderId}`,
+        items: purchaseItems,
+        orderId: shopifyOrder.name,
+        value: razorpayOrder.amount / 100,
+      },
     });
     checkoutCount(context.monitor, 'razorpay.verify.succeeded', requestId);
     return json({redirectTo: '/checkout/razorpay/success'});

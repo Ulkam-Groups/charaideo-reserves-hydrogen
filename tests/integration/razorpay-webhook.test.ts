@@ -482,6 +482,13 @@ test('Razorpay browser and recovery webhook complete one anchored order and repl
       razorpayPaymentId: paymentId,
       shopifyOrderId: shopifyOrder.id,
       shopifyOrderName: shopifyOrder.name,
+      metaPurchase: {
+        currency: 'INR',
+        eventId: `meta_purchase_${orderId}`,
+        items: [{id: '12345', itemPrice: 1, quantity: 1}],
+        orderId: shopifyOrder.name,
+        value: 1,
+      },
     });
 
     const replayResponse = await webhookRequest('event-recovery-2');
