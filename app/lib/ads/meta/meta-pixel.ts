@@ -267,7 +267,12 @@ type ShopifyOrderWebhook = {
   billing_address?: ShopifyOrderAddress | null;
   created_at?: unknown;
   currency?: unknown;
-  customer?: {email?: unknown; phone?: unknown} | null;
+  customer?: {
+    email?: unknown;
+    phone?: unknown;
+    first_name?: unknown;
+    last_name?: unknown;
+  } | null;
   email?: unknown;
   financial_status?: unknown;
   gateway_names?: unknown;
@@ -450,8 +455,14 @@ export async function metaPurchaseFromShopifyOrder(
   const userDataEntries = await Promise.all([
     ['em', await hashed(email)] as const,
     ['ph', await hashed(phone)] as const,
-    ['fn', await hashed(normalized(address.first_name))] as const,
-    ['ln', await hashed(normalized(address.last_name))] as const,
+    [
+      'fn',
+      await hashed(normalized(address.first_name ?? order.customer?.first_name)),
+    ] as const,
+    [
+      'ln',
+      await hashed(normalized(address.last_name ?? order.customer?.last_name)),
+    ] as const,
     [
       'ct',
       await hashed(normalized(address.city)?.replace(/[^\p{L}\p{N}]/gu, '') ?? null),

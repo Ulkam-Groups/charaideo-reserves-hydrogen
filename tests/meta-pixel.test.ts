@@ -15,9 +15,7 @@ import {
 
 test('Meta CSP permits only the configured OpenBridge collectors', () => {
   assert.ok(
-    META_PIXEL_CSP.connectSrc.includes(
-      'https://mpc2-prod-23-is5qnl632q-ue.a.run.app',
-    ),
+    META_PIXEL_CSP.connectSrc.includes('https://mpc2-prod-23-is5qnl632q-ue.a.run.app'),
   );
   assert.ok(
     META_PIXEL_CSP.connectSrc.includes(
@@ -123,6 +121,10 @@ test('builds a stable, hashed Meta CAPI Purchase for a consented Fastrr order', 
   assert.equal(event.user_data.fbp, 'fb.1.1720000000.123456789');
   assert.notEqual(event.user_data.em?.[0], 'customer@example.com');
   assert.match(event.user_data.em?.[0] ?? '', /^[a-f0-9]{64}$/);
+  assert.notEqual(event.user_data.fn?.[0], 'ada');
+  assert.match(event.user_data.fn?.[0] ?? '', /^[a-f0-9]{64}$/);
+  assert.notEqual(event.user_data.ln?.[0], 'lovelace');
+  assert.match(event.user_data.ln?.[0] ?? '', /^[a-f0-9]{64}$/);
 });
 
 test('accepts FastRR-wrapped Shopify order attributes', async () => {

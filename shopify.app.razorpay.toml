@@ -1,0 +1,24 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "924facf5262a432a18e38c8527922162"
+application_url = "https://charaideoreserves.com"
+embedded = false
+name = "razorpay"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_draft_orders,read_orders,read_products,write_draft_orders,write_orders"
+
+[auth]
+redirect_urls = [ ]
+
+[webhooks]
+api_version = "2026-10"
+
+[[webhooks.subscriptions]]
+topics = ["orders/create", "orders/paid"]
+uri = "/webhooks/orders-create"
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
