@@ -8,7 +8,9 @@ import {
 } from '~/lib/admin-metafields';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
+  changedAdminVariants,
   getAdminProduct,
+  hasAdminProductChanges,
   setAdminMetafields,
   ShopifyAdminError,
   updateAdminProduct,
@@ -160,7 +162,7 @@ function parseMetafields(
 export async function action({request, context, params}: Route.ActionArgs) {
   const form = await readProtectedForm(request, {methods: ['POST'], maxBytes: 1_500_000});
   if (form instanceof Response) return form;
-  let stage = 0;
+  let wroteAnything = false;
   try {
     const product = await getAdminProduct(context.env, params.productId);
     if (!product) throw new Response('Product not found', {status: 404});
@@ -191,7 +193,7 @@ export async function action({request, context, params}: Route.ActionArgs) {
       throw new Error('Category must be a Shopify TaxonomyCategory GID.');
     }
 
-    await updateAdminProduct(context.env, {
+    const productUpdate = {
       id: product.id,
       title,
       handle,
@@ -206,19 +208,31 @@ export async function action({request, context, params}: Route.ActionArgs) {
         description: optionalString(form, 'seoDescription', 320),
       },
       ...(category ? {category} : {}),
-    });
-    stage = 1;
-    await updateAdminVariants(context.env, product.id, variants);
-    stage = 2;
-    await setAdminMetafields(context.env, metafields);
-    throw redirect(`/admin/products/${params.productId}?saved=1`);
+    };
+    const changedVariants = changedAdminVariants(product.variants.nodes, variants);
+
+    if (hasAdminProductChanges(product, productUpdate)) {
+      await updateAdminProduct(context.env, productUpdate);
+      wroteAnything = true;
+    }
+    if (changedVariants.length) {
+      await updateAdminVariants(context.env, product.id, changedVariants);
+      wroteAnything = true;
+    }
+    if (metafields.length) {
+      await setAdminMetafields(context.env, metafields);
+      wroteAnything = true;
+    }
+    throw redirect(
+      `/admin/products/${params.productId}?saved=${wroteAnything ? '1' : '0'}`,
+    );
   } catch (error) {
     if (error instanceof Response) throw error;
     const message =
       error instanceof Error ? error.message : 'Unable to save the product.';
     return data(
       {
-        error: `${message}${stage ? ' Some earlier sections may already have been saved; reload before retrying.' : ''}`,
+        error: `${message}${wroteAnything ? ' Some earlier sections may already have been saved; reload before retrying.' : ''}`,
       },
       {
         status:
@@ -350,9 +364,10 @@ export default function AdminProductEditor({
         </div>
 
         {searchParams.get('saved') === '1' && (
-          <AdminAlert tone="success">
-            Product, variants, and changed metafields were saved.
-          </AdminAlert>
+          <AdminAlert tone="success">Your changed product fields were saved.</AdminAlert>
+        )}
+        {searchParams.get('saved') === '0' && (
+          <AdminAlert>No changes were detected.</AdminAlert>
         )}
         {actionData?.error && <AdminAlert tone="critical">{actionData.error}</AdminAlert>}
 

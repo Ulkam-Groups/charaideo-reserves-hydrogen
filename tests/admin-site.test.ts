@@ -5,9 +5,12 @@ import {
   validateMetafieldValue,
 } from '../app/lib/admin-metafields.ts';
 import {
+  changedAdminVariants,
+  hasAdminProductChanges,
   listAdminProducts,
   ShopifyAdminError,
   updateAdminProduct,
+  type AdminProduct,
 } from '../app/lib/shopify-admin.server.ts';
 import {applySecurityHeaders} from '../app/lib/security-headers.ts';
 
@@ -72,8 +75,10 @@ test('product listing uses the configured Admin API and preserves pagination/sea
 });
 
 test('Shopify mutation user errors are surfaced as validation failures', async () => {
-  const fetcher: typeof fetch = async () =>
-    Response.json({
+  let query = '';
+  const fetcher: typeof fetch = async (_input, init) => {
+    query = (JSON.parse(String(init?.body)) as {query: string}).query;
+    return Response.json({
       data: {
         productUpdate: {
           product: null,
@@ -83,6 +88,7 @@ test('Shopify mutation user errors are surfaced as validation failures', async (
         },
       },
     });
+  };
   await assert.rejects(
     updateAdminProduct(
       {
@@ -107,5 +113,71 @@ test('Shopify mutation user errors are surfaced as validation failures', async (
       error instanceof ShopifyAdminError &&
       error.code === 'VALIDATION_FAILED' &&
       /Handle is already in use/.test(error.message),
+  );
+  assert.doesNotMatch(query, /userErrors\s*\{[^}]*\bcode\b/s);
+});
+
+test('single-field and multi-field edits select only changed sections', () => {
+  const product = {
+    id: 'gid://shopify/Product/1',
+    title: 'Tea',
+    handle: 'tea',
+    descriptionHtml: '<p>Tea</p>',
+    vendor: 'Charaideo Reserves',
+    productType: 'Tea',
+    status: 'ACTIVE',
+    tags: ['reserve'],
+    templateSuffix: null,
+    seo: {title: null, description: null},
+    category: null,
+  } as AdminProduct;
+  const unchanged = {
+    id: product.id,
+    title: 'Tea',
+    handle: 'tea',
+    descriptionHtml: '<p>Tea</p>',
+    vendor: 'Charaideo Reserves',
+    productType: 'Tea',
+    status: 'ACTIVE',
+    tags: ['reserve'],
+    templateSuffix: '',
+    seo: {title: '', description: ''},
+  };
+  assert.equal(hasAdminProductChanges(product, unchanged), false);
+  assert.equal(hasAdminProductChanges(product, {...unchanged, title: 'New Tea'}), true);
+
+  const variants = [
+    {
+      id: 'gid://shopify/ProductVariant/1',
+      price: '10.00',
+      compareAtPrice: null,
+      sku: 'TEA-1',
+      barcode: null,
+      taxable: true,
+      inventoryPolicy: 'DENY',
+    },
+    {
+      id: 'gid://shopify/ProductVariant/2',
+      price: '20.00',
+      compareAtPrice: null,
+      sku: 'TEA-2',
+      barcode: null,
+      taxable: true,
+      inventoryPolicy: 'DENY',
+    },
+  ];
+  assert.deepEqual(
+    changedAdminVariants(variants as never[], [
+      {...variants[0], price: '11.00'},
+      variants[1],
+    ]),
+    [{...variants[0], price: '11.00'}],
+  );
+  assert.equal(
+    changedAdminVariants(variants as never[], [
+      {...variants[0], price: '11.00'},
+      {...variants[1], sku: 'NEW-SKU'},
+    ]).length,
+    2,
   );
 });

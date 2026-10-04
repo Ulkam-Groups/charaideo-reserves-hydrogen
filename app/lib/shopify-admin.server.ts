@@ -373,6 +373,47 @@ export type MetafieldUpdateValues = {
   compareDigest?: string | null;
 };
 
+function sameStrings(left: string[], right: string[]) {
+  return (
+    left.length === right.length && left.every((value, index) => value === right[index])
+  );
+}
+
+export function hasAdminProductChanges(current: AdminProduct, next: ProductUpdateValues) {
+  return (
+    next.title !== current.title ||
+    next.handle !== current.handle ||
+    next.descriptionHtml !== current.descriptionHtml ||
+    next.vendor !== current.vendor ||
+    next.productType !== current.productType ||
+    next.status !== current.status ||
+    !sameStrings(next.tags, current.tags) ||
+    next.templateSuffix !== (current.templateSuffix ?? '') ||
+    next.seo.title !== (current.seo.title ?? '') ||
+    next.seo.description !== (current.seo.description ?? '') ||
+    (next.category !== undefined && next.category !== (current.category?.id ?? ''))
+  );
+}
+
+export function changedAdminVariants(
+  current: AdminVariant[],
+  next: VariantUpdateValues[],
+) {
+  const currentById = new Map(current.map((variant) => [variant.id, variant]));
+  return next.filter((variant) => {
+    const existing = currentById.get(variant.id);
+    return (
+      !existing ||
+      variant.price !== existing.price ||
+      (variant.compareAtPrice ?? null) !== existing.compareAtPrice ||
+      (variant.sku ?? null) !== existing.sku ||
+      (variant.barcode ?? null) !== existing.barcode ||
+      variant.taxable !== existing.taxable ||
+      variant.inventoryPolicy !== existing.inventoryPolicy
+    );
+  });
+}
+
 export async function updateAdminProduct(
   env: Env,
   input: ProductUpdateValues,
@@ -388,7 +429,7 @@ export async function updateAdminProduct(
     `mutation UpdateAdminProduct($product: ProductUpdateInput!) {
       productUpdate(product: $product) {
         product { id handle }
-        userErrors { field message code }
+        userErrors { field message }
       }
     }`,
     {product: input},
