@@ -1,0 +1,19 @@
+# Separate Shopify app configuration for the private Product Studio environment.
+# Select it explicitly with Shopify CLI; do not copy real credentials into git.
+client_id = "REPLACE_WITH_ADMIN_APP_CLIENT_ID"
+name = "Charaideo Product Studio"
+application_url = "https://REPLACE_WITH_PRIVATE_ADMIN_ENVIRONMENT_URL/admin"
+embedded = false
+
+[access_scopes]
+scopes = "write_products"
+
+[auth]
+redirect_urls = []
+
+[webhooks]
+api_version = "2026-07"
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true

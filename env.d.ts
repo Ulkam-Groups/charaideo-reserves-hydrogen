@@ -49,6 +49,8 @@ declare global {
     SHOPIFY_ADMIN_CLIENT_ID?: string;
     SHOPIFY_ADMIN_CLIENT_SECRET?: string;
     SHOPIFY_ADMIN_STORE_DOMAIN?: string;
+    SHOPIFY_ADMIN_ACCESS_TOKEN?: string;
+    SHOPIFY_ADMIN_API_VERSION?: string;
     SHIPROCKET_API_TOKEN?: string;
     SHIPROCKET_API_EMAIL?: string;
     SHIPROCKET_API_PASSWORD?: string;

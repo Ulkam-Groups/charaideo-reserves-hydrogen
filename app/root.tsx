@@ -18,6 +18,7 @@ import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
+import adminStylesheet from '~/styles/admin.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {
@@ -161,7 +162,7 @@ export function links() {
   ];
 }
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context, request}: Route.LoaderArgs) {
   const {cart, customerAccount, env, storefront} = context;
   const publicStoreDomain = env.PUBLIC_STORE_DOMAIN;
   const metaPixelId = resolveMetaPixelId(env.PUBLIC_META_PIXEL_ID);
@@ -188,6 +189,28 @@ export async function loader({context}: Route.LoaderArgs) {
         (env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN)?.trim() ?? '',
       ),
     );
+
+  if (new URL(request.url).pathname.startsWith('/admin')) {
+    return {
+      cart: Promise.resolve(null),
+      consent: buildAnalyticsConsent(env),
+      notices: [],
+      header: null,
+      isLoggedIn: Promise.resolve(false),
+      publicStoreDomain,
+      metaPixelId: null,
+      chatShopDomain,
+      checkoutProvider,
+      checkoutReady: false,
+      fastrrSellerDomain: null,
+      sentryDsn: null,
+      sentryEnvironment: env.SENTRY_ENVIRONMENT?.trim() || 'production',
+      shop: getShopAnalytics({
+        storefront,
+        publicStorefrontId: env.PUBLIC_STOREFRONT_ID || '0',
+      }),
+    };
+  }
 
   const [header, chapterAnnouncementResult] = await Promise.all([
     measureOptionalStorefront(context.monitor, 'header', () =>
@@ -321,6 +344,8 @@ const GLOBAL_NOTICES_QUERY = `#graphql
 export default function App() {
   const data = useLoaderData<typeof loader>();
   const nonce = useNonce();
+  const {pathname} = useLocation();
+  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
 
   return (
     <html lang="en">
@@ -337,9 +362,10 @@ export default function App() {
         <link rel="stylesheet" href={identity} />
         <link rel="stylesheet" href={revamp} />
         <link rel="stylesheet" href={reserveListStylesheet} />
+        {isAdmin && <link rel="stylesheet" href={adminStylesheet} />}
       </head>
       <body>
-        {data.fastrrSellerDomain && (
+        {!isAdmin && data.fastrrSellerDomain && (
           <input
             type="hidden"
             id="sellerDomain"
@@ -347,21 +373,25 @@ export default function App() {
             readOnly
           />
         )}
-        <Analytics.Provider cart={data.cart} consent={data.consent} shop={data.shop}>
-          {data.metaPixelId && <MetaPixel pixelId={data.metaPixelId} />}
-          <PageLayout {...data}>
-            <Outlet />
-          </PageLayout>
-        </Analytics.Provider>
-        <CheckoutConfirmationProgress />
-        <FastrrWarmup enabled={Boolean(data.fastrrSellerDomain)} />
+        {isAdmin ? (
+          <Outlet />
+        ) : (
+          <Analytics.Provider cart={data.cart} consent={data.consent} shop={data.shop}>
+            {data.metaPixelId && <MetaPixel pixelId={data.metaPixelId} />}
+            <PageLayout {...data}>
+              <Outlet />
+            </PageLayout>
+          </Analytics.Provider>
+        )}
+        {!isAdmin && <CheckoutConfirmationProgress />}
+        {!isAdmin && <FastrrWarmup enabled={Boolean(data.fastrrSellerDomain)} />}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
-        {data.checkoutProvider === 'razorpay' && data.checkoutReady && (
+        {!isAdmin && <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />}
+        {!isAdmin && data.checkoutProvider === 'razorpay' && data.checkoutReady && (
           <Script waitForHydration src={RAZORPAY_ASSETS.script} />
         )}
-        <ShopifyChat storeDomain={data.chatShopDomain} />
+        {!isAdmin && <ShopifyChat storeDomain={data.chatShopDomain} />}
       </body>
     </html>
   );
