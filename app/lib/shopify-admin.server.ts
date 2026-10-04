@@ -41,11 +41,14 @@ export class ShopifyAdminError extends Error {
 }
 
 function credentials(env: Env): Credentials {
-  const domain = (env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN)?.trim();
-  const apiVersion = env.SHOPIFY_ADMIN_API_VERSION?.trim() || DEFAULT_ADMIN_API_VERSION;
-  const accessToken = env.SHOPIFY_ADMIN_ACCESS_TOKEN?.trim();
-  const clientId = env.SHOPIFY_ADMIN_CLIENT_ID?.trim();
-  const clientSecret = env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim();
+  const domain = (
+    env.SHOPIFY_PRODUCT_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN
+  )?.trim();
+  const apiVersion =
+    env.SHOPIFY_PRODUCT_ADMIN_API_VERSION?.trim() || DEFAULT_ADMIN_API_VERSION;
+  const accessToken = env.SHOPIFY_PRODUCT_ADMIN_ACCESS_TOKEN?.trim();
+  const clientId = env.SHOPIFY_PRODUCT_ADMIN_CLIENT_ID?.trim();
+  const clientSecret = env.SHOPIFY_PRODUCT_ADMIN_CLIENT_SECRET?.trim();
   if (
     !domain ||
     !/^[a-z0-9][a-z0-9.-]*\.myshopify\.com$/i.test(domain) ||

@@ -18,8 +18,8 @@ The save flow validates the complete form before writing. Shopify product, varia
 
 ```text
 SESSION_SECRET=<random value of at least 32 characters>
-SHOPIFY_ADMIN_STORE_DOMAIN=your-store.myshopify.com
-SHOPIFY_ADMIN_API_VERSION=2026-07
+SHOPIFY_PRODUCT_ADMIN_STORE_DOMAIN=your-store.myshopify.com
+SHOPIFY_PRODUCT_ADMIN_API_VERSION=2026-07
 ```
 
 Choose one Admin API authentication method:
@@ -27,19 +27,19 @@ Choose one Admin API authentication method:
 ### Dev Dashboard client credentials
 
 ```text
-SHOPIFY_ADMIN_CLIENT_ID=<client id>
-SHOPIFY_ADMIN_CLIENT_SECRET=<client secret>
+SHOPIFY_PRODUCT_ADMIN_CLIENT_ID=<postman-charaideoreserves client id>
+SHOPIFY_PRODUCT_ADMIN_CLIENT_SECRET=<postman-charaideoreserves client secret>
 ```
 
-The Dev Dashboard app and store must be in the same Shopify organization. Release and install an app version granting `write_products`; then obtain a new token after any scope change. Product metafield access follows the product resource permission.
+Use the existing Dev Dashboard app named `postman-charaideoreserves`. The app and store must be in the same Shopify organization. Its released and installed version must grant `write_products`; the version shown in Shopify already grants `read_products,write_products`. Obtain a new token after any scope change. Product metafield access follows the product resource permission.
 
 ### Long-lived custom app token
 
 ```text
-SHOPIFY_ADMIN_ACCESS_TOKEN=<server-only Admin API token>
+SHOPIFY_PRODUCT_ADMIN_ACCESS_TOKEN=<server-only Admin API token>
 ```
 
-Never use a `PUBLIC_` prefix for the password, client secret, or access token. Never commit them. If both token styles are configured, `SHOPIFY_ADMIN_ACCESS_TOKEN` takes precedence.
+Never use a `PUBLIC_` prefix for the client secret or access token. Never commit them. If both token styles are configured, `SHOPIFY_PRODUCT_ADMIN_ACCESS_TOKEN` takes precedence.
 
 ## Local use
 
@@ -50,6 +50,6 @@ Never use a `PUBLIC_` prefix for the password, client secret, or access token. N
 
 ## Branch environment
 
-Deploy the `admin-site` branch to its own access-controlled Oxygen environment and set its variables separately from production. The included `shopify.app.admin.toml` records the minimal `write_products` scope for the product-management app configuration. Replace its placeholders only through the Shopify CLI/app configuration workflow; do not commit live credentials or environment URLs. Do not expose the environment URL publicly unless Shopify or the hosting layer is actually validating administrator access; merely hiding a URL is not access control.
+Deploy the `admin-site` branch to its own access-controlled Oxygen environment and set its variables separately from production. The Product Studio reuses the existing `postman-charaideoreserves` app; it does not create or require another Shopify app configuration. Do not expose the environment URL publicly unless Shopify or the hosting layer is actually validating administrator access; merely hiding a URL is not access control.
 
 Before treating the environment as production-ready, verify a test product end to end: load it, change one text field and one metafield, save, reload, and confirm the storefront reflects the value. Deployment and live Shopify authorization are intentionally not performed by source changes alone.

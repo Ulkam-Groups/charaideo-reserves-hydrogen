@@ -55,9 +55,9 @@ test('product listing uses the configured Admin API and preserves pagination/sea
   };
   await listAdminProducts(
     {
-      SHOPIFY_ADMIN_STORE_DOMAIN: 'tea.myshopify.com',
-      SHOPIFY_ADMIN_ACCESS_TOKEN: 'server-only-token',
-      SHOPIFY_ADMIN_API_VERSION: '2026-07',
+      SHOPIFY_PRODUCT_ADMIN_STORE_DOMAIN: 'tea.myshopify.com',
+      SHOPIFY_PRODUCT_ADMIN_ACCESS_TOKEN: 'server-only-token',
+      SHOPIFY_PRODUCT_ADMIN_API_VERSION: '2026-07',
     } as Env,
     {after: 'cursor-1', search: 'tag:reserve'},
     fetcher,
@@ -86,8 +86,8 @@ test('Shopify mutation user errors are surfaced as validation failures', async (
   await assert.rejects(
     updateAdminProduct(
       {
-        SHOPIFY_ADMIN_STORE_DOMAIN: 'tea.myshopify.com',
-        SHOPIFY_ADMIN_ACCESS_TOKEN: 'server-only-token',
+        SHOPIFY_PRODUCT_ADMIN_STORE_DOMAIN: 'tea.myshopify.com',
+        SHOPIFY_PRODUCT_ADMIN_ACCESS_TOKEN: 'server-only-token',
       } as Env,
       {
         id: 'gid://shopify/Product/1',
