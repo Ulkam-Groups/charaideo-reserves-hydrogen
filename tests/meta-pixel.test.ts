@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   acknowledgeMetaPurchase,
   DEFAULT_META_PIXEL_ID,
+  META_PIXEL_CSP,
   metaCommerceParameters,
   metaContentId,
   metaPurchaseFromShopifyOrder,
@@ -11,6 +12,21 @@ import {
   parseMetaCommercePayload,
   resolveMetaPixelId,
 } from '../app/lib/ads/meta/meta-pixel.ts';
+
+test('Meta CSP permits only the configured OpenBridge collectors', () => {
+  assert.ok(
+    META_PIXEL_CSP.connectSrc.includes('https://mpc2-prod-23-is5qnl632q-ue.a.run.app'),
+  );
+  assert.ok(
+    META_PIXEL_CSP.connectSrc.includes(
+      'https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws',
+    ),
+  );
+  assert.equal(
+    META_PIXEL_CSP.connectSrc.some((origin) => origin.includes('*')),
+    false,
+  );
+});
 
 test('uses the Charaideo Reserves Meta Pixel by default', () => {
   assert.equal(resolveMetaPixelId(), DEFAULT_META_PIXEL_ID);
@@ -105,6 +121,34 @@ test('builds a stable, hashed Meta CAPI Purchase for a consented Fastrr order', 
   assert.equal(event.user_data.fbp, 'fb.1.1720000000.123456789');
   assert.notEqual(event.user_data.em?.[0], 'customer@example.com');
   assert.match(event.user_data.em?.[0] ?? '', /^[a-f0-9]{64}$/);
+  assert.notEqual(event.user_data.fn?.[0], 'ada');
+  assert.match(event.user_data.fn?.[0] ?? '', /^[a-f0-9]{64}$/);
+  assert.notEqual(event.user_data.ln?.[0], 'lovelace');
+  assert.match(event.user_data.ln?.[0] ?? '', /^[a-f0-9]{64}$/);
+});
+
+test('accepts FastRR-wrapped Shopify order attributes', async () => {
+  const wrappedOrder = {
+    ...fastrrOrder,
+    note_attributes: [
+      {
+        name: 'cartAttributes',
+        value: JSON.stringify({
+          cartAttributes: {
+            __cr_checkout_provider: 'fastrr',
+            __cr_meta_consent: '1',
+            __cr_meta_fbp: 'fb.1.1720000000.123456789',
+            __cr_meta_source_url: 'https://example.com/cart',
+          },
+        }),
+      },
+    ],
+  };
+
+  const event = await metaPurchaseFromShopifyOrder(wrappedOrder, 'orders/paid');
+  assert.ok(event);
+  assert.equal(event.event_id, 'meta_purchase_shopify_987654321');
+  assert.equal(event.user_data.fbp, 'fb.1.1720000000.123456789');
 });
 
 test('reports pending COD at creation but waits for prepaid payment', async () => {

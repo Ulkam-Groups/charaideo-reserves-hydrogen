@@ -7,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useLocation,
 } from 'react-router';
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
@@ -30,9 +31,9 @@ import {
   parseStorefrontNotices,
   type StorefrontNoticeMetaobject,
 } from '~/lib/storefront-notices';
-import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
 import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 import {resolveMetaPixelId} from '~/lib/ads/meta/meta-pixel';
+import {warmFastrrCheckout} from '~/lib/checkout/providers/fastrr/fastrr.client';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
 const SHOPIFY_CHAT_WARMUP_MS = 120;
@@ -353,15 +354,10 @@ export default function App() {
           </PageLayout>
         </Analytics.Provider>
         <CheckoutConfirmationProgress />
-        {data.fastrrSellerDomain && (
-          <Script waitForHydration src={FASTRR_ASSETS.script} />
-        )}
+        <FastrrWarmup enabled={Boolean(data.fastrrSellerDomain)} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
-        {data.fastrrSellerDomain && (
-          <DeferredStylesheet href={FASTRR_ASSETS.stylesheet} />
-        )}
         {data.checkoutProvider === 'razorpay' && data.checkoutReady && (
           <Script waitForHydration src={RAZORPAY_ASSETS.script} />
         )}
@@ -369,6 +365,47 @@ export default function App() {
       </body>
     </html>
   );
+}
+
+function FastrrWarmup({enabled}: {enabled: boolean}) {
+  const {pathname} = useLocation();
+
+  useEffect(() => {
+    if (
+      !enabled ||
+      (pathname !== '/cart' && !pathname.startsWith('/products/'))
+    ) {
+      return;
+    }
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    let idleHandle: number | undefined;
+    let fallbackTimer: number | undefined;
+    let cancelled = false;
+    const warm = () => {
+      if (!cancelled) void warmFastrrCheckout();
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      idleHandle = idleWindow.requestIdleCallback(warm, {timeout: 4_000});
+    } else {
+      fallbackTimer = window.setTimeout(warm, 2_000);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+    };
+  }, [enabled, pathname]);
+
+  return null;
 }
 
 function DeferredStylesheet({href}: {href: string}) {

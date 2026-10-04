@@ -243,7 +243,13 @@ export function acknowledgeMetaPurchase(payload: MetaCommercePayload) {
 
 export const META_PIXEL_CSP = {
   scriptSrc: ['https://connect.facebook.net'],
-  connectSrc: ['https://connect.facebook.net', 'https://www.facebook.com'],
+  connectSrc: [
+    'https://connect.facebook.net',
+    'https://www.facebook.com',
+    // Meta OpenBridge / Conversions API Gateway endpoints configured for this pixel.
+    'https://mpc2-prod-23-is5qnl632q-ue.a.run.app',
+    'https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws',
+  ],
   imgSrc: ['https://www.facebook.com'],
 } as const;
 
@@ -261,7 +267,12 @@ type ShopifyOrderWebhook = {
   billing_address?: ShopifyOrderAddress | null;
   created_at?: unknown;
   currency?: unknown;
-  customer?: {email?: unknown; phone?: unknown} | null;
+  customer?: {
+    email?: unknown;
+    phone?: unknown;
+    first_name?: unknown;
+    last_name?: unknown;
+  } | null;
   email?: unknown;
   financial_status?: unknown;
   gateway_names?: unknown;
@@ -295,15 +306,40 @@ function stringValue(value: unknown, maxLength = 255) {
 }
 
 function orderAttributes(value: unknown) {
-  if (!Array.isArray(value)) return new Map<string, string>();
-  const entries = value.flatMap((attribute) => {
-    if (!attribute || typeof attribute !== 'object') return [];
+  const attributes = new Map<string, string>();
+  if (!Array.isArray(value)) return attributes;
+
+  const addNestedAttributes = (raw: string) => {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+      const wrapper = parsed as Record<string, unknown>;
+      const nested =
+        wrapper.cartAttributes &&
+        typeof wrapper.cartAttributes === 'object' &&
+        !Array.isArray(wrapper.cartAttributes)
+          ? (wrapper.cartAttributes as Record<string, unknown>)
+          : wrapper;
+      for (const key of Object.values(META_FASTRR_ATTRIBUTES)) {
+        const nestedValue = stringValue(nested[key], 1000);
+        if (nestedValue) attributes.set(key, nestedValue);
+      }
+    } catch {
+      // Ordinary Shopify note attributes are not JSON.
+    }
+  };
+
+  for (const attribute of value) {
+    if (!attribute || typeof attribute !== 'object') continue;
     const candidate = attribute as {name?: unknown; value?: unknown};
     const name = stringValue(candidate.name);
     const attributeValue = stringValue(candidate.value, 1000);
-    return name && attributeValue ? [[name, attributeValue] as const] : [];
-  });
-  return new Map(entries);
+    if (!name || !attributeValue) continue;
+    attributes.set(name, attributeValue);
+    if (name === 'cartAttributes') addNestedAttributes(attributeValue);
+  }
+
+  return attributes;
 }
 
 function isCodOrder(order: ShopifyOrderWebhook) {
@@ -419,8 +455,14 @@ export async function metaPurchaseFromShopifyOrder(
   const userDataEntries = await Promise.all([
     ['em', await hashed(email)] as const,
     ['ph', await hashed(phone)] as const,
-    ['fn', await hashed(normalized(address.first_name))] as const,
-    ['ln', await hashed(normalized(address.last_name))] as const,
+    [
+      'fn',
+      await hashed(normalized(address.first_name ?? order.customer?.first_name)),
+    ] as const,
+    [
+      'ln',
+      await hashed(normalized(address.last_name ?? order.customer?.last_name)),
+    ] as const,
     [
       'ct',
       await hashed(normalized(address.city)?.replace(/[^\p{L}\p{N}]/gu, '') ?? null),
