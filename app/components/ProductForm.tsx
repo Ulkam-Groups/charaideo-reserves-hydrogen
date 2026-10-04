@@ -13,6 +13,10 @@ import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useEffect, useRef, useState} from 'react';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 import {DeliveryEstimate} from './DeliveryEstimate';
+import {
+  META_ANALYTICS_EVENTS,
+  metaContentId,
+} from '~/lib/ads/meta/meta-pixel';
 
 export function ProductForm({
   productOptions,
@@ -247,6 +251,22 @@ export function ProductForm({
                   );
                 } else {
                   setCheckoutError('');
+                  const contentId = metaContentId(buyNowVariantId);
+                  const itemPrice = Number(selectedVariant.price.amount);
+                  if (contentId && Number.isFinite(itemPrice)) {
+                    publish(META_ANALYTICS_EVENTS.INITIATE_CHECKOUT, {
+                      currency: selectedVariant.price.currencyCode,
+                      value: itemPrice * quantity,
+                      items: [
+                        {
+                          id: contentId,
+                          name: `${selectedVariant.product.title} - ${selectedVariant.title}`,
+                          quantity,
+                          itemPrice,
+                        },
+                      ],
+                    });
+                  }
                 }
               } finally {
                 setCheckoutPending(false);

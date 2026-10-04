@@ -419,6 +419,13 @@ test('Razorpay verification completes its feature-flagged draft anchor', async (
       razorpayPaymentId: paymentId,
       shopifyOrderId: 'gid://shopify/Order/1018',
       shopifyOrderName: '#1018',
+      metaPurchase: {
+        currency: 'INR',
+        eventId: `meta_purchase_${orderId}`,
+        items: [{id: '12345', itemPrice: 1, quantity: 1}],
+        orderId: '#1018',
+        value: 1,
+      },
     });
     assert.equal(
       graphqlOperations.some((operation) => operation.includes('orderCreate')),

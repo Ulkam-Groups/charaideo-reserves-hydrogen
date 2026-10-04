@@ -11,6 +11,7 @@ import {
 import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
 import {CheckoutConfirmationProgress} from '~/components/CheckoutConfirmationProgress';
+import {MetaPixel} from '~/components/MetaPixel';
 import {HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
@@ -31,6 +32,7 @@ import {
 } from '~/lib/storefront-notices';
 import {FASTRR_ASSETS} from '~/lib/checkout/providers/fastrr/fastrr.config';
 import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
+import {resolveMetaPixelId} from '~/lib/ads/meta/meta-pixel';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
 const SHOPIFY_CHAT_WARMUP_MS = 120;
@@ -161,6 +163,7 @@ export function links() {
 export async function loader({context}: Route.LoaderArgs) {
   const {cart, customerAccount, env, storefront} = context;
   const publicStoreDomain = env.PUBLIC_STORE_DOMAIN;
+  const metaPixelId = resolveMetaPixelId(env.PUBLIC_META_PIXEL_ID);
   const configuredChatShop = env.PUBLIC_SHOPIFY_CHAT_SHOP?.trim()
     .replace(/^https?:\/\//i, '')
     .replace(/\/+$/, '');
@@ -263,6 +266,7 @@ export async function loader({context}: Route.LoaderArgs) {
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
+    metaPixelId,
     chatShopDomain,
     checkoutProvider,
     checkoutReady:
@@ -343,6 +347,7 @@ export default function App() {
           />
         )}
         <Analytics.Provider cart={data.cart} consent={data.consent} shop={data.shop}>
+          {data.metaPixelId && <MetaPixel pixelId={data.metaPixelId} />}
           <PageLayout {...data}>
             <Outlet />
           </PageLayout>

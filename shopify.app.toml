@@ -9,3 +9,10 @@ scopes = "read_orders,write_orders"
 [build]
 automatically_update_urls_on_dev = true
 dev_store_url = "your-store.myshopify.com"
+
+[webhooks]
+api_version = "2026-10"
+
+[[webhooks.subscriptions]]
+topics = ["orders/create", "orders/paid"]
+uri = "/webhooks/orders-create"

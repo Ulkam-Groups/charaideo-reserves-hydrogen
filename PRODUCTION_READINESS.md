@@ -16,9 +16,9 @@ Implemented and locally verified:
 - [x] `/blends` redirects to the catalog; `/api/blend-checkout` is `410` and
   `/api/admin/teas` is a non-disclosing `404`.
 - [x] Cart and discount return paths accept only same-store redirects.
-- [x] Removed the configured `orders/create` subscription. The transitional
-  endpoint verifies raw-body HMAC, limits the body to one megabyte, and cannot
-  make API writes.
+- [x] The Meta order endpoint verifies raw-body Shopify HMAC, limits the body to
+  one megabyte, accepts only `orders/create`/`orders/paid`, and performs no
+  Shopify Admin writes.
 - [x] Removed all Admin API scopes. This storefront uses Storefront and Customer
   Account APIs only.
 - [x] Added Hydrogen analytics, Shopify consent integration, and the privacy
@@ -100,12 +100,17 @@ Explicitly deferred by the owner:
 - [ ] Verify checkout/analytics consent and attribution across the Hydrogen,
   Shiprocket, and Shopify domains used by the actual order flow.
 
-### Webhook retirement
+### Meta purchase webhooks
 
-- [ ] Confirm the deployed Shopify configuration has no `orders/create`
-  subscription.
-- [ ] After confirming no in-flight deliveries, delete the transitional route
-  and remove `SHOPIFY_WEBHOOK_SECRET` from every environment.
+- [ ] Deploy the `orders/create` and `orders/paid` subscriptions to the exact
+  Shopify app connected to the production store.
+- [ ] Configure `SHOPIFY_WEBHOOK_SECRET` and the server-only
+  `META_CONVERSIONS_API_ACCESS_TOKEN` in Oxygen.
+- [ ] With `META_TEST_EVENT_CODE` temporarily enabled, complete one Fastrr COD
+  order and one prepaid order and confirm exactly one Meta `Purchase` per order.
+- [ ] Confirm Fastrr carries the `__cr_*` cart attributes into Shopify
+  `note_attributes`; no purchase is sent if provider or consent attribution is
+  absent.
 - [ ] Reconcile or close any historical custom-blend Draft Orders manually.
 
 This is a store-owned Hydrogen storefront, not an app distributed through the

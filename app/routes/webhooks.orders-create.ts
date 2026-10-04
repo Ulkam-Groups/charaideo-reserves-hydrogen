@@ -1,12 +1,20 @@
 import {type ActionFunctionArgs} from 'react-router';
+import {
+  metaPurchaseFromShopifyOrder,
+  sendMetaServerEvent,
+} from '../lib/ads/meta/meta-pixel.ts';
 
 const MAX_WEBHOOK_BODY_BYTES = 1_000_000;
 
-async function validSignature(body: string, signature: string | null) {
-  if (!signature || !process.env.SHOPIFY_WEBHOOK_SECRET) return false;
+async function validSignature(
+  body: string,
+  signature: string | null,
+  secret: string | undefined,
+) {
+  if (!signature || !secret) return false;
   const key = await crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(process.env.SHOPIFY_WEBHOOK_SECRET),
+    new TextEncoder().encode(secret),
     {name: 'HMAC', hash: 'SHA-256'},
     false,
     ['sign'],
@@ -28,11 +36,8 @@ async function validSignature(body: string, signature: string | null) {
   );
 }
 
-/**
- * Transitional no-op for deliveries already in flight. The orders/create
- * subscription has been removed and this route performs no Admin API writes.
- */
-export async function action({request}: ActionFunctionArgs) {
+/** Receives Fastrr-created Shopify orders and reports consented purchases to Meta. */
+export async function action({request, context}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return new Response('Method not allowed', {
       status: 405,
@@ -53,15 +58,47 @@ export async function action({request}: ActionFunctionArgs) {
     !(await validSignature(
       body,
       request.headers.get('x-shopify-hmac-sha256'),
+      context.env.SHOPIFY_WEBHOOK_SECRET?.trim(),
     ))
   ) {
     return new Response('Unauthorized', {status: 401});
   }
 
   const topic = request.headers.get('x-shopify-topic');
-  if (topic && topic !== 'orders/create') {
+  if (topic !== 'orders/create' && topic !== 'orders/paid') {
     return new Response('Unexpected webhook topic', {status: 400});
   }
 
-  return new Response(null, {status: 200});
+  let payload: unknown;
+  try {
+    payload = JSON.parse(body);
+  } catch {
+    return new Response('Invalid JSON', {status: 400});
+  }
+
+  const event = await metaPurchaseFromShopifyOrder(payload, topic);
+  if (!event) return new Response(null, {status: 204});
+
+  try {
+    await sendMetaServerEvent(context.env, event);
+    return new Response(null, {status: 204});
+  } catch (error) {
+    context.monitor?.failure(
+      'meta.capi.purchase.failure',
+      {topic, provider: 'fastrr'},
+      error,
+    );
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        scope: 'meta.capi.purchase',
+        topic,
+        requestId: context.requestId,
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+      }),
+    );
+    // A 5xx asks Shopify to retry. The stable Meta event_id deduplicates a
+    // response that was accepted by Meta but interrupted before acknowledgement.
+    return new Response('Meta delivery failed', {status: 502});
+  }
 }

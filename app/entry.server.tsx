@@ -10,6 +10,10 @@ import {monitoringEnabled, sentryIngestOrigin} from '~/lib/monitoring.server';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
 import {FASTRR_CSP} from '~/lib/checkout/providers/fastrr/fastrr.config';
 import {RAZORPAY_CSP} from '~/lib/checkout/providers/razorpay/razorpay.config';
+import {
+  META_PIXEL_CSP,
+  resolveMetaPixelId,
+} from '~/lib/ads/meta/meta-pixel';
 
 export default async function handleRequest(
   request: Request,
@@ -25,6 +29,9 @@ export default async function handleRequest(
     resolveCheckoutProvider(context.env?.CHECKOUT_PROVIDER) === 'fastrr';
   const razorpayEnabled =
     resolveCheckoutProvider(context.env?.CHECKOUT_PROVIDER) === 'razorpay';
+  const metaPixelEnabled = Boolean(
+    resolveMetaPixelId(context.env?.PUBLIC_META_PIXEL_ID),
+  );
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     styleSrc: [
       'https://fonts.googleapis.com',
@@ -34,6 +41,7 @@ export default async function handleRequest(
     scriptSrc: [
       "'self'",
       'https://cdn.shopify.com',
+      ...(metaPixelEnabled ? META_PIXEL_CSP.scriptSrc : []),
       ...(fastrrEnabled ? FASTRR_CSP.scriptSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.scriptSrc : []),
     ],
@@ -42,6 +50,7 @@ export default async function handleRequest(
       'https://cdn.shopify.com',
       'https://messaging-api.shopifyapps.com',
       'https://otlp-http-production.shopifysvc.com',
+      ...(metaPixelEnabled ? META_PIXEL_CSP.connectSrc : []),
       ...(fastrrEnabled ? FASTRR_CSP.connectSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.connectSrc : []),
     ],
@@ -57,6 +66,7 @@ export default async function handleRequest(
       "'self'",
       'https://cdn.shopify.com',
       'https://shopify.com',
+      ...(metaPixelEnabled ? META_PIXEL_CSP.imgSrc : []),
       ...(fastrrEnabled ? FASTRR_CSP.imgSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.imgSrc : []),
       'https://images.unsplash.com',

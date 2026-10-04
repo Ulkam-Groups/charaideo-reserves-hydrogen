@@ -1,6 +1,11 @@
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {CartLayout} from '~/components/CartMain';
-import {CartForm, Money, type OptimisticCart} from '@shopify/hydrogen';
+import {
+  CartForm,
+  Money,
+  type OptimisticCart,
+  useAnalytics,
+} from '@shopify/hydrogen';
 import {useEffect, useRef, useState} from 'react';
 import {useFetcher, useRouteLoaderData} from 'react-router';
 import type {loader as rootLoader} from '~/root';
@@ -8,6 +13,10 @@ import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
+import {
+  META_ANALYTICS_EVENTS,
+  metaContentId,
+} from '~/lib/ads/meta/meta-pixel';
 
 type CartSummaryProps = {
   cart: OptimisticCart<CartApiQueryFragment | null>;
@@ -66,6 +75,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
 function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; layout: CartLayout}) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const {close} = useAside();
+  const {publish} = useAnalytics();
   const [checkoutError, setCheckoutError] = useState('');
   const [checkoutPending, setCheckoutPending] = useState(false);
   useCheckoutError(setCheckoutError);
@@ -111,6 +121,30 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
         setCheckoutError('Checkout is temporarily unavailable. Please try again shortly.');
       } else {
         setCheckoutError('');
+        const items = cart.lines.nodes.flatMap((line) => {
+          const id = metaContentId(line.merchandise.id);
+          const itemPrice = Number(line.cost.amountPerQuantity.amount);
+          return id && Number.isFinite(itemPrice)
+            ? [
+                {
+                  id,
+                  name: `${line.merchandise.product.title} - ${line.merchandise.title}`,
+                  brand: line.merchandise.product.vendor,
+                  quantity: line.quantity,
+                  itemPrice,
+                },
+              ]
+            : [];
+        });
+        const subtotal = cart.cost?.subtotalAmount;
+        const value = Number(subtotal?.amount);
+        if (items.length && subtotal && Number.isFinite(value)) {
+          publish(META_ANALYTICS_EVENTS.INITIATE_CHECKOUT, {
+            currency: subtotal.currencyCode,
+            value,
+            items,
+          });
+        }
         if (layout === 'aside') close();
       }
     } finally {

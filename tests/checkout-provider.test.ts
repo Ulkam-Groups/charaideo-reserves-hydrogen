@@ -46,7 +46,10 @@ test('shared checkout launcher preserves the current Fastrr payload', async () =
       products: [{variantId: '12345', quantity: 2}],
       couponCode: 'TEA10',
       utmParams: 'utm_source=test',
-      cartAttributes: {gift: 'yes'},
+      cartAttributes: {
+        gift: 'yes',
+        __cr_checkout_provider: 'fastrr',
+      },
     });
   } finally {
     Reflect.deleteProperty(globalThis, 'window');
