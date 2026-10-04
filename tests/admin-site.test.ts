@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   ADMIN_METAFIELD_DEFINITIONS,
+  ADMIN_NATIVE_TRACEABILITY_FIELDS,
   validateMetafieldValue,
 } from '../app/lib/admin-metafields.ts';
 import {
@@ -24,9 +25,34 @@ test('admin responses cannot be cached, framed, or indexed', () => {
   assert.equal(response.headers.get('X-Robots-Tag'), 'noindex, nofollow, noarchive');
 });
 
-test('the Postman-derived schema contains 29 unique validated fields', () => {
-  assert.equal(ADMIN_METAFIELD_DEFINITIONS.length, 29);
-  assert.equal(new Set(ADMIN_METAFIELD_DEFINITIONS.map(({key}) => key)).size, 29);
+test('the admin schema contains the Postman fields and complete traceability fields', () => {
+  assert.equal(ADMIN_METAFIELD_DEFINITIONS.length, 35);
+  assert.equal(new Set(ADMIN_METAFIELD_DEFINITIONS.map(({key}) => key)).size, 35);
+  assert.deepEqual(
+    ADMIN_NATIVE_TRACEABILITY_FIELDS.map(({namespace, key}) => `${namespace}.${key}`),
+    ['shopify.tea-input-type', 'shopify.taste-profile'],
+  );
+  const keys = new Set(ADMIN_METAFIELD_DEFINITIONS.map(({key}) => key));
+  for (const key of [
+    'origin',
+    'estate',
+    'cultivar',
+    'tea_style',
+    'process',
+    'grade',
+    'harvest',
+    'ingredients',
+    'caffeine_level',
+    'brewing_suggestion',
+    'storage',
+    'shelf_life',
+    'allergens',
+    'certifications',
+    'lot_number',
+    'net_weight',
+  ]) {
+    assert.equal(keys.has(key), true, `missing traceability field ${key}`);
+  }
   assert.equal(
     validateMetafieldValue('number_integer', '6', 'roast'),
     'Must be no more than 5.',

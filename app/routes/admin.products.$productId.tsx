@@ -4,6 +4,7 @@ import {AdminAlert, AdminShell} from '~/components/AdminShell';
 import {
   ADMIN_METAFIELD_BY_KEY,
   ADMIN_METAFIELD_DEFINITIONS,
+  ADMIN_NATIVE_TRACEABILITY_FIELDS,
   validateMetafieldValue,
 } from '~/lib/admin-metafields';
 import {readProtectedForm} from '~/lib/protected-write.server';
@@ -326,8 +327,28 @@ export default function AdminProductEditor({
     multiline: definition.multiline,
     group: definition.group,
   }));
+  const nativeTraceabilityFields = ADMIN_NATIVE_TRACEABILITY_FIELDS.map((definition) => {
+    const current = product.metafields.nodes.find(
+      (field) => field.namespace === definition.namespace && field.key === definition.key,
+    );
+    return {
+      id: current?.id ?? '',
+      namespace: definition.namespace,
+      key: definition.key,
+      type: current?.type ?? definition.type,
+      value: current?.value ?? '',
+      compareDigest: current?.compareDigest ?? null,
+      updatedAt: current?.updatedAt ?? '',
+      definition: current?.definition ?? null,
+      label: definition.label,
+      multiline: definition.multiline,
+      group: definition.group,
+    };
+  });
   const knownIdentities = new Set(
-    knownFields.map((field) => `${field.namespace}.${field.key}`),
+    [...knownFields, ...nativeTraceabilityFields].map(
+      (field) => `${field.namespace}.${field.key}`,
+    ),
   );
   const otherFields = product.metafields.nodes
     .filter((field) => !knownIdentities.has(`${field.namespace}.${field.key}`))
@@ -335,9 +356,9 @@ export default function AdminProductEditor({
       ...field,
       label: field.definition?.name || `${field.namespace}.${field.key}`,
       multiline: true,
-      group: 'Other',
+      group: 'Other' as const,
     }));
-  const allFields = [...knownFields, ...otherFields];
+  const allFields = [...knownFields, ...nativeTraceabilityFields, ...otherFields];
   const busy = navigation.state === 'submitting';
   const currency = product.priceRangeV2.minVariantPrice.currencyCode;
 
@@ -590,12 +611,16 @@ export default function AdminProductEditor({
               </div>
             </section>
 
-            {(['Taste profile', 'Editorial', 'Tea record'] as const).map((group) => (
+            {(['Taste profile', 'Editorial', 'Traceability'] as const).map((group) => (
               <section className="admin-card admin-form-section" key={group}>
                 <div className="admin-section-heading">
                   <div>
                     <h2>{group}</h2>
-                    <p>Storefront-readable product metafields in the custom namespace.</p>
+                    <p>
+                      {group === 'Traceability'
+                        ? 'Tea provenance and preparation data. SKU is under Variants; Shopify category is under Product details.'
+                        : 'Storefront-readable product metafields in the custom namespace.'}
+                    </p>
                   </div>
                 </div>
                 <div className="admin-form-grid">

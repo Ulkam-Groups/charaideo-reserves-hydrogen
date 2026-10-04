@@ -10,6 +10,8 @@ Access control is expected to be enforced by the private Shopify admin environme
 - Product title, handle, HTML description, vendor, type, status, tags, template suffix, SEO, and taxonomy category
 - Variant price, compare-at price, SKU, barcode, tax flag, and inventory policy
 - All existing product metafields plus the 29 Charaideo `custom.*` product-page fields from `Charaideo_Product_Metafields.postman_collection.json`
+- Six additional storefront traceability definitions: caffeine level, preparation, storage, shelf life, allergens, and certifications
+- Native SKU, Shopify category, tea-format taxonomy, and taste-profile taxonomy fields alongside the traceability record
 - One-click creation of missing Charaideo metafield definitions with public Storefront API read access
 
 The save flow validates the complete form before writing. Shopify product, variant, and metafield mutations are separate API operations, so an upstream failure in a later section can occur after an earlier section succeeds; the UI reports this and tells the administrator to reload before retrying. Metafield writes use Shopify compare digests when available to prevent silently overwriting a newer metafield value.

@@ -2,7 +2,7 @@ export type AdminMetafieldDefinition = {
   key: string;
   label: string;
   type: string;
-  group: 'Taste profile' | 'Editorial' | 'Tea record';
+  group: 'Taste profile' | 'Editorial' | 'Traceability';
   multiline?: boolean;
   min?: number;
   max?: number;
@@ -103,18 +103,23 @@ export const ADMIN_METAFIELD_DEFINITIONS: readonly AdminMetafieldDefinition[] = 
     group: 'Editorial',
     multiline: true,
   },
-  {key: 'process', label: 'Process', type: 'single_line_text_field', group: 'Editorial'},
+  {
+    key: 'process',
+    label: 'Process',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
   {
     key: 'tea_style',
-    label: 'Tea style',
+    label: 'Tea type',
     type: 'single_line_text_field',
-    group: 'Editorial',
+    group: 'Traceability',
   },
   {
     key: 'lot_number',
-    label: 'Lot number',
+    label: 'Lot',
     type: 'single_line_text_field',
-    group: 'Editorial',
+    group: 'Traceability',
   },
   {
     key: 'is_this_tea_yes',
@@ -143,26 +148,108 @@ export const ADMIN_METAFIELD_DEFINITIONS: readonly AdminMetafieldDefinition[] = 
     type: 'single_line_text_field',
     group: 'Editorial',
   },
-  {key: 'origin', label: 'Origin', type: 'single_line_text_field', group: 'Tea record'},
-  {key: 'estate', label: 'Estate', type: 'single_line_text_field', group: 'Tea record'},
+  {
+    key: 'origin',
+    label: 'Origin',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {
+    key: 'estate',
+    label: 'Estate',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
   {
     key: 'cultivar',
     label: 'Cultivar',
     type: 'single_line_text_field',
-    group: 'Tea record',
+    group: 'Traceability',
   },
-  {key: 'grade', label: 'Grade', type: 'single_line_text_field', group: 'Tea record'},
-  {key: 'harvest', label: 'Harvest', type: 'single_line_text_field', group: 'Tea record'},
-  {key: 'flush', label: 'Flush', type: 'single_line_text_field', group: 'Tea record'},
-  {key: 'pluck_date', label: 'Pluck date', type: 'date', group: 'Tea record'},
+  {
+    key: 'grade',
+    label: 'Grade',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {
+    key: 'harvest',
+    label: 'Harvest',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {
+    key: 'flush',
+    label: 'Flush',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {key: 'pluck_date', label: 'Pluck date', type: 'date', group: 'Traceability'},
   {
     key: 'ingredients',
     label: 'Ingredients',
     type: 'list.single_line_text_field',
-    group: 'Tea record',
+    group: 'Traceability',
     multiline: true,
   },
-  {key: 'net_weight', label: 'Net weight', type: 'weight', group: 'Tea record'},
+  {
+    key: 'caffeine_level',
+    label: 'Caffeine level',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {
+    key: 'brewing_suggestion',
+    label: 'Preparation',
+    type: 'multi_line_text_field',
+    group: 'Traceability',
+    multiline: true,
+  },
+  {
+    key: 'storage',
+    label: 'Storage',
+    type: 'multi_line_text_field',
+    group: 'Traceability',
+    multiline: true,
+  },
+  {
+    key: 'shelf_life',
+    label: 'Shelf life',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {
+    key: 'allergens',
+    label: 'Allergens',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {
+    key: 'certifications',
+    label: 'Certifications',
+    type: 'single_line_text_field',
+    group: 'Traceability',
+  },
+  {key: 'net_weight', label: 'Pack size', type: 'weight', group: 'Traceability'},
+] as const;
+
+export const ADMIN_NATIVE_TRACEABILITY_FIELDS = [
+  {
+    namespace: 'shopify',
+    key: 'tea-input-type',
+    label: 'Tea format',
+    type: 'list.metaobject_reference',
+    group: 'Traceability' as const,
+    multiline: true,
+  },
+  {
+    namespace: 'shopify',
+    key: 'taste-profile',
+    label: 'Taxonomy taste profile',
+    type: 'list.metaobject_reference',
+    group: 'Traceability' as const,
+    multiline: true,
+  },
 ] as const;
 
 export const ADMIN_METAFIELD_BY_KEY = new Map(

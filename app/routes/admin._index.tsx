@@ -1,6 +1,7 @@
 import {data, Form, Link, redirect, useNavigation, useSearchParams} from 'react-router';
 import type {Route} from './+types/admin._index';
 import {AdminAlert, AdminShell} from '~/components/AdminShell';
+import {ADMIN_METAFIELD_DEFINITIONS} from '~/lib/admin-metafields';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
   ensureAdminMetafieldDefinitions,
@@ -79,7 +80,7 @@ export default function AdminProducts({loaderData, actionData}: Route.ComponentP
       {created !== null && (
         <AdminAlert tone="success">
           {created === '0'
-            ? 'All 29 Charaideo metafield definitions already exist.'
+            ? `All ${ADMIN_METAFIELD_DEFINITIONS.length} Charaideo metafield definitions already exist.`
             : `Created ${created} missing metafield definition${created === '1' ? '' : 's'}.`}
         </AdminAlert>
       )}
