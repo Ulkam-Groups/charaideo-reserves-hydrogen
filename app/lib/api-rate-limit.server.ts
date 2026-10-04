@@ -24,7 +24,7 @@ export const API_RATE_LIMITS = {
   '/agent/buyer-claims': null, // Read-only Shopify chat proxy.
   '/cart': null, // Hydrogen cart actions; protected by form and session checks.
   '/cart/:lines': null, // Cart permalink.
-  '/webhooks/orders-create': null, // Retired, signed no-op.
+  '/webhooks/orders-create': null, // Shopify-signed Meta CAPI delivery.
 } as const;
 
 export type ApiRateLimitRoute = keyof typeof API_RATE_LIMITS;
