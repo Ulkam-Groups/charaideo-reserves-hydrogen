@@ -62,7 +62,8 @@ function installMetaPixel(pixelId: string) {
 
 function metaEventId(eventName: string, stableKey?: string) {
   if (stableKey) return `meta_${eventName.toLowerCase()}_${stableKey}`.slice(0, 100);
-  const uniqueId = globalThis.crypto?.randomUUID?.() ??
+  const uniqueId =
+    globalThis.crypto?.randomUUID?.() ??
     `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
   return `meta_${eventName.toLowerCase()}_${uniqueId}`.slice(0, 100);
 }
@@ -129,19 +130,52 @@ export function MetaPixel({pixelId}: {pixelId: string}) {
   const started = useRef(false);
   const subscribed = useRef(false);
   const trackingAllowed = useRef(false);
-  const {ready} = useMemo(
-    () => register(`MetaPixel:${pixelId}`),
-    [pixelId, register],
-  );
+  const {ready} = useMemo(() => register(`MetaPixel:${pixelId}`), [pixelId, register]);
 
   useEffect(() => {
     let analyticsRegistrationReady = false;
+    let disposed = false;
+    let idleHandle: number | undefined;
+    let fallbackTimer: number | undefined;
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: IdleRequestCallback,
+        options?: IdleRequestOptions,
+      ) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
     const drainPendingPurchases = () => {
       if (!metaTrackingAllowed()) return;
       for (const purchase of pendingMetaPurchases()) {
         if (trackCommerceEvent('Purchase', purchase)) {
           acknowledgeMetaPurchase(purchase);
         }
+      }
+    };
+    const cancelScheduledInstall = () => {
+      if (idleHandle !== undefined) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+      idleHandle = undefined;
+      fallbackTimer = undefined;
+    };
+    const scheduleInstall = () => {
+      if (started.current || idleHandle !== undefined || fallbackTimer !== undefined) {
+        return;
+      }
+      const install = () => {
+        idleHandle = undefined;
+        fallbackTimer = undefined;
+        if (disposed || !metaTrackingAllowed()) return;
+        started.current = true;
+        installMetaPixel(pixelId);
+        drainPendingPurchases();
+        if (analyticsRegistrationReady) trackMeta('PageView');
+      };
+
+      if (idleWindow.requestIdleCallback) {
+        idleHandle = idleWindow.requestIdleCallback(install, {timeout: 3000});
+      } else {
+        fallbackTimer = window.setTimeout(install, 1500);
       }
     };
     const syncConsent = () => {
@@ -156,14 +190,12 @@ export function MetaPixel({pixelId}: {pixelId: string}) {
         }
         return;
       }
-      if (!allowed) return;
+      if (!allowed) {
+        cancelScheduledInstall();
+        return;
+      }
 
-      started.current = true;
-      installMetaPixel(pixelId);
-      drainPendingPurchases();
-      // If consent was granted after initial registration, describe the page at
-      // the moment tracking becomes allowed. Earlier activity stays discarded.
-      if (analyticsRegistrationReady) trackMeta('PageView');
+      scheduleInstall();
     };
 
     if (!subscribed.current) {
@@ -201,8 +233,7 @@ export function MetaPixel({pixelId}: {pixelId: string}) {
           return;
         }
         trackCommerceEvent('AddToCart', {
-          currency:
-            merchandise.price?.currencyCode ?? payload.shop?.currency ?? 'INR',
+          currency: merchandise.price?.currencyCode ?? payload.shop?.currency ?? 'INR',
           value: itemPrice * quantity,
           items: [
             {
@@ -233,6 +264,8 @@ export function MetaPixel({pixelId}: {pixelId: string}) {
     analyticsRegistrationReady = true;
 
     return () => {
+      disposed = true;
+      cancelScheduledInstall();
       document.removeEventListener('visitorConsentCollected', syncConsent);
       document.removeEventListener(META_PURCHASE_READY_EVENT, drainPendingPurchases);
     };

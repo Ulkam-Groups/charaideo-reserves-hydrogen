@@ -24,12 +24,12 @@ test('Fastrr receives the numeric Shopify variant ID', () => {
   assert.equal(fastrrVariantId('not-a-shopify-id'), null);
 });
 
-test('checkout reports vendor availability without redirecting', () => {
+test('checkout reports vendor availability without redirecting', async () => {
   const input: FastrrCheckoutInput = {
     type: 'product',
     products: [{variantId: '12345', quantity: 1}],
   };
-  assert.equal(startFastrrCheckout(input), false);
+  assert.equal(await startFastrrCheckout(input), false);
 
   let received: FastrrCheckoutInput | undefined;
   Object.assign(globalThis, {
@@ -42,12 +42,12 @@ test('checkout reports vendor availability without redirecting', () => {
     },
   });
   try {
-    assert.equal(startFastrrCheckout(input), true);
+    assert.equal(await startFastrrCheckout(input), true);
     assert.deepEqual(received, input);
     window.shiprocketCheckoutEvents!.buyDirect = () => {
       throw new Error('vendor unavailable');
     };
-    assert.equal(startFastrrCheckout(input), false);
+    assert.equal(await startFastrrCheckout(input), false);
   } finally {
     Reflect.deleteProperty(globalThis, 'window');
   }
