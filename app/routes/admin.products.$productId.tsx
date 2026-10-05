@@ -499,7 +499,7 @@ export default function AdminProductEditor({
       ...knownFields.map((field) => `${field.namespace}.${field.key}`),
       ...ADMIN_NATIVE_TRACEABILITY_FIELDS.map(
         (field) => `${field.namespace}.${field.key}`,
-      ),
+      ),]
   );
   const otherFields = product.metafields.nodes
     .filter((field) => !knownIdentities.has(`${field.namespace}.${field.key}`))
