@@ -34,7 +34,7 @@ export function AdminAlert({
   tone = 'info',
 }: {
   children: React.ReactNode;
-  tone?: 'info' | 'success' | 'critical';
+  tone?: 'info' | 'success' | 'warning' | 'critical';
 }) {
   return (
     <div

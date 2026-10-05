@@ -192,6 +192,11 @@
   border-color: #95c9ae;
   color: #155b3d;
 }
+.admin-alert--warning {
+  background: #fff8e8;
+  border-color: #e5c36e;
+  color: #70520b;
+}
 .admin-alert--critical {
   background: #fff4f4;
   border-color: #e0a1a1;
