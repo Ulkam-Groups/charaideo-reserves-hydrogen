@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   ADMIN_METAFIELD_DEFINITIONS,
   ADMIN_NATIVE_TRACEABILITY_FIELDS,
+  serializeWeightMetafieldValue,
   validateMetafieldValue,
 } from '../app/lib/admin-metafields.ts';
 import {
@@ -64,6 +65,34 @@ test('the admin schema contains the Postman fields and complete traceability fie
   assert.equal(
     validateMetafieldValue('json', '{broken', 'recipe_hot'),
     'Enter valid JSON.',
+  );
+  assert.equal(
+    validateMetafieldValue(
+      'weight',
+      serializeWeightMetafieldValue('0.8', 'KILOGRAMS'),
+      'net_weight',
+    ),
+    null,
+  );
+  assert.equal(
+    serializeWeightMetafieldValue('0.8', 'KILOGRAMS'),
+    '{"value":0.8,"unit":"KILOGRAMS"}',
+  );
+  assert.equal(
+    validateMetafieldValue(
+      'list.metaobject_reference',
+      '["fpor","mat"]',
+      'taste-profile',
+    ),
+    'Enter a JSON array of Shopify reference GIDs.',
+  );
+  assert.equal(
+    validateMetafieldValue(
+      'list.metaobject_reference',
+      '["gid://shopify/TaxonomyValue/123"]',
+      'taste-profile',
+    ),
+    null,
   );
 });
 

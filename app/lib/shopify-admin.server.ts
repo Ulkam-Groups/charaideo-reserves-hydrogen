@@ -269,7 +269,31 @@ export type AdminProduct = {
   templateSuffix: string | null;
   totalInventory: number;
   updatedAt: string;
-  category: null | {id: string; name: string; fullName: string};
+  category: null | {
+    id: string;
+    name: string;
+    fullName: string;
+    ancestorIds: string[];
+    attributes: {
+      nodes: Array<{
+        __typename: string;
+        id: string;
+        name: string;
+        values?: {nodes: Array<{id: string; name: string}>};
+      }>;
+    };
+  };
+  taxonomyCategories: Array<{id: string; fullName: string}>;
+  taxonomyMetafieldDefinitions: Array<{
+    namespace: string;
+    key: string;
+    name: string;
+    type: {name: string};
+    constraints: null | {
+      key: string | null;
+      values: {nodes: Array<{value: string}>};
+    };
+  }>;
   seo: {title: string | null; description: string | null};
   priceRangeV2: {
     minVariantPrice: {amount: string; currencyCode: string};
@@ -294,13 +318,30 @@ export async function getAdminProduct(
   fetcher: typeof fetch = fetch,
 ) {
   if (!/^\d+$/.test(legacyResourceId)) return null;
-  const data = await adminGraphql<{product: AdminProduct | null}>(
+  type TaxonomyDefinition = AdminProduct['taxonomyMetafieldDefinitions'][number];
+  const data = await adminGraphql<{
+    product: Omit<AdminProduct, 'taxonomyCategories' | 'taxonomyMetafieldDefinitions'> | null;
+    taxonomy: {categories: {nodes: Array<{id: string; fullName: string}>}};
+    teaInputTypeDefinition: TaxonomyDefinition | null;
+    tasteProfileDefinition: TaxonomyDefinition | null;
+  }>(
     env,
     `query AdminProduct($id: ID!) {
       product(id: $id) {
         id legacyResourceId title handle descriptionHtml vendor productType status tags
         templateSuffix totalInventory updatedAt
-        category { id name fullName }
+        category {
+          id name fullName ancestorIds
+          attributes(first: 100) {
+            nodes {
+              __typename
+              ... on TaxonomyChoiceListAttribute {
+                id name
+                values(first: 100) { nodes { id name } }
+              }
+            }
+          }
+        }
         seo { title description }
         priceRangeV2 {
           minVariantPrice { amount currencyCode }
@@ -323,11 +364,34 @@ export async function getAdminProduct(
           }
         }
       }
+      taxonomy {
+        categories(first: 50, search: "Tea") { nodes { id fullName } }
+      }
+      teaInputTypeDefinition: metafieldDefinition(identifier: {
+        ownerType: PRODUCT, namespace: "shopify", key: "tea-input-type"
+      }) {
+        namespace key name type { name }
+        constraints { key values(first: 250) { nodes { value } } }
+      }
+      tasteProfileDefinition: metafieldDefinition(identifier: {
+        ownerType: PRODUCT, namespace: "shopify", key: "taste-profile"
+      }) {
+        namespace key name type { name }
+        constraints { key values(first: 250) { nodes { value } } }
+      }
     }`,
     {id: `gid://shopify/Product/${legacyResourceId}`},
     fetcher,
   );
-  return data.product;
+  if (!data.product) return null;
+  return {
+    ...data.product,
+    taxonomyCategories: data.taxonomy.categories.nodes,
+    taxonomyMetafieldDefinitions: [
+      data.teaInputTypeDefinition,
+      data.tasteProfileDefinition,
+    ].filter((definition): definition is TaxonomyDefinition => definition !== null),
+  };
 }
 
 type UserError = {field?: string[] | null; message: string; code?: string | null};

@@ -5,6 +5,9 @@ import {
   ADMIN_METAFIELD_BY_KEY,
   ADMIN_METAFIELD_DEFINITIONS,
   ADMIN_NATIVE_TRACEABILITY_FIELDS,
+  isTaxonomyDefinitionApplicable,
+  serializeWeightMetafieldValue,
+  SHOPIFY_WEIGHT_UNITS,
   validateMetafieldValue,
 } from '~/lib/admin-metafields';
 import {readProtectedForm} from '~/lib/protected-write.server';
@@ -111,6 +114,7 @@ function parseMetafields(
   metafieldCount: number,
   ownerId: string,
   current: AdminMetafield[],
+  allowedNativeTaxonomyFields: ReadonlySet<string>,
 ) {
   const currentByIdentity = new Map(
     current.map((field) => [`${field.namespace}.${field.key}`, field]),
@@ -123,7 +127,22 @@ function parseMetafields(
     const namespace = optionalString(form, `${prefix}.namespace`, 255);
     const key = optionalString(form, `${prefix}.key`, 64);
     const type = optionalString(form, `${prefix}.type`, 100);
-    const value = optionalString(form, `${prefix}.value`, 100_000);
+    const submittedValues = form.getAll(`${prefix}.value`);
+    const submittedValue =
+      type === 'list.metaobject_reference' && namespace === 'shopify'
+        ? JSON.stringify(
+            submittedValues.filter(
+              (item): item is string => typeof item === 'string' && item.length > 0,
+            ),
+          )
+        : optionalString(form, `${prefix}.value`, 100_000);
+    const value =
+      type === 'weight' && submittedValue
+        ? serializeWeightMetafieldValue(
+            submittedValue,
+            optionalString(form, `${prefix}.unit`, 20),
+          )
+        : submittedValue;
     if (!namespace || !key || !type) throw new Error('Metafield identity is invalid.');
     if (
       !/^[A-Za-z0-9_$-]+$/.test(namespace) ||
@@ -136,8 +155,16 @@ function parseMetafields(
     if (seen.has(identity)) throw new Error(`Duplicate metafield ${identity}.`);
     seen.add(identity);
     const existing = currentByIdentity.get(identity);
-    if (!existing && !value) continue;
+    if (!existing && (!value || value === '[]')) continue;
     if (existing?.value === value) continue;
+    if (namespace === 'shopify' && !allowedNativeTaxonomyFields.has(identity)) {
+      fieldErrors.push(
+        `${ADMIN_NATIVE_TRACEABILITY_FIELDS.find(
+          (field) => `${field.namespace}.${field.key}` === identity,
+        )?.label ?? identity}: choose a compatible Shopify product category and save it before editing this taxonomy field.`,
+      );
+      continue;
+    }
     const validation = validateMetafieldValue(type, value, key);
     if (validation) {
       fieldErrors.push(
@@ -177,12 +204,6 @@ export async function action({request, context, params}: Route.ActionArgs) {
     const variantCount = count(form, 'variantCount', 100);
     const metafieldCount = count(form, 'metafieldCount', 250);
     const variants = parseVariants(form, variantCount);
-    const metafields = parseMetafields(
-      form,
-      metafieldCount,
-      product.id,
-      product.metafields.nodes,
-    );
     const tags = optionalString(form, 'tags', 5_000)
       .split(',')
       .map((tag) => tag.trim())
@@ -193,6 +214,28 @@ export async function action({request, context, params}: Route.ActionArgs) {
     if (category && !/^gid:\/\/shopify\/TaxonomyCategory\/.+$/.test(category)) {
       throw new Error('Category must be a Shopify TaxonomyCategory GID.');
     }
+    const categoryIsUnchanged = category === (product.category?.id ?? '');
+    const targetAncestorIds = categoryIsUnchanged
+      ? product.category?.ancestorIds ?? []
+      : [];
+    const allowedNativeTaxonomyFields = new Set(
+      product.taxonomyMetafieldDefinitions
+        .filter((definition) =>
+          isTaxonomyDefinitionApplicable(
+            definition.constraints,
+            category || null,
+            targetAncestorIds,
+          ),
+        )
+        .map((definition) => `${definition.namespace}.${definition.key}`),
+    );
+    const metafields = parseMetafields(
+      form,
+      metafieldCount,
+      product.id,
+      product.metafields.nodes,
+      allowedNativeTaxonomyFields,
+    );
 
     const productUpdate = {
       id: product.id,
@@ -249,12 +292,34 @@ function MetafieldInput({
   field,
   index,
 }: {
-  field: AdminMetafield & {label: string; multiline?: boolean};
+  field: AdminMetafield & {
+    label: string;
+    multiline?: boolean;
+    options?: Array<{id: string; name: string}>;
+  };
   index: number;
 }) {
   const inputId = `metafield-${index}`;
   const isLong =
     field.multiline || field.type === 'json' || field.type.startsWith('list.');
+  let weightValue = '';
+  let weightUnit: (typeof SHOPIFY_WEIGHT_UNITS)[number] = 'GRAMS';
+  if (field.type === 'weight' && field.value) {
+    try {
+      const parsed = JSON.parse(field.value) as {value?: unknown; unit?: unknown};
+      if (typeof parsed.value === 'number') weightValue = String(parsed.value);
+      if (
+        typeof parsed.unit === 'string' &&
+        SHOPIFY_WEIGHT_UNITS.includes(
+          parsed.unit as (typeof SHOPIFY_WEIGHT_UNITS)[number],
+        )
+      ) {
+        weightUnit = parsed.unit as (typeof SHOPIFY_WEIGHT_UNITS)[number];
+      }
+    } catch {
+      // Keep the controls empty when a legacy value isn't valid Shopify weight JSON.
+    }
+  }
   return (
     <div className={isLong ? 'admin-field admin-field--wide' : 'admin-field'}>
       <label htmlFor={inputId}>{field.label}</label>
@@ -268,12 +333,54 @@ function MetafieldInput({
       />
       <input name={`metafield.${index}.key`} type="hidden" value={field.key} />
       <input name={`metafield.${index}.type`} type="hidden" value={field.type} />
-      {isLong ? (
+      {field.options ? (
+        <select
+          defaultValue={parseReferenceList(field.value)}
+          id={inputId}
+          multiple
+          name={`metafield.${index}.value`}
+          size={Math.min(Math.max(field.options.length, 3), 8)}
+        >
+          {field.options.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+      ) : field.type === 'weight' ? (
+        <div className="admin-measurement-field">
+          <input
+            defaultValue={weightValue}
+            id={inputId}
+            inputMode="decimal"
+            min="0.001"
+            name={`metafield.${index}.value`}
+            placeholder="100"
+            step="any"
+            type="number"
+          />
+          <select
+            aria-label={`${field.label} unit`}
+            defaultValue={weightUnit}
+            name={`metafield.${index}.unit`}
+          >
+            <option value="GRAMS">g</option>
+            <option value="KILOGRAMS">kg</option>
+            <option value="OUNCES">oz</option>
+            <option value="POUNDS">lb</option>
+          </select>
+        </div>
+      ) : isLong ? (
         <textarea
           id={inputId}
           name={`metafield.${index}.value`}
           rows={field.type === 'json' ? 8 : 4}
           defaultValue={field.value}
+          placeholder={
+            field.type === 'list.metaobject_reference'
+              ? '["gid://shopify/TaxonomyValue/123456789"]'
+              : undefined
+          }
         />
       ) : (
         <input
@@ -293,6 +400,17 @@ function MetafieldInput({
       )}
     </div>
   );
+}
+
+function parseReferenceList(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 export default function AdminProductEditor({
@@ -327,28 +445,61 @@ export default function AdminProductEditor({
     multiline: definition.multiline,
     group: definition.group,
   }));
-  const nativeTraceabilityFields = ADMIN_NATIVE_TRACEABILITY_FIELDS.map((definition) => {
-    const current = product.metafields.nodes.find(
-      (field) => field.namespace === definition.namespace && field.key === definition.key,
-    );
-    return {
-      id: current?.id ?? '',
-      namespace: definition.namespace,
-      key: definition.key,
-      type: current?.type ?? definition.type,
-      value: current?.value ?? '',
-      compareDigest: current?.compareDigest ?? null,
-      updatedAt: current?.updatedAt ?? '',
-      definition: current?.definition ?? null,
-      label: definition.label,
-      multiline: definition.multiline,
-      group: definition.group,
-    };
-  });
+  const taxonomyDefinitionByIdentity = new Map(
+    product.taxonomyMetafieldDefinitions.map((definition) => [
+      `${definition.namespace}.${definition.key}`,
+      definition,
+    ]),
+  );
+  const nativeTraceabilityFields = ADMIN_NATIVE_TRACEABILITY_FIELDS.flatMap(
+    (definition) => {
+      const identity = `${definition.namespace}.${definition.key}`;
+      const metafieldDefinition = taxonomyDefinitionByIdentity.get(identity);
+      if (
+        !metafieldDefinition ||
+        !isTaxonomyDefinitionApplicable(
+          metafieldDefinition.constraints,
+          product.category?.id,
+          product.category?.ancestorIds,
+        )
+      ) {
+        return [];
+      }
+      const current = product.metafields.nodes.find(
+        (field) =>
+          field.namespace === definition.namespace && field.key === definition.key,
+      );
+      const attribute = product.category?.attributes.nodes.find(
+        (candidate) =>
+          candidate.name.toLocaleLowerCase() ===
+          metafieldDefinition.name.toLocaleLowerCase(),
+      );
+      return [
+        {
+          id: current?.id ?? '',
+          namespace: definition.namespace,
+          key: definition.key,
+          type: current?.type ?? metafieldDefinition.type.name ?? definition.type,
+          value: current?.value ?? '',
+          compareDigest: current?.compareDigest ?? null,
+          updatedAt: current?.updatedAt ?? '',
+          definition: current?.definition ?? null,
+          label: definition.label,
+          multiline: definition.multiline,
+          group: definition.group,
+          options: attribute?.values?.nodes ?? [],
+        },
+      ];
+    },
+  );
+  const nativeTaxonomyUnavailable =
+    nativeTraceabilityFields.length < ADMIN_NATIVE_TRACEABILITY_FIELDS.length;
   const knownIdentities = new Set(
-    [...knownFields, ...nativeTraceabilityFields].map(
-      (field) => `${field.namespace}.${field.key}`,
-    ),
+    [
+      ...knownFields.map((field) => `${field.namespace}.${field.key}`),
+      ...ADMIN_NATIVE_TRACEABILITY_FIELDS.map(
+        (field) => `${field.namespace}.${field.key}`,
+      ),
   );
   const otherFields = product.metafields.nodes
     .filter((field) => !knownIdentities.has(`${field.namespace}.${field.key}`))
@@ -473,15 +624,30 @@ export default function AdminProductEditor({
                   />
                 </div>
                 <div className="admin-field">
-                  <label htmlFor="category">Taxonomy category GID</label>
-                  <input
+                  <label htmlFor="category">Shopify category</label>
+                  <select
                     defaultValue={product.category?.id || ''}
                     id="category"
                     name="category"
-                    placeholder="gid://shopify/TaxonomyCategory/…"
-                  />
+                  >
+                    {!product.category && <option value="">No category assigned</option>}
+                    {product.category &&
+                      !product.taxonomyCategories.some(
+                        (category) => category.id === product.category?.id,
+                      ) && (
+                        <option value={product.category.id}>
+                          {product.category.fullName}
+                        </option>
+                      )}
+                    {product.taxonomyCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.fullName}
+                      </option>
+                    ))}
+                  </select>
                   <span className="admin-help">
-                    {product.category?.fullName || 'No category assigned'}
+                    Tea format and taste profile depend on this category. Save a
+                    category change before editing them.
                   </span>
                 </div>
               </div>
@@ -623,6 +789,14 @@ export default function AdminProductEditor({
                     </p>
                   </div>
                 </div>
+                {group === 'Traceability' && nativeTaxonomyUnavailable && (
+                  <AdminAlert tone="warning">
+                    Tea format and Taxonomy taste profile are unavailable for{' '}
+                    {product.category?.fullName || 'a product without a category'}.
+                    Choose a compatible Tea category above, save, and then select
+                    their Shopify taxonomy values.
+                  </AdminAlert>
+                )}
                 <div className="admin-form-grid">
                   {allFields.map((field, index) =>
                     field.group === group ? (

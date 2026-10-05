@@ -238,6 +238,7 @@ export const ADMIN_NATIVE_TRACEABILITY_FIELDS = [
     namespace: 'shopify',
     key: 'tea-input-type',
     label: 'Tea format',
+    attributeName: 'Tea input type',
     type: 'list.metaobject_reference',
     group: 'Traceability' as const,
     multiline: true,
@@ -246,15 +247,45 @@ export const ADMIN_NATIVE_TRACEABILITY_FIELDS = [
     namespace: 'shopify',
     key: 'taste-profile',
     label: 'Taxonomy taste profile',
+    attributeName: 'Taste profile',
     type: 'list.metaobject_reference',
     group: 'Traceability' as const,
     multiline: true,
   },
 ] as const;
 
+type TaxonomyDefinitionConstraints = null | {
+  values: {nodes: Array<{value: string}>};
+};
+
+function taxonomySubtype(value: string) {
+  return value.replace(/^gid:\/\/shopify\/TaxonomyCategory\//, '');
+}
+
+export function isTaxonomyDefinitionApplicable(
+  constraints: TaxonomyDefinitionConstraints,
+  categoryId: string | null | undefined,
+  ancestorIds: readonly string[] = [],
+) {
+  if (!categoryId) return false;
+  if (!constraints || constraints.values.nodes.length === 0) return true;
+  const productCategories = new Set(
+    [categoryId, ...ancestorIds].map(taxonomySubtype),
+  );
+  return constraints.values.nodes.some(({value}) =>
+    productCategories.has(taxonomySubtype(value)),
+  );
+}
+
 export const ADMIN_METAFIELD_BY_KEY = new Map(
   ADMIN_METAFIELD_DEFINITIONS.map((definition) => [definition.key, definition]),
 );
+
+export const SHOPIFY_WEIGHT_UNITS = ['GRAMS', 'KILOGRAMS', 'OUNCES', 'POUNDS'] as const;
+
+export function serializeWeightMetafieldValue(amount: string, unit: string) {
+  return JSON.stringify({value: Number(amount), unit});
+}
 
 export function validateMetafieldValue(type: string, value: string, key: string) {
   if (type === 'number_integer') {
@@ -274,13 +305,39 @@ export function validateMetafieldValue(type: string, value: string, key: string)
   if (type === 'json' || type === 'weight' || type.startsWith('list.')) {
     try {
       const parsed = JSON.parse(value) as unknown;
-      if (type.startsWith('list.') && !Array.isArray(parsed))
-        return 'Enter a JSON array.';
-      if (
-        type === 'weight' &&
-        (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
-      ) {
-        return 'Enter a JSON object with value and unit.';
+      if (type.startsWith('list.')) {
+        if (!Array.isArray(parsed)) return 'Enter a JSON array.';
+        if (
+          type === 'list.metaobject_reference' &&
+          !parsed.every(
+            (item) =>
+              typeof item === 'string' &&
+              /^gid:\/\/shopify\/(?:Metaobject|TaxonomyValue)\/\d+$/.test(item),
+          )
+        ) {
+          return 'Enter a JSON array of Shopify reference GIDs.';
+        }
+      }
+      if (type === 'weight') {
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          return 'Enter a weight and unit.';
+        }
+        const weight = parsed as {value?: unknown; unit?: unknown};
+        if (
+          typeof weight.value !== 'number' ||
+          !Number.isFinite(weight.value) ||
+          weight.value <= 0
+        ) {
+          return 'Weight must be greater than zero.';
+        }
+        if (
+          typeof weight.unit !== 'string' ||
+          !SHOPIFY_WEIGHT_UNITS.includes(
+            weight.unit as (typeof SHOPIFY_WEIGHT_UNITS)[number],
+          )
+        ) {
+          return 'Select a valid weight unit.';
+        }
       }
     } catch {
       return 'Enter valid JSON.';
