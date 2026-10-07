@@ -320,7 +320,10 @@ export async function getAdminProduct(
   if (!/^\d+$/.test(legacyResourceId)) return null;
   type TaxonomyDefinition = AdminProduct['taxonomyMetafieldDefinitions'][number];
   const data = await adminGraphql<{
-    product: Omit<AdminProduct, 'taxonomyCategories' | 'taxonomyMetafieldDefinitions'> | null;
+    product: Omit<
+      AdminProduct,
+      'taxonomyCategories' | 'taxonomyMetafieldDefinitions'
+    > | null;
     taxonomy: {categories: {nodes: Array<{id: string; fullName: string}>}};
     teaInputTypeDefinition: TaxonomyDefinition | null;
     tasteProfileDefinition: TaxonomyDefinition | null;
@@ -532,8 +535,10 @@ export async function setAdminMetafields(
   metafields: MetafieldUpdateValues[],
   fetcher: typeof fetch = fetch,
 ) {
-  for (let offset = 0; offset < metafields.length; offset += 25) {
-    const batch = metafields.slice(offset, offset + 25);
+  let updated = 0;
+  const failures: string[] = [];
+
+  async function writeBatch(batch: MetafieldUpdateValues[]) {
     const data = await adminGraphql<{
       metafieldsSet: {userErrors: UserError[]};
     }>(
@@ -546,8 +551,33 @@ export async function setAdminMetafields(
       {metafields: batch},
       fetcher,
     );
-    assertNoUserErrors(data.metafieldsSet.userErrors, 'Metafield update failed');
+    return data.metafieldsSet.userErrors;
   }
+
+  for (let offset = 0; offset < metafields.length; offset += 25) {
+    const batch = metafields.slice(offset, offset + 25);
+    const batchErrors = await writeBatch(batch);
+    if (!batchErrors.length) {
+      updated += batch.length;
+      continue;
+    }
+
+    // metafieldsSet is atomic. Retry a rejected multi-field batch one field at a
+    // time so one incompatible definition doesn't roll back every valid edit.
+    for (const metafield of batch) {
+      const fieldErrors = await writeBatch([metafield]);
+      if (!fieldErrors.length) {
+        updated += 1;
+        continue;
+      }
+      failures.push(
+        `${metafield.namespace}.${metafield.key}: ${fieldErrors
+          .map(({message}) => message)
+          .join('; ')}`,
+      );
+    }
+  }
+  return {updated, failures};
 }
 
 export async function ensureAdminMetafieldDefinitions(

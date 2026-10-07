@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   ADMIN_METAFIELD_DEFINITIONS,
   ADMIN_NATIVE_TRACEABILITY_FIELDS,
+  isTaxonomyDefinitionApplicable,
   serializeWeightMetafieldValue,
   validateMetafieldValue,
 } from '../app/lib/admin-metafields.ts';
@@ -10,6 +11,7 @@ import {
   changedAdminVariants,
   hasAdminProductChanges,
   listAdminProducts,
+  setAdminMetafields,
   ShopifyAdminError,
   updateAdminProduct,
   type AdminProduct,
@@ -94,6 +96,77 @@ test('the admin schema contains the Postman fields and complete traceability fie
     ),
     null,
   );
+  assert.equal(
+    isTaxonomyDefinitionApplicable(
+      {values: {nodes: [{value: 'gid://shopify/TaxonomyCategory/fb-1'}]}},
+      'gid://shopify/TaxonomyCategory/fb-1-5',
+      ['gid://shopify/TaxonomyCategory/fb-1'],
+    ),
+    true,
+  );
+  assert.equal(
+    isTaxonomyDefinitionApplicable(
+      {values: {nodes: [{value: 'gid://shopify/TaxonomyCategory/fb-1'}]}},
+      'gid://shopify/TaxonomyCategory/na',
+    ),
+    false,
+  );
+});
+
+test('a rejected metafield batch retries individually and preserves valid edits', async () => {
+  const calls: Array<Array<{key: string}>> = [];
+  const fetcher: typeof fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body)) as {
+      variables: {metafields: Array<{key: string}>};
+    };
+    calls.push(body.variables.metafields);
+    const rejected = body.variables.metafields.some(({key}) => key === 'taste-profile');
+    return Response.json({
+      data: {
+        metafieldsSet: {
+          userErrors: rejected
+            ? [
+                {
+                  message:
+                    "Owner subtype does not match the metafield definition's constraints.",
+                },
+              ]
+            : [],
+        },
+      },
+    });
+  };
+  const result = await setAdminMetafields(
+    {
+      SHOPIFY_PRODUCT_ADMIN_STORE_DOMAIN: 'tea.myshopify.com',
+      SHOPIFY_PRODUCT_ADMIN_ACCESS_TOKEN: 'server-only-token',
+    } as Env,
+    [
+      {
+        ownerId: 'gid://shopify/Product/1',
+        namespace: 'custom',
+        key: 'caffeine_level',
+        type: 'single_line_text_field',
+        value: 'Low',
+      },
+      {
+        ownerId: 'gid://shopify/Product/1',
+        namespace: 'shopify',
+        key: 'taste-profile',
+        type: 'list.metaobject_reference',
+        value: '["gid://shopify/TaxonomyValue/1"]',
+      },
+    ],
+    fetcher,
+  );
+  assert.deepEqual(
+    calls.map((call) => call.map(({key}) => key)),
+    [['caffeine_level', 'taste-profile'], ['caffeine_level'], ['taste-profile']],
+  );
+  assert.equal(result.updated, 1);
+  assert.deepEqual(result.failures, [
+    "shopify.taste-profile: Owner subtype does not match the metafield definition's constraints.",
+  ]);
 });
 
 test('product listing uses the configured Admin API and preserves pagination/search', async () => {

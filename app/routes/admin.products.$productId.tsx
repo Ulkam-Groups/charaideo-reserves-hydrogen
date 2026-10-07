@@ -159,9 +159,11 @@ function parseMetafields(
     if (existing?.value === value) continue;
     if (namespace === 'shopify' && !allowedNativeTaxonomyFields.has(identity)) {
       fieldErrors.push(
-        `${ADMIN_NATIVE_TRACEABILITY_FIELDS.find(
-          (field) => `${field.namespace}.${field.key}` === identity,
-        )?.label ?? identity}: choose a compatible Shopify product category and save it before editing this taxonomy field.`,
+        `${
+          ADMIN_NATIVE_TRACEABILITY_FIELDS.find(
+            (field) => `${field.namespace}.${field.key}` === identity,
+          )?.label ?? identity
+        }: choose a compatible Shopify product category and save it before editing this taxonomy field.`,
       );
       continue;
     }
@@ -216,7 +218,7 @@ export async function action({request, context, params}: Route.ActionArgs) {
     }
     const categoryIsUnchanged = category === (product.category?.id ?? '');
     const targetAncestorIds = categoryIsUnchanged
-      ? product.category?.ancestorIds ?? []
+      ? (product.category?.ancestorIds ?? [])
       : [];
     const allowedNativeTaxonomyFields = new Set(
       product.taxonomyMetafieldDefinitions
@@ -264,8 +266,14 @@ export async function action({request, context, params}: Route.ActionArgs) {
       wroteAnything = true;
     }
     if (metafields.length) {
-      await setAdminMetafields(context.env, metafields);
-      wroteAnything = true;
+      const result = await setAdminMetafields(context.env, metafields);
+      wroteAnything = wroteAnything || result.updated > 0;
+      if (result.failures.length) {
+        throw new ShopifyAdminError(
+          `Metafield update failed: ${result.failures.join(' ')}`,
+          'VALIDATION_FAILED',
+        );
+      }
     }
     throw redirect(
       `/admin/products/${params.productId}?saved=${wroteAnything ? '1' : '0'}`,
@@ -494,13 +502,10 @@ export default function AdminProductEditor({
   );
   const nativeTaxonomyUnavailable =
     nativeTraceabilityFields.length < ADMIN_NATIVE_TRACEABILITY_FIELDS.length;
-  const knownIdentities = new Set(
-    [
-      ...knownFields.map((field) => `${field.namespace}.${field.key}`),
-      ...ADMIN_NATIVE_TRACEABILITY_FIELDS.map(
-        (field) => `${field.namespace}.${field.key}`,
-      ),]
-  );
+  const knownIdentities = new Set([
+    ...knownFields.map((field) => `${field.namespace}.${field.key}`),
+    ...ADMIN_NATIVE_TRACEABILITY_FIELDS.map((field) => `${field.namespace}.${field.key}`),
+  ]);
   const otherFields = product.metafields.nodes
     .filter((field) => !knownIdentities.has(`${field.namespace}.${field.key}`))
     .map((field) => ({
@@ -646,8 +651,8 @@ export default function AdminProductEditor({
                     ))}
                   </select>
                   <span className="admin-help">
-                    Tea format and taste profile depend on this category. Save a
-                    category change before editing them.
+                    Tea format and taste profile depend on this category. Save a category
+                    change before editing them.
                   </span>
                 </div>
               </div>
@@ -792,9 +797,9 @@ export default function AdminProductEditor({
                 {group === 'Traceability' && nativeTaxonomyUnavailable && (
                   <AdminAlert tone="warning">
                     Tea format and Taxonomy taste profile are unavailable for{' '}
-                    {product.category?.fullName || 'a product without a category'}.
-                    Choose a compatible Tea category above, save, and then select
-                    their Shopify taxonomy values.
+                    {product.category?.fullName || 'a product without a category'}. Choose
+                    a compatible Tea category above, save, and then select their Shopify
+                    taxonomy values.
                   </AdminAlert>
                 )}
                 <div className="admin-form-grid">

@@ -269,9 +269,7 @@ export function isTaxonomyDefinitionApplicable(
 ) {
   if (!categoryId) return false;
   if (!constraints || constraints.values.nodes.length === 0) return true;
-  const productCategories = new Set(
-    [categoryId, ...ancestorIds].map(taxonomySubtype),
-  );
+  const productCategories = new Set([categoryId, ...ancestorIds].map(taxonomySubtype));
   return constraints.values.nodes.some(({value}) =>
     productCategories.has(taxonomySubtype(value)),
   );
