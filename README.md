@@ -4,6 +4,11 @@ This repository contains the customer-facing Hydrogen storefront. Products are
 loaded through Shopify's Storefront API, and cart operations use Hydrogen's cart
 handler. Checkout can be initiated through Shiprocket Fastrr when configured.
 
+The `admin-site` branch also includes the private Product Studio at `/admin` for
+product, variant, tag, SEO, taxonomy, and metafield editing. Its environment and
+deployment requirements are documented in
+[`docs/admin-product-studio.md`](./docs/admin-product-studio.md).
+
 ## Shiprocket Fastrr checkout
 
 Set `PUBLIC_FASTRR_SELLER_DOMAIN` to the exact seller domain configured by
