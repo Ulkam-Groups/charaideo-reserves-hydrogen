@@ -17,6 +17,11 @@ import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {AsyncProductReviews} from '~/components/AsyncProductReviews';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductEditorialSections} from '~/components/ProductEditorialSections';
+import {
+  ProductSectionNav,
+  TrustIcon,
+  useScrollReveal,
+} from '~/components/ProductExperience';
 import {measureStorefront} from '~/lib/monitoring.server';
 import {getProductOriginLabel} from '~/lib/product-origin';
 import {
@@ -351,6 +356,8 @@ export default function Product() {
     selectedVariant?.title,
   ]);
 
+  useScrollReveal();
+
   return (
     <div className="product-page">
       <section className="product product-purchase">
@@ -370,7 +377,7 @@ export default function Product() {
             {hasReviews ? (
               <><span className="product-stars" aria-hidden="true">★★★★★</span><strong>{rating.toFixed(1)}</strong><span>{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></>
             ) : (
-              <><span className="product-stars" aria-hidden="true">☆☆☆☆☆</span><strong>0 reviews</strong></>
+              <strong>New release · No reviews yet</strong>
             )}
           </a>
           {product.tastingNotes?.value && (
@@ -378,17 +385,25 @@ export default function Product() {
               {formatSpecification(product.tastingNotes.value)}
             </p>
           )}
-          <ProductPrice
-            price={selectedVariant?.price}
-            compareAtPrice={selectedVariant?.compareAtPrice}
-          />
+          <div className="product-price-live" key={selectedVariant?.id}>
+            <ProductPrice
+              price={selectedVariant?.price}
+              compareAtPrice={selectedVariant?.compareAtPrice}
+            />
+          </div>
           <ProductForm
             productOptions={productOptions}
             selectedVariant={selectedVariant}
           />
           <ul className="product-assurances" aria-label="Purchase information">
-            <li><span aria-hidden="true">◇</span> Packed fresh in Assam</li>
-            <li><span aria-hidden="true">◇</span> Secure checkout</li>
+            <li><TrustIcon name="leaf" /><span>Packed fresh in Assam</span></li>
+            <li><TrustIcon name="lock" /><span>Secure checkout</span></li>
+            {product.shelfLife?.value && (
+              <li><TrustIcon name="clock" /><span>Shelf life · {formatSpecification(product.shelfLife.value)}</span></li>
+            )}
+            {product.certifications?.value && (
+              <li><TrustIcon name="badge" /><span>{formatSpecification(product.certifications.value)}</span></li>
+            )}
           </ul>
           {quickFacts.length > 0 && (
             <dl className="product-quick-facts" aria-label="Tea highlights">
@@ -402,6 +417,8 @@ export default function Product() {
           )}
         </div>
       </section>
+
+      <ProductSectionNav />
 
       <ProductEditorialSections
         product={product}

@@ -21,7 +21,11 @@ export async function saveWaitlistSubscriber(
   email: string,
   env: Pick<Env, 'PUBLIC_STORE_DOMAIN' | 'WRIT_TO_CUSTOMER_CLIENT_ID' | 'WRIT_TO_CUSTOMER_CLIENT_SECRET'>,
   fetcher: typeof fetch = fetch,
+  productHandle?: string,
 ) {
+  const waitlistTags = productHandle
+    ? [WAITLIST_TAGS[0], `notify-${productHandle}`]
+    : WAITLIST_TAGS;
   const domain = env.PUBLIC_STORE_DOMAIN?.trim();
   const clientId = env.WRIT_TO_CUSTOMER_CLIENT_ID?.trim();
   const clientSecret = env.WRIT_TO_CUSTOMER_CLIENT_SECRET?.trim();
@@ -83,7 +87,7 @@ export async function saveWaitlistSubscriber(
       {
         input: {
           email: normalizedEmail,
-          tags: WAITLIST_TAGS,
+          tags: waitlistTags,
           emailMarketingConsent: {
             marketingState: 'SUBSCRIBED',
             marketingOptInLevel: 'SINGLE_OPT_IN',
@@ -101,7 +105,7 @@ export async function saveWaitlistSubscriber(
       `mutation TagWaitlistCustomer($id: ID!, $tags: [String!]!) {
         tagsAdd(id: $id, tags: $tags) { userErrors { message } }
       }`,
-      {id: customer.id, tags: WAITLIST_TAGS},
+      {id: customer.id, tags: waitlistTags},
     );
     if (tagsResult.tagsAdd.userErrors.length) throw new WaitlistError('Unable to save your email');
 

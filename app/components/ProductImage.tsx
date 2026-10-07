@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ProductVariantFragment} from 'storefrontapi.generated';
 import {Image, useAnalytics} from '@shopify/hydrogen';
 
@@ -20,6 +20,7 @@ export function ProductImage({
   }, [image, images]);
   const [activeImageId, setActiveImageId] = useState(image ? imageKey(image) : undefined);
   const [zoomed, setZoomed] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     if (image) setActiveImageId(imageKey(image));
@@ -45,12 +46,40 @@ export function ProductImage({
     (item) => imageKey(item) === imageKey(activeImage),
   );
 
+  const step = (direction: 1 | -1) => {
+    const next =
+      galleryImages[(activeIndex + direction + galleryImages.length) % galleryImages.length];
+    setActiveImageId(imageKey(next));
+  };
+
   return (
     <div className="product-media-gallery">
+      <div
+        className="product-stage"
+        onKeyDown={(event) => {
+          if (galleryImages.length < 2) return;
+          if (event.key === 'ArrowRight') step(1);
+          if (event.key === 'ArrowLeft') step(-1);
+        }}
+        onTouchStart={(event) => {
+          touchStartX.current = event.touches[0].clientX;
+        }}
+        onTouchEnd={(event) => {
+          if (touchStartX.current === null || galleryImages.length < 2) return;
+          const delta = event.changedTouches[0].clientX - touchStartX.current;
+          touchStartX.current = null;
+          if (Math.abs(delta) > 40) step(delta < 0 ? 1 : -1);
+        }}
+      >
       <button
         type="button"
         className="product-image product-image-trigger"
         aria-label="Open product image in full screen"
+        onMouseMove={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          event.currentTarget.style.setProperty('--zoom-x', `%`);
+          event.currentTarget.style.setProperty('--zoom-y', `%`);
+        }}
         onClick={() => {
           publish('custom_product_image_zoomed', {imageIndex: activeIndex + 1});
           setZoomed(true);
@@ -69,6 +98,13 @@ export function ProductImage({
           Zoom
         </span>
       </button>
+      {galleryImages.length > 1 && (
+        <>
+          <button type="button" className="product-stage-arrow product-stage-arrow--prev" aria-label="Previous image" onClick={() => step(-1)}>‹</button>
+          <button type="button" className="product-stage-arrow product-stage-arrow--next" aria-label="Next image" onClick={() => step(1)}>›</button>
+        </>
+      )}
+      </div>
       {galleryImages.length > 1 && (
         <div className="product-thumbnails" aria-label="Product images">
           {galleryImages.map((item, index) => {

@@ -124,6 +124,7 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
 
   return (
     <section
+      id="tea-character-section"
       className="tea-section tea-character-section"
       aria-labelledby="cup-character-title"
     >
@@ -137,14 +138,15 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
         <div className="tea-profile" aria-label="Tea character scores">
           {PROFILE_FIELDS.map(([label, key]) => {
             const score = parseScore(product[key]?.value);
+            if (score == null) return null;
             return (
               <div className="tea-meter" key={key}>
                 <div className="tea-meter-label">
                   <span>{label}</span>
-                  <strong>{score == null ? 'Not set' : `${score} / 5`}</strong>
+                  <strong>{score} / 5</strong>
                 </div>
                 <div className="tea-meter-track" aria-hidden="true">
-                  <span style={{width: `${(score ?? 0) * 20}%`}} />
+                  <span style={{width: `${score * 20}%`}} />
                 </div>
               </div>
             );
@@ -177,10 +179,11 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
 }
 
 function Fact({label, value}: {label: string; value?: string}) {
+  if (!value?.trim()) return null;
   return (
     <div>
       <span>{label}</span>
-      <strong>{value?.trim() || 'Not yet provided'}</strong>
+      <strong>{value.trim()}</strong>
     </div>
   );
 }
@@ -190,13 +193,14 @@ function RecipeExperience({product}: {product: ProductEditorialData}) {
     id,
     label,
     recipe: parseRecipe(product[key]?.value),
-  }));
-  const firstAvailable = recipes.find((item) => item.recipe)?.id ?? 'hot';
-  const [activeId, setActiveId] = useState(firstAvailable);
+  })).filter((item) => item.recipe);
+  const [activeId, setActiveId] = useState<string>(recipes[0]?.id ?? 'hot');
   const active = recipes.find((item) => item.id === activeId) ?? recipes[0];
+  if (!active) return null;
 
   return (
     <section
+      id="tea-recipe-section"
       className="tea-section tea-recipe-section"
       aria-labelledby="tea-recipe-title"
     >
@@ -285,7 +289,7 @@ function TeaRecord({
         product.category?.name,
     ],
     ['Tea format', teaInputType],
-    ['Taxonomy taste profile', tasteProfile],
+    ['Taste profile', tasteProfile],
     ['Process', product.process?.value],
     ['Grade', product.grade?.value],
     ['Harvest', harvest],
@@ -298,12 +302,13 @@ function TeaRecord({
     ['Certifications', product.certifications?.value],
     ['Lot', product.lotNumber?.value],
     ['Pack size', formatValue(product.netWeight?.value) || packSizes || selectedWeight],
-    ['SKU', selectedVariant?.sku],
-    ['Shopify category', product.category?.name],
   ] as const;
+  const filled = records.filter(([, value]) => Boolean(value));
+  if (filled.length === 0) return null;
 
   return (
     <section
+      id="tea-record-section"
       className="tea-section tea-record-section"
       aria-labelledby="tea-record-title"
     >
@@ -314,12 +319,10 @@ function TeaRecord({
         id="tea-record-title"
       />
       <dl className="tea-record-grid">
-        {records.map(([label, value]) => (
+        {filled.map(([label, value]) => (
           <div key={label}>
             <dt>{label}</dt>
-            <dd className={value ? undefined : 'is-missing'}>
-              {value || 'Not yet provided'}
-            </dd>
+            <dd>{value}</dd>
           </div>
         ))}
       </dl>
@@ -332,7 +335,7 @@ function TeaFit({product}: {product: ProductEditorialData}) {
   const no = parseStringList(product.isThisTeaNo?.value);
 
   return (
-    <section className="tea-section tea-fit-section" aria-labelledby="tea-fit-title">
+    <section id="tea-fit-section" className="tea-section tea-fit-section" aria-labelledby="tea-fit-title">
       <div className="tea-section-shell">
         <SectionHeading
           eyebrow="Know before you buy"
@@ -375,7 +378,7 @@ function FitList({
 
 function WhyThisTea({product}: {product: ProductEditorialData}) {
   return (
-    <section className="tea-section tea-why-section" aria-labelledby="why-this-tea-title">
+    <section id="tea-why-section" className="tea-section tea-why-section" aria-labelledby="why-this-tea-title">
       <div className="tea-section-shell">
         <SectionHeading
           eyebrow="The reason it belongs here"

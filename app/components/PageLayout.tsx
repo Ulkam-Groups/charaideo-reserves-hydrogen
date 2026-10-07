@@ -8,6 +8,7 @@ import {CartMain} from '~/components/CartMain';
 import {SEARCH_ENDPOINT, SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import type {StorefrontNotice} from '~/lib/storefront-notices';
+import type {DiscountProgressData, DiscountProgressMilestone} from '~/lib/discount-progress';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -15,6 +16,7 @@ interface PageLayoutProps {
   header: HeaderQuery | null;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
+  cartDiscountProgress: DiscountProgressData;
   children?: React.ReactNode;
 }
 
@@ -25,13 +27,26 @@ export function PageLayout({
   header,
   isLoggedIn,
   publicStoreDomain,
+  cartDiscountProgress,
 }: PageLayoutProps) {
+  const freeShippingMilestone =
+    cartDiscountProgress.status === 'ready'
+      ? cartDiscountProgress.milestones.find(
+          (milestone) =>
+            milestone.reward === 'Free shipping' &&
+            milestone.method === 'automatic',
+        )
+      : undefined;
+
   return (
     <Aside.Provider>
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
-      <NoticeBoard notices={notices} />
+      <NoticeBoard
+        notices={notices}
+        freeShippingMilestone={freeShippingMilestone}
+      />
       <Header
         header={header}
         cart={cart}
@@ -47,7 +62,13 @@ export function PageLayout({
   );
 }
 
-function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
+function NoticeBoard({
+  notices,
+  freeShippingMilestone,
+}: {
+  notices: StorefrontNotice[];
+  freeShippingMilestone?: DiscountProgressMilestone;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [previousIndex, setPreviousIndex] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
@@ -93,7 +114,11 @@ function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
           className="notice-board-slide notice-board-slide--outgoing"
           key={`outgoing-${previousNotice.id}`}
         >
-          <NoticeLink notice={previousNotice} tabIndex={-1} />
+          <NoticeLink
+            notice={previousNotice}
+            freeShippingMilestone={freeShippingMilestone}
+            tabIndex={-1}
+          />
         </div>
       )}
       <div
@@ -104,7 +129,7 @@ function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
         }`}
         key={`current-${notice.id}`}
       >
-        <NoticeLink notice={notice} />
+        <NoticeLink notice={notice} freeShippingMilestone={freeShippingMilestone} />
       </div>
     </div>
   );
@@ -112,16 +137,21 @@ function NoticeBoard({notices}: {notices: StorefrontNotice[]}) {
 
 function NoticeLink({
   notice,
+  freeShippingMilestone,
   tabIndex,
 }: {
   notice: StorefrontNotice;
+  freeShippingMilestone?: DiscountProgressMilestone;
   tabIndex?: number;
 }) {
+  const message = freeShippingMilestone
+    ? replaceShippingThreshold(notice.message, freeShippingMilestone)
+    : notice.message;
   const content = (
     <>
       <span className="chapter-announcement-message">
         <span className="chapter-announcement-signal" aria-hidden="true" />
-        <span>{notice.message}</span>
+        <span>{message}</span>
       </span>
       {notice.buttonLabel && (
         <span className="chapter-announcement-cta">{notice.buttonLabel}</span>
@@ -131,8 +161,8 @@ function NoticeLink({
   const className = 'chapter-announcement notice-board-item';
   const sharedProps = {
     'aria-label': notice.buttonLabel
-      ? `${notice.message}. ${notice.buttonLabel}`
-      : notice.message,
+      ? `${message}. ${notice.buttonLabel}`
+      : message,
     className,
     'data-state': notice.state,
     'data-tone': notice.tone,
@@ -152,6 +182,21 @@ function NoticeLink({
     <a {...sharedProps} href={notice.buttonLink}>
       {content}
     </a>
+  );
+}
+
+function replaceShippingThreshold(
+  message: string,
+  milestone: DiscountProgressMilestone,
+) {
+  const formattedThreshold = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: milestone.currencyCode,
+    maximumFractionDigits: 0,
+  }).format(milestone.threshold);
+  return message.replace(
+    /((?:free\s+(?:shipping|delivery))\s+(?:above|over)\s+)(?:₹\s*)?[\d,]+(?:\.\d{1,2})?(?:\s*\/-)?/i,
+    (_match, prefix: string) => `${prefix}${formattedThreshold}`,
   );
 }
 

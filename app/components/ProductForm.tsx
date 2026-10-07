@@ -11,8 +11,10 @@ import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useEffect, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 import {DeliveryEstimate} from './DeliveryEstimate';
+import {DiscountProgress} from './DiscountProgress';
 import {
   META_ANALYTICS_EVENTS,
   metaContentId,
@@ -152,7 +154,7 @@ export function ProductForm({
         );
       })}
       {pricePerGram && selectedVariant && (
-        <p className="product-unit-price">
+        <div className="product-unit-price">
           <Money
             data={{
               amount: pricePerGram.toFixed(2),
@@ -160,7 +162,7 @@ export function ProductForm({
             }}
           />{' '}
           per gram
-        </p>
+        </div>
       )}
       <div className="product-purchase-meta">
         <p
@@ -172,32 +174,34 @@ export function ProductForm({
           <span aria-hidden="true" />
           {stockLabel}
         </p>
-        <div className="product-quantity" role="group" aria-label="Quantity">
-          <span>Quantity</span>
-          <div>
-            <button
-              type="button"
-              aria-label="Decrease quantity"
-              disabled={quantity === 1}
-              onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-            >
-              −
-            </button>
-            <output aria-live="polite" aria-label={`${quantity} items`}>
-              {quantity}
-            </output>
-            <button
-              type="button"
-              aria-label="Increase quantity"
-              onClick={() => setQuantity((value) => Math.min(99, value + 1))}
-            >
-              +
-            </button>
+        {selectedVariant?.availableForSale && (
+          <div className="product-quantity" role="group" aria-label="Quantity">
+            <span>Quantity</span>
+            <div>
+              <button
+                type="button"
+                aria-label="Decrease quantity"
+                disabled={quantity === 1}
+                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+              >
+                −
+              </button>
+              <output aria-live="polite" aria-label={`${quantity} items`}>
+                {quantity}
+              </output>
+              <button
+                type="button"
+                aria-label="Increase quantity"
+                onClick={() => setQuantity((value) => Math.min(99, value + 1))}
+              >
+                +
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="product-actions" ref={actionsRef}>
-        <AddToCartButton
+        {(!selectedVariant || selectedVariant.availableForSale) && (<AddToCartButton
           disabled={!selectedVariant || !selectedVariant.availableForSale}
           onClick={() => {
             open('cart');
@@ -214,8 +218,16 @@ export function ProductForm({
               : []
           }
         >
-          {selectedVariant?.availableForSale ? 'Add to cart' : 'Sold out'}
-        </AddToCartButton>
+          Add to cart
+        </AddToCartButton>)}
+        {selectedVariant && !selectedVariant.availableForSale && (
+          <NotifyMeForm
+            key={selectedVariant.id}
+            productHandle={selectedVariant.product.handle}
+            productTitle={selectedVariant.product.title.split('|')[0].trim()}
+            variantTitle={selectedVariant.title}
+          />
+        )}
         {selectedVariant?.availableForSale && buyNowVariantId && (
           <button
             type="button"
@@ -277,13 +289,40 @@ export function ProductForm({
           </button>
         )}
       </div>
-      {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
+      {selectedVariant?.availableForSale && !rootData?.checkoutReady && (
+        <p role="status">Checkout is being configured.</p>
+      )}
       {checkoutError && <p role="alert">{checkoutError}</p>}
-      <p className="product-shipping-note">
-        <span aria-hidden="true">✓</span>
-        Free shipping on orders above ₹499
-      </p>
+      <DiscountProgress
+        surface="product"
+        amount={selectedVariant?.price.amount}
+        currencyCode={selectedVariant?.price.currencyCode}
+        milestones={rootData?.cartDiscountProgress.milestones ?? []}
+        status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
+      />
       <DeliveryEstimate />
+      {showMobileBar && selectedVariant && !selectedVariant.availableForSale && (
+        <aside className="product-mobile-purchase-bar" aria-label="Quick purchase">
+          <div>
+            <span>{selectedVariant.product.title}</span>
+            <strong>Currently sold out</strong>
+            <small>
+              {selectedSize ? `Size: ${selectedSize}` : selectedVariant.title}
+            </small>
+          </div>
+          <button
+            type="button"
+            className="button"
+            onClick={() =>
+              document
+                .getElementById(NOTIFY_TRIGGER_ID)
+                ?.click()
+            }
+          >
+            Notify me
+          </button>
+        </aside>
+      )}
       {showMobileBar && selectedVariant?.availableForSale && (
         <aside className="product-mobile-purchase-bar" aria-label="Quick purchase">
           <div>
@@ -311,6 +350,176 @@ export function ProductForm({
         </aside>
       )}
     </div>
+  );
+}
+
+const NOTIFY_TRIGGER_ID = 'notify-trigger';
+
+function NotifyMeForm({
+  productHandle,
+  productTitle,
+  variantTitle,
+}: {
+  productHandle: string;
+  productTitle: string;
+  variantTitle: string;
+}) {
+  const {publish} = useAnalytics();
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'pending' | 'done'>('idle');
+  const [error, setError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+  const showVariant = variantTitle && variantTitle !== 'Default Title';
+
+  useEffect(() => {
+    if (!open) return;
+    inputRef.current?.focus();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    if (status === 'pending') return;
+    setStatus('pending');
+    setError('');
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, consent: true, product: productHandle}),
+      });
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(result?.error || 'Unable to join the list. Please try again.');
+      }
+      publish('custom_back_in_stock_requested', {productHandle});
+      setStatus('done');
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : 'Unable to join the list. Please try again.',
+      );
+      setStatus('idle');
+    }
+  }
+
+  const modal = open ? (
+    <div className="notify-modal">
+      <button
+        type="button"
+        className="notify-backdrop"
+        aria-label="Close waitlist"
+        tabIndex={-1}
+        onClick={() => setOpen(false)}
+      />
+      <div
+        className="notify-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="notify-title"
+      >
+        <button
+          type="button"
+          className="notify-close"
+          aria-label="Close"
+          onClick={() => setOpen(false)}
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+        {status === 'done' ? (
+          <div className="notify-success" role="status">
+            <span className="notify-success-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+            <h3 id="notify-title">You’re on the list</h3>
+            <p>We’ll email you the moment {productTitle} is back in stock.</p>
+            <button type="button" className="notify-submit" onClick={() => setOpen(false)}>
+              Continue browsing
+            </button>
+          </div>
+        ) : (
+          <>
+            <span className="notify-eyebrow">Back in stock alert</span>
+            <h3 id="notify-title">Be first to know</h3>
+            <p className="notify-product">
+              {productTitle}
+              {showVariant ? ` · ${variantTitle}` : ''}
+            </p>
+            <p className="notify-copy">
+              This tea is sold out right now. Leave your email and we’ll tell you as soon as it returns. No payment needed.
+            </p>
+            <form onSubmit={submit} noValidate={false}>
+              <label htmlFor="notify-email">Email address</label>
+              <input
+                id="notify-email"
+                ref={inputRef}
+                type="email"
+                required
+                autoComplete="email"
+                inputMode="email"
+                placeholder="you@example.com"
+                value={email}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'notify-error' : undefined}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+              {error && (
+                <p className="notify-error" id="notify-error" role="alert">
+                  {error}
+                </p>
+              )}
+              <button type="submit" className="notify-submit" disabled={status === 'pending'}>
+                {status === 'pending' ? 'Saving…' : 'Notify me'}
+              </button>
+              <small>
+                By joining you agree to receive a back-in-stock email. No spam, unsubscribe anytime.
+              </small>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      {status === 'done' ? (
+        <p className="product-notify-done" role="status">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+          </svg>
+          You’re on the list. We’ll email you when it’s back.
+        </p>
+      ) : (
+        <button
+          type="button"
+          id={NOTIFY_TRIGGER_ID}
+          className="button product-notify-trigger"
+          aria-haspopup="dialog"
+          onClick={() => setOpen(true)}
+        >
+          Notify me
+        </button>
+      )}
+      {modal && createPortal(modal, document.body)}
+    </>
   );
 }
 

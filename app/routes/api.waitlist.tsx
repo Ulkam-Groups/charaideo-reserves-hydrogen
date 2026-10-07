@@ -11,7 +11,12 @@ export async function action({request, context}: Route.ActionArgs) {
     const cache = await caches.open('api-rate-limits');
     const limit = await enforceApiRateLimit(request, cache, '/api/waitlist');
     if (limit) return limit;
-    await saveWaitlistSubscriber(submission.email, context.env);
+    await saveWaitlistSubscriber(
+      submission.email,
+      context.env,
+      fetch,
+      submission.product,
+    );
     return Response.json({ok: true}, {headers: {'Cache-Control': 'no-store'}});
   } catch (error) {
     console.error(
