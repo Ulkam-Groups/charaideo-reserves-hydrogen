@@ -21,9 +21,7 @@ const ALLOWED_ROUTES: ReadonlyArray<{
   },
   {
     methods: new Set(['GET', 'DELETE']),
-    pattern: new RegExp(
-      `^/api/store/[a-z0-9][a-z0-9-]*/conversations/${SAFE_ID}$`,
-    ),
+    pattern: new RegExp(`^/api/store/[a-z0-9][a-z0-9-]*/conversations/${SAFE_ID}$`),
   },
   {
     methods: new Set(['DELETE']),
@@ -45,9 +43,7 @@ const ALLOWED_ROUTES: ReadonlyArray<{
   },
   {
     methods: new Set(['POST']),
-    pattern: new RegExp(
-      `^/api/store/[a-z0-9][a-z0-9-]*/messages/${SAFE_ID}/feedback$`,
-    ),
+    pattern: new RegExp(`^/api/store/[a-z0-9][a-z0-9-]*/messages/${SAFE_ID}/feedback$`),
   },
 ];
 
@@ -84,6 +80,7 @@ export function loader(args: Route.LoaderArgs) {
   return proxyAgentRequest(
     args.request,
     args.context.env.PUBLIC_SHOPIFY_CHAT_SHOP,
+    args.context.env.PUBLIC_STORE_DOMAIN,
   );
 }
 
@@ -91,21 +88,27 @@ export function action(args: Route.ActionArgs) {
   return proxyAgentRequest(
     args.request,
     args.context.env.PUBLIC_SHOPIFY_CHAT_SHOP,
+    args.context.env.PUBLIC_STORE_DOMAIN,
   );
 }
 
 async function proxyAgentRequest(
   request: Request,
   configuredChatShop: string | undefined,
+  configuredBuyerShop: string | undefined,
 ) {
   const requestUrl = new URL(request.url);
   const upstreamPath = requestUrl.pathname.slice(LOCAL_PREFIX.length);
-  const storeHandle = getStoreHandle(configuredChatShop ?? DEFAULT_CHAT_SHOP);
+  const storeHandles = new Set(
+    [configuredChatShop ?? DEFAULT_CHAT_SHOP, configuredBuyerShop]
+      .map(getStoreHandle)
+      .filter((handle): handle is string => Boolean(handle)),
+  );
 
-  if (!storeHandle) {
+  if (storeHandles.size === 0) {
     return privateResponse('Shopify store domain is unavailable', 503);
   }
-  if (!isAllowedRequest(request.method, upstreamPath, storeHandle)) {
+  if (!isAllowedRequest(request.method, upstreamPath, storeHandles)) {
     return privateResponse('Unsupported Shopify agent API request', 404);
   }
   if (requestUrl.href.length > 2048 || !hasAllowedQuery(upstreamPath, requestUrl)) {
@@ -140,10 +143,7 @@ async function proxyAgentRequest(
     return privateResponse('Shopify agent API is temporarily unavailable', 502);
   }
 
-  const responseHeaders = pickHeaders(
-    upstream.headers,
-    RESPONSE_HEADER_ALLOWLIST,
-  );
+  const responseHeaders = pickHeaders(upstream.headers, RESPONSE_HEADER_ALLOWLIST);
   responseHeaders.set('Cache-Control', 'private, no-store');
   responseHeaders.set('X-Content-Type-Options', 'nosniff');
 
@@ -168,18 +168,20 @@ function getStoreHandle(storeDomain: string | undefined) {
     ?.trim()
     .replace(/^https?:\/\//i, '')
     .replace(/\/+$/, '');
-  const match = normalizedDomain?.match(
-    /^([a-z0-9][a-z0-9-]*)\.myshopify\.com$/i,
-  );
+  const match = normalizedDomain?.match(/^([a-z0-9][a-z0-9-]*)\.myshopify\.com$/i);
   return match?.[1]?.toLowerCase() ?? null;
 }
 
-function isAllowedRequest(method: string, path: string, storeHandle: string) {
+function isAllowedRequest(
+  method: string,
+  path: string,
+  storeHandles: ReadonlySet<string>,
+) {
   const route = ALLOWED_ROUTES.find(({pattern}) => pattern.test(path));
   if (!route?.methods.has(method)) return false;
 
   const pathStoreHandle = path.match(/^\/api\/store\/([^/]+)\//)?.[1];
-  return !pathStoreHandle || pathStoreHandle.toLowerCase() === storeHandle;
+  return !pathStoreHandle || storeHandles.has(pathStoreHandle.toLowerCase());
 }
 
 function hasAllowedQuery(path: string, url: URL) {
@@ -201,10 +203,7 @@ async function readBoundedBody(request: Request) {
   return body.byteLength <= MAX_REQUEST_BYTES ? body : null;
 }
 
-function pickHeaders(
-  source: Headers,
-  allowedNames: readonly string[],
-) {
+function pickHeaders(source: Headers, allowedNames: readonly string[]) {
   const headers = new Headers();
   for (const name of allowedNames) {
     const value = source.get(name);
@@ -219,9 +218,7 @@ function sanitizeRequestHeaders(source: Headers) {
     const normalizedName = name.toLowerCase();
     if (
       BLOCKED_REQUEST_HEADERS.has(normalizedName) ||
-      BLOCKED_REQUEST_HEADER_PREFIXES.some((prefix) =>
-        normalizedName.startsWith(prefix),
-      )
+      BLOCKED_REQUEST_HEADER_PREFIXES.some((prefix) => normalizedName.startsWith(prefix))
     ) {
       continue;
     }

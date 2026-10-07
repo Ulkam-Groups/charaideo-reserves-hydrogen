@@ -63,6 +63,34 @@ test('Shopify agent proxy forwards only required headers', async () => {
   }
 });
 
+test('Shopify agent proxy accepts the canonical buyer-claims store handle', async () => {
+  const originalFetch = globalThis.fetch;
+  let requestedUrl: URL | undefined;
+  globalThis.fetch = async (input) => {
+    requestedUrl = new URL(String(input));
+    return new Response('{}', {
+      headers: {'Content-Type': 'application/json'},
+    });
+  };
+
+  try {
+    const response = await agentLoader({
+      request: new Request(
+        'https://store.example/shopify-agent-api/api/store/f5a7fq-re/empty_state',
+      ),
+      context,
+    } as any);
+
+    assert.equal(response.status, 200);
+    assert.equal(
+      requestedUrl?.href,
+      'https://storefront-agent-server.shopify.ai/api/store/f5a7fq-re/empty_state',
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('Shopify agent proxy rejects other stores, paths, methods, and queries', async () => {
   const cases = [
     new Request(
@@ -102,12 +130,73 @@ test('Shopify agent proxy rejects oversized bodies', async () => {
   assert.equal(response.status, 413);
 });
 
-test('Shopify chat asset proxy exposes only patched chat modules', async () => {
-  const response = await assetLoader({
-    request: new Request('https://store.example/shopify-chat-assets/agent-iframe.js'),
-  } as any);
-  assert.equal(response.status, 404);
-  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+test('Shopify chat asset proxy exposes approved chat module paths only', async () => {
+  const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
+  globalThis.fetch = async (input) => {
+    requestedUrls.push(String(input));
+    return new Response('export {};', {
+      headers: {'Content-Type': 'application/javascript'},
+    });
+  };
+
+  try {
+    const paths = [
+      'agent-iframe.js',
+      'agent-iframe/observe-logger-impl-CvnPPqr9.js',
+      'agent-iframe/agent-conversation-DLg-iwnG.js',
+      'chat/runtime-ABC123.js',
+    ];
+    for (const path of paths) {
+      const response = await assetLoader({
+        request: new Request(`https://store.example/shopify-chat-assets/${path}`),
+      } as any);
+
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get('Content-Type'),
+        'application/javascript; charset=utf-8',
+      );
+    }
+    assert.deepEqual(
+      requestedUrls,
+      paths.map((path) => `https://cdn.shopify.com/storefront/web-components/${path}`),
+    );
+
+    const response = await assetLoader({
+      request: new Request(
+        'https://store.example/shopify-chat-assets/agent-iframe/not-allowed.txt',
+      ),
+    } as any);
+    assert.equal(response.status, 404);
+    assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('Shopify agent runtime trusts its same-origin proxied iframe shell', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(
+      'function zt(e=window.location.href){const t=dt(e);if(t)return t;return new URL(e).hostname.endsWith(".shop.dev")?It:Ot}const next=1;',
+      {headers: {'Content-Type': 'application/javascript'}},
+    );
+
+  try {
+    const response = await assetLoader({
+      request: new Request(
+        'https://store.example/shopify-chat-assets/chat/agent-runtime-ABC123.js',
+      ),
+    } as any);
+    const script = await response.text();
+
+    assert.equal(response.status, 200);
+    assert.match(script, /function zt\(\)\s*\{\s*return window\.location\.origin;\s*\}/);
+    assert.doesNotMatch(script, /\.shop\.dev/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('claims bootstrap uses the buyer-token store handle for messaging history', async () => {
@@ -120,4 +209,9 @@ test('claims bootstrap uses the buyer-token store handle for messaging history',
   assert.equal(response.status, 200);
   assert.match(script, /buyerStoreHandle="f5a7fq-re"/);
   assert.match(script, /url\.searchParams\.set\('store_handle',buyerStoreHandle\)/);
+  assert.match(script, /url\.origin===window\.location\.origin&&isAgentApiPath/);
+  assert.match(
+    script,
+    /url\.pathname\.replace\(\/\^\\\/api\\\/store\\\/\[\^\/\]\+\\\/\//,
+  );
 });

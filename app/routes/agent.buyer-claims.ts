@@ -113,7 +113,12 @@ export async function loader({request, context}: Route.LoaderArgs) {
       /<head(\s[^>]*)?>/i,
       (head) => `${head}${restoreClaimsMarkup}`,
     );
-    return new Response(withClaimsBootstrap, {
+    const withLocalAgentScript = withClaimsBootstrap.replace(
+      /(["'])https:\/\/cdn\.shopify\.com\/storefront\/web-components\/agent-iframe\.js\1/g,
+      (_match, quote: string) =>
+        `${quote}${requestUrl.origin}/shopify-chat-assets/agent-iframe.js${quote}`,
+    );
+    return new Response(withLocalAgentScript, {
       status: upstream.status,
       statusText: upstream.statusText,
       headers: responseHeaders,
