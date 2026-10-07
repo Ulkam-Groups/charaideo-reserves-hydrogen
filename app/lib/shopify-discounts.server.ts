@@ -1,4 +1,9 @@
-import type {DiscountProgressData, DiscountProgressMilestone} from './discount-progress';
+import type {
+  DiscountProgressData,
+  DiscountProgressMilestone,
+  DiscountProgressStatus,
+} from './discount-progress';
+import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
 import {
   safeMonitorFailure,
   type Monitor,
@@ -37,7 +42,10 @@ type DiscountRecordData = {
   discountClasses?: string[] | null;
   minimumRequirement?: {
     __typename: string;
-    greaterThanOrEqualToSubtotal?: {amount: string; currencyCode: string} | null;
+    greaterThanOrEqualToSubtotal?: {
+      amount: string;
+      currencyCode: MoneyV2['currencyCode'];
+    } | null;
   } | null;
   customerGets?: {
     items?: {allItems?: boolean | null} | null;
@@ -70,18 +78,19 @@ export async function loadShopifyDiscountProgress(
   }
   if (progressRequest) return progressRequest;
 
-  progressRequest = queryActiveDiscounts(credentials)
+  const request = queryActiveDiscounts(credentials)
     .then((value) => {
       cachedProgress = {expiresAt: Date.now() + CACHE_TTL_MS, value};
       return value;
     })
-    .catch((error: unknown) => {
+    .catch((error: unknown): DiscountProgressData => {
       safeMonitorFailure(monitor, 'shopify.discount_progress.failure', {}, error);
       const message = error instanceof Error ? error.message : '';
+      const status: DiscountProgressStatus = /status 401|status 403|read_discounts|access denied|access scope|permission/i.test(message)
+        ? 'permission-required'
+        : 'unavailable';
       return {
-        status: /status 401|status 403|read_discounts|access denied|access scope|permission/i.test(message)
-          ? 'permission-required'
-          : 'unavailable',
+        status,
         milestones: [],
       };
     })
@@ -89,7 +98,8 @@ export async function loadShopifyDiscountProgress(
       progressRequest = null;
     });
 
-  return progressRequest;
+  progressRequest = request;
+  return request;
 }
 
 function adminCredentials(env: Env) {
@@ -149,8 +159,8 @@ async function queryActiveDiscounts(
   }
 
   const now = Date.now();
-  const milestones = result.data.discountNodes.nodes
-    ?.flatMap((node) => {
+  const milestones = (result.data.discountNodes.nodes ?? [])
+    .flatMap((node) => {
       const discount = node.discount;
       if (!discount || !isCurrentlyActive(discount, now)) return [];
 
@@ -236,14 +246,16 @@ async function getAdminToken(
   ) {
     return cachedToken.value;
   }
-  if (!tokenRequest) {
-    tokenRequest = requestAdminToken(credentials).finally(() => {
-      tokenRequest = null;
-    });
+  const request = tokenRequest ?? requestAdminToken(credentials);
+  tokenRequest = request;
+  try {
+    const token = await request;
+    cachedToken = token;
+    cachedTokenKey = cacheKey;
+    return token.value;
+  } finally {
+    if (tokenRequest === request) tokenRequest = null;
   }
-  cachedToken = await tokenRequest;
-  cachedTokenKey = cacheKey;
-  return cachedToken.value;
 }
 
 async function requestAdminToken(

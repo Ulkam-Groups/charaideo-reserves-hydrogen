@@ -1,7 +1,11 @@
+import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
+
+type CurrencyCode = MoneyV2['currencyCode'];
+
 export type DiscountProgressMilestone = {
   id: string;
   threshold: number;
-  currencyCode: string;
+  currencyCode: CurrencyCode;
   reward: string;
   title: string;
   method: 'automatic' | 'code';

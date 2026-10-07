@@ -90,9 +90,9 @@ test('global security headers are applied without weakening CSP', () => {
   assert.equal(response.headers.get('content-security-policy'), "default-src 'self'");
 });
 
-test('Admin API scopes are limited to Razorpay order reconciliation', async () => {
+test('Admin API scopes include discount reads without granting unrelated writes', async () => {
   const config = await readFile(new URL('../shopify.app.toml', import.meta.url), 'utf8');
-  assert.match(config, /^scopes\s*=\s*"read_orders,write_orders"$/m);
+  assert.match(config, /^scopes\s*=\s*"read_orders,write_orders,read_discounts"$/m);
   assert.doesNotMatch(config, /write_(products|customers|inventory|draft_orders)/);
 });
 

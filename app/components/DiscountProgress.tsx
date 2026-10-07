@@ -1,4 +1,5 @@
 import {Money} from '@shopify/hydrogen';
+import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
 import type {
   DiscountProgressMilestone,
   DiscountProgressStatus,
@@ -12,7 +13,7 @@ export function DiscountProgress({
   surface,
 }: {
   amount?: string | number | null;
-  currencyCode?: string | null;
+  currencyCode?: MoneyV2['currencyCode'] | null;
   milestones: DiscountProgressMilestone[];
   status: DiscountProgressStatus;
   surface: 'cart' | 'product';

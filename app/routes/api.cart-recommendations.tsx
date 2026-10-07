@@ -37,12 +37,16 @@ export async function loader({request, context}: Route.LoaderArgs) {
   const recommendations = [
     ...new Map(
       recommendationResults
-        .flatMap((result) => [
-          ...(result?.productRecommendations ?? []),
-          ...(result?.product?.collections.nodes.flatMap(
-            (collection) => collection.products.nodes,
-          ) ?? []),
-        ])
+        .flatMap((result) => {
+          const recommendedProducts = result?.productRecommendations ?? [];
+          const collectionProducts =
+            result?.product?.collections.nodes.flatMap(
+              (collection: {
+                products: {nodes: typeof recommendedProducts};
+              }) => collection.products.nodes,
+            ) ?? [];
+          return [...recommendedProducts, ...collectionProducts];
+        })
         .filter(
           (product) =>
             !cartProductIds.has(product.id) &&
