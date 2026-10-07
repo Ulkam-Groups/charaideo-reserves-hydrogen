@@ -1,4 +1,4 @@
-# Charaideo Reserves Hydrogen storefront
+## Charaideo Reserves Hydrogen storefront
 
 This repository contains the customer-facing Hydrogen storefront. Products are
 loaded through Shopify's Storefront API, and cart operations use Hydrogen's cart
