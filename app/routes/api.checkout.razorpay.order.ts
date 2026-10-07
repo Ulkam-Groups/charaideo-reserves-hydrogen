@@ -143,7 +143,7 @@ export async function action({request, context}: ActionFunctionArgs) {
       }
       stage = 'checkout_payload';
       lines = cartLines(cart, new URL(request.url).origin);
-      expectedAmount = inrToPaise(cart.cost.subtotalAmount.amount);
+      expectedAmount = inrToPaise(cart.cost.totalAmount.amount);
     } else {
       const result = (await context.storefront.query(RAZORPAY_VARIANTS_QUERY, {
         variables: {ids: requestedProducts.map(({variantId}) => variantId)},

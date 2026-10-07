@@ -104,6 +104,94 @@ test('Razorpay order route rejects invalid products before external calls', asyn
   assert.equal(response.headers.get('X-Request-Id'), requestId);
 });
 
+test('Razorpay cart checkout uses Shopify total after cart-level discounts', async () => {
+  const originalFetch = globalThis.fetch;
+  let razorpayPayload: Record<string, unknown> | undefined;
+  const session = new Map<string, unknown>();
+
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    if (String(input) !== 'https://api.razorpay.com/v1/orders') {
+      throw new Error(`Unexpected request: ${String(input)}`);
+    }
+    razorpayPayload = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    return Response.json({id: 'order_discounted123', amount: 90_000});
+  }) as typeof fetch;
+
+  try {
+    const response = await orderAction({
+      request: formRequest(
+        '/api/checkout/razorpay/order',
+        new URLSearchParams({
+          source: 'cart',
+          products: JSON.stringify([
+            {variantId: 'gid://shopify/ProductVariant/12345', quantity: 2},
+          ]),
+          couponCode: 'SAVE10',
+        }),
+      ),
+      params: {},
+      context: {
+        env: {
+          CHECKOUT_PROVIDER: 'razorpay',
+          RAZORPAY_KEY_ID: 'rzp_test_public',
+          RAZORPAY_KEY_SECRET: 'secret',
+          RAZORPAY_WEBHOOK_SECRET: 'webhook-secret',
+          PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+          SHOPIFY_ADMIN_CLIENT_ID: 'client',
+          SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+        },
+        cart: {
+          get: async () => ({
+            id: 'gid://shopify/Cart/discounted',
+            lines: {
+              nodes: [
+                {
+                  id: 'gid://shopify/CartLine/1',
+                  quantity: 2,
+                  cost: {
+                    totalAmount: {amount: '900.00', currencyCode: 'INR'},
+                    amountPerQuantity: {amount: '500.00', currencyCode: 'INR'},
+                  },
+                  merchandise: {
+                    id: 'gid://shopify/ProductVariant/12345',
+                    title: 'Default Title',
+                    compareAtPrice: null,
+                    image: null,
+                    product: {
+                      id: 'gid://shopify/Product/1',
+                      title: 'Test Tea',
+                      handle: 'test-tea',
+                    },
+                  },
+                },
+              ],
+            },
+            cost: {
+              subtotalAmount: {amount: '1000.00', currencyCode: 'INR'},
+              totalAmount: {amount: '900.00', currencyCode: 'INR'},
+            },
+            attributes: [],
+            discountCodes: [{code: 'SAVE10', applicable: true}],
+            appliedGiftCards: [],
+          }),
+        },
+        session: {
+          set: (key: string, value: unknown) => session.set(key, value),
+          unset: (key: string) => session.delete(key),
+        },
+      },
+    } as unknown as ActionFunctionArgs);
+
+    assert.equal(response.status, 200);
+    assert.equal(session.get('razorpayOrderId'), 'order_discounted123');
+    assert.equal(razorpayPayload?.amount, 90_000);
+    assert.equal(razorpayPayload?.line_items_total, 90_000);
+    assert.equal((razorpayPayload?.notes as Record<string, unknown>).coupon, 'SAVE10');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('Razorpay verification is bound to the server-side order id', async () => {
   let unset = false;
   const response = await verifyAction({

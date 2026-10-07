@@ -18,19 +18,7 @@ export function DiscountProgress({
   status: DiscountProgressStatus;
   surface: 'cart' | 'product';
 }) {
-  if (status !== 'ready') {
-    const message =
-      status === 'not-configured'
-        ? 'Shopify discount access is not configured.'
-        : status === 'permission-required'
-          ? 'Enable read_discounts access for the Shopify Admin API app.'
-          : 'Offers are temporarily unavailable.';
-    return (
-      <p className={`discount-progress-message discount-progress-message--${surface}`} role="status">
-        {message}
-      </p>
-    );
-  }
+  if (status !== 'ready') return null;
 
   const currentAmount = amount == null ? Number.NaN : Number(amount);
   if (
@@ -44,13 +32,7 @@ export function DiscountProgress({
   const eligibleMilestones = milestones.filter(
     (milestone) => milestone.currencyCode === currencyCode,
   );
-  if (!eligibleMilestones.length) {
-    return (
-      <p className={`discount-progress-message discount-progress-message--${surface}`} role="status">
-        Offers are not available in this currency.
-      </p>
-    );
-  }
+  if (!eligibleMilestones.length) return null;
 
   const maximum = Math.max(...eligibleMilestones.map((item) => item.threshold));
   const progress = Math.min(100, (currentAmount / maximum) * 100);

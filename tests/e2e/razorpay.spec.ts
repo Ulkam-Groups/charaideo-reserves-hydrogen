@@ -77,8 +77,11 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
       razorpay_signature: 'a'.repeat(64),
     });
   });
-  await expect(page.getByRole('status')).toContainText('Confirming your order');
-  await expect(page.getByRole('status')).toContainText(
+  const confirmation = page
+    .locator('.checkout-confirmation-progress')
+    .getByRole('status');
+  await expect(confirmation).toContainText('Confirming your order');
+  await expect(confirmation).toContainText(
     "Please keep this page open. Don't press Back or close this tab",
   );
   await expect.poll(() => requests.length).toBe(3);

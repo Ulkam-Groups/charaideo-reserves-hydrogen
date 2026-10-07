@@ -68,6 +68,14 @@ export async function loadShopifyDiscountProgress(
   env: Env,
   monitor: Monitor | null,
 ): Promise<DiscountProgressData> {
+  if (
+    /^(?:0|false|no|off)$/i.test(
+      env.SHOPIFY_DISCOUNT_PROGRESS_ENABLED?.trim() ?? '',
+    )
+  ) {
+    return {status: 'not-configured', milestones: []};
+  }
+
   const credentials = adminCredentials(env);
   if (!credentials) {
     return {status: 'not-configured', milestones: []};

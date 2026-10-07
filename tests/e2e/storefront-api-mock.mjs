@@ -135,6 +135,7 @@ function execute(operation, variables) {
         menu: null,
       };
     case 'ChapterAnnouncement':
+    case 'GlobalNotices':
       return {
         collections: {
           nodes: [
@@ -155,6 +156,7 @@ function execute(operation, variables) {
             },
           ],
         },
+        metaobjects: {nodes: []},
       };
     case 'ChapterCollectionList':
       return {collections: {nodes: []}};
@@ -172,6 +174,24 @@ function execute(operation, variables) {
       };
     case 'Product':
       return {product: variables.handle === product.handle ? product : null};
+    case 'ProductOriginTag':
+      return {
+        product:
+          variables.handle === product.handle
+            ? {tags: ['origin-label: Assam / 26.98° N']}
+            : null,
+      };
+    case 'ProductTaxonomyAttributes':
+      return {
+        product:
+          variables.handle === product.handle
+            ? {
+                taxonomyTeaVariety: null,
+                taxonomyTeaInputType: null,
+                taxonomyTasteProfile: null,
+              }
+            : null,
+      };
     case 'ProductRecommendations':
       return {
         product: {...product, collections: {nodes: []}},

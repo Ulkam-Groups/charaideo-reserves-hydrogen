@@ -70,6 +70,7 @@ export default defineConfig({
         PUBLIC_FASTRR_SELLER_DOMAIN: 'e2e.invalid',
         PUBLIC_CHECKOUT_DOMAIN: 'checkout.invalid',
         SESSION_SECRET: 'playwright-test-session-secret-32-characters',
+        SHOPIFY_DISCOUNT_PROGRESS_ENABLED: 'false',
       },
     },
     {
@@ -77,6 +78,7 @@ export default defineConfig({
       url: `${razorpayURL}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
+      env: {SHOPIFY_DISCOUNT_PROGRESS_ENABLED: 'false'},
     },
   ],
 });
