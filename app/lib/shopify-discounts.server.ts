@@ -4,10 +4,7 @@ import type {
   DiscountProgressStatus,
 } from './discount-progress';
 import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
-import {
-  safeMonitorFailure,
-  type Monitor,
-} from './monitoring.server';
+import {safeMonitorFailure, type Monitor} from './monitoring.server';
 
 const ADMIN_API_VERSION = '2026-07';
 const CACHE_TTL_MS = 60_000;
@@ -22,10 +19,7 @@ type AdminToken = {
 type AdminCredentials = {
   domain: string;
   apiVersion: string;
-} & (
-  | {accessToken: string}
-  | {clientId: string; clientSecret: string}
-);
+} & ({accessToken: string} | {clientId: string; clientSecret: string});
 
 type DiscountRecord = {
   id: string;
@@ -38,7 +32,7 @@ type DiscountRecordData = {
   status?: string | null;
   startsAt?: string | null;
   endsAt?: string | null;
-  context?: {allCustomers?: boolean | null} | null;
+  context?: {all?: string | null} | null;
   discountClasses?: string[] | null;
   minimumRequirement?: {
     __typename: string;
@@ -49,7 +43,11 @@ type DiscountRecordData = {
   } | null;
   customerGets?: {
     items?: {allItems?: boolean | null} | null;
-    value?: {percentage?: number | null} | null;
+    value?: {
+      percentage?: number | null;
+      amount?: MoneyV2 | null;
+      appliesOnEachItem?: boolean | null;
+    } | null;
   } | null;
   codes?: {nodes?: Array<{code: string}> | null} | null;
 };
@@ -68,11 +66,7 @@ export async function loadShopifyDiscountProgress(
   env: Env,
   monitor: Monitor | null,
 ): Promise<DiscountProgressData> {
-  if (
-    /^(?:0|false|no|off)$/i.test(
-      env.SHOPIFY_DISCOUNT_PROGRESS_ENABLED?.trim() ?? '',
-    )
-  ) {
+  if (/^(?:0|false|no|off)$/i.test(env.SHOPIFY_DISCOUNT_PROGRESS_ENABLED?.trim() ?? '')) {
     return {status: 'not-configured', milestones: []};
   }
 
@@ -94,9 +88,12 @@ export async function loadShopifyDiscountProgress(
     .catch((error: unknown): DiscountProgressData => {
       safeMonitorFailure(monitor, 'shopify.discount_progress.failure', {}, error);
       const message = error instanceof Error ? error.message : '';
-      const status: DiscountProgressStatus = /status 401|status 403|read_discounts|access denied|access scope|permission/i.test(message)
-        ? 'permission-required'
-        : 'unavailable';
+      const status: DiscountProgressStatus =
+        /status 401|status 403|read_discounts|access denied|access scope|permission/i.test(
+          message,
+        )
+          ? 'permission-required'
+          : 'unavailable';
       return {
         status,
         milestones: [],
@@ -123,9 +120,8 @@ function adminCredentials(env: Env) {
   ) {
     return null;
   }
-  const version = apiVersion && /^\d{4}-\d{2}$/.test(apiVersion)
-    ? apiVersion
-    : ADMIN_API_VERSION;
+  const version =
+    apiVersion && /^\d{4}-\d{2}$/.test(apiVersion) ? apiVersion : ADMIN_API_VERSION;
   return clientId && clientSecret
     ? {domain, apiVersion: version, clientId, clientSecret}
     : {domain, apiVersion: version, accessToken: accessToken!};
@@ -207,8 +203,27 @@ async function queryActiveDiscounts(
         return [];
       }
 
-      const percentage = discount.customerGets.value?.percentage;
-      if (typeof percentage !== 'number' || percentage <= 0 || percentage > 100) {
+      const value = discount.customerGets.value;
+      const percentage = value?.percentage;
+      const fixedAmount = value?.amount;
+      const reward =
+        typeof percentage === 'number' && percentage > 0 && percentage <= 1
+          ? `${new Intl.NumberFormat('en-IN', {
+              style: 'percent',
+              maximumFractionDigits: 2,
+            }).format(percentage)} off`
+          : fixedAmount &&
+              fixedAmount.currencyCode === subtotal.currencyCode &&
+              Number.isFinite(Number(fixedAmount.amount)) &&
+              Number(fixedAmount.amount) > 0 &&
+              value?.appliesOnEachItem === false
+            ? `${new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: fixedAmount.currencyCode,
+                maximumFractionDigits: 2,
+              }).format(Number(fixedAmount.amount))} off`
+            : null;
+      if (!reward) {
         return [];
       }
 
@@ -217,8 +232,8 @@ async function queryActiveDiscounts(
           id: node.id,
           threshold: Number(subtotal.amount),
           currencyCode: subtotal.currencyCode,
-          reward: `${percentage}% off`,
-          title: discount.title || `${percentage}% off`,
+          reward,
+          title: discount.title || reward,
           method: discount.__typename.startsWith('DiscountCode')
             ? ('code' as const)
             : ('automatic' as const),
@@ -232,7 +247,7 @@ async function queryActiveDiscounts(
 }
 
 function isCurrentlyActive(discount: DiscountRecordData, now: number) {
-  if (discount.status !== 'ACTIVE' || discount.context?.allCustomers !== true) {
+  if (discount.status !== 'ACTIVE' || discount.context?.all !== 'ALL') {
     return false;
   }
   const startsAt = discount.startsAt ? Date.parse(discount.startsAt) : 0;
@@ -240,9 +255,7 @@ function isCurrentlyActive(discount: DiscountRecordData, now: number) {
   return startsAt <= now && endsAt > now;
 }
 
-async function getAdminToken(
-  credentials: AdminCredentials,
-) {
+async function getAdminToken(credentials: AdminCredentials) {
   if ('accessToken' in credentials) {
     return credentials.accessToken;
   }
@@ -269,19 +282,16 @@ async function getAdminToken(
 async function requestAdminToken(
   credentials: Extract<AdminCredentials, {clientId: string}>,
 ): Promise<AdminToken> {
-  const response = await fetch(
-    `https://${credentials.domain}/admin/oauth/access_token`,
-    {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: credentials.clientId,
-        client_secret: credentials.clientSecret,
-      }),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    },
-  );
+  const response = await fetch(`https://${credentials.domain}/admin/oauth/access_token`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: credentials.clientId,
+      client_secret: credentials.clientSecret,
+    }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
   if (!response.ok) {
     throw new Error(`Shopify Admin authentication failed with status ${response.status}`);
   }
@@ -326,8 +336,8 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             startsAt
             endsAt
             context {
-              ... on DiscountCustomerAll {
-                allCustomers
+              ... on DiscountBuyerSelectionAll {
+                all
               }
             }
             discountClasses
@@ -348,6 +358,13 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               value {
                 ... on DiscountPercentage {
                   percentage
+                }
+                ... on DiscountAmount {
+                  amount {
+                    amount
+                    currencyCode
+                  }
+                  appliesOnEachItem
                 }
               }
             }
@@ -358,8 +375,8 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             startsAt
             endsAt
             context {
-              ... on DiscountCustomerAll {
-                allCustomers
+              ... on DiscountBuyerSelectionAll {
+                all
               }
             }
             discountClasses
@@ -380,6 +397,13 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               value {
                 ... on DiscountPercentage {
                   percentage
+                }
+                ... on DiscountAmount {
+                  amount {
+                    amount
+                    currencyCode
+                  }
+                  appliesOnEachItem
                 }
               }
             }
@@ -395,8 +419,8 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             startsAt
             endsAt
             context {
-              ... on DiscountCustomerAll {
-                allCustomers
+              ... on DiscountBuyerSelectionAll {
+                all
               }
             }
             minimumRequirement {
@@ -414,8 +438,8 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             startsAt
             endsAt
             context {
-              ... on DiscountCustomerAll {
-                allCustomers
+              ... on DiscountBuyerSelectionAll {
+                all
               }
             }
             minimumRequirement {
