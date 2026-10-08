@@ -186,6 +186,11 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
       <button
         className="button primary checkout-button"
         type="button"
+        aria-label={
+          rootData?.checkoutProvider === 'razorpay'
+            ? 'Checkout with Razorpay'
+            : 'Checkout with Shiprocket'
+        }
         onClick={handleCheckout}
         disabled={!canUseCheckout}
       >
@@ -198,7 +203,6 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
           ) : (
             <span>Checkout with Shiprocket</span>
           )}
-          <span aria-hidden="true">&rarr;</span>
         </span>
       </button>
       {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
