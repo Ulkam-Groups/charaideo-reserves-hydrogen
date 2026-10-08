@@ -88,11 +88,11 @@ export function ProductEditorialSections({
 }) {
   return (
     <div className="tea-editorial">
-      <TeaRecord product={product} selectedVariant={selectedVariant} />
       <CupCharacter product={product} />
       <RecipeExperience product={product} />
-      <WhyThisTea product={product} />
       <TeaFit product={product} />
+      <WhyThisTea product={product} />
+      <TeaRecord product={product} selectedVariant={selectedVariant} />
     </div>
   );
 }
@@ -130,9 +130,9 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
       aria-labelledby="cup-character-title"
     >
       <SectionHeading
-        eyebrow="This reserve in 10 seconds"
-        title="The character of the cup."
-        intro="A clear view of how this tea is likely to feel and taste in your cup."
+        eyebrow="Taste profile"
+        title="What does it taste like?"
+        intro="See the flavour, body and drinking style before you choose your pack."
         id="cup-character-title"
       />
       <div className="tea-character-layout">
@@ -207,8 +207,8 @@ function RecipeExperience({product}: {product: ProductEditorialData}) {
       aria-labelledby="tea-recipe-title"
     >
       <SectionHeading
-        eyebrow="Make it yours"
-        title="Experience it your way."
+        eyebrow="Brewing guide"
+        title="How to make your best cup."
         id="tea-recipe-title"
       />
       <div className="tea-recipe-tabs" role="tablist" aria-label="Preparation style">
@@ -308,6 +308,18 @@ function TeaRecord({
   const filled = records.filter(([, value]) => Boolean(value));
   if (filled.length === 0) return null;
 
+  const meaningful = filled.filter(([, value]) => {
+    const normalized = String(value).trim();
+    return !/^(replace with|todo|tbd|coming soon|revealed soon)/i.test(normalized);
+  });
+  if (meaningful.length === 0) return null;
+
+  const highlightOrder = ['Origin', 'Estate', 'Harvest', 'Grade', 'Lot', 'Pack size'];
+  const highlights = highlightOrder
+    .map((label) => meaningful.find(([recordLabel]) => recordLabel === label))
+    .filter(Boolean)
+    .slice(0, 4) as Array<(typeof meaningful)[number]>;
+
   return (
     <section
       id="tea-record-section"
@@ -316,19 +328,49 @@ function TeaRecord({
       aria-labelledby="tea-record-title"
     >
       <SectionHeading
-        eyebrow="Product details"
-        title="Traceability"
-        intro="Origin, craft and pack detail."
+        eyebrow="Product information"
+        title="What you’re getting."
+        intro="Clear details about the tea’s origin, harvest, ingredients and pack."
         id="tea-record-title"
       />
-      <dl className="tea-record-grid">
-        {filled.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
+      {highlights.length > 0 && (
+        <dl className="tea-record-highlights">
+          {highlights.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <details className="tea-record-details">
+        <summary>
+          <span className="tea-record-summary-copy">
+            <strong>Complete product information</strong>
+            <small>Ingredients, processing, storage, pack size and more</small>
+          </span>
+          <span className="tea-record-summary-action" aria-hidden="true">
+            <span className="tea-record-show-label">Show all {meaningful.length} details</span>
+            <span className="tea-record-hide-label">Hide details</span>
+            <span className="tea-record-chevron">↓</span>
+          </span>
+        </summary>
+        <dl className="tea-record-grid">
+          {meaningful.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+      <div className="tea-record-shop-cta">
+        <div>
+          <strong>Ready to try this tea?</strong>
+          <span>Choose your pack size and checkout securely.</span>
+        </div>
+        <a href="#product-buy-box">Choose pack &amp; buy ↑</a>
+      </div>
     </section>
   );
 }
@@ -336,13 +378,14 @@ function TeaRecord({
 function TeaFit({product}: {product: ProductEditorialData}) {
   const yes = parseStringList(product.isThisTeaYes?.value);
   const no = parseStringList(product.isThisTeaNo?.value);
+  if (yes.length === 0 && no.length === 0) return null;
 
   return (
     <section id="tea-fit-section" className="tea-section tea-fit-section" suppressHydrationWarning aria-labelledby="tea-fit-title">
       <div className="tea-section-shell">
         <SectionHeading
-          eyebrow="Know before you buy"
-          title="Is this your tea?"
+          eyebrow="Find your match"
+          title="Is this tea right for you?"
           id="tea-fit-title"
         />
         <div className="tea-fit-grid">
@@ -380,19 +423,18 @@ function FitList({
 }
 
 function WhyThisTea({product}: {product: ProductEditorialData}) {
+  if (!product.whyChooseTea?.value) return null;
+
   return (
     <section id="tea-why-section" className="tea-section tea-why-section" suppressHydrationWarning aria-labelledby="why-this-tea-title">
       <div className="tea-section-shell">
         <SectionHeading
-          eyebrow="The reason it belongs here"
-          title="Why we chose this tea."
+          eyebrow="Why you’ll love it"
+          title="What makes this tea worth choosing."
           id="why-this-tea-title"
         />
         <blockquote className="tea-founder-note">
-          <p>
-            {product.whyChooseTea?.value ||
-              'The curator’s note for this reserve is coming soon.'}
-          </p>
+          <p>{product.whyChooseTea.value}</p>
           {product.whyChooseAttribution?.value && (
             <footer>— {product.whyChooseAttribution.value}</footer>
           )}

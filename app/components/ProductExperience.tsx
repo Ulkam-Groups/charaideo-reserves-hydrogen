@@ -1,11 +1,11 @@
 import {useEffect, useState} from 'react';
 
 const NAV_SECTIONS = [
-  ['tea-record-section', 'Details'],
   ['tea-character-section', 'Taste'],
-  ['tea-recipe-section', 'Brew'],
-  ['tea-why-section', 'Why this tea'],
-  ['tea-fit-section', 'Is it for you'],
+  ['tea-recipe-section', 'How to brew'],
+  ['tea-fit-section', 'Good for you?'],
+  ['tea-why-section', 'Why we chose it'],
+  ['tea-record-section', 'Product details'],
   ['customer-notes', 'Reviews'],
 ] as const;
 

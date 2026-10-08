@@ -590,46 +590,207 @@ button[data-state='busy'] {
   }
 }
 
-/* Specifications: classic storefront spec table */
-.tea-record-section .tea-record-grid {
-  display: block;
-  max-width: 860px;
+/* Commerce-first product facts: key buying details first, full specs on demand. */
+.tea-record-section .tea-section-heading {
+  max-width: 920px;
+}
+.tea-record-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 1080px;
+  margin: 0 0 12px;
+  padding: 0;
+}
+.tea-record-highlights > div {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dfe9e2;
+  border-radius: 12px;
+  background: #f7faf7;
+}
+.tea-record-highlights dt {
+  margin-bottom: 7px;
+  color: #61736a;
+  font: 700 10px/1.2 var(--sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tea-record-highlights dd {
+  margin: 0;
+  color: var(--pdp-ink);
+  font: 700 14px/1.35 var(--sans);
+  overflow-wrap: anywhere;
+}
+.tea-record-details {
+  max-width: 1080px;
   overflow: hidden;
-  border: 1px solid var(--pdp-mint-line);
+  border: 1px solid #dfe9e2;
   border-radius: 12px;
   background: #ffffff;
 }
-.tea-record-section .tea-record-grid > div,
-.tea-record-section .tea-record-grid > div:hover {
-  display: grid;
-  grid-template-columns: minmax(110px, 200px) minmax(0, 1fr);
-  gap: 16px;
+.tea-record-details summary {
+  display: flex;
   align-items: center;
-  padding: 11px 18px;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 64px;
+  padding: 10px 12px 10px 18px;
+  color: var(--pdp-ink);
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--sans);
+}
+.tea-record-details summary::-webkit-details-marker {
+  display: none;
+}
+.tea-record-summary-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.tea-record-summary-copy strong {
+  color: var(--pdp-ink);
+  font-size: 13px;
+  font-weight: 750;
+}
+.tea-record-summary-copy small {
+  color: #64766d;
+  font-size: 11px;
+  font-weight: 550;
+}
+.tea-record-summary-action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 8px 0 14px;
+  border-radius: 9px;
+  background: var(--pdp-ink);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 750;
+}
+.tea-record-chevron {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 15px;
+  transition: transform 180ms ease;
+}
+.tea-record-hide-label {
+  display: none;
+}
+.tea-record-details[open] summary {
+  border-bottom: 1px solid #e7eee9;
+}
+.tea-record-details[open] .tea-record-show-label {
+  display: none;
+}
+.tea-record-details[open] .tea-record-hide-label {
+  display: inline;
+}
+.tea-record-details[open] .tea-record-chevron {
+  transform: rotate(180deg);
+}
+.tea-record-section .tea-record-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+  margin: 0;
+  padding: 6px 16px 12px;
+}
+.tea-record-section .tea-record-grid > div,
+.tea-record-section .tea-record-grid > div:hover,
+.tea-record-section .tea-record-grid > div:nth-child(odd) {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.7fr) minmax(0, 1.3fr);
+  gap: 12px;
+  align-items: baseline;
+  min-width: 0;
+  padding: 10px 0;
   border: 0;
-  border-bottom: 1px solid #eaf1ec;
+  border-bottom: 1px solid #edf2ee;
   border-radius: 0;
-  background: #ffffff !important;
+  background: transparent !important;
   box-shadow: none;
   transform: none;
 }
-.tea-record-section .tea-record-grid > div:nth-child(odd) {
-  background: var(--pdp-leaf) !important;
-}
-.tea-record-section .tea-record-grid > div:last-child {
-  border-bottom: 0;
-}
 .tea-record-section .tea-record-grid dt {
-  color: #5d7066;
-  font-size: 12px;
+  color: #64766d;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
 .tea-record-section .tea-record-grid dd {
+  margin: 0;
   color: var(--pdp-ink);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.tea-record-shop-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 1080px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid #e5d5c2;
+  border-radius: 12px;
+  background: #fbf6ee;
+}
+.tea-record-shop-cta > div {
+  display: grid;
+  gap: 3px;
+}
+.tea-record-shop-cta strong {
+  color: var(--pdp-ink);
+  font: 750 14px/1.25 var(--sans);
+}
+.tea-record-shop-cta span {
+  color: #66766e;
+  font: 550 11px/1.4 var(--sans);
+}
+.tea-record-shop-cta a {
+  flex: none;
+  padding: 11px 15px;
+  border-radius: 9px;
+  background: var(--pdp-ink);
+  color: #ffffff;
+  font: 750 11px/1 var(--sans);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+.tea-record-shop-cta a:hover {
+  background: var(--pdp-green-deep);
+}
+#product-buy-box {
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+@media (max-width: 760px) {
+  .tea-record-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tea-record-section .tea-record-grid {
+    grid-template-columns: 1fr;
+  }
+  .tea-record-details summary,
+  .tea-record-shop-cta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .tea-record-summary-action,
+  .tea-record-shop-cta a {
+    justify-content: center;
+    width: 100%;
+  }
 }
 /* Flat storefront buy box: no nested cards, hairline separators only */
 .product-purchase .product-gallery {

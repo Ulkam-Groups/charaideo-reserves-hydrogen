@@ -349,7 +349,7 @@ export default function Product() {
 
   return (
     <div className="product-page">
-      <section className="product product-purchase">
+      <section className="product product-purchase" id="product-buy-box">
         <div className="product-gallery">
           <div className="product-origin-tab">{productOriginLabel}</div>
           <ProductImage image={selectedVariant?.image} images={product.images.nodes} />
