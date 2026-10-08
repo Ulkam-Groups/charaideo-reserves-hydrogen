@@ -646,6 +646,7 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
   fragment ProductVariant on ProductVariant {
     availableForSale
     currentlyNotInStock
+    quantityAvailable
     compareAtPrice {
       amount
       currencyCode

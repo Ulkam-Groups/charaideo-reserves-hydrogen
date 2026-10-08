@@ -40,6 +40,15 @@ export function ProductForm({
   const actionsRef = useRef<HTMLDivElement>(null);
   useCheckoutError(setCheckoutError);
 
+  const availableQuantity =
+    selectedVariant &&
+    !selectedVariant.currentlyNotInStock &&
+    typeof selectedVariant.quantityAvailable === 'number'
+      ? Math.max(0, selectedVariant.quantityAvailable)
+      : null;
+  const quantityAtLimit =
+    availableQuantity !== null && quantity >= availableQuantity;
+
   useEffect(() => {
     setQuantity(1);
   }, [selectedVariant?.id]);
@@ -193,11 +202,21 @@ export function ProductForm({
               <button
                 type="button"
                 aria-label="Increase quantity"
-                onClick={() => setQuantity((value) => Math.min(99, value + 1))}
+                disabled={quantityAtLimit}
+                onClick={() =>
+                  setQuantity((value) =>
+                    Math.min(availableQuantity ?? 99, value + 1),
+                  )
+                }
               >
                 +
               </button>
             </div>
+            {quantityAtLimit && (
+              <small className="product-quantity-limit" role="status">
+                Only {availableQuantity} available right now.
+              </small>
+            )}
           </div>
         )}
       </div>

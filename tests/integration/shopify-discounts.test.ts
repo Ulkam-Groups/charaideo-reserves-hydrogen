@@ -407,3 +407,190 @@ test('cart progress counts only items targeted by each Shopify discount', () => 
   assert.match(html, /role="progressbar"/);
   assert.doesNotMatch(html, /15% off reached/);
 });
+
+test('discount progress keeps overlapping product, variant, and collection thresholds independent', () => {
+  const items = [
+    {
+      productId: 'gid://shopify/Product/a',
+      variantId: 'gid://shopify/ProductVariant/a1',
+      collectionIds: ['gid://shopify/Collection/seasonal'],
+      amount: 600,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/b',
+      variantId: 'gid://shopify/ProductVariant/b1',
+      collectionIds: [],
+      amount: 900,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/c',
+      variantId: 'gid://shopify/ProductVariant/c1',
+      collectionIds: ['gid://shopify/Collection/seasonal'],
+      amount: 1_200,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/a',
+      variantId: 'gid://shopify/ProductVariant/a2',
+      collectionIds: ['gid://shopify/Collection/seasonal'],
+      amount: 100,
+      currencyCode: 'USD' as const,
+    },
+  ];
+  const base = {
+    threshold: 1_000,
+    currencyCode: 'INR' as const,
+    reward: '10% off',
+    title: 'Offer',
+    method: 'automatic' as const,
+    codes: [],
+    productSpecific: true,
+  };
+  const productOffer = {
+    ...base,
+    id: 'product-a',
+    targets: {
+      allItems: false,
+      productIds: ['gid://shopify/Product/a'],
+      variantIds: [],
+      collectionIds: [],
+    },
+  };
+  const variantOffer = {
+    ...base,
+    id: 'variant-b1',
+    targets: {
+      allItems: false,
+      productIds: [],
+      variantIds: ['gid://shopify/ProductVariant/b1'],
+      collectionIds: [],
+    },
+  };
+  const collectionOffer = {
+    ...base,
+    id: 'seasonal',
+    targets: {
+      allItems: false,
+      productIds: [],
+      variantIds: [],
+      collectionIds: ['gid://shopify/Collection/seasonal'],
+    },
+  };
+  const allItemsOffer = {
+    ...base,
+    id: 'all-items',
+    productSpecific: false,
+    targets: {
+      allItems: true,
+      productIds: [],
+      variantIds: [],
+      collectionIds: [],
+    },
+  };
+
+  assert.equal(discountProgressAmount(productOffer, items), 600);
+  assert.equal(discountProgressAmount(variantOffer, items), 900);
+  assert.equal(discountProgressAmount(collectionOffer, items), 1_800);
+  assert.equal(discountProgressAmount(allItemsOffer, items), 2_700);
+  assert.equal(isDiscountProgressEligible(productOffer, items), true);
+  assert.equal(
+    discountProgressAmount(
+      {
+        ...productOffer,
+        targets: {
+          ...productOffer.targets,
+          collectionIds: ['gid://shopify/Collection/seasonal'],
+        },
+      },
+      items,
+    ),
+    1_800,
+    'an item matching two target selectors is counted once',
+  );
+});
+
+test('discount progress handles exact thresholds, invalid amounts, currencies, and unavailable data safely', () => {
+  const milestone = {
+    id: 'selected-products',
+    threshold: 1_499,
+    currencyCode: 'INR' as const,
+    reward: '15% off',
+    title: 'Selected products',
+    method: 'automatic' as const,
+    codes: [],
+    productSpecific: true,
+    targets: {
+      allItems: false,
+      productIds: ['gid://shopify/Product/eligible'],
+      variantIds: [],
+      collectionIds: [],
+    },
+  };
+  const items = [
+    {
+      productId: 'gid://shopify/Product/eligible',
+      variantId: 'gid://shopify/ProductVariant/1',
+      collectionIds: [],
+      amount: 1_499,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/eligible',
+      variantId: 'gid://shopify/ProductVariant/2',
+      collectionIds: [],
+      amount: Number.NaN,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/eligible',
+      variantId: 'gid://shopify/ProductVariant/3',
+      collectionIds: [],
+      amount: -10,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/eligible',
+      variantId: 'gid://shopify/ProductVariant/4',
+      collectionIds: [],
+      amount: 500,
+      currencyCode: 'USD' as const,
+    },
+  ];
+
+  assert.equal(discountProgressAmount(milestone, items), 1_499);
+  const reached = renderToStaticMarkup(
+    createElement(DiscountProgress, {
+      surface: 'cart',
+      status: 'ready',
+      items,
+      milestones: [milestone],
+    }),
+  );
+  assert.match(reached, /15% off reached/);
+  assert.match(reached, /aria-valuenow="100"/);
+  assert.equal(
+    renderToStaticMarkup(
+      createElement(DiscountProgress, {
+        surface: 'cart',
+        status: 'unavailable',
+        items,
+        milestones: [milestone],
+      }),
+    ),
+    '',
+  );
+  assert.equal(
+    renderToStaticMarkup(
+      createElement(DiscountProgress, {
+        surface: 'product',
+        status: 'ready',
+        items,
+        milestones: [{...milestone, productSpecific: false}],
+      }),
+    ),
+    '',
+    'order-wide offers stay out of the product-page progress surface',
+  );
+});

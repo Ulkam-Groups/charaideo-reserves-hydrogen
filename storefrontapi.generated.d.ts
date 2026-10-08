@@ -334,7 +334,7 @@ export type PoliciesQueryVariables = StorefrontAPI.Exact<{
 export type PoliciesQuery = { shop: { privacyPolicy?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>>, refundPolicy?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>>, shippingPolicy?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>>, termsOfService?: StorefrontAPI.Maybe<Pick<StorefrontAPI.ShopPolicy, 'title'>> } };
 
 export type ProductVariantFragment = (
-  Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
+Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'quantityAvailable' | 'id' | 'sku' | 'title'>
   & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
     { __typename: 'Image' }
     & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -351,7 +351,7 @@ export type ProductFragment = (
     & { optionValues: Array<(
       Pick<StorefrontAPI.ProductOptionValue, 'name'>
       & { firstSelectableVariant?: StorefrontAPI.Maybe<(
-        Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
+Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'quantityAvailable' | 'id' | 'sku' | 'title'>
         & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
           { __typename: 'Image' }
           & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>
@@ -362,7 +362,7 @@ export type ProductFragment = (
       )> }
     )> }
   )>, selectedOrFirstAvailableVariant?: StorefrontAPI.Maybe<(
-    Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'id' | 'sku' | 'title'>
+Pick<StorefrontAPI.ProductVariant, 'availableForSale' | 'currentlyNotInStock' | 'quantityAvailable' | 'id' | 'sku' | 'title'>
     & { compareAtPrice?: StorefrontAPI.Maybe<Pick<StorefrontAPI.MoneyV2, 'amount' | 'currencyCode'>>, image?: StorefrontAPI.Maybe<(
       { __typename: 'Image' }
       & Pick<StorefrontAPI.Image, 'id' | 'url' | 'altText' | 'width' | 'height'>

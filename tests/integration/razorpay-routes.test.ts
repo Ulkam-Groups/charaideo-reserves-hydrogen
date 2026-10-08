@@ -256,6 +256,198 @@ test('Razorpay cart checkout reconciles Shopify discounts and preserves full-pri
   }
 });
 
+test('Razorpay mixed cart uses Shopify line discounts and authoritative final total', async () => {
+  const originalFetch = globalThis.fetch;
+  let payload: Record<string, unknown> | undefined;
+  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    assert.equal(String(input), 'https://api.razorpay.com/v1/orders');
+    payload = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    return Response.json({id: 'order_mixed', amount: payload.amount});
+  }) as typeof fetch;
+
+  try {
+    const products = [
+      {variantId: 'gid://shopify/ProductVariant/101', quantity: 1},
+      {variantId: 'gid://shopify/ProductVariant/202', quantity: 2},
+      {variantId: 'gid://shopify/ProductVariant/303', quantity: 1},
+    ];
+    const line = (id: string, productId: string, quantity: number, total: string) => ({
+      id: `gid://shopify/CartLine/${id}`,
+      quantity,
+      cost: {
+        totalAmount: {amount: total, currencyCode: 'INR'},
+        amountPerQuantity: {
+          amount: (Number(total) / quantity).toFixed(2),
+          currencyCode: 'INR',
+        },
+      },
+      merchandise: {
+        id: `gid://shopify/ProductVariant/${id}`,
+        title: 'Default Title',
+        compareAtPrice: null,
+        image: null,
+        product: {
+          id: `gid://shopify/Product/${productId}`,
+          title: `Tea ${productId}`,
+          handle: `tea-${productId}`,
+        },
+      },
+    });
+    const form = new URLSearchParams({
+      source: 'cart',
+      products: JSON.stringify(products),
+      couponCode: 'COUPON_A',
+    });
+    const response = await orderAction({
+      request: formRequest('/api/checkout/razorpay/order', form),
+      params: {},
+      context: {
+        env: {
+          CHECKOUT_PROVIDER: 'razorpay',
+          RAZORPAY_KEY_ID: 'rzp_test_public',
+          RAZORPAY_KEY_SECRET: 'secret',
+          RAZORPAY_WEBHOOK_SECRET: 'webhook-secret',
+          PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+          SHOPIFY_ADMIN_CLIENT_ID: 'client',
+          SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+        },
+        cart: {
+          get: async () => ({
+            id: 'gid://shopify/Cart/mixed',
+            lines: {
+              nodes: [
+                line('101', '1', 1, '800.00'),
+                line('202', '2', 2, '900.00'),
+                line('303', '3', 1, '300.00'),
+              ],
+            },
+            cost: {
+              subtotalAmount: {amount: '2000.00', currencyCode: 'INR'},
+              totalAmount: {amount: '1900.00', currencyCode: 'INR'},
+            },
+            attributes: [],
+            discountCodes: [
+              {code: 'COUPON_A', applicable: true},
+              {code: 'COUPON_B', applicable: false},
+            ],
+            appliedGiftCards: [],
+          }),
+        },
+        session: {set() {}, unset() {}},
+      },
+    } as unknown as ActionFunctionArgs);
+
+    assert.equal(response.status, 200);
+    assert.ok(payload);
+    assert.equal(payload.amount, 190_000);
+    assert.equal(payload.line_items_total, 190_000);
+    const lineItems = payload.line_items as Array<{
+      offer_price: number;
+      quantity: number;
+    }>;
+    assert.equal(
+      lineItems.reduce((sum, item) => sum + item.offer_price * item.quantity, 0),
+      190_000,
+    );
+    assert.equal((payload.notes as Record<string, unknown>).coupon, 'COUPON_A');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('Razorpay cart checkout fails closed for stale carts and unchargeable Shopify totals', async () => {
+  const originalFetch = globalThis.fetch;
+  let externalCalls = 0;
+  globalThis.fetch = (async () => {
+    externalCalls += 1;
+    throw new Error('Razorpay must not be called');
+  }) as typeof fetch;
+  const baseContext = (totalAmount: string) => ({
+    env: {
+      CHECKOUT_PROVIDER: 'razorpay',
+      RAZORPAY_KEY_ID: 'rzp_test_public',
+      RAZORPAY_KEY_SECRET: 'secret',
+      RAZORPAY_WEBHOOK_SECRET: 'webhook-secret',
+      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    },
+    cart: {
+      get: async () => ({
+        id: 'gid://shopify/Cart/fail-closed',
+        lines: {
+          nodes: [
+            {
+              id: 'gid://shopify/CartLine/1',
+              quantity: 1,
+              cost: {
+                totalAmount: {amount: '500.00', currencyCode: 'INR'},
+                amountPerQuantity: {amount: '500.00', currencyCode: 'INR'},
+              },
+              merchandise: {
+                id: 'gid://shopify/ProductVariant/111',
+                title: 'Default Title',
+                compareAtPrice: null,
+                image: null,
+                product: {
+                  id: 'gid://shopify/Product/1',
+                  title: 'Tea',
+                  handle: 'tea',
+                },
+              },
+            },
+          ],
+        },
+        cost: {
+          subtotalAmount: {amount: '500.00', currencyCode: 'INR'},
+          totalAmount: {amount: totalAmount, currencyCode: 'INR'},
+        },
+        attributes: [],
+        discountCodes: [],
+        appliedGiftCards: [],
+      }),
+    },
+    session: {set() {}, unset() {}},
+  });
+
+  try {
+    const staleResponse = await orderAction({
+      request: formRequest(
+        '/api/checkout/razorpay/order',
+        new URLSearchParams({
+          source: 'cart',
+          products: JSON.stringify([
+            {variantId: 'gid://shopify/ProductVariant/999', quantity: 1},
+          ]),
+        }),
+      ),
+      params: {},
+      context: baseContext('500.00'),
+    } as unknown as ActionFunctionArgs);
+    assert.equal(staleResponse.status, 409);
+
+    for (const total of ['0.00', '600.00']) {
+      const response = await orderAction({
+        request: formRequest(
+          '/api/checkout/razorpay/order',
+          new URLSearchParams({
+            source: 'cart',
+            products: JSON.stringify([
+              {variantId: 'gid://shopify/ProductVariant/111', quantity: 1},
+            ]),
+          }),
+        ),
+        params: {},
+        context: baseContext(total),
+      } as unknown as ActionFunctionArgs);
+      assert.equal(response.status, 502);
+    }
+    assert.equal(externalCalls, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test('Razorpay verification is bound to the server-side order id', async () => {
   let unset = false;
   const response = await verifyAction({

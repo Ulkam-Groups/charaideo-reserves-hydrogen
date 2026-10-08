@@ -2,10 +2,9 @@ import {
   Image,
   Money,
   useOptimisticCart,
-  type OptimisticCartLine,
 } from '@shopify/hydrogen';
 import {useEffect, useState} from 'react';
-import {Link, useFetcher, useRouteLoaderData} from 'react-router';
+import {Link, useFetcher, useFetchers, useRouteLoaderData} from 'react-router';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {loader as cartRecommendationsLoader} from '~/routes/api.cart-recommendations';
 import type {loader as rootLoader} from '~/root';
@@ -55,6 +54,15 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   // The useOptimisticCart hook applies pending actions to the cart
   // so the user immediately sees feedback when they modify the cart.
   const cart = useOptimisticCart(originalCart);
+  const fetchers = useFetchers();
+  const cartMutationPending = fetchers.some(
+    (fetcher) =>
+      fetcher.state !== 'idle' &&
+      Boolean(
+        fetcher.formAction &&
+          new URL(fetcher.formAction, 'https://storefront.invalid').pathname === '/cart',
+      ),
+  );
 
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
   const withDiscount =
@@ -76,7 +84,13 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
 
   return (
-    <div className={className}>
+    <div className={className} aria-busy={cartMutationPending}>
+      {cartMutationPending && (
+        <div className="cart-update-overlay" role="status" aria-live="polite">
+          <span className="cart-update-spinner" aria-hidden="true" />
+          <strong>Updating your cart…</strong>
+        </div>
+      )}
       <CartEmpty hidden={linesCount} layout={layout} />
       <div className="cart-details" hidden={!linesCount}>
         <DiscountProgress
