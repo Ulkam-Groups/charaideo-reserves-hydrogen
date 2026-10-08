@@ -16,7 +16,7 @@ function reject(status: number, error: string, retryAfter?: number) {
 
 export async function readWaitlistRequest(
   request: Request,
-): Promise<{email: string; consent: true} | Response> {
+): Promise<{email: string; consent: true; product?: string} | Response> {
   if (request.method !== 'POST') return reject(405, 'Method not allowed');
 
   const expectedOrigin = new URL(request.url).origin;
@@ -80,7 +80,7 @@ export async function readWaitlistRequest(
     return reject(400, 'Invalid JSON');
   }
 
-  let body: {email?: unknown; consent?: unknown};
+  let body: {email?: unknown; consent?: unknown; product?: unknown};
   try {
     body = JSON.parse(raw);
   } catch {
@@ -91,5 +91,9 @@ export async function readWaitlistRequest(
     return reject(400, 'Valid email required');
   }
   if (body?.consent !== true) return reject(400, 'Email consent required');
-  return {email, consent: true};
+  const product = typeof body?.product === 'string' ? body.product.trim() : '';
+  if (product && !/^[a-z0-9][a-z0-9-]{0,99}$/i.test(product)) {
+    return reject(400, 'Invalid product');
+  }
+  return {email, consent: true, ...(product ? {product: product.toLowerCase()} : {})};
 }

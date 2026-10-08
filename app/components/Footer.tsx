@@ -24,7 +24,6 @@ export function Footer() {
           title="Your visit"
           links={[
             {label: 'Account', to: '/sign-in'},
-            {label: 'Search', to: '/search'},
             {label: 'Cart', to: '/cart'},
           ]}
         />
@@ -64,7 +63,15 @@ function FooterColumn({
     <section className="footer-column">
       <h3>{title}</h3>
       {links.map((link) => (
-        <NavLink key={link.to} prefetch="intent" to={link.to}>
+        <NavLink
+          key={link.to}
+          prefetch={
+            link.to === '/reserve-list' || link.to === '/pages/about-us'
+              ? 'none'
+              : 'intent'
+          }
+          to={link.to}
+        >
           {link.label}
         </NavLink>
       ))}

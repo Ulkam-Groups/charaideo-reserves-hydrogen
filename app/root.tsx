@@ -17,6 +17,7 @@ import {HEADER_QUERY} from '~/lib/fragments';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
+import productExperience from '~/styles/product-experience.css?url';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
@@ -34,6 +35,7 @@ import {
 import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config';
 import {resolveMetaPixelId} from '~/lib/ads/meta/meta-pixel';
 import {warmFastrrCheckout} from '~/lib/checkout/providers/fastrr/fastrr.client';
+import {loadShopifyDiscountProgress} from '~/lib/shopify-discounts.server';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
 const SHOPIFY_CHAT_WARMUP_MS = 120;
@@ -189,7 +191,7 @@ export async function loader({context}: Route.LoaderArgs) {
       ),
     );
 
-  const [header, chapterAnnouncementResult] = await Promise.all([
+  const [header, chapterAnnouncementResult, cartDiscountProgress] = await Promise.all([
     measureOptionalStorefront(context.monitor, 'header', () =>
       storefront.query(HEADER_QUERY, {
         variables: {headerMenuHandle: 'main-menu'},
@@ -204,6 +206,7 @@ export async function loader({context}: Route.LoaderArgs) {
           cache: storefront.CacheShort({maxAge: 30, staleWhileRevalidate: 60}),
         }) as Promise<ChapterAnnouncementResult>,
     ),
+    loadShopifyDiscountProgress(env, context.monitor),
   ]);
   const chapter =
     chapterAnnouncementResult?.collections.nodes.find(
@@ -262,6 +265,7 @@ export async function loader({context}: Route.LoaderArgs) {
 
   return {
     cart: measureOptionalStorefront(context.monitor, 'cart', () => cart.get()),
+    cartDiscountProgress,
     consent: buildAnalyticsConsent(env),
     notices,
     header,
@@ -336,6 +340,7 @@ export default function App() {
         <link rel="stylesheet" href={stylesheet} />
         <link rel="stylesheet" href={identity} />
         <link rel="stylesheet" href={revamp} />
+        <link rel="stylesheet" href={productExperience} />
         <link rel="stylesheet" href={reserveListStylesheet} />
       </head>
       <body>

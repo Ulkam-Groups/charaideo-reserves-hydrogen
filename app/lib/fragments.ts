@@ -11,6 +11,11 @@ export const CART_QUERY_FRAGMENT = `#graphql
       key
       value
     }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
+    }
     cost {
       totalAmount {
         ...Money
@@ -47,6 +52,11 @@ export const CART_QUERY_FRAGMENT = `#graphql
           title
           id
           vendor
+          collections(first: 250) {
+            nodes {
+              id
+            }
+          }
         }
         selectedOptions {
           name
@@ -66,6 +76,11 @@ export const CART_QUERY_FRAGMENT = `#graphql
     attributes {
       key
       value
+    }
+    discountAllocations {
+      discountedAmount {
+        ...Money
+      }
     }
     cost {
       totalAmount {
@@ -102,6 +117,11 @@ export const CART_QUERY_FRAGMENT = `#graphql
           title
           id
           vendor
+          collections(first: 250) {
+            nodes {
+              id
+            }
+          }
         }
         selectedOptions {
           name
@@ -155,6 +175,11 @@ export const CART_QUERY_FRAGMENT = `#graphql
         ...Money
       }
       totalTaxAmount {
+        ...Money
+      }
+    }
+    discountAllocations {
+      discountedAmount {
         ...Money
       }
     }

@@ -63,34 +63,76 @@ const RAZORPAY_VARIANTS_QUERY = `#graphql
   }
 ` as const;
 
-function cartLines(cart: CartApiQueryFragment, origin: string): RazorpayOrderLine[] {
-  return cart.lines.nodes.map((line) => {
-    const merchandise = line.merchandise;
-    const linePaise = inrToPaise(line.cost.totalAmount.amount);
-    if (linePaise % line.quantity !== 0) {
-      throw new Error('Discounted line total cannot be represented in paise');
-    }
-    const unitPaise = linePaise / line.quantity;
+function cartLines(
+  cart: CartApiQueryFragment,
+  origin: string,
+  expectedAmount: number,
+): RazorpayOrderLine[] {
+  const pricedLines = cart.lines.nodes.map((line, index) => ({
+    index,
+    line,
+    total: inrToPaise(line.cost.totalAmount.amount),
+  }));
+  const merchandiseTotal = pricedLines.reduce((sum, item) => sum + item.total, 0);
+  if (expectedAmount <= 0 || expectedAmount > merchandiseTotal) {
+    throw new Error('Shopify payable total cannot be represented by cart lines');
+  }
 
+  const allocations = pricedLines.map((item) => {
+    const numerator = item.total * expectedAmount;
     return {
+      ...item,
+      allocated: Math.floor(numerator / merchandiseTotal),
+      remainder: numerator % merchandiseTotal,
+    };
+  });
+  let undistributed =
+    expectedAmount - allocations.reduce((sum, item) => sum + item.allocated, 0);
+  for (const item of [...allocations].sort(
+    (left, right) => right.remainder - left.remainder || left.index - right.index,
+  )) {
+    if (!undistributed) break;
+    item.allocated += 1;
+    undistributed -= 1;
+  }
+  if (undistributed) {
+    throw new Error('Shopify discount allocation could not be reconciled');
+  }
+
+  return allocations.flatMap(({line, allocated}) => {
+    const merchandise = line.merchandise;
+    const lowerUnitPrice = Math.floor(allocated / line.quantity);
+    const higherPriceQuantity = allocated % line.quantity;
+    const lowerPriceQuantity = line.quantity - higherPriceQuantity;
+    if (lowerUnitPrice <= 0) {
+      throw new Error('Discounted cart line must have a positive payable amount');
+    }
+
+    const createLine = (quantity: number, unitPrice: number): RazorpayOrderLine => ({
       variantId: merchandise.id,
       productId: merchandise.product.id,
-      quantity: line.quantity,
-      unitPrice: (unitPaise / 100).toFixed(2),
+      quantity,
+      unitPrice: (unitPrice / 100).toFixed(2),
       compareAtPrice: merchandise.compareAtPrice?.amount,
       currencyCode: line.cost.totalAmount.currencyCode,
       name: `${merchandise.product.title} - ${merchandise.title}`,
       description: merchandise.product.title,
       imageUrl: merchandise.image?.url,
       productUrl: new URL(`/products/${merchandise.product.handle}`, origin).toString(),
-    };
+    });
+
+    return [
+      ...(higherPriceQuantity
+        ? [createLine(higherPriceQuantity, lowerUnitPrice + 1)]
+        : []),
+      ...(lowerPriceQuantity ? [createLine(lowerPriceQuantity, lowerUnitPrice)] : []),
+    ];
   });
 }
 
 export async function action({request, context}: ActionFunctionArgs) {
   const requestId = checkoutRequestId(request, context);
-  const json = (body: unknown, status = 200) =>
-    checkoutJson(body, status, requestId);
+  const json = (body: unknown, status = 200) => checkoutJson(body, status, requestId);
   const form = await readProtectedForm(request, {methods: ['POST'], maxBytes: 16_384});
   if (form instanceof Response) {
     form.headers.set('X-Request-Id', requestId);
@@ -142,8 +184,8 @@ export async function action({request, context}: ActionFunctionArgs) {
         return json({error: 'Cart changed before checkout'}, 409);
       }
       stage = 'checkout_payload';
-      lines = cartLines(cart, new URL(request.url).origin);
-      expectedAmount = inrToPaise(cart.cost.subtotalAmount.amount);
+      expectedAmount = inrToPaise(cart.cost.totalAmount.amount);
+      lines = cartLines(cart, new URL(request.url).origin, expectedAmount);
     } else {
       const result = (await context.storefront.query(RAZORPAY_VARIANTS_QUERY, {
         variables: {ids: requestedProducts.map(({variantId}) => variantId)},

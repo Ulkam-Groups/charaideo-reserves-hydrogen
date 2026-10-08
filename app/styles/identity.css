@@ -506,6 +506,10 @@ button {cursor: pointer}
 .cart-quantity-stepper form {margin: 0}
 .cart-quantity-value {min-width: 30px; text-align: center; font-size: var(--type-small)}
 .cart-quantity-stepper button {border: 0}
+.cart-update-overlay {position: fixed; inset: 0; z-index: 10000; display: grid; place-content: center; justify-items: center; gap: 12px; background: rgb(247 244 235 / .72); color: var(--deep-green); cursor: wait; backdrop-filter: blur(2px)}
+.cart-update-spinner {width: 34px; height: 34px; border: 3px solid rgb(0 128 128 / .22); border-top-color: var(--teal); border-radius: 50%; animation: cart-update-spin .7s linear infinite}
+@keyframes cart-update-spin {to {transform: rotate(360deg)}}
+@media (prefers-reduced-motion: reduce) {.cart-update-spinner {animation-duration: 1.5s}}
 .overlay--cart {--aside-width: 460px}
 .overlay--cart aside {display: flex; flex-direction: column; background: var(--paper)}
 .overlay--cart aside header {flex: none; padding: 0 24px; border-bottom: 1px solid var(--thread)}

@@ -88,11 +88,11 @@ export function ProductEditorialSections({
 }) {
   return (
     <div className="tea-editorial">
-      <TeaRecord product={product} selectedVariant={selectedVariant} />
       <CupCharacter product={product} />
       <RecipeExperience product={product} />
-      <WhyThisTea product={product} />
       <TeaFit product={product} />
+      <WhyThisTea product={product} />
+      <TeaRecord product={product} selectedVariant={selectedVariant} />
     </div>
   );
 }
@@ -124,27 +124,30 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
 
   return (
     <section
+      id="tea-character-section"
       className="tea-section tea-character-section"
+      suppressHydrationWarning
       aria-labelledby="cup-character-title"
     >
       <SectionHeading
-        eyebrow="This reserve in 10 seconds"
-        title="The character of the cup."
-        intro="A clear view of how this tea is likely to feel and taste in your cup."
+        eyebrow="Taste profile"
+        title="What does it taste like?"
+        intro="See the flavour, body and drinking style before you choose your pack."
         id="cup-character-title"
       />
       <div className="tea-character-layout">
         <div className="tea-profile" aria-label="Tea character scores">
           {PROFILE_FIELDS.map(([label, key]) => {
             const score = parseScore(product[key]?.value);
+            if (score == null) return null;
             return (
               <div className="tea-meter" key={key}>
                 <div className="tea-meter-label">
                   <span>{label}</span>
-                  <strong>{score == null ? 'Not set' : `${score} / 5`}</strong>
+                  <strong>{score} / 5</strong>
                 </div>
                 <div className="tea-meter-track" aria-hidden="true">
-                  <span style={{width: `${(score ?? 0) * 20}%`}} />
+                  <span style={{width: `${score * 20}%`}} />
                 </div>
               </div>
             );
@@ -177,10 +180,11 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
 }
 
 function Fact({label, value}: {label: string; value?: string}) {
+  if (!value?.trim()) return null;
   return (
     <div>
       <span>{label}</span>
-      <strong>{value?.trim() || 'Not yet provided'}</strong>
+      <strong>{value.trim()}</strong>
     </div>
   );
 }
@@ -190,19 +194,21 @@ function RecipeExperience({product}: {product: ProductEditorialData}) {
     id,
     label,
     recipe: parseRecipe(product[key]?.value),
-  }));
-  const firstAvailable = recipes.find((item) => item.recipe)?.id ?? 'hot';
-  const [activeId, setActiveId] = useState(firstAvailable);
+  })).filter((item) => item.recipe);
+  const [activeId, setActiveId] = useState<string>(recipes[0]?.id ?? 'hot');
   const active = recipes.find((item) => item.id === activeId) ?? recipes[0];
+  if (!active) return null;
 
   return (
     <section
+      id="tea-recipe-section"
       className="tea-section tea-recipe-section"
+      suppressHydrationWarning
       aria-labelledby="tea-recipe-title"
     >
       <SectionHeading
-        eyebrow="Make it yours"
-        title="Experience it your way."
+        eyebrow="Brewing guide"
+        title="How to make your best cup."
         id="tea-recipe-title"
       />
       <div className="tea-recipe-tabs" role="tablist" aria-label="Preparation style">
@@ -285,7 +291,7 @@ function TeaRecord({
         product.category?.name,
     ],
     ['Tea format', teaInputType],
-    ['Taxonomy taste profile', tasteProfile],
+    ['Taste profile', tasteProfile],
     ['Process', product.process?.value],
     ['Grade', product.grade?.value],
     ['Harvest', harvest],
@@ -298,31 +304,73 @@ function TeaRecord({
     ['Certifications', product.certifications?.value],
     ['Lot', product.lotNumber?.value],
     ['Pack size', formatValue(product.netWeight?.value) || packSizes || selectedWeight],
-    ['SKU', selectedVariant?.sku],
-    ['Shopify category', product.category?.name],
   ] as const;
+  const filled = records.filter(([, value]) => Boolean(value));
+  if (filled.length === 0) return null;
+
+  const meaningful = filled.filter(([, value]) => {
+    const normalized = String(value).trim();
+    return !/^(replace with|todo|tbd|coming soon|revealed soon)/i.test(normalized);
+  });
+  if (meaningful.length === 0) return null;
+
+  const highlightOrder = ['Origin', 'Estate', 'Harvest', 'Grade', 'Lot', 'Pack size'];
+  const highlights = highlightOrder
+    .map((label) => meaningful.find(([recordLabel]) => recordLabel === label))
+    .filter(Boolean)
+    .slice(0, 4) as Array<(typeof meaningful)[number]>;
 
   return (
     <section
+      id="tea-record-section"
       className="tea-section tea-record-section"
+      suppressHydrationWarning
       aria-labelledby="tea-record-title"
     >
       <SectionHeading
-        eyebrow="Product details"
-        title="Traceability"
-        intro="Origin, craft and pack details—read directly from this product’s Shopify record."
+        eyebrow="Product information"
+        title="What you’re getting."
+        intro="Clear details about the tea’s origin, harvest, ingredients and pack."
         id="tea-record-title"
       />
-      <dl className="tea-record-grid">
-        {records.map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd className={value ? undefined : 'is-missing'}>
-              {value || 'Not yet provided'}
-            </dd>
-          </div>
-        ))}
-      </dl>
+      {highlights.length > 0 && (
+        <dl className="tea-record-highlights">
+          {highlights.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      <details className="tea-record-details">
+        <summary>
+          <span className="tea-record-summary-copy">
+            <strong>Complete product information</strong>
+            <small>Ingredients, processing, storage, pack size and more</small>
+          </span>
+          <span className="tea-record-summary-action" aria-hidden="true">
+            <span className="tea-record-show-label">Show all {meaningful.length} details</span>
+            <span className="tea-record-hide-label">Hide details</span>
+            <span className="tea-record-chevron">↓</span>
+          </span>
+        </summary>
+        <dl className="tea-record-grid">
+          {meaningful.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+      <div className="tea-record-shop-cta">
+        <div>
+          <strong>Ready to try this tea?</strong>
+          <span>Choose your pack size and checkout securely.</span>
+        </div>
+        <a href="#product-buy-box">Choose pack &amp; buy ↑</a>
+      </div>
     </section>
   );
 }
@@ -330,13 +378,14 @@ function TeaRecord({
 function TeaFit({product}: {product: ProductEditorialData}) {
   const yes = parseStringList(product.isThisTeaYes?.value);
   const no = parseStringList(product.isThisTeaNo?.value);
+  if (yes.length === 0 && no.length === 0) return null;
 
   return (
-    <section className="tea-section tea-fit-section" aria-labelledby="tea-fit-title">
+    <section id="tea-fit-section" className="tea-section tea-fit-section" suppressHydrationWarning aria-labelledby="tea-fit-title">
       <div className="tea-section-shell">
         <SectionHeading
-          eyebrow="Know before you buy"
-          title="Is this your tea?"
+          eyebrow="Find your match"
+          title="Is this tea right for you?"
           id="tea-fit-title"
         />
         <div className="tea-fit-grid">
@@ -374,19 +423,18 @@ function FitList({
 }
 
 function WhyThisTea({product}: {product: ProductEditorialData}) {
+  if (!product.whyChooseTea?.value) return null;
+
   return (
-    <section className="tea-section tea-why-section" aria-labelledby="why-this-tea-title">
+    <section id="tea-why-section" className="tea-section tea-why-section" suppressHydrationWarning aria-labelledby="why-this-tea-title">
       <div className="tea-section-shell">
         <SectionHeading
-          eyebrow="The reason it belongs here"
-          title="Why we chose this tea."
+          eyebrow="Why you’ll love it"
+          title="What makes this tea worth choosing."
           id="why-this-tea-title"
         />
         <blockquote className="tea-founder-note">
-          <p>
-            {product.whyChooseTea?.value ||
-              'The curator’s note for this reserve is coming soon.'}
-          </p>
+          <p>{product.whyChooseTea.value}</p>
           {product.whyChooseAttribution?.value && (
             <footer>— {product.whyChooseAttribution.value}</footer>
           )}

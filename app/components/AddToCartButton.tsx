@@ -1,3 +1,4 @@
+import {useEffect, useRef, useState} from 'react';
 import {type FetcherWithComponents} from 'react-router';
 import {CartForm, type OptimisticCartLineInput} from '@shopify/hydrogen';
 
@@ -23,16 +24,56 @@ export function AddToCartButton({
             type="hidden"
             value={JSON.stringify(analytics)}
           />
-          <button
-            type="submit"
+          <AddToCartSubmit
+            fetcher={fetcher}
+            disabled={disabled}
             onClick={onClick}
-            disabled={disabled || fetcher.state !== 'idle'}
           >
-            {fetcher.state !== 'idle' ? 'Adding...' : children}
-          </button>
+            {children}
+          </AddToCartSubmit>
           {fetcher.data?.errors?.length > 0 && <p role="alert">We could not add this item. Please try again.</p>}
         </>
       )}
     </CartForm>
+  );
+}
+
+function AddToCartSubmit({
+  children,
+  disabled,
+  fetcher,
+  onClick,
+}: {
+  children: React.ReactNode;
+  disabled?: boolean;
+  fetcher: FetcherWithComponents<any>;
+  onClick?: () => void;
+}) {
+  const [added, setAdded] = useState(false);
+  const wasBusy = useRef(false);
+  const busy = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (busy) {
+      wasBusy.current = true;
+      return;
+    }
+    if (!wasBusy.current) return;
+    wasBusy.current = false;
+    if (fetcher.data?.errors?.length > 0) return;
+    setAdded(true);
+    const timer = window.setTimeout(() => setAdded(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [busy, fetcher.data]);
+
+  return (
+    <button
+      type="submit"
+      onClick={onClick}
+      disabled={disabled || busy}
+      data-state={busy ? 'busy' : added ? 'added' : 'idle'}
+    >
+      {busy ? 'Adding...' : added ? 'Added ?' : children}
+    </button>
   );
 }

@@ -55,3 +55,44 @@ test('shared checkout launcher preserves the current Fastrr payload', async () =
     Reflect.deleteProperty(globalThis, 'window');
   }
 });
+
+test('Fastrr checkout preserves mixed-cart products and treats coupon codes as provider metadata', async () => {
+  const products = [
+    {variantId: 'gid://shopify/ProductVariant/101', quantity: 2},
+    {variantId: 'gid://shopify/ProductVariant/202', quantity: 1},
+    {variantId: 'gid://shopify/ProductVariant/303', quantity: 4},
+  ];
+  let received: unknown;
+  Object.assign(globalThis, {
+    window: {
+      shiprocketCheckoutEvents: {
+        buyDirect: (payload: unknown) => {
+          received = payload;
+        },
+      },
+    },
+  });
+
+  try {
+    assert.equal(
+      await startCheckout('fastrr', {
+        source: 'cart',
+        products,
+        couponCode: 'COUPON_A',
+      }),
+      true,
+    );
+    assert.deepEqual(received, {
+      type: 'cart',
+      products: [
+        {variantId: '101', quantity: 2},
+        {variantId: '202', quantity: 1},
+        {variantId: '303', quantity: 4},
+      ],
+      couponCode: 'COUPON_A',
+      cartAttributes: {__cr_checkout_provider: 'fastrr'},
+    });
+  } finally {
+    Reflect.deleteProperty(globalThis, 'window');
+  }
+});

@@ -1,7 +1,14 @@
-import {useOptimisticCart, type OptimisticCartLine} from '@shopify/hydrogen';
-import {Link} from 'react-router';
+import {
+  Image,
+  Money,
+  useOptimisticCart,
+} from '@shopify/hydrogen';
 import {useEffect, useState} from 'react';
+import {Link, useFetcher, useFetchers, useRouteLoaderData} from 'react-router';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
+import type {loader as cartRecommendationsLoader} from '~/routes/api.cart-recommendations';
+import type {loader as rootLoader} from '~/root';
+import {DiscountProgress} from '~/components/DiscountProgress';
 import {useAside} from '~/components/Aside';
 import {CartLineItem, type CartLine} from '~/components/CartLineItem';
 import {CartSummary} from './CartSummary';
@@ -11,6 +18,7 @@ import {
   readRecentProducts,
   type RecentProduct,
 } from '~/lib/recent-products';
+import {cartDiscountProgressItems} from '~/lib/discount-progress';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -47,19 +55,42 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   // The useOptimisticCart hook applies pending actions to the cart
   // so the user immediately sees feedback when they modify the cart.
   const cart = useOptimisticCart(originalCart);
+  const fetchers = useFetchers();
+  const cartMutationPending = fetchers.some(
+    (fetcher) =>
+      fetcher.state !== 'idle' &&
+      Boolean(
+        fetcher.formAction &&
+          new URL(fetcher.formAction, 'https://storefront.invalid').pathname === '/cart',
+      ),
+  );
 
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
   const withDiscount =
-    cart &&
-    Boolean(cart?.discountCodes?.filter((code) => code.applicable)?.length);
+    cart && Boolean(cart?.discountCodes?.filter((code) => code.applicable)?.length);
   const className = `cart-main cart-main--${layout} ${withDiscount ? 'with-discount' : ''}`;
   const cartHasItems = cart?.totalQuantity ? cart.totalQuantity > 0 : false;
   const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
+  const discountItems = cartDiscountProgressItems(cart);
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
 
   return (
-    <div className={className}>
+    <div className={className} aria-busy={cartMutationPending}>
+      {cartMutationPending && (
+        <div className="cart-update-overlay" role="status" aria-live="polite">
+          <span className="cart-update-spinner" aria-hidden="true" />
+          <strong>Updating your cart…</strong>
+        </div>
+      )}
       <CartEmpty hidden={linesCount} layout={layout} />
       <div className="cart-details" hidden={!linesCount}>
+        <DiscountProgress
+          surface="cart"
+          paused={cartMutationPending}
+          items={discountItems}
+          milestones={rootData?.cartDiscountProgress.milestones ?? []}
+          status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
+        />
         <p id="cart-lines" className="sr-only">
           Line items
         </p>
@@ -67,10 +98,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           <ul aria-labelledby="cart-lines">
             {(cart?.lines?.nodes ?? []).map((line) => {
               // we do not render non-parent lines at the root of the cart
-              if (
-                'parentRelationship' in line &&
-                line.parentRelationship?.parent
-              ) {
+              if ('parentRelationship' in line && line.parentRelationship?.parent) {
                 return null;
               }
               return (
@@ -83,10 +111,99 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               );
             })}
           </ul>
+          {layout === 'aside' && (
+            <CartRecommendations
+              productIds={(cart?.lines?.nodes ?? []).map(
+                (line) => line.merchandise.product.id,
+              )}
+            />
+          )}
         </div>
         {cartHasItems && <CartSummary cart={cart} layout={layout} />}
       </div>
     </div>
+  );
+}
+
+function CartRecommendations({productIds}: {productIds: string[]}) {
+  const {type} = useAside();
+  const fetcher = useFetcher<typeof cartRecommendationsLoader>();
+  const productKey = [...new Set(productIds)].slice(0, 3).join('|');
+  const [requestedKey, setRequestedKey] = useState('');
+
+  useEffect(() => {
+    if (type !== 'cart' || !productKey || requestedKey === productKey) return;
+    const params = new URLSearchParams();
+    productKey.split('|').forEach((id) => params.append('productId', id));
+    setRequestedKey(productKey);
+    fetcher.load(`/api/cart-recommendations?${params.toString()}`);
+  }, [fetcher, productKey, requestedKey, type]);
+
+  if (type !== 'cart' || !productKey) return null;
+  const isCurrentResponse = requestedKey === productKey;
+  const loading = !isCurrentResponse || fetcher.state !== 'idle';
+  const recommendations = isCurrentResponse ? (fetcher.data?.recommendations ?? []) : [];
+  const unavailable = isCurrentResponse && Boolean(fetcher.data?.unavailable);
+  if (!loading && !unavailable && recommendations.length === 0) return null;
+
+  return (
+    <section
+      className="cart-recommendations"
+      aria-labelledby="cart-recommendations-title"
+    >
+      <h3 id="cart-recommendations-title">Frequently bought together</h3>
+      {loading ? (
+        <p className="cart-recommendations-status" role="status">
+          Finding a good pairing…
+        </p>
+      ) : unavailable ? (
+        <p className="cart-recommendations-status" role="status">
+          Pairings are temporarily unavailable.
+        </p>
+      ) : recommendations.length ? (
+        <ul>
+          {recommendations.map((product) => {
+            const variant = product.selectedOrFirstAvailableVariant;
+            return (
+              <li key={product.id} className="cart-recommendation">
+                <Link
+                  className="cart-recommendation-image"
+                  to={`/products/${encodeURIComponent(product.handle)}`}
+                  prefetch="intent"
+                  aria-label={`View ${product.title}`}
+                >
+                  {product.featuredImage ? (
+                    <Image
+                      data={product.featuredImage}
+                      alt={product.featuredImage.altText || product.title}
+                      sizes="72px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span aria-hidden="true">CR</span>
+                  )}
+                </Link>
+                <div className="cart-recommendation-copy">
+                  <Link
+                    to={`/products/${encodeURIComponent(product.handle)}`}
+                    prefetch="intent"
+                  >
+                    {product.title}
+                  </Link>
+                  <Money data={product.priceRange.minVariantPrice} />
+                </div>
+                <AddToCartButton
+                  lines={variant ? [{merchandiseId: variant.id, quantity: 1}] : []}
+                  disabled={!variant?.availableForSale}
+                >
+                  Add
+                </AddToCartButton>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </section>
   );
 }
 
@@ -110,15 +227,9 @@ function CartEmpty({
     };
 
     refreshRecentProduct();
-    window.addEventListener(
-      RECENT_PRODUCTS_UPDATED_EVENT,
-      refreshRecentProduct,
-    );
+    window.addEventListener(RECENT_PRODUCTS_UPDATED_EVENT, refreshRecentProduct);
     return () =>
-      window.removeEventListener(
-        RECENT_PRODUCTS_UPDATED_EVENT,
-        refreshRecentProduct,
-      );
+      window.removeEventListener(RECENT_PRODUCTS_UPDATED_EVENT, refreshRecentProduct);
   }, []);
 
   return (
@@ -140,9 +251,7 @@ function CartEmpty({
       <span className="cart-empty-eyebrow">
         {recentProduct ? 'A recent pour' : 'Your tea cabinet'}
       </span>
-      <h2>
-        {recentProduct ? 'Still thinking about this tea?' : 'Your cart is empty.'}
-      </h2>
+      <h2>{recentProduct ? 'Still thinking about this tea?' : 'Your cart is empty.'}</h2>
       <p className="cart-empty-message">
         {recentProduct
           ? 'Pick up where you left off, or keep exploring the reserve.'
@@ -151,9 +260,7 @@ function CartEmpty({
       {recentProduct && <RecentProductSuggestion product={recentProduct} />}
       <Link
         className={
-          recentProduct
-            ? 'cart-empty-browse'
-            : 'button primary cart-empty-action'
+          recentProduct ? 'cart-empty-browse' : 'button primary cart-empty-action'
         }
         to="/reserve-list"
         onClick={close}
@@ -169,9 +276,7 @@ function CartEmpty({
 function RecentProductSuggestion({product}: {product: RecentProduct}) {
   const productUrl = `/products/${encodeURIComponent(product.handle)}`;
   const variantLabel =
-    product.variantTitle === 'Default Title'
-      ? 'Selected reserve'
-      : product.variantTitle;
+    product.variantTitle === 'Default Title' ? 'Selected reserve' : product.variantTitle;
 
   return (
     <article className="cart-empty-suggestion">
@@ -182,11 +287,7 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
         to={productUrl}
       >
         {product.image ? (
-          <img
-            src={product.image.url}
-            alt={product.image.altText}
-            loading="lazy"
-          />
+          <img src={product.image.url} alt={product.image.altText} loading="lazy" />
         ) : (
           <span aria-hidden="true">CR</span>
         )}
@@ -194,16 +295,16 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
       <div className="cart-empty-suggestion-details">
         <span>Recently viewed</span>
         <h3>
-          <Link prefetch="intent" to={productUrl}>{product.title}</Link>
+          <Link prefetch="intent" to={productUrl}>
+            {product.title}
+          </Link>
         </h3>
         <div className="cart-empty-suggestion-meta">
           <span>{variantLabel}</span>
           <strong>{formatRecentProductPrice(product)}</strong>
         </div>
       </div>
-      <AddToCartButton
-        lines={[{merchandiseId: product.variantId, quantity: 1}]}
-      >
+      <AddToCartButton lines={[{merchandiseId: product.variantId, quantity: 1}]}>
         Add
       </AddToCartButton>
     </article>

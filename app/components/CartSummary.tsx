@@ -13,6 +13,7 @@ import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
+import {RazorpayBrand} from './RazorpayBrand';
 import {
   META_ANALYTICS_EVENTS,
   metaContentId,
@@ -40,6 +41,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           </div>
         </details>
         <div className="cart-drawer-footer">
+          <CartSavings cart={cart} />
           <dl className="cart-subtotal">
             <dt>Subtotal</dt>
             <dd>
@@ -55,6 +57,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
   return (
     <div aria-labelledby="cart-summary" className={className}>
       <h4 id="cart-summary">Your selection</h4>
+      <CartSavings cart={cart} />
       <dl className="cart-subtotal">
         <dt>Subtotal</dt>
         <dd>
@@ -72,6 +75,32 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
   );
 }
 
+function CartSavings({cart}: {cart: CartSummaryProps['cart']}) {
+  const currencyCode = cart?.cost?.subtotalAmount?.currencyCode;
+  const allocations = [
+    ...(cart?.lines?.nodes ?? []).flatMap(
+      (line) => (line as any).discountAllocations ?? [],
+    ),
+    ...((cart as any)?.discountAllocations ?? []),
+  ];
+  const saved = allocations.reduce(
+    (sum: number, a: any) => sum + Number(a?.discountedAmount?.amount ?? 0),
+    0,
+  );
+  if (!currencyCode || !(saved > 0)) return null;
+  return (
+    <dl className="cart-savings">
+      <dt>You save</dt>
+      <dd>
+        &minus;
+        <Money
+          as="span"
+          data={{amount: saved.toFixed(2), currencyCode}}
+        />
+      </dd>
+    </dl>
+  );
+}
 function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; layout: CartLayout}) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const {close} = useAside();
@@ -154,12 +183,26 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
 
   return (
     <div>
-      <button className="button primary checkout-button" type="button" onClick={handleCheckout} disabled={!canUseCheckout}>
-        <span>
-          {rootData?.checkoutProvider === 'razorpay'
+      <button
+        className="button primary checkout-button"
+        type="button"
+        aria-label={
+          rootData?.checkoutProvider === 'razorpay'
             ? 'Checkout with Razorpay'
-            : 'Checkout with Shiprocket'}{' '}
-          &rarr;
+            : 'Checkout with Shiprocket'
+        }
+        onClick={handleCheckout}
+        disabled={!canUseCheckout}
+      >
+        <span className="checkout-button-content">
+          {rootData?.checkoutProvider === 'razorpay' ? (
+            <>
+              <span>Checkout with</span>
+              <RazorpayBrand wordmark />
+            </>
+          ) : (
+            <span>Checkout with Shiprocket</span>
+          )}
         </span>
       </button>
       {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}

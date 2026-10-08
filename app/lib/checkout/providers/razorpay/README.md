@@ -16,7 +16,7 @@ webhook behavior.
 - `razorpay-order.server.ts` fetches and validates the final Razorpay order/payment, then either completes its anchored Shopify Draft Order or uses the legacy `orderCreate` path through Admin GraphQL.
 - `razorpay.config.ts` owns the Magic Checkout script URL and CSP sources.
 
-Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to enable this provider. Set `SHOPIFY_ADMIN_STORE_DOMAIN` to the shop's canonical `*.myshopify.com` domain when `PUBLIC_STORE_DOMAIN` points elsewhere; otherwise the public domain is used. The Shopify app installation needs `read_orders,write_orders,read_draft_orders,write_draft_orders`. `RAZORPAY_BUSINESS_NAME` is optional and defaults to `Charaideo Reserves`.
+Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to enable this provider. Set `SHOPIFY_ADMIN_STORE_DOMAIN` to the shop's canonical `*.myshopify.com` domain when `PUBLIC_STORE_DOMAIN` points elsewhere; otherwise the public domain is used. The Shopify app installation needs `read_orders,write_orders,read_draft_orders,write_draft_orders`. The storefront also uses the read-only `read_discounts` scope to show active Shopify discount thresholds in the cart and product page. `RAZORPAY_BUSINESS_NAME` is optional and defaults to `Charaideo Reserves`.
 
 PR 1 operational hardening keeps the checkout ownership and success contract unchanged.
 Razorpay SDK calls and Shopify authentication/GraphQL calls have 10-second upstream
