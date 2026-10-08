@@ -397,7 +397,9 @@ export default function Product() {
             productOptions={productOptions}
             selectedVariant={selectedVariant}
             productId={product.id}
-            productCollectionIds={product.collections.nodes.map(({id}) => id)}
+            productCollectionIds={
+              product.collections?.nodes?.map(({id}) => id) ?? []
+            }
           />
           <ul className="product-assurances" aria-label="Purchase information">
             <li>
