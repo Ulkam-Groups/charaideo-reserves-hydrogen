@@ -295,7 +295,7 @@ export default function Product() {
   const {title} = product;
   const [displayTitle, ...titleQualifiers] = title
     .split(/\s*\|\s*/)
-    .map((part) => part.trim())
+    .map((part: string) => part.trim())
     .filter(Boolean);
   const productSubtitle =
     titleQualifiers.join(' · ') ||
@@ -398,7 +398,7 @@ export default function Product() {
             selectedVariant={selectedVariant}
             productId={product.id}
             productCollectionIds={
-              product.collections?.nodes?.map(({id}) => id) ?? []
+              product.collections?.nodes?.map(({id}: {id: string}) => id) ?? []
             }
           />
           <ul className="product-assurances" aria-label="Purchase information">
