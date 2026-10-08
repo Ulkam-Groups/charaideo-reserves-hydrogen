@@ -18,6 +18,7 @@ import {
   readRecentProducts,
   type RecentProduct,
 } from '~/lib/recent-products';
+import {cartDiscountProgressItems} from '~/lib/discount-progress';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -70,17 +71,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const className = `cart-main cart-main--${layout} ${withDiscount ? 'with-discount' : ''}`;
   const cartHasItems = cart?.totalQuantity ? cart.totalQuantity > 0 : false;
   const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
-  const discountItems = (cart?.lines?.nodes ?? []).map((line) => {
-    const product = line.merchandise.product;
-    return {
-      productId: product.id,
-      variantId: line.merchandise.id,
-      collectionIds:
-        'collections' in product ? product.collections.nodes.map(({id}) => id) : [],
-      amount: Number(line.merchandise.price.amount) * line.quantity,
-      currencyCode: line.merchandise.price.currencyCode,
-    };
-  });
+  const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
 
   return (
@@ -95,6 +86,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
       <div className="cart-details" hidden={!linesCount}>
         <DiscountProgress
           surface="cart"
+          paused={cartMutationPending}
           items={discountItems}
           milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}

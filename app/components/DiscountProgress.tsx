@@ -1,3 +1,4 @@
+import {useEffect, useRef, useState} from 'react';
 import {Money} from '@shopify/hydrogen';
 import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
 import type {
@@ -12,22 +13,34 @@ import {
 
 export function DiscountProgress({
   items = [],
+  eligibilityItems,
   milestones,
   status,
   surface,
+  paused = false,
 }: {
   items?: readonly DiscountProgressItem[];
+  /** Items that decide which offers belong on this surface. Defaults to items. */
+  eligibilityItems?: readonly DiscountProgressItem[];
   milestones: DiscountProgressMilestone[];
   status: DiscountProgressStatus;
   surface: 'cart' | 'product';
+  /** Hold the celebration while the cart is still updating. */
+  paused?: boolean;
 }) {
+  const offerEligibilityItems = eligibilityItems ?? items;
+
+  useEffect(() => {
+    if (status === 'ready' && !items.length && !paused) {
+      seenRewards.set(surface, new Set());
+    }
+  }, [status, items.length, paused, surface]);
+
   if (status !== 'ready') return null;
-  if (!items.length || !milestones.length) return null;
+  if (!offerEligibilityItems.length || !milestones.length) return null;
 
   const eligibleMilestones = milestones.filter(
-    (milestone) =>
-      (surface === 'cart' || milestone.productSpecific) &&
-      isDiscountProgressEligible(milestone, items),
+    (milestone) => isDiscountProgressEligible(milestone, offerEligibilityItems),
   );
   if (!eligibleMilestones.length) return null;
 
@@ -102,11 +115,61 @@ export function DiscountProgress({
               title={`${milestone.reward} at ${milestone.threshold}`}
               aria-hidden="true"
             >
-              {reachedMilestone ? '\u{1F389}' : ''}
+              {reachedMilestone ? '\u2713' : ''}
             </span>
           );
         })}
       </div>
+      <CelebrationBanner surface={surface} paused={paused} rewards={reached.map((item) => ({id: item.id, reward: item.reward}))} />
     </section>
+  );
+}
+
+const CONFETTI = Array.from({length: 16}, (_, index) => index);
+
+// Survives remounts (the cart aside can remount after a revalidation).
+const seenRewards = new Map<string, Set<string>>();
+
+/** Shows a short celebration when a milestone is newly reached (not on first load). */
+function CelebrationBanner({
+  rewards,
+  paused,
+  surface,
+}: {
+  rewards: {id: string; reward: string}[];
+  paused: boolean;
+  surface: string;
+}) {
+  const [message, setMessage] = useState('');
+  const timer = useRef<number>(0);
+  const key = rewards.map((item) => item.id).join('|');
+
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  useEffect(() => {
+    if (paused) return;
+    const seen = seenRewards.get(surface);
+    if (!seen) {
+      seenRewards.set(surface, new Set(rewards.map((item) => item.id)));
+      return;
+    }
+    const fresh = rewards.filter((item) => !seen.has(item.id));
+    rewards.forEach((item) => seen.add(item.id));
+    if (!fresh.length) return;
+    setMessage(fresh.map((item) => item.reward).join(' + '));
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setMessage(''), 4200);
+  }, [key, paused]);
+
+  if (!message) return null;
+  return (
+    <div className="discount-celebration" role="status">
+      {CONFETTI.map((index) => (
+        <i key={index} style={{'--i': index} as React.CSSProperties} aria-hidden="true" />
+      ))}
+      <span className="discount-celebration-text">
+        <span aria-hidden="true">{'\u{1F389}'}</span> {message} unlocked!
+      </span>
+    </div>
   );
 }

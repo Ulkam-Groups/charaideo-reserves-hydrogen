@@ -24,7 +24,6 @@ export function Footer() {
           title="Your visit"
           links={[
             {label: 'Account', to: '/sign-in'},
-            {label: 'Search', to: '/search'},
             {label: 'Cart', to: '/cart'},
           ]}
         />

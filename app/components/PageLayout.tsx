@@ -1,4 +1,4 @@
-import {Await, Link} from 'react-router';
+import {Await, Link, useLocation} from 'react-router';
 import {Suspense, useEffect, useState} from 'react';
 import type {CartApiQueryFragment, HeaderQuery} from 'storefrontapi.generated';
 import {Aside} from '~/components/Aside';
@@ -29,6 +29,7 @@ export function PageLayout({
   publicStoreDomain,
   cartDiscountProgress,
 }: PageLayoutProps) {
+  const {pathname} = useLocation();
   const freeShippingMilestone =
     cartDiscountProgress.status === 'ready'
       ? cartDiscountProgress.milestones.find(
@@ -56,7 +57,7 @@ export function PageLayout({
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <main id="main-content">{children}</main>
+      <main id="main-content" className={pathname === '/' ? undefined : 'main--offset'}>{children}</main>
       <Footer />
     </Aside.Provider>
   );
@@ -285,22 +286,6 @@ function SearchAside() {
                   closeSearch={closeSearch}
                   term={term}
                 />
-                <SearchResultsPredictive.Articles
-                  articles={articles}
-                  closeSearch={closeSearch}
-                  term={term}
-                />
-                {term.current && total ? (
-                  <Link
-                    className="predictive-search-all"
-                    onClick={closeSearch}
-                    prefetch="intent"
-                    to={`${SEARCH_ENDPOINT}?q=${encodeURIComponent(term.current)}`}
-                  >
-                    View all results for <q>{term.current}</q>{' '}
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                ) : null}
               </>
             );
           }}

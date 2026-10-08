@@ -403,7 +403,7 @@ test('cart progress counts only items targeted by each Shopify discount', () => 
 
   assert.match(html, /Free shipping unlocked/);
   assert.match(html, /849\.00/);
-  assert.match(html, /to reach 15% off/);
+  assert.match(html, /for <b>15% off<\/b>/);
   assert.match(html, /role="progressbar"/);
   assert.doesNotMatch(html, /15% off reached/);
 });
@@ -568,7 +568,7 @@ test('discount progress handles exact thresholds, invalid amounts, currencies, a
       milestones: [milestone],
     }),
   );
-  assert.match(reached, /15% off reached/);
+  assert.match(reached, /15% off<\/b> unlocked/);
   assert.match(reached, /aria-valuenow="100"/);
   assert.equal(
     renderToStaticMarkup(
@@ -581,16 +581,83 @@ test('discount progress handles exact thresholds, invalid amounts, currencies, a
     ),
     '',
   );
-  assert.equal(
+  assert.match(
     renderToStaticMarkup(
       createElement(DiscountProgress, {
         surface: 'product',
         status: 'ready',
         items,
+        eligibilityItems: [items[0]],
         milestones: [{...milestone, productSpecific: false}],
       }),
     ),
+    /15% off<\/b> unlocked/,
+    'eligible order-wide offers are shown on the product page',
+  );
+});
+
+test('product progress uses cart totals but hides offers for an ineligible PDP product', () => {
+  const milestone = {
+    id: 'selected-products',
+    threshold: 1_500,
+    currencyCode: 'INR' as const,
+    reward: '10% off',
+    title: '10% off selected teas',
+    method: 'automatic' as const,
+    codes: [],
+    productSpecific: true,
+    targets: {
+      allItems: false,
+      productIds: [],
+      variantIds: [],
+      collectionIds: ['gid://shopify/Collection/eligible'],
+    },
+  };
+  const cartItems = [
+    {
+      productId: 'gid://shopify/Product/in-cart',
+      variantId: 'gid://shopify/ProductVariant/in-cart',
+      collectionIds: ['gid://shopify/Collection/eligible'],
+      amount: 1_620,
+      currencyCode: 'INR' as const,
+    },
+  ];
+  const eligibleProduct = {
+    productId: 'gid://shopify/Product/pdp-eligible',
+    variantId: 'gid://shopify/ProductVariant/pdp-eligible',
+    collectionIds: ['gid://shopify/Collection/eligible'],
+    amount: 475,
+    currencyCode: 'INR' as const,
+  };
+  const ineligibleProduct = {
+    ...eligibleProduct,
+    productId: 'gid://shopify/Product/pdp-ineligible',
+    variantId: 'gid://shopify/ProductVariant/pdp-ineligible',
+    collectionIds: [],
+  };
+
+  const eligibleHtml = renderToStaticMarkup(
+    createElement(DiscountProgress, {
+      surface: 'product',
+      status: 'ready',
+      items: cartItems,
+      eligibilityItems: [eligibleProduct],
+      milestones: [milestone],
+    }),
+  );
+  assert.match(eligibleHtml, /10% off<\/b> unlocked/);
+  assert.doesNotMatch(eligibleHtml, /1,025\.00/);
+
+  assert.equal(
+    renderToStaticMarkup(
+      createElement(DiscountProgress, {
+        surface: 'product',
+        status: 'ready',
+        items: cartItems,
+        eligibilityItems: [ineligibleProduct],
+        milestones: [milestone],
+      }),
+    ),
     '',
-    'order-wide offers stay out of the product-page progress surface',
   );
 });

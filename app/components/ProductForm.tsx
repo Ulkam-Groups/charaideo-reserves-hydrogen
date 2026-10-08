@@ -1,4 +1,4 @@
-import {Link, useNavigate, useRouteLoaderData} from 'react-router';
+import {Await, Link, useNavigate, useRouteLoaderData} from 'react-router';
 import {Money, type MappedProductOptions, useAnalytics} from '@shopify/hydrogen';
 import type {
   Maybe,
@@ -10,12 +10,14 @@ import type {ProductFragment} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, useEffect, useId, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 import {DeliveryEstimate} from './DeliveryEstimate';
 import {DiscountProgress} from './DiscountProgress';
 import {META_ANALYTICS_EVENTS, metaContentId} from '~/lib/ads/meta/meta-pixel';
+import {cartDiscountProgressItems} from '~/lib/discount-progress';
+import {RazorpayBrand} from './RazorpayBrand';
 
 export function ProductForm({
   productOptions,
@@ -38,6 +40,7 @@ export function ProductForm({
   const [quantity, setQuantity] = useState(1);
   const [showMobileBar, setShowMobileBar] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const quantityLimitTooltipId = useId();
   useCheckoutError(setCheckoutError);
 
   const availableQuantity =
@@ -48,6 +51,9 @@ export function ProductForm({
       : null;
   const quantityAtLimit =
     availableQuantity !== null && quantity >= availableQuantity;
+  const quantityLimitMessage = quantityAtLimit
+    ? `Only ${availableQuantity} available right now.`
+    : undefined;
 
   useEffect(() => {
     setQuantity(1);
@@ -77,6 +83,15 @@ export function ProductForm({
     selectedVariant && selectedWeightInGrams
       ? Number(selectedVariant.price.amount) / selectedWeightInGrams
       : null;
+  const selectedDiscountItem = selectedVariant
+    ? {
+        productId,
+        variantId: selectedVariant.id,
+        collectionIds: productCollectionIds,
+        amount: Number(selectedVariant.price.amount),
+        currencyCode: selectedVariant.price.currencyCode,
+      }
+    : null;
 
   return (
     <div className="product-form">
@@ -166,6 +181,7 @@ export function ProductForm({
       {pricePerGram && selectedVariant && (
         <div className="product-unit-price">
           <Money
+            as="span"
             data={{
               amount: pricePerGram.toFixed(2),
               currencyCode: selectedVariant.price.currencyCode,
@@ -199,24 +215,40 @@ export function ProductForm({
               <output aria-live="polite" aria-label={`${quantity} items`}>
                 {quantity}
               </output>
-              <button
-                type="button"
-                aria-label="Increase quantity"
-                disabled={quantityAtLimit}
-                onClick={() =>
-                  setQuantity((value) =>
-                    Math.min(availableQuantity ?? 99, value + 1),
-                  )
-                }
+              <span
+                className="product-quantity-increase"
+                tabIndex={quantityAtLimit ? 0 : undefined}
               >
-                +
-              </button>
+                <button
+                  type="button"
+                  aria-label={
+                    quantityLimitMessage
+                      ? `Increase quantity unavailable. ${quantityLimitMessage}`
+                      : 'Increase quantity'
+                  }
+                  aria-describedby={
+                    quantityLimitMessage ? quantityLimitTooltipId : undefined
+                  }
+                  disabled={quantityAtLimit}
+                  onClick={() =>
+                    setQuantity((value) =>
+                      Math.min(availableQuantity ?? 99, value + 1),
+                    )
+                  }
+                >
+                  +
+                </button>
+                {quantityLimitMessage && (
+                  <span
+                    className="product-quantity-tooltip"
+                    id={quantityLimitTooltipId}
+                    role="tooltip"
+                  >
+                    {quantityLimitMessage}
+                  </span>
+                )}
+              </span>
             </div>
-            {quantityAtLimit && (
-              <small className="product-quantity-limit" role="status">
-                Only {availableQuantity} available right now.
-              </small>
-            )}
           </div>
         )}
       </div>
@@ -307,7 +339,8 @@ export function ProductForm({
               }
             }}
           >
-            Buy now
+            <span>Buy now</span>
+            {rootData?.checkoutProvider === 'razorpay' && <RazorpayBrand />}
           </button>
         )}
       </div>
@@ -315,24 +348,23 @@ export function ProductForm({
         <p role="status">Checkout is being configured.</p>
       )}
       {checkoutError && <p role="alert">{checkoutError}</p>}
-      <DiscountProgress
-        surface="product"
-        items={
-          selectedVariant
-            ? [
-                {
-                  productId,
-                  variantId: selectedVariant.id,
-                  collectionIds: productCollectionIds,
-                  amount: Number(selectedVariant.price.amount) * quantity,
-                  currencyCode: selectedVariant.price.currencyCode,
-                },
-              ]
-            : []
-        }
-        milestones={rootData?.cartDiscountProgress.milestones ?? []}
-        status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
-      />
+      {selectedVariant?.availableForSale &&
+        selectedDiscountItem &&
+        rootData?.cart && (
+          <Suspense fallback={null}>
+            <Await resolve={rootData.cart} errorElement={null}>
+              {(cart) => (
+                <DiscountProgress
+                  surface="product"
+                  eligibilityItems={[selectedDiscountItem]}
+                  items={cartDiscountProgressItems(cart)}
+                  milestones={rootData.cartDiscountProgress.milestones}
+                  status={rootData.cartDiscountProgress.status}
+                />
+              )}
+            </Await>
+          </Suspense>
+        )}
       <DeliveryEstimate />
       {showMobileBar && selectedVariant && !selectedVariant.availableForSale && (
         <aside className="product-mobile-purchase-bar" aria-label="Quick purchase">

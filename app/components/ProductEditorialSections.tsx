@@ -126,6 +126,7 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
     <section
       id="tea-character-section"
       className="tea-section tea-character-section"
+      suppressHydrationWarning
       aria-labelledby="cup-character-title"
     >
       <SectionHeading
@@ -202,6 +203,7 @@ function RecipeExperience({product}: {product: ProductEditorialData}) {
     <section
       id="tea-recipe-section"
       className="tea-section tea-recipe-section"
+      suppressHydrationWarning
       aria-labelledby="tea-recipe-title"
     >
       <SectionHeading
@@ -310,6 +312,7 @@ function TeaRecord({
     <section
       id="tea-record-section"
       className="tea-section tea-record-section"
+      suppressHydrationWarning
       aria-labelledby="tea-record-title"
     >
       <SectionHeading
@@ -335,7 +338,7 @@ function TeaFit({product}: {product: ProductEditorialData}) {
   const no = parseStringList(product.isThisTeaNo?.value);
 
   return (
-    <section id="tea-fit-section" className="tea-section tea-fit-section" aria-labelledby="tea-fit-title">
+    <section id="tea-fit-section" className="tea-section tea-fit-section" suppressHydrationWarning aria-labelledby="tea-fit-title">
       <div className="tea-section-shell">
         <SectionHeading
           eyebrow="Know before you buy"
@@ -378,7 +381,7 @@ function FitList({
 
 function WhyThisTea({product}: {product: ProductEditorialData}) {
   return (
-    <section id="tea-why-section" className="tea-section tea-why-section" aria-labelledby="why-this-tea-title">
+    <section id="tea-why-section" className="tea-section tea-why-section" suppressHydrationWarning aria-labelledby="why-this-tea-title">
       <div className="tea-section-shell">
         <SectionHeading
           eyebrow="The reason it belongs here"

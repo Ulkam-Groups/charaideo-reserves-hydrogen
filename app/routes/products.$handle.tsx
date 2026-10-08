@@ -442,6 +442,7 @@ export default function Product() {
 
       <section
         className="product-reviews"
+        suppressHydrationWarning
         id="customer-notes"
         aria-labelledby="customer-notes-title"
       >
@@ -501,6 +502,7 @@ export default function Product() {
             products.length > 0 && (
               <section
                 className="product-related"
+                suppressHydrationWarning
                 aria-labelledby="related-products-title"
               >
                 <div className="editorial-heading">

@@ -22,6 +22,7 @@ export const meta: Route.MetaFunction = () => {
 export async function loader({request, context}: Route.LoaderArgs) {
   const url = new URL(request.url);
   const isPredictive = url.searchParams.has('predictive');
+  if (!isPredictive) throw new Response('Not Found', {status: 404});
   const searchPromise: Promise<PredictiveSearchReturn | RegularSearchReturn> =
     isPredictive
       ? predictiveSearch({request, context})

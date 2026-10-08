@@ -1,4 +1,5 @@
 import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
+import type {CartApiQueryFragment} from 'storefrontapi.generated';
 
 type CurrencyCode = MoneyV2['currencyCode'];
 
@@ -50,6 +51,22 @@ export function discountProgressAmount(
         : total,
     0,
   );
+}
+
+export function cartDiscountProgressItems(
+  cart: Pick<CartApiQueryFragment, 'lines'> | null | undefined,
+): DiscountProgressItem[] {
+  return (cart?.lines?.nodes ?? []).map((line) => {
+    const product = line.merchandise.product;
+    return {
+      productId: product.id,
+      variantId: line.merchandise.id,
+      collectionIds:
+        'collections' in product ? product.collections.nodes.map(({id}) => id) : [],
+      amount: Number(line.merchandise.price.amount) * line.quantity,
+      currencyCode: line.merchandise.price.currencyCode,
+    };
+  });
 }
 
 function isItemEligible(
