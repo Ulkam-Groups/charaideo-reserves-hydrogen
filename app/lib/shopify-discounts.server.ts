@@ -2,6 +2,7 @@ import type {
   DiscountProgressData,
   DiscountProgressMilestone,
   DiscountProgressStatus,
+  DiscountProgressTargets,
 } from './discount-progress';
 import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
 import {safeMonitorFailure, type Monitor} from './monitoring.server';
@@ -32,7 +33,7 @@ type DiscountRecordData = {
   status?: string | null;
   startsAt?: string | null;
   endsAt?: string | null;
-  context?: {all?: string | null} | null;
+  context?: {all?: 'ALL' | null} | null;
   discountClasses?: string[] | null;
   minimumRequirement?: {
     __typename: string;
@@ -42,7 +43,7 @@ type DiscountRecordData = {
     } | null;
   } | null;
   customerGets?: {
-    items?: {allItems?: boolean | null} | null;
+    items?: DiscountItemsRecord | null;
     value?: {
       percentage?: number | null;
       amount?: MoneyV2 | null;
@@ -52,8 +53,29 @@ type DiscountRecordData = {
   codes?: {nodes?: Array<{code: string}> | null} | null;
 };
 
+type DiscountItemsRecord = {
+  __typename?: string | null;
+  allItems?: boolean | null;
+  products?: {nodes?: Array<{id: string}> | null} | null;
+  productVariants?: {nodes?: Array<{id: string}> | null} | null;
+  collections?: {nodes?: Array<{id: string}> | null} | null;
+};
+
 type DiscountQueryResponse = {
   discountNodes?: {nodes?: DiscountRecord[] | null} | null;
+};
+
+type DiscountTargetQueryResponse = {
+  discountNode?: {
+    discount?: {
+      customerGets?: {items?: DiscountItemsRecord | null} | null;
+    } | null;
+  } | null;
+};
+
+type AdminGraphQLResponse<T> = {
+  data?: T;
+  errors?: Array<{message?: string}>;
 };
 
 let cachedToken: AdminToken | null = null;
@@ -131,39 +153,42 @@ async function queryActiveDiscounts(
   credentials: AdminCredentials,
 ): Promise<DiscountProgressData> {
   const token = await getAdminToken(credentials);
-  const response = await fetch(
-    `https://${credentials.domain}/admin/api/${credentials.apiVersion}/graphql.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': token,
-      },
-      body: JSON.stringify({query: DISCOUNT_PROGRESS_QUERY}),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    },
+  const result = await requestAdminGraphQL<DiscountQueryResponse>(
+    credentials,
+    token,
+    DISCOUNT_PROGRESS_QUERY,
   );
-  if (!response.ok) {
-    throw new Error(`Shopify discount query failed with status ${response.status}`);
-  }
-
-  const result = (await response.json()) as {
-    data?: DiscountQueryResponse;
-    errors?: Array<{message?: string}>;
-  };
-  if (result.errors?.length || !result.data?.discountNodes) {
-    const messages = result.errors
-      ?.map((item) => item.message)
-      .filter((message): message is string => Boolean(message));
-    throw new Error(
-      messages?.length
-        ? `Shopify discount query failed: ${messages.join('; ')}`
-        : 'Shopify discount query returned no discount data',
-    );
-  }
-
+  const discountNodes = result.discountNodes?.nodes ?? [];
   const now = Date.now();
-  const milestones = (result.data.discountNodes.nodes ?? [])
+
+  for (const node of discountNodes) {
+    const discount = node.discount;
+    const items = discount?.customerGets?.items;
+    const minimumSubtotal = discount?.minimumRequirement?.greaterThanOrEqualToSubtotal;
+    if (
+      !discount ||
+      !discount.__typename.endsWith('Basic') ||
+      !isCurrentlyActive(discount, now) ||
+      !discount.discountClasses?.some(
+        (discountClass) => discountClass === 'ORDER' || discountClass === 'PRODUCT',
+      ) ||
+      !minimumSubtotal ||
+      !Number.isFinite(Number(minimumSubtotal.amount)) ||
+      Number(minimumSubtotal.amount) <= 0 ||
+      !items ||
+      (items.__typename !== 'DiscountProducts' &&
+        items.__typename !== 'DiscountCollections')
+    ) {
+      continue;
+    }
+
+    const targetItems = await requestDiscountTargets(credentials, token, node.id);
+    if (node.discount?.customerGets) {
+      node.discount.customerGets.items = {...items, ...targetItems};
+    }
+  }
+
+  const milestones = discountNodes
     .flatMap((node) => {
       const discount = node.discount;
       if (!discount || !isCurrentlyActive(discount, now)) return [];
@@ -191,19 +216,26 @@ async function queryActiveDiscounts(
               ? ('code' as const)
               : ('automatic' as const),
             codes: discount.codes?.nodes?.map(({code}) => code) ?? [],
+            productSpecific: false,
+            targets: ALL_DISCOUNT_PROGRESS_TARGETS,
           },
         ];
       }
 
+      const customerGets = discount.customerGets;
+      const targets = getDiscountProgressTargets(customerGets?.items);
       if (
         !discount.__typename.endsWith('Basic') ||
-        !discount.discountClasses?.includes('ORDER') ||
-        discount.customerGets?.items?.allItems !== true
+        !customerGets ||
+        !discount.discountClasses?.some(
+          (discountClass) => discountClass === 'ORDER' || discountClass === 'PRODUCT',
+        ) ||
+        !targets
       ) {
         return [];
       }
 
-      const value = discount.customerGets.value;
+      const value = customerGets.value;
       const percentage = value?.percentage;
       const fixedAmount = value?.amount;
       const reward =
@@ -216,12 +248,14 @@ async function queryActiveDiscounts(
               fixedAmount.currencyCode === subtotal.currencyCode &&
               Number.isFinite(Number(fixedAmount.amount)) &&
               Number(fixedAmount.amount) > 0 &&
-              value?.appliesOnEachItem === false
+              typeof value?.appliesOnEachItem === 'boolean'
             ? `${new Intl.NumberFormat('en-IN', {
                 style: 'currency',
                 currency: fixedAmount.currencyCode,
                 maximumFractionDigits: 2,
-              }).format(Number(fixedAmount.amount))} off`
+              }).format(
+                Number(fixedAmount.amount),
+              )} off${value.appliesOnEachItem ? ' each' : ''}`
             : null;
       if (!reward) {
         return [];
@@ -238,12 +272,98 @@ async function queryActiveDiscounts(
             ? ('code' as const)
             : ('automatic' as const),
           codes: discount.codes?.nodes?.map(({code}) => code) ?? [],
+          productSpecific: discount.discountClasses?.includes('PRODUCT') === true,
+          targets,
         },
       ];
     })
     .sort((a, b) => a.threshold - b.threshold);
 
   return {status: 'ready', milestones};
+}
+
+const ALL_DISCOUNT_PROGRESS_TARGETS: DiscountProgressTargets = {
+  allItems: true,
+  productIds: [],
+  variantIds: [],
+  collectionIds: [],
+};
+
+function getDiscountProgressTargets(
+  items?: DiscountItemsRecord | null,
+): DiscountProgressTargets | null {
+  if (items?.allItems === true) return ALL_DISCOUNT_PROGRESS_TARGETS;
+
+  const productIds = items?.products?.nodes?.map(({id}) => id) ?? [];
+  const variantIds = items?.productVariants?.nodes?.map(({id}) => id) ?? [];
+  const collectionIds = items?.collections?.nodes?.map(({id}) => id) ?? [];
+  if (!productIds.length && !variantIds.length && !collectionIds.length) {
+    return null;
+  }
+
+  return {
+    allItems: false,
+    productIds,
+    variantIds,
+    collectionIds,
+  };
+}
+
+async function requestDiscountTargets(
+  credentials: AdminCredentials,
+  token: string,
+  discountId: string,
+) {
+  const result = await requestAdminGraphQL<DiscountTargetQueryResponse>(
+    credentials,
+    token,
+    DISCOUNT_PROGRESS_TARGETS_QUERY,
+    {id: discountId},
+  );
+  const items = result.discountNode?.discount?.customerGets?.items;
+  if (!items) {
+    throw new Error('Shopify discount target query returned no target data');
+  }
+  return items;
+}
+
+async function requestAdminGraphQL<T>(
+  credentials: AdminCredentials,
+  token: string,
+  query: string,
+  variables?: Record<string, string>,
+): Promise<T> {
+  const response = await fetch(
+    `https://${credentials.domain}/admin/api/${credentials.apiVersion}/graphql.json`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Access-Token': token,
+      },
+      body: JSON.stringify({query, variables}),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`Shopify discount query failed with status ${response.status}`);
+  }
+
+  const result = (await response.json()) as AdminGraphQLResponse<T>;
+  if (result.errors?.length) {
+    const messages = result.errors
+      .map((item) => item.message)
+      .filter((message): message is string => Boolean(message));
+    throw new Error(
+      messages.length
+        ? `Shopify discount query failed: ${messages.join('; ')}`
+        : 'Shopify discount query returned GraphQL errors',
+    );
+  }
+  if (!result.data) {
+    throw new Error('Shopify discount query returned no data');
+  }
+  return result.data;
 }
 
 function isCurrentlyActive(discount: DiscountRecordData, now: number) {
@@ -342,6 +462,7 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             }
             discountClasses
             minimumRequirement {
+              __typename
               ... on DiscountMinimumSubtotal {
                 greaterThanOrEqualToSubtotal {
                   amount
@@ -351,6 +472,7 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             }
             customerGets {
               items {
+                __typename
                 ... on AllDiscountItems {
                   allItems
                 }
@@ -381,6 +503,7 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             }
             discountClasses
             minimumRequirement {
+              __typename
               ... on DiscountMinimumSubtotal {
                 greaterThanOrEqualToSubtotal {
                   amount
@@ -390,6 +513,7 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             }
             customerGets {
               items {
+                __typename
                 ... on AllDiscountItems {
                   allItems
                 }
@@ -424,6 +548,7 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               }
             }
             minimumRequirement {
+              __typename
               ... on DiscountMinimumSubtotal {
                 greaterThanOrEqualToSubtotal {
                   amount
@@ -443,6 +568,7 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               }
             }
             minimumRequirement {
+              __typename
               ... on DiscountMinimumSubtotal {
                 greaterThanOrEqualToSubtotal {
                   amount
@@ -453,6 +579,73 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
             codes(first: 5) {
               nodes {
                 code
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+` as const;
+
+const DISCOUNT_PROGRESS_TARGETS_QUERY = `#graphql
+  query StorefrontProgressDiscountTargets($id: ID!) {
+    discountNode(id: $id) {
+      discount {
+        ... on DiscountAutomaticBasic {
+          customerGets {
+            items {
+              __typename
+              ... on AllDiscountItems {
+                allItems
+              }
+              ... on DiscountProducts {
+                products(first: 250) {
+                  nodes {
+                    id
+                  }
+                }
+                productVariants(first: 250) {
+                  nodes {
+                    id
+                  }
+                }
+              }
+              ... on DiscountCollections {
+                collections(first: 250) {
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }
+          }
+        }
+        ... on DiscountCodeBasic {
+          customerGets {
+            items {
+              __typename
+              ... on AllDiscountItems {
+                allItems
+              }
+              ... on DiscountProducts {
+                products(first: 250) {
+                  nodes {
+                    id
+                  }
+                }
+                productVariants(first: 250) {
+                  nodes {
+                    id
+                  }
+                }
+              }
+              ... on DiscountCollections {
+                collections(first: 250) {
+                  nodes {
+                    id
+                  }
+                }
               }
             }
           }

@@ -28,7 +28,11 @@ Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`,
 `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay
 Magic Checkout. The app installation must grant the scopes declared by the
 active Shopify app configuration; discount progress additionally requires
-`read_discounts`. Secrets are used only by server routes. The storefront creates
+`read_discounts`. Discount progress reads active Shopify discounts, orders
+milestones by their minimum subtotal, and only shows product- or
+collection-targeted offers when the current product/cart contains an eligible
+item. The displayed reward and threshold come from the configured discount, not
+its title. Secrets are used only by server routes. The storefront creates
 Razorpay orders with authoritative
 Shopify prices, opens `magic-checkout.js`, verifies the returned signature,
 fetches the Razorpay order/payment to confirm its final state and amount, and

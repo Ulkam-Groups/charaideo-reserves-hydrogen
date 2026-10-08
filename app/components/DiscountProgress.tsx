@@ -1,47 +1,61 @@
 import {Money} from '@shopify/hydrogen';
 import type {MoneyV2} from '@shopify/hydrogen/storefront-api-types';
 import type {
+  DiscountProgressItem,
   DiscountProgressMilestone,
   DiscountProgressStatus,
 } from '~/lib/discount-progress';
+import {
+  discountProgressAmount,
+  isDiscountProgressEligible,
+} from '~/lib/discount-progress';
 
 export function DiscountProgress({
-  amount,
-  currencyCode,
+  items = [],
   milestones,
   status,
   surface,
 }: {
-  amount?: string | number | null;
-  currencyCode?: MoneyV2['currencyCode'] | null;
+  items?: readonly DiscountProgressItem[];
   milestones: DiscountProgressMilestone[];
   status: DiscountProgressStatus;
   surface: 'cart' | 'product';
 }) {
   if (status !== 'ready') return null;
-
-  const currentAmount = amount == null ? Number.NaN : Number(amount);
-  if (
-    !Number.isFinite(currentAmount) ||
-    !currencyCode ||
-    !milestones.length
-  ) {
-    return null;
-  }
+  if (!items.length || !milestones.length) return null;
 
   const eligibleMilestones = milestones.filter(
-    (milestone) => milestone.currencyCode === currencyCode,
+    (milestone) =>
+      (surface === 'cart' || milestone.productSpecific) &&
+      isDiscountProgressEligible(milestone, items),
   );
   if (!eligibleMilestones.length) return null;
 
+  const amounts = new Map(
+    eligibleMilestones.map((milestone) => [
+      milestone.id,
+      discountProgressAmount(milestone, items),
+    ]),
+  );
   const maximum = Math.max(...eligibleMilestones.map((item) => item.threshold));
-  const progress = Math.min(100, (currentAmount / maximum) * 100);
-  const next = eligibleMilestones.find((item) => item.threshold > currentAmount);
+  const progress = Math.min(
+    100,
+    Math.max(
+      ...eligibleMilestones.map(
+        (milestone) =>
+          (Math.min(amounts.get(milestone.id) ?? 0, milestone.threshold) / maximum) *
+          100,
+      ),
+    ),
+  );
+  const next = eligibleMilestones.find(
+    (milestone) => (amounts.get(milestone.id) ?? 0) < milestone.threshold,
+  );
   const reached = eligibleMilestones.filter(
-    (item) => item.threshold <= currentAmount,
+    (milestone) => (amounts.get(milestone.id) ?? 0) >= milestone.threshold,
   );
   const lastReached = reached[reached.length - 1];
-  const money = (value: number) => (
+  const money = (value: number, currencyCode: MoneyV2['currencyCode']) => (
     <Money data={{amount: value.toFixed(2), currencyCode}} />
   );
 
@@ -56,12 +70,21 @@ export function DiscountProgress({
           <>
             {lastReached ? (
               <>
-                {lastReached.reward} unlocked. Add {money(next.threshold - currentAmount)} to reach{' '}
-                {next.reward}.
+                {lastReached.reward} unlocked. Add{' '}
+                {money(
+                  next.threshold - (amounts.get(next.id) ?? 0),
+                  next.currencyCode,
+                )}{' '}
+                to reach {next.reward}.
               </>
             ) : (
               <>
-                Add {money(next.threshold - currentAmount)} to unlock {next.reward}.
+                Add{' '}
+                {money(
+                  next.threshold - (amounts.get(next.id) ?? 0),
+                  next.currencyCode,
+                )}{' '}
+                to unlock {next.reward}.
               </>
             )}
           </>
@@ -81,12 +104,10 @@ export function DiscountProgress({
         aria-valuemax={100}
         aria-valuenow={Math.round(progress)}
       >
-        <span
-          className="discount-progress-fill"
-          style={{width: `${progress}%`}}
-        />
+        <span className="discount-progress-fill" style={{width: `${progress}%`}} />
         {eligibleMilestones.map((milestone) => {
-          const reachedMilestone = currentAmount >= milestone.threshold;
+          const reachedMilestone =
+            (amounts.get(milestone.id) ?? 0) >= milestone.threshold;
           return (
             <span
               key={milestone.id}
@@ -101,7 +122,8 @@ export function DiscountProgress({
       </div>
       <ol className="discount-progress-tiers">
         {eligibleMilestones.map((milestone) => {
-          const reachedMilestone = currentAmount >= milestone.threshold;
+          const reachedMilestone =
+            (amounts.get(milestone.id) ?? 0) >= milestone.threshold;
           const code = milestone.codes[0];
           return (
             <li
@@ -110,7 +132,7 @@ export function DiscountProgress({
               title={milestone.title}
             >
               <strong>{milestone.reward}</strong>
-              <span>{money(milestone.threshold)}</span>
+              <span>{money(milestone.threshold, milestone.currencyCode)}</span>
               {code && (
                 <small>
                   {reachedMilestone ? 'Use code' : 'Code'} {code}

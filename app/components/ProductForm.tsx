@@ -15,17 +15,18 @@ import {createPortal} from 'react-dom';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 import {DeliveryEstimate} from './DeliveryEstimate';
 import {DiscountProgress} from './DiscountProgress';
-import {
-  META_ANALYTICS_EVENTS,
-  metaContentId,
-} from '~/lib/ads/meta/meta-pixel';
+import {META_ANALYTICS_EVENTS, metaContentId} from '~/lib/ads/meta/meta-pixel';
 
 export function ProductForm({
   productOptions,
   selectedVariant,
+  productId,
+  productCollectionIds,
 }: {
   productOptions: MappedProductOptions[];
   selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
+  productId: string;
+  productCollectionIds: string[];
 }) {
   const navigate = useNavigate();
   const {open} = useAside();
@@ -201,25 +202,27 @@ export function ProductForm({
         )}
       </div>
       <div className="product-actions" ref={actionsRef}>
-        {(!selectedVariant || selectedVariant.availableForSale) && (<AddToCartButton
-          disabled={!selectedVariant || !selectedVariant.availableForSale}
-          onClick={() => {
-            open('cart');
-          }}
-          lines={
-            selectedVariant
-              ? [
-                  {
-                    merchandiseId: selectedVariant.id,
-                    quantity,
-                    selectedVariant,
-                  },
-                ]
-              : []
-          }
-        >
-          Add to cart
-        </AddToCartButton>)}
+        {(!selectedVariant || selectedVariant.availableForSale) && (
+          <AddToCartButton
+            disabled={!selectedVariant || !selectedVariant.availableForSale}
+            onClick={() => {
+              open('cart');
+            }}
+            lines={
+              selectedVariant
+                ? [
+                    {
+                      merchandiseId: selectedVariant.id,
+                      quantity,
+                      selectedVariant,
+                    },
+                  ]
+                : []
+            }
+          >
+            Add to cart
+          </AddToCartButton>
+        )}
         {selectedVariant && !selectedVariant.availableForSale && (
           <NotifyMeForm
             key={selectedVariant.id}
@@ -295,8 +298,19 @@ export function ProductForm({
       {checkoutError && <p role="alert">{checkoutError}</p>}
       <DiscountProgress
         surface="product"
-        amount={selectedVariant?.price.amount}
-        currencyCode={selectedVariant?.price.currencyCode}
+        items={
+          selectedVariant
+            ? [
+                {
+                  productId,
+                  variantId: selectedVariant.id,
+                  collectionIds: productCollectionIds,
+                  amount: Number(selectedVariant.price.amount) * quantity,
+                  currencyCode: selectedVariant.price.currencyCode,
+                },
+              ]
+            : []
+        }
         milestones={rootData?.cartDiscountProgress.milestones ?? []}
         status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
       />
@@ -313,11 +327,7 @@ export function ProductForm({
           <button
             type="button"
             className="button"
-            onClick={() =>
-              document
-                .getElementById(NOTIFY_TRIGGER_ID)
-                ?.click()
-            }
+            onClick={() => document.getElementById(NOTIFY_TRIGGER_ID)?.click()}
           >
             Notify me
           </button>
@@ -437,20 +447,42 @@ function NotifyMeForm({
           aria-label="Close"
           onClick={() => setOpen(false)}
         >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
         {status === 'done' ? (
           <div className="notify-success" role="status">
             <span className="notify-success-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                width="26"
+                height="26"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M5 12.5l4.5 4.5L19 7.5" />
               </svg>
             </span>
             <h3 id="notify-title">You’re on the list</h3>
             <p>We’ll email you the moment {productTitle} is back in stock.</p>
-            <button type="button" className="notify-submit" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              className="notify-submit"
+              onClick={() => setOpen(false)}
+            >
               Continue browsing
             </button>
           </div>
@@ -463,7 +495,8 @@ function NotifyMeForm({
               {showVariant ? ` · ${variantTitle}` : ''}
             </p>
             <p className="notify-copy">
-              This tea is sold out right now. Leave your email and we’ll tell you as soon as it returns. No payment needed.
+              This tea is sold out right now. Leave your email and we’ll tell you as soon
+              as it returns. No payment needed.
             </p>
             <form onSubmit={submit} noValidate={false}>
               <label htmlFor="notify-email">Email address</label>
@@ -485,11 +518,16 @@ function NotifyMeForm({
                   {error}
                 </p>
               )}
-              <button type="submit" className="notify-submit" disabled={status === 'pending'}>
+              <button
+                type="submit"
+                className="notify-submit"
+                disabled={status === 'pending'}
+              >
                 {status === 'pending' ? 'Saving…' : 'Notify me'}
               </button>
               <small>
-                By joining you agree to receive a back-in-stock email. No spam, unsubscribe anytime.
+                By joining you agree to receive a back-in-stock email. No spam,
+                unsubscribe anytime.
               </small>
             </form>
           </>
@@ -502,7 +540,17 @@ function NotifyMeForm({
     <>
       {status === 'done' ? (
         <p className="product-notify-done" role="status">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
           You’re on the list. We’ll email you when it’s back.

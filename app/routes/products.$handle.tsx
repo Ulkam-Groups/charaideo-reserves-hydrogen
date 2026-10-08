@@ -37,7 +37,7 @@ const PDP_DEFERRED_TIMEOUT_MS = 3_500;
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [
-    {title: ` ${data?.product.title ?? "Tea"} | Charaideo Reserves™`},
+    {title: ` ${data?.product.title ?? 'Tea'} | Charaideo Reserves™`},
     {
       rel: 'canonical',
       href: `/products/${data?.product.handle}`,
@@ -129,16 +129,13 @@ async function loadProductTaxonomyAttributes(
   handle: string,
 ) {
   try {
-    const {product} = await context.storefront.query(
-      PRODUCT_TAXONOMY_ATTRIBUTES_QUERY,
-      {
-        variables: {handle},
-        cache: context.storefront.CacheShort({
-          maxAge: 300,
-          staleWhileRevalidate: 3600,
-        }),
-      },
-    );
+    const {product} = await context.storefront.query(PRODUCT_TAXONOMY_ATTRIBUTES_QUERY, {
+      variables: {handle},
+      cache: context.storefront.CacheShort({
+        maxAge: 300,
+        staleWhileRevalidate: 3600,
+      }),
+    });
 
     return {
       taxonomyTeaVariety: product?.taxonomyTeaVariety ?? null,
@@ -161,10 +158,7 @@ async function loadProductTaxonomyAttributes(
  * fetched after the initial page load. If it's unavailable, the page should still 200.
  * Make sure to not throw any errors here, as it will cause the page to 500.
  */
-function loadDeferredData(
-  {context}: Route.LoaderArgs,
-  shopifyProductGid: string,
-) {
+function loadDeferredData({context}: Route.LoaderArgs, shopifyProductGid: string) {
   return {
     relatedProducts: settleDeferred(
       loadRelatedProducts(context, shopifyProductGid),
@@ -209,9 +203,8 @@ async function loadRelatedProducts(
     );
     const candidates = [
       ...(productRecommendations ?? []),
-      ...(product?.collections.nodes.flatMap(
-        (collection) => collection.products.nodes,
-      ) ?? []),
+      ...(product?.collections.nodes.flatMap((collection) => collection.products.nodes) ??
+        []),
     ];
     const uniqueCandidates = [
       ...new Map(
@@ -281,8 +274,7 @@ async function loadRelatedProductTags(
 }
 
 export default function Product() {
-  const {product, productOriginLabel, relatedProducts} =
-    useLoaderData<typeof loader>();
+  const {product, productOriginLabel, relatedProducts} = useLoaderData<typeof loader>();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -307,9 +299,7 @@ export default function Product() {
     .filter(Boolean);
   const productSubtitle =
     titleQualifiers.join(' · ') ||
-    [product.estate?.value, product.origin?.value]
-      .filter(Boolean)
-      .join(' · ');
+    [product.estate?.value, product.origin?.value].filter(Boolean).join(' · ');
   const quickFacts = [
     ['Origin', product.origin?.value || product.estate?.value],
     ['Tea style', product.teaStyle?.value || product.productType],
@@ -319,8 +309,7 @@ export default function Product() {
   const rating = parseRating(product.reviewRating?.value);
   const reviewCount = Number(product.reviewCount?.value || 0);
   const hasReviews = rating !== null && reviewCount > 0;
-  const recentProductImage =
-    selectedVariant?.image ?? product.images.nodes[0] ?? null;
+  const recentProductImage = selectedVariant?.image ?? product.images.nodes[0] ?? null;
 
   useEffect(() => {
     if (!selectedVariant?.availableForSale) return;
@@ -363,19 +352,32 @@ export default function Product() {
       <section className="product product-purchase">
         <div className="product-gallery">
           <div className="product-origin-tab">{productOriginLabel}</div>
-          <ProductImage
-            image={selectedVariant?.image}
-            images={product.images.nodes}
-          />
-          <p className="product-image-caption">Selected from the tea cabinet · packed with care</p>
+          <ProductImage image={selectedVariant?.image} images={product.images.nodes} />
+          <p className="product-image-caption">
+            Selected from the tea cabinet · packed with care
+          </p>
         </div>
         <div className="product-main">
-          <div className="product-index"><span>Reserve / {product.productType || 'Our selection'}</span><span>CR · TEA</span></div>
+          <div className="product-index">
+            <span>Reserve / {product.productType || 'Our selection'}</span>
+            <span>CR · TEA</span>
+          </div>
           <h1>{displayTitle || title}</h1>
           {productSubtitle && <p className="product-subtitle">{productSubtitle}</p>}
-          <a className={`product-review-summary${hasReviews ? '' : ' product-review-summary--empty'}`} href="#customer-notes">
+          <a
+            className={`product-review-summary${hasReviews ? '' : ' product-review-summary--empty'}`}
+            href="#customer-notes"
+          >
             {hasReviews ? (
-              <><span className="product-stars" aria-hidden="true">★★★★★</span><strong>{rating.toFixed(1)}</strong><span>{reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</span></>
+              <>
+                <span className="product-stars" aria-hidden="true">
+                  ★★★★★
+                </span>
+                <strong>{rating.toFixed(1)}</strong>
+                <span>
+                  {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}
+                </span>
+              </>
             ) : (
               <strong>New release · No reviews yet</strong>
             )}
@@ -394,15 +396,29 @@ export default function Product() {
           <ProductForm
             productOptions={productOptions}
             selectedVariant={selectedVariant}
+            productId={product.id}
+            productCollectionIds={product.collections.nodes.map(({id}) => id)}
           />
           <ul className="product-assurances" aria-label="Purchase information">
-            <li><TrustIcon name="leaf" /><span>Packed fresh in Assam</span></li>
-            <li><TrustIcon name="lock" /><span>Secure checkout</span></li>
+            <li>
+              <TrustIcon name="leaf" />
+              <span>Packed fresh in Assam</span>
+            </li>
+            <li>
+              <TrustIcon name="lock" />
+              <span>Secure checkout</span>
+            </li>
             {product.shelfLife?.value && (
-              <li><TrustIcon name="clock" /><span>Shelf life · {formatSpecification(product.shelfLife.value)}</span></li>
+              <li>
+                <TrustIcon name="clock" />
+                <span>Shelf life · {formatSpecification(product.shelfLife.value)}</span>
+              </li>
             )}
             {product.certifications?.value && (
-              <li><TrustIcon name="badge" /><span>{formatSpecification(product.certifications.value)}</span></li>
+              <li>
+                <TrustIcon name="badge" />
+                <span>{formatSpecification(product.certifications.value)}</span>
+              </li>
             )}
           </ul>
           {quickFacts.length > 0 && (
@@ -420,16 +436,20 @@ export default function Product() {
 
       <ProductSectionNav />
 
-      <ProductEditorialSections
-        product={product}
-        selectedVariant={selectedVariant}
-      />
+      <ProductEditorialSections product={product} selectedVariant={selectedVariant} />
 
-      <section className="product-reviews" id="customer-notes" aria-labelledby="customer-notes-title">
+      <section
+        className="product-reviews"
+        id="customer-notes"
+        aria-labelledby="customer-notes-title"
+      >
         <div className="product-reviews-heading">
           <span className="eyebrow">From the tea table</span>
           <h2 id="customer-notes-title">Reviews & questions.</h2>
-          <p>Verified reviews are supplied by Judge.me. Customer questions will appear here when Judge.me Q&amp;A is enabled.</p>
+          <p>
+            Verified reviews are supplied by Judge.me. Customer questions will appear here
+            when Judge.me Q&amp;A is enabled.
+          </p>
         </div>
         <AsyncProductReviews
           productId={product.id}
@@ -437,20 +457,39 @@ export default function Product() {
           fallbackCount={reviewCount}
         />
         <div className="product-reviews-legacy" aria-hidden="true">
-        {hasReviews ? (
-          <div className="product-rating-panel">
-            <strong>{rating.toFixed(1)}</strong>
-            <div><span className="product-stars" aria-label={`${rating.toFixed(1)} out of 5 stars`}>★★★★★</span><p>Based on {reviewCount} customer {reviewCount === 1 ? 'rating' : 'ratings'}.</p></div>
-            <p className="product-review-provider-note">Written reviews will appear when the connected provider makes them available to this storefront.</p>
-          </div>
-        ) : (
-          <div className="product-reviews-empty">
-            <span aria-hidden="true">◇</span>
-            <h3>No customer notes yet.</h3>
-            <p>This reserve is waiting for its first verified review. Already tasted it? You can share private feedback directly with our tea room.</p>
-            <Link className="text-link" prefetch="intent" to="/pages/contact">Share feedback →</Link>
-          </div>
-        )}
+          {hasReviews ? (
+            <div className="product-rating-panel">
+              <strong>{rating.toFixed(1)}</strong>
+              <div>
+                <span
+                  className="product-stars"
+                  aria-label={`${rating.toFixed(1)} out of 5 stars`}
+                >
+                  ★★★★★
+                </span>
+                <p>
+                  Based on {reviewCount} customer{' '}
+                  {reviewCount === 1 ? 'rating' : 'ratings'}.
+                </p>
+              </div>
+              <p className="product-review-provider-note">
+                Written reviews will appear when the connected provider makes them
+                available to this storefront.
+              </p>
+            </div>
+          ) : (
+            <div className="product-reviews-empty">
+              <span aria-hidden="true">◇</span>
+              <h3>No customer notes yet.</h3>
+              <p>
+                This reserve is waiting for its first verified review. Already tasted it?
+                You can share private feedback directly with our tea room.
+              </p>
+              <Link className="text-link" prefetch="intent" to="/pages/contact">
+                Share feedback →
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -458,7 +497,10 @@ export default function Product() {
         <Await resolve={relatedProducts} errorElement={null}>
           {(products) =>
             products.length > 0 && (
-              <section className="product-related" aria-labelledby="related-products-title">
+              <section
+                className="product-related"
+                aria-labelledby="related-products-title"
+              >
                 <div className="editorial-heading">
                   <div>
                     <span className="eyebrow">Continue exploring</span>
@@ -512,11 +554,7 @@ export function TeaSpecifications({
   const selectedWeight = selectedVariant?.selectedOptions.find((option) =>
     /size|weight|pack/i.test(option.name),
   )?.value;
-  const harvest = [
-    product.harvest?.value,
-    product.flush?.value,
-    product.pluckDate?.value,
-  ]
+  const harvest = [product.harvest?.value, product.flush?.value, product.pluckDate?.value]
     .filter(Boolean)
     .join(' · ');
   const specifications = [
@@ -544,8 +582,8 @@ export function TeaSpecifications({
         <span className="eyebrow">Nothing hidden</span>
         <h2 id="tea-specifications-title">Every detail, clearly stated.</h2>
         <p>
-          These specifications come directly from this tea’s Shopify product
-          record. Missing information is labelled instead of guessed.
+          These specifications come directly from this tea’s Shopify product record.
+          Missing information is labelled instead of guessed.
         </p>
       </div>
       <dl className="product-specifications-grid">
@@ -647,6 +685,11 @@ const PRODUCT_FRAGMENT = `#graphql
     vendor
     handle
     productType
+    collections(first: 250) {
+      nodes {
+        id
+      }
+    }
     category { name }
     tastingNotes: metafield(namespace: "custom", key: "tasting_notes") { value }
     brewingSuggestion: metafield(namespace: "custom", key: "brewing_suggestion") { value }

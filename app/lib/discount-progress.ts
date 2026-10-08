@@ -10,13 +10,62 @@ export type DiscountProgressMilestone = {
   title: string;
   method: 'automatic' | 'code';
   codes: string[];
+  productSpecific: boolean;
+  targets: DiscountProgressTargets;
 };
 
+export type DiscountProgressItem = {
+  productId: string;
+  variantId: string;
+  collectionIds: string[];
+  amount: number;
+  currencyCode: CurrencyCode;
+};
+
+export type DiscountProgressTargets = {
+  allItems: boolean;
+  productIds: string[];
+  variantIds: string[];
+  collectionIds: string[];
+};
+
+export function isDiscountProgressEligible(
+  milestone: DiscountProgressMilestone,
+  items: readonly DiscountProgressItem[],
+) {
+  return items.some((item) => isItemEligible(milestone.targets, item));
+}
+
+export function discountProgressAmount(
+  milestone: DiscountProgressMilestone,
+  items: readonly DiscountProgressItem[],
+) {
+  return items.reduce(
+    (total, item) =>
+      item.currencyCode === milestone.currencyCode &&
+      Number.isFinite(item.amount) &&
+      item.amount > 0 &&
+      isItemEligible(milestone.targets, item)
+        ? total + item.amount
+        : total,
+    0,
+  );
+}
+
+function isItemEligible(
+  targets: DiscountProgressTargets,
+  {productId, variantId, collectionIds}: DiscountProgressItem,
+) {
+  return (
+    targets.allItems ||
+    targets.productIds.includes(productId) ||
+    targets.variantIds.includes(variantId) ||
+    collectionIds.some((id) => targets.collectionIds.includes(id))
+  );
+}
+
 export type DiscountProgressStatus =
-  | 'ready'
-  | 'not-configured'
-  | 'permission-required'
-  | 'unavailable';
+  'ready' | 'not-configured' | 'permission-required' | 'unavailable';
 
 export type DiscountProgressData = {
   status: DiscountProgressStatus;
