@@ -1,8 +1,8 @@
 /* Product page: fresh, crisp palette + interactive "alive" layer */
 .product-page {
-  --pdp-ink: #0f2a1e;
-  --pdp-green: #1f7a4d;
-  --pdp-green-deep: #16583a;
+  --pdp-ink: #132a1f;
+  --pdp-green: #132a1f;
+  --pdp-green-deep: #1e402e;
   --pdp-mint: #eef7f1;
   --pdp-mint-line: #d3e7da;
   --pdp-leaf: #f6fbf7;
@@ -126,7 +126,7 @@
 }
 .product-purchase .product-thumbnail[aria-pressed='true'] {
   border-color: var(--pdp-green);
-  box-shadow: 0 0 0 2px rgba(31, 122, 77, 0.18);
+  box-shadow: 0 0 0 2px rgba(19, 42, 31, 0.18);
 }
 
 /* Live price + option pills + CTA feedback */
@@ -154,12 +154,12 @@
   background: var(--pdp-green);
   border-color: var(--pdp-green);
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(31, 122, 77, 0.28);
+  box-shadow: 0 8px 20px rgba(19, 42, 31, 0.28);
 }
 .product-actions > form button:hover:not(:disabled) {
   background: var(--pdp-green-deep);
   transform: translateY(-2px);
-  box-shadow: 0 12px 26px rgba(31, 122, 77, 0.34);
+  box-shadow: 0 12px 26px rgba(19, 42, 31, 0.34);
 }
 .product-actions > form button:active:not(:disabled),
 .product-actions .product-buy-now:active:not(:disabled) {
@@ -266,19 +266,22 @@ button[data-state='busy'] {
   scroll-margin-top: calc(var(--header-height) + 64px);
 }
 
-/* Shopify discount milestones are shared by the cart and product buy box. */
+/* Shopify discount milestones: one compact line (message + slim bar). */
 .discount-progress {
-  margin: 14px 0 0;
-  padding: 15px 14px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 0;
+  padding: 9px 12px;
   border: 1px solid var(--pdp-mint-line);
-  border-radius: 14px;
-  background: #effaf4;
+  border-radius: 12px;
+  background: #f4f7f4;
   color: var(--pdp-ink);
 }
 .discount-progress--cart {
   flex: none;
   margin: 0;
-  padding: 17px 24px 16px;
+  padding: 10px 24px;
   border-width: 0 0 1px;
   border-radius: 0;
 }
@@ -287,93 +290,79 @@ button[data-state='busy'] {
   margin-bottom: 22px;
 }
 .discount-progress-message {
-  margin: 0 0 15px;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
   color: #244936;
   font-size: 12px;
-  font-weight: 600;
-  line-height: 1.45;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.discount-progress-message b {
+  font-weight: 700;
+}
+.discount-progress-emoji {
+  display: inline-block;
+  font-size: 15px;
+  animation: dp-wiggle 2.4s ease-in-out infinite;
 }
 .discount-progress-track {
   position: relative;
-  height: 7px;
-  margin: 0 1px;
+  flex: 1;
+  min-width: 48px;
+  height: 5px;
+  margin-right: 9px;
   border-radius: 999px;
-  background: #dce9df;
+  background: #e1e9e3;
 }
 .discount-progress-fill {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #55b984, #148957);
+  background: linear-gradient(90deg, #4f7a62, #132a1f);
   transition: width 350ms var(--pdp-ease);
 }
 .discount-progress-marker {
   position: absolute;
   top: 50%;
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 11px;
+  height: 11px;
   place-items: center;
-  border: 2px solid #8cab98;
+  border: 2px solid #9db3a5;
   border-radius: 50%;
   background: #ffffff;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
   transform: translate(-50%, -50%);
-  transition: background-color 180ms ease, border-color 180ms ease;
 }
 .discount-progress-marker.is-reached {
-  border-color: #148957;
-  background: #148957;
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+  animation: dp-pop 700ms var(--pdp-ease) both;
 }
-.discount-progress-tiers {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
-  gap: 8px;
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
+@keyframes dp-pop {
+  0% { transform: translate(-50%, -50%) scale(0.2) rotate(-30deg); opacity: 0; }
+  60% { transform: translate(-50%, -80%) scale(1.5) rotate(12deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1) rotate(0); }
 }
-.discount-progress-tiers li {
-  display: grid;
-  align-content: start;
-  gap: 3px;
-  color: #607369;
-  font-size: 10px;
-  line-height: 1.25;
-  text-align: center;
-}
-.discount-progress-tiers li.is-reached {
-  color: var(--pdp-green-deep);
-}
-.discount-progress-tiers strong {
-  color: inherit;
-  font-size: 11px;
-}
-.discount-progress-tiers small {
-  overflow-wrap: anywhere;
-  color: #607369;
-  font-size: 9px;
-}
-.discount-progress-message--cart,
-.discount-progress-message--product {
-  color: #52665b;
-}
-.discount-progress-message--cart {
-  margin: 0;
-  padding: 14px 24px;
-  border-bottom: 1px solid var(--pdp-mint-line);
-  background: #effaf4;
-}
-.cart-recommendations {
+@keyframes dp-wiggle {
+  0%, 85%, 100% { transform: rotate(0); }
+  90% { transform: rotate(-14deg); }
+  95% { transform: rotate(12deg); }
+}.cart-recommendations {
   margin-top: 8px;
   padding-top: 20px;
-  border-top: 1px solid #dce9df;
+  border-top: 1px solid #e1e9e3;
 }
 .cart-recommendations h3 {
   margin: 0 0 14px;
-  color: #0f2a1e;
+  color: #132a1f;
   font: 600 17px/1.2 var(--serif);
 }
 .cart-recommendations > ul {
@@ -400,7 +389,7 @@ button[data-state='busy'] {
   overflow: hidden;
   border-radius: 10px;
   background: #f1f7f2;
-  color: #1f7a4d;
+  color: #132a1f;
 }
 .cart-recommendation-image img {
   width: 100%;
@@ -436,16 +425,16 @@ button[data-state='busy'] {
   min-width: 56px;
   min-height: 38px;
   padding: 0 13px;
-  border: 1px solid #1f7a4d;
+  border: 1px solid #132a1f;
   border-radius: 999px;
   background: #ffffff;
-  color: #16583a;
+  color: #1e402e;
   font-size: 12px;
   font-weight: 700;
   transition: background-color 160ms ease, color 160ms ease;
 }
 .cart-recommendation > form button:hover:not(:disabled) {
-  background: #1f7a4d;
+  background: #132a1f;
   color: #ffffff;
 }
 .cart-recommendation > form button:disabled {
@@ -461,8 +450,8 @@ button[data-state='busy'] {
   .discount-progress--cart {
     padding-inline: 18px;
   }
-  .discount-progress-message--cart {
-    padding-inline: 18px;
+  .discount-progress-message {
+    white-space: normal;
   }
   .cart-recommendation {
     grid-template-columns: 56px minmax(0, 1fr) auto;
@@ -503,7 +492,7 @@ button[data-state='busy'] {
   background: var(--pdp-mint) !important;
 }
 .tea-meter-track span {
-  background: linear-gradient(90deg, #5bbf86, var(--pdp-green)) !important;
+  background: linear-gradient(90deg, #4f7a62, var(--pdp-green)) !important;
   transition: width 900ms var(--pdp-ease) 150ms;
 }
 .tea-recipe-tabs button.is-active {
@@ -556,11 +545,11 @@ button[data-state='busy'] {
 }
 @keyframes pdp-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(31, 122, 77, 0.45);
+    box-shadow: 0 0 0 0 rgba(19, 42, 31, 0.45);
   }
   70%,
   100% {
-    box-shadow: 0 0 0 7px rgba(31, 122, 77, 0);
+    box-shadow: 0 0 0 7px rgba(19, 42, 31, 0);
   }
 }
 
@@ -575,4 +564,70 @@ button[data-state='busy'] {
     opacity: 1;
     transform: none;
   }
+}
+
+/* Compact offer strip */
+.discount-progress {
+  gap: 10px;
+  padding: 8px 12px;
+}
+.discount-progress-message div,
+.discount-progress-message b {
+  display: inline;
+}
+.discount-progress-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.discount-progress-emoji {
+  font-size: 14px;
+}
+@media (max-width: 420px) {
+  .discount-progress-track {
+    display: none;
+  }
+}
+
+/* Specifications: classic storefront spec table */
+.tea-record-section .tea-record-grid {
+  display: block;
+  max-width: 860px;
+  overflow: hidden;
+  border: 1px solid var(--pdp-mint-line);
+  border-radius: 12px;
+  background: #ffffff;
+}
+.tea-record-section .tea-record-grid > div,
+.tea-record-section .tea-record-grid > div:hover {
+  display: grid;
+  grid-template-columns: minmax(110px, 200px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 11px 18px;
+  border: 0;
+  border-bottom: 1px solid #eaf1ec;
+  border-radius: 0;
+  background: #ffffff !important;
+  box-shadow: none;
+  transform: none;
+}
+.tea-record-section .tea-record-grid > div:nth-child(odd) {
+  background: var(--pdp-leaf) !important;
+}
+.tea-record-section .tea-record-grid > div:last-child {
+  border-bottom: 0;
+}
+.tea-record-section .tea-record-grid dt {
+  color: #5d7066;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tea-record-section .tea-record-grid dd {
+  color: var(--pdp-ink);
+  font-size: 13px;
+  font-weight: 600;
 }

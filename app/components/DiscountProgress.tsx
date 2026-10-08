@@ -56,8 +56,10 @@ export function DiscountProgress({
   );
   const lastReached = reached[reached.length - 1];
   const money = (value: number, currencyCode: MoneyV2['currencyCode']) => (
-    <Money data={{amount: value.toFixed(2), currencyCode}} />
+    <Money as="span" data={{amount: value.toFixed(2), currencyCode}} />
   );
+
+  const gap = next ? next.threshold - (amounts.get(next.id) ?? 0) : 0;
 
   return (
     <section
@@ -66,34 +68,18 @@ export function DiscountProgress({
       aria-live="polite"
     >
       <p className="discount-progress-message">
+        <span className="discount-progress-emoji" aria-hidden="true">
+          {lastReached ? '\u{1F389}' : '\u{1F381}'}
+        </span>
         {next ? (
-          <>
-            {lastReached ? (
-              <>
-                {lastReached.reward} unlocked. Add{' '}
-                {money(
-                  next.threshold - (amounts.get(next.id) ?? 0),
-                  next.currencyCode,
-                )}{' '}
-                to reach {next.reward}.
-              </>
-            ) : (
-              <>
-                Add{' '}
-                {money(
-                  next.threshold - (amounts.get(next.id) ?? 0),
-                  next.currencyCode,
-                )}{' '}
-                to unlock {next.reward}.
-              </>
-            )}
-          </>
+          <span>
+            {lastReached ? `${lastReached.reward} unlocked \u00b7 ` : ''}
+            Add {money(gap, next.currencyCode)} for <b>{next.reward}</b>
+          </span>
         ) : (
-          <>
-            {reached.length
-              ? `${reached.map((item) => item.reward).join(' · ')} reached.`
-              : 'Add to cart to see your offer progress.'}
-          </>
+          <span>
+            <b>{reached.map((item) => item.reward).join(' \u00b7 ')}</b> unlocked
+          </span>
         )}
       </p>
       <div
@@ -113,35 +99,14 @@ export function DiscountProgress({
               key={milestone.id}
               className={`discount-progress-marker${reachedMilestone ? ' is-reached' : ''}`}
               style={{left: `${(milestone.threshold / maximum) * 100}%`}}
+              title={`${milestone.reward} at ${milestone.threshold}`}
               aria-hidden="true"
             >
-              {reachedMilestone ? '✓' : ''}
+              {reachedMilestone ? '\u{1F389}' : ''}
             </span>
           );
         })}
       </div>
-      <ol className="discount-progress-tiers">
-        {eligibleMilestones.map((milestone) => {
-          const reachedMilestone =
-            (amounts.get(milestone.id) ?? 0) >= milestone.threshold;
-          const code = milestone.codes[0];
-          return (
-            <li
-              key={milestone.id}
-              className={reachedMilestone ? 'is-reached' : undefined}
-              title={milestone.title}
-            >
-              <strong>{milestone.reward}</strong>
-              <span>{money(milestone.threshold, milestone.currencyCode)}</span>
-              {code && (
-                <small>
-                  {reachedMilestone ? 'Use code' : 'Code'} {code}
-                </small>
-              )}
-            </li>
-          );
-        })}
-      </ol>
     </section>
   );
 }

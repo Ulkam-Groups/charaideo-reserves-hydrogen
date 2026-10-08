@@ -100,8 +100,8 @@ export function ProductImage({
       </button>
       {galleryImages.length > 1 && (
         <>
-          <button type="button" className="product-stage-arrow product-stage-arrow--prev" aria-label="Previous image" onClick={() => step(-1)}>‹</button>
-          <button type="button" className="product-stage-arrow product-stage-arrow--next" aria-label="Next image" onClick={() => step(1)}>›</button>
+          <button type="button" className="product-stage-arrow product-stage-arrow--prev" aria-label="Previous image" onClick={() => step(-1)}>&#8249;</button>
+          <button type="button" className="product-stage-arrow product-stage-arrow--next" aria-label="Next image" onClick={() => step(1)}>&#8250;</button>
         </>
       )}
       </div>

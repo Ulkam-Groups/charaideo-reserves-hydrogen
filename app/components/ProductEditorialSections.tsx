@@ -315,7 +315,7 @@ function TeaRecord({
       <SectionHeading
         eyebrow="Product details"
         title="Traceability"
-        intro="Origin, craft and pack details—read directly from this product’s Shopify record."
+        intro="Origin, craft and pack detail."
         id="tea-record-title"
       />
       <dl className="tea-record-grid">
