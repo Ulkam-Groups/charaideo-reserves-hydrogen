@@ -120,6 +120,26 @@ export function DiscountProgress({
           );
         })}
       </div>
+      {surface === 'cart' && (
+        <div className="discount-progress-labels" aria-hidden="true">
+          {eligibleMilestones.map((milestone) => {
+            const done = (amounts.get(milestone.id) ?? 0) >= milestone.threshold;
+            const position = (milestone.threshold / maximum) * 100;
+            return (
+              <span
+                key={milestone.id}
+                className={`discount-progress-label${done ? ' is-reached' : ''}${
+                  position >= 99 ? ' is-last' : ''
+                }`}
+                style={{left: `${position}%`}}
+              >
+                <b>{money(milestone.threshold, milestone.currencyCode)}</b>
+                <small>{milestone.reward}</small>
+              </span>
+            );
+          })}
+        </div>
+      )}
       <CelebrationBanner surface={surface} paused={paused} rewards={reached.map((item) => ({id: item.id, reward: item.reward}))} />
     </section>
   );

@@ -12,6 +12,11 @@ import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
+import {
+  cartDiscountProgressItems,
+  discountProgressAmount,
+  isDiscountProgressEligible,
+} from '~/lib/discount-progress';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 import {RazorpayBrand} from './RazorpayBrand';
 import {
@@ -25,6 +30,14 @@ type CartSummaryProps = {
 };
 
 export function CartSummary({cart, layout}: CartSummaryProps) {
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const progressItems = cartDiscountProgressItems(cart);
+  const freeShipping = (rootData?.cartDiscountProgress.milestones ?? []).some(
+    (milestone) =>
+      /shipping|delivery/i.test(milestone.reward) &&
+      isDiscountProgressEligible(milestone, progressItems) &&
+      discountProgressAmount(milestone, progressItems) >= milestone.threshold,
+  );
   const className =
     layout === 'page' ? 'cart-summary-page' : 'cart-summary-aside';
 
@@ -56,7 +69,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
 
   return (
     <div aria-labelledby="cart-summary" className={className}>
-      <h4 id="cart-summary">Your selection</h4>
+      <h4 id="cart-summary">Order summary</h4>
       <CartSavings cart={cart} />
       <dl className="cart-subtotal">
         <dt>Subtotal</dt>
@@ -68,8 +81,23 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           )}
         </dd>
       </dl>
-      <CartDiscounts discountCodes={cart?.discountCodes} />
-      <CartGiftCard giftCardCodes={cart?.appliedGiftCards} />
+      <dl className="cart-shipping-row">
+        <dt>Shipping</dt>
+        <dd className={freeShipping ? 'is-free' : undefined}>
+          {freeShipping ? 'Free shipping unlocked' : 'Calculated at checkout'}
+        </dd>
+      </dl>
+      <details className="cart-offers" open={Boolean(cart?.discountCodes?.some((c) => c.applicable))}>
+        <summary>Have a discount or gift card code?</summary>
+        <CartDiscounts discountCodes={cart?.discountCodes} />
+        <CartGiftCard giftCardCodes={cart?.appliedGiftCards} />
+      </details>
+      <dl className="cart-total-row">
+        <dt>Estimated total</dt>
+        <dd>
+          {cart?.cost?.totalAmount?.amount ? <Money data={cart.cost.totalAmount} /> : '-'}
+        </dd>
+      </dl>
       <CartCheckoutActions cart={cart} layout={layout} />
     </div>
   );
@@ -205,10 +233,59 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
           )}
         </span>
       </button>
-      {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
-      {!!cart.appliedGiftCards?.length && <p role="status">Remove gift cards to use this checkout.</p>}
-      {checkoutError && <p role="alert">{checkoutError}</p>}
-      <p className="fine-print">Shipping and applicable taxes calculated at checkout.</p>
+      {layout === 'aside' ? (
+        <div className="cart-drawer-notes">
+          {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
+          {!!cart.appliedGiftCards?.length && (
+            <p role="status">Remove gift cards to use this checkout.</p>
+          )}
+          {checkoutError && <p role="alert">{checkoutError}</p>}
+          <p className="fine-print">Inclusive of all taxes.</p>
+        </div>
+      ) : (
+        <>
+          {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
+          {!!cart.appliedGiftCards?.length && (
+            <p role="status">Remove gift cards to use this checkout.</p>
+          )}
+          {checkoutError && <p role="alert">{checkoutError}</p>}
+          <p className="fine-print">
+            {layout === 'page'
+              ? 'Inclusive of all taxes.'
+              : 'Shipping and applicable taxes calculated at checkout.'}
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+const PAYMENT_LOGOS = [
+  ['Visa', 'card-networks/visa.svg'],
+  ['Mastercard', 'card-networks/mastercard.svg'],
+  ['Google Pay', 'app/googlepay.svg'],
+  ['Amazon Pay', 'app/amazonpay.svg'],
+  ['PayTm', 'app/paytm.svg']
+];
+
+export function SecurePayments() {
+  return (
+    <div className="cart-secure">
+      <strong>Secure checkout</strong>
+      <span>Cards, UPI, Netbanking &amp; Wallets</span>
+      <div className="cart-secure-logos">
+        {PAYMENT_LOGOS.map(([name, path]) => (
+          <img
+            key={path}
+            src={`https://cdn.razorpay.com/${path}`}
+            alt={name}
+            title={name}
+            width={18}
+            height={18}
+            loading="lazy"
+          />
+        ))}
+      </div>
     </div>
   );
 }
