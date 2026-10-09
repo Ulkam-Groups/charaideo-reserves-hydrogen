@@ -251,6 +251,8 @@ export const META_PIXEL_CSP = {
     'https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws',
   ],
   imgSrc: ['https://www.facebook.com'],
+  // fbevents.js opens a hidden facebook.com iframe for click tracking.
+  frameSrc: ['https://www.facebook.com'],
 } as const;
 
 type ShopifyOrderAddress = {

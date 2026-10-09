@@ -56,8 +56,10 @@ export default async function handleRequest(
     ],
     frameSrc: [
       "'self'",
+      'https://www.google.com',
       'https://www.instagram.com',
       'https://www.youtube-nocookie.com',
+      ...(metaPixelEnabled ? META_PIXEL_CSP.frameSrc : []),
       ...(fastrrEnabled ? FASTRR_CSP.frameSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.frameSrc : []),
       'https://storefront-agent-server.shopify.ai',
