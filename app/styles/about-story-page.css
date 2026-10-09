@@ -4,7 +4,7 @@
   margin: -20px 0 0;
   padding: 0;
   overflow: hidden;
-  background: #fffef8;
+  background: #ffffff;
   color: #132a1f;
 }
 
@@ -193,6 +193,9 @@ main.main--offset:has(> .about-page) {
   margin: 0 auto;
   padding: 34px 0;
   border-bottom: 1px solid #e7ede0;
+  background: #ffffff;
+  box-shadow: 0 0 0 100vmax #ffffff;
+  clip-path: inset(0 -100vmax);
 }
 
 .about-page-proof-label {
@@ -518,19 +521,22 @@ main.main--offset:has(> .about-page) {
 .about-page-close {
   display: grid;
   width: min(100% - 48px, 1240px);
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 54px;
-  align-items: end;
-  margin: clamp(64px, 7vw, 96px) auto;
-  padding: clamp(38px, 5vw, 64px);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  margin: clamp(20px, 2.5vw, 32px) auto clamp(44px, 5vw, 68px);
+  padding: clamp(32px, 4vw, 48px);
   border: 1px solid #e1d8c9;
   border-radius: 24px;
   background:
     radial-gradient(circle at 85% 20%, rgba(196, 164, 132, 0.2), transparent 36%), #f5f1e6;
+  box-shadow: 0 0 0 100vmax #ffffff;
+  clip-path: inset(0 -100vmax);
 }
 
 .about-page-close h2 {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  font-size: clamp(32px, 3.5vw, 46px);
 }
 
 .about-page-close > div > p:last-child {
@@ -538,7 +544,7 @@ main.main--offset:has(> .about-page) {
   margin-bottom: 0;
   color: #5a6b62;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .about-page a:focus-visible {
@@ -905,7 +911,7 @@ main.main--offset:has(> .about-page) {
   margin-bottom: 14px;
   border: 1px solid #a97445;
   border-radius: 50%;
-  background: #fffef8;
+  background: #ffffff;
   color: #5c171c;
   font: 400 17px/1 var(--serif);
   transition:
@@ -935,19 +941,29 @@ main.main--offset:has(> .about-page) {
 /* Garden to cup */
 .about-page-journey {
   width: min(100% - 48px, 1240px);
-  margin: clamp(48px, 6vw, 88px) auto;
+  margin: 0 auto;
+  padding: clamp(44px, 5vw, 72px) 0 clamp(24px, 3vw, 36px);
+  background: #ffffff;
+  box-shadow: 0 0 0 100vmax #ffffff;
+  clip-path: inset(0 -100vmax);
 }
 
 .about-page-journey > header {
-  max-width: 720px;
-  margin-bottom: 32px;
+  max-width: 960px;
+  margin-bottom: 26px;
 }
 
 .about-page-journey h2 {
   margin: 0;
   color: #132a1f;
-  font: 400 clamp(32px, 3.6vw, 48px)/1.08 var(--serif);
+  font: 400 clamp(28px, 3vw, 40px)/1.08 var(--serif);
   letter-spacing: -0.025em;
+}
+
+@media (min-width: 701px) {
+  .about-page-journey h2 {
+    white-space: nowrap;
+  }
 }
 
 .about-journey {
@@ -1099,7 +1115,7 @@ main.main--offset:has(> .about-page) {
 /* Newsletter */
 .about-page-close-signup {
   grid-column: 1 / -1;
-  padding-top: 28px;
+  padding-top: 22px;
   border-top: 1px solid rgba(19, 42, 31, 0.14);
 }
 

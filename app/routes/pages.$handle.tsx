@@ -659,22 +659,6 @@ function AboutStoryPage() {
             conversation, a cup of tea.
           </p>
         </div>
-        <div className="about-page-actions">
-          <Link
-            className="about-page-button about-page-button-primary"
-            prefetch="intent"
-            to="/reserve-list"
-          >
-            Explore the Reserve List
-          </Link>
-          <Link
-            className="about-page-button about-page-button-secondary"
-            prefetch="intent"
-            to="/pages/contact"
-          >
-            Talk to us
-          </Link>
-        </div>
         <div className="about-page-close-signup">
           <NewsletterSignup />
         </div>
