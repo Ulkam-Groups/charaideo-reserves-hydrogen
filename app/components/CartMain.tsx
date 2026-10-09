@@ -86,7 +86,9 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
         <header className="cart-page-head">
           <div>
             <nav className="cart-page-crumbs" aria-label="Breadcrumb">
-              <Link to="/">Home</Link>
+              <Link to="/" prefetch="intent">
+                Home
+              </Link>
               <span aria-hidden="true">/</span>
               <span aria-current="page">Cart</span>
             </nav>
