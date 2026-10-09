@@ -5,6 +5,7 @@ import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
 import aboutHeroImage from '../assets/about-charaideo-reserves-hero.png';
 import aboutStoryStylesheet from '~/styles/about-story-page.css?url';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
+import {JourneyMap, NewsletterSignup} from '~/components/AboutStoryExtras';
 
 export const links: Route.LinksFunction = () => [
   {rel: 'stylesheet', href: aboutStoryStylesheet},
@@ -116,6 +117,10 @@ function StaticPage({page}: {page: StaticPageContent}) {
     return <AboutStoryPage />;
   }
 
+  if (page.handle === 'contact') {
+    return <ContactPage page={page} />;
+  }
+
   return (
     <div className={`content-page content-page-${page.handle}`}>
       <section className="content-hero">
@@ -173,6 +178,217 @@ function StaticPage({page}: {page: StaticPageContent}) {
   );
 }
 
+function ContactPage({page}: {page: StaticPageContent}) {
+  const socialLinks = [
+    {
+      label: 'Instagram',
+      handle: '@charaideo.reserves',
+      href: 'https://www.instagram.com/charaideo.reserves/',
+    },
+    {
+      label: 'Facebook',
+      handle: 'Charaideo Reserves',
+      href: 'https://www.facebook.com/profile.php?id=61595061842649',
+    },
+    {
+      label: 'LinkedIn',
+      handle: 'Charaideo Reserves',
+      href: 'https://www.linkedin.com/showcase/charaideo-reserves',
+    },
+  ];
+
+  const faqs = [
+    {
+      question: 'Where is my order?',
+      answer:
+        'Email contact@ulkamgroup.com with your order number and we will share the latest tracking update.',
+    },
+    {
+      question: 'Do you take wholesale or gifting enquiries?',
+      answer:
+        'Yes. Write to us with your quantities and timeline, and our team will reply within one business day.',
+    },
+    {
+      question: 'Can I visit the estate?',
+      answer:
+        'We are based in Rupai Siding, Assam. Call ahead so we can plan your visit.',
+    },
+    {
+      question: 'How do I return or exchange a tea?',
+      answer:
+        'Our Refund Policy covers the details; for help with a specific order, contact us.',
+    },
+  ];
+
+  return (
+    <main className="contact-page">
+      <section className="contact-intro">
+        <div className="contact-intro-copy">
+          <span className="eyebrow">{page.hero}</span>
+          <h1>Let&rsquo;s start a conversation.</h1>
+          <p>{page.excerpt}</p>
+          <div className="contact-intro-actions">
+            <a className="button primary" href="mailto:contact@ulkamgroup.com">
+              Email our team
+            </a>
+            <a className="contact-text-link" href="tel:+918431988910">
+              +91 84319 88910 <span aria-hidden="true">&#8599;</span>
+            </a>
+          </div>
+        </div>
+        <aside className="contact-intro-note" aria-label="Our promise">
+          <span>From the tea country</span>
+          <p>
+            Product questions, order support, wholesale enquiries, or simply a
+            shared love of Assam tea&mdash;our team is here to help.
+          </p>
+          <small>We usually reply within one business day.</small>
+        </aside>
+      </section>
+
+      <section className="contact-details" aria-labelledby="contact-details-title">
+        <div className="contact-section-heading">
+          <span className="eyebrow">Ways to reach us</span>
+          <h2 id="contact-details-title">Choose what works for you.</h2>
+        </div>
+        <div className="contact-card-grid">
+          <article>
+            <span className="contact-card-number">01</span>
+            <h3>Email</h3>
+            <p>For orders, products, partnerships, and general enquiries.</p>
+            <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a>
+            <a href="mailto:kamalika@ulkamgroup.com">kamalika@ulkamgroup.com</a>
+          </article>
+          <article>
+            <span className="contact-card-number">02</span>
+            <h3>Call</h3>
+            <p>Monday&ndash;Friday, 10:00 AM&ndash;4:00 PM IST.</p>
+            <a href="tel:+918431988910">+91 84319 88910</a>
+          </article>
+          <article>
+            <span className="contact-card-number">03</span>
+            <h3>Visit</h3>
+            <p>Ownguri Gaon, Rupai Siding, Assam 786153, India.</p>
+            <a href="https://maps.app.goo.gl/ZTk13bPuNgmt1kBy5" target="_blank" rel="noreferrer">
+              Get directions <span aria-hidden="true">&#8599;</span>
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <section className="contact-location" aria-labelledby="contact-location-title">
+        <div className="contact-location-content">
+          <span className="eyebrow">Find us in Assam</span>
+          <h2 id="contact-location-title">
+            At home in tea country.
+            <br />
+            <em>Come find us in Rupai Siding.</em>
+          </h2>
+          <p>
+            Charaideo Reserves is based in Rupai Siding, in the heart of Upper
+            Assam. Open the map for turn-by-turn directions to our location.
+          </p>
+        </div>
+        <div className="contact-map">
+          <iframe
+            title="Charaideo Reserves location in Rupai Siding, Assam"
+            src="https://www.google.com/maps?q=27.6012775%2C95.5496621&z=17&output=embed"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+        </div>
+        <span className="contact-location-seal" aria-hidden="true">
+          <svg viewBox="100 104 130 150" fill="none" focusable="false">
+            <path
+              d="M106.5 110.5H216.498L223.482 121.849H143.166C142.293 124.468 142.293 127.087 144.912 130.579C150.15 137.563 156.261 141.055 164.118 145.42C172.848 149.785 180.705 152.404 188.562 155.023C195.546 155.896 200.784 159.388 205.149 165.499C207.768 168.991 208.641 174.229 208.641 179.467C208.641 190.816 204.276 203.038 199.038 212.641C192.927 222.244 182.451 231.847 170.229 235.339C163.245 237.958 152.769 236.212 145.785 233.593C136.182 230.101 131.817 224.863 130.071 217.879C129.198 215.26 129.198 213.514 129.198 210.022V122.722L114.357 121.849L106.5 110.5ZM142.293 142.801C145.785 148.039 151.023 154.15 156.261 159.388C164.118 165.499 172.848 169.864 180.705 171.61C184.197 172.483 185.943 172.483 187.689 174.229C188.562 177.721 187.689 182.086 186.816 185.578C185.07 195.181 180.705 203.038 174.594 210.022C169.356 215.26 163.245 219.625 158.88 220.498C154.515 221.371 150.15 219.625 146.658 217.006C144.039 215.26 142.293 213.514 142.293 210.895V142.801Z"
+              fill="currentColor"
+              fillRule="evenodd"
+              clipRule="evenodd"
+            />
+          </svg>
+          <small>ASSAM</small>
+          <strong>26.98<sup>&deg;</sup></strong>
+        </span>
+      </section>
+
+      <section className="contact-faq" aria-labelledby="contact-faq-title">
+        <div>
+          <span className="eyebrow">Quick answers</span>
+          <h2 id="contact-faq-title">Before you write.</h2>
+        </div>
+        <div className="contact-faq-list">
+          {faqs.map((faq) => (
+            <details key={faq.question}>
+              <summary>{faq.question}</summary>
+              <p>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="contact-social" aria-labelledby="contact-social-title">
+        <div>
+          <span className="eyebrow">Follow the journey</span>
+          <h2 id="contact-social-title">Stories from the reserve.</h2>
+        </div>
+        <div className="contact-social-links">
+          {socialLinks.map((social) => (
+            <a
+              key={social.label}
+              className={`social-link-${social.label.toLowerCase()}`}
+              href={social.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Follow Charaideo Reserves on ${social.label}`}
+              title={social.label}
+            >
+              <SocialIcon platform={social.label} />
+            </a>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function SocialIcon({platform}: {platform: string}) {
+  if (platform === 'Instagram') {
+    return (
+      <svg className="social-icon-instagram" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+          <linearGradient id="instagram-gradient" x1="2" y1="22" x2="22" y2="2">
+            <stop offset="0" stopColor="#feda75" />
+            <stop offset="0.35" stopColor="#fa7e1e" />
+            <stop offset="0.62" stopColor="#d62976" />
+            <stop offset="0.82" stopColor="#962fbf" />
+            <stop offset="1" stopColor="#4f5bd5" />
+          </linearGradient>
+        </defs>
+        <rect x="3" y="3" width="18" height="18" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.5" cy="6.5" r="1" />
+      </svg>
+    );
+  }
+
+  if (platform === 'Facebook') {
+    return (
+      <svg className="social-icon-solid social-icon-facebook" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14.5 8H17V4.4c-.43-.06-1.9-.18-3.64-.18-3.6 0-6.07 2.2-6.07 6.25V14H3.2v4.03h4.09V24h5.02v-5.97h4.18L17.15 14h-4.84v-3.13C12.31 9.7 12.63 8 14.5 8Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="social-icon-solid social-icon-linkedin" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="9" width="4" height="12" />
+      <circle cx="5" cy="5" r="2" />
+      <path d="M10 9h4v1.7c.8-1.2 2-2.1 4.1-2.1 3.5 0 3.9 2.5 3.9 5.7V21h-4v-6c0-1.45-.03-3.3-2-3.3-2 0-2.3 1.56-2.3 3.2V21H10V9Z" />
+    </svg>
+  );
+}
+
 function AboutStoryPage() {
   return (
     <main className="content-page content-page-about-us about-page">
@@ -187,22 +403,6 @@ function AboutStoryPage() {
             Charaideo was born from a deep emotional connection to Assam—its land, its
             culture, and its timeless tea legacy.
           </p>
-          <div className="about-page-actions">
-            <Link
-              className="about-page-button about-page-button-primary"
-              prefetch="intent"
-              to="/reserve-list"
-            >
-              Explore the Reserve List
-            </Link>
-            <Link
-              className="about-page-button about-page-button-secondary"
-              prefetch="intent"
-              to="/pages/contact"
-            >
-              Talk to us
-            </Link>
-          </div>
         </div>
 
         <figure className="about-page-hero-media">
@@ -287,7 +487,51 @@ function AboutStoryPage() {
               with a woman&apos;s perspective, a founder&apos;s grit, and a deep respect for
               the land that raised her.
             </p>
+            <blockquote className="about-page-founder-quote">
+              <p>
+                Tea was never simply a profession for my family. It was a way of life.
+              </p>
+              <footer>
+                <span className="about-page-signature" aria-hidden="true">
+                  Kamalika Biswas
+                </span>
+                <cite>Kamalika Biswas, Founder &amp; CEO</cite>
+              </footer>
+            </blockquote>
           </div>
+        </div>
+
+        <div className="about-page-generations" data-generations>
+          <header>
+            <p className="about-page-kicker">Three generations of tea</p>
+            <h3>A legacy handed down, not started.</h3>
+          </header>
+          <ol>
+            <li>
+              <span className="about-page-generation-mark">I</span>
+              <h4>The garden</h4>
+              <p>
+                Our family&apos;s tea story begins in Rupai with cultivation: hand-plucking
+                at dawn and respecting the land and its people.
+              </p>
+            </li>
+            <li>
+              <span className="about-page-generation-mark">II</span>
+              <h4>The factory floor</h4>
+              <p>
+                Tea became a way of life. Days spent in the gardens and tea factories,
+                watching leaf become cup.
+              </p>
+            </li>
+            <li>
+              <span className="about-page-generation-mark">III</span>
+              <h4>The homecoming</h4>
+              <p>
+                A corporate career, then a return to Rupai, and Charaideo Reserves: single
+                gardens, traceable and named.
+              </p>
+            </li>
+          </ol>
         </div>
       </section>
 
@@ -397,6 +641,14 @@ function AboutStoryPage() {
         </article>
       </section>
 
+      <section className="about-page-journey" aria-labelledby="journey-title">
+        <header>
+          <p className="about-page-kicker">Garden to cup</p>
+          <h2 id="journey-title">Follow one lot from Rupai to your table.</h2>
+        </header>
+        <JourneyMap />
+      </section>
+
       <section className="about-page-close" aria-labelledby="legacy-title">
         <div>
           <p className="about-page-kicker">A name that remembers</p>
@@ -407,21 +659,8 @@ function AboutStoryPage() {
             conversation, a cup of tea.
           </p>
         </div>
-        <div className="about-page-actions">
-          <Link
-            className="about-page-button about-page-button-primary"
-            prefetch="intent"
-            to="/reserve-list"
-          >
-            Explore the Reserve List
-          </Link>
-          <Link
-            className="about-page-button about-page-button-secondary"
-            prefetch="intent"
-            to="/pages/contact"
-          >
-            Talk to us
-          </Link>
+        <div className="about-page-close-signup">
+          <NewsletterSignup />
         </div>
       </section>
     </main>
