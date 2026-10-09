@@ -200,6 +200,8 @@ export function ProductForm({
           <span aria-hidden="true" />
           {stockLabel}
         </p>
+      </div>
+      <div className="product-actions" ref={actionsRef}>
         {selectedVariant?.availableForSale && (
           <div className="product-quantity" role="group" aria-label="Quantity">
             <span>Quantity</span>
@@ -251,8 +253,6 @@ export function ProductForm({
             </div>
           </div>
         )}
-      </div>
-      <div className="product-actions" ref={actionsRef}>
         {(!selectedVariant || selectedVariant.availableForSale) && (
           <AddToCartButton
             disabled={!selectedVariant || !selectedVariant.availableForSale}

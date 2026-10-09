@@ -384,7 +384,12 @@ export default function Product() {
           </a>
           {product.tastingNotes?.value && (
             <p className="product-taste-line">
-              {formatSpecification(product.tastingNotes.value)}
+              {formatSpecification(product.tastingNotes.value)
+                .split(/,\s*/)
+                .filter(Boolean)
+                .map((note) => (
+                  <span key={note}>{note}</span>
+                ))}
             </p>
           )}
           <div className="product-price-live" key={selectedVariant?.id}>

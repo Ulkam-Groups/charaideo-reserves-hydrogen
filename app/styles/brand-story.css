@@ -43,6 +43,43 @@
   color: rgb(19 42 31 / 92%);
 }
 
+/* Homepage typography is shipped as a recovered static utility bundle, so new
+   utility values must be enforced on the semantic hooks instead of relying on
+   runtime Tailwind generation. */
+.revamp-home .hero-display-title {
+  max-width: 680px;
+  margin: 0;
+  font-size: clamp(40px, 5vw, 60px);
+  line-height: 0.94;
+  letter-spacing: -0.025em;
+}
+
+.revamp-home .hero-intro {
+  max-width: 520px;
+  margin-top: 16px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.revamp-home .hero-eyebrow {
+  margin-bottom: 14px;
+}
+
+.revamp-home .hero-actions {
+  margin-top: 24px;
+}
+
+.revamp-home .hero-proof {
+  margin-top: 24px;
+  padding-top: 16px;
+}
+
+.revamp-home .chapter-collection-stage h2,
+.revamp-home #about h2,
+.revamp-home section:last-of-type h2 {
+  line-height: 1;
+}
+
 .revamp-home .hero-proof p {
   color: #35483e;
 }
@@ -584,13 +621,33 @@
   --reserve-line: #e4eae6;
   --reserve-muted: #53645b;
   background: var(--reserve-white);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .revamp-home .hero-actions a {
   min-height: 48px;
   height: 48px;
   padding-inline: 24px;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.revamp-home .hero-actions a:nth-child(2) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+  text-decoration-color: rgb(19 42 31 / 28%);
+  text-underline-offset: 5px;
+}
+
+.revamp-home .hero-actions a:nth-child(2):hover,
+.revamp-home .hero-actions a:nth-child(2):focus-visible {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  text-decoration-color: #132a1f;
+  transform: none;
 }
 
 .home-marquee-strip {
@@ -657,6 +714,8 @@
 .chapter-card-status--waitlist {
   background: #e5d5b8 !important;
   color: #132a1f !important;
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
 }
 
 .waitlist-artwork {
@@ -690,7 +749,7 @@
 .waitlist-artwork-chapter,
 .waitlist-artwork-estate,
 .waitlist-artwork-place {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 650;
   letter-spacing: 0.17em;
   text-transform: uppercase;
@@ -727,7 +786,7 @@
 .waitlist-artwork-place {
   margin-top: 3px;
   color: #53645b;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .waitlist-artwork-copy p {
@@ -735,8 +794,8 @@
   margin: 12px 0 0;
   color: #53645b;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 10.5px;
-  line-height: 1.42;
+  font-size: 12.5px;
+  line-height: 1.35;
 }
 
 .waitlist-artwork-image {
@@ -766,9 +825,9 @@
   position: relative;
   padding: 13px 3px 0;
   color: #64736b;
-  font-size: 6.8px;
+  font-size: 9.5px;
   font-weight: 650;
-  line-height: 1.35;
+  line-height: 1.2;
   letter-spacing: 0.1em;
   text-align: center;
   text-transform: uppercase;
@@ -800,6 +859,7 @@
   background: #5c171c !important;
   color: #fffef8 !important;
   letter-spacing: 0.16em;
+  font-size: 12px;
 }
 
 .chapter-card--waitlist:hover > div:last-child > div:last-child > span {
@@ -812,6 +872,18 @@
 }
 
 @media (max-width: 767px) {
+  .revamp-home .hero-display-title {
+    max-width: 520px;
+    font-size: clamp(38px, 11.5vw, 48px);
+    line-height: 0.95;
+  }
+
+  .revamp-home .hero-intro {
+    margin-top: 14px;
+    font-size: 15px;
+    line-height: 1.42;
+  }
+
   .revamp-home .hero-actions a {
     min-height: 46px;
     height: 46px;
