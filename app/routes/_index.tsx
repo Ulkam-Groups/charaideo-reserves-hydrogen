@@ -211,7 +211,7 @@ function ChapterCollectionCard({
 
   return (
     <article
-      className={`rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
+      className={`chapter-card ${canJoinWaitlist ? 'chapter-card--waitlist' : ''} rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
       role={isOpen ? 'link' : canJoinWaitlist ? 'button' : undefined}
       tabIndex={isOpen || canJoinWaitlist ? 0 : undefined}
       aria-label={isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? `Join waitlist for ${collection.title}` : `${collection.title}, ${status}`}
@@ -224,8 +224,14 @@ function ChapterCollectionCard({
         }
       }}
     >
-      <div className="relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center">
-        {isOpen ? (
+      <div className={`chapter-card-art relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center ${canJoinWaitlist ? 'chapter-card-art--waitlist' : ''}`}>
+        {canJoinWaitlist && primaryProduct ? (
+          <ChapterWaitlistArtwork
+            product={primaryProduct}
+            collectionImage={collection.image}
+            collectionTitle={collection.title}
+          />
+        ) : isOpen ? (
           <ChapterProductArtwork
             products={products}
             collectionImage={collection.image}
@@ -233,30 +239,70 @@ function ChapterCollectionCard({
         ) : (
           <ChapterComingSoonArtwork collectionTitle={collection.title} />
         )}
-        <span className="absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F]">
+        <span className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''}`}>
           {collection.title} · {status}
         </span>
       </div>
       <div className="pt-5 px-1 pb-1 flex flex-col flex-1">
-        <h3 className="serif text-[18px] leading-tight">{collection.title}</h3>
+        <h3 className="serif text-[22px] leading-[1.12]">{collection.title}</h3>
         {canJoinWaitlist ? (
-          <p className="mt-2 text-[12.5px] leading-[1.55] text-[#5A6B62]">A new reserve is being prepared.</p>
+          <p className="mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">A rare single-estate tea is being prepared for the Reserve.</p>
         ) : (
           <>
-            {collection.description && <p className="mt-2 text-[12.5px] leading-[1.55] text-[#5A6B62]">{collection.description}</p>}
-            <p className="mt-2 text-[12.5px] leading-[1.5] text-[#5A6B62]">
+            {collection.description && <p className="mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">{collection.description}</p>}
+            <p className="mt-2 text-[13px] leading-[1.4] text-[#5A6B62]">
               {products.length} {products.length === 1 ? 'tea' : 'teas'} · {inventoryLabel}
             </p>
-            {primaryProduct && <p className="mt-1 text-[11px] text-[#5A6B62]/70">{primaryProduct.title}</p>}
+            {primaryProduct && <p className="mt-1 text-[12px] leading-[1.35] text-[#5A6B62]/70">{primaryProduct.title}</p>}
           </>
         )}
         <div className="mt-4 flex-1 flex items-end">
           <span className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#132A1F] bg-[#132A1F] text-white hover:bg-black' : isOpen ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}>
-            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? '🔒 Join the waitlist' : hasProducts ? `${collection.title} · Coming soon` : 'No teas listed yet'}
+            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? 'Notify me →' : hasProducts ? `${collection.title} · Coming soon` : 'No teas listed yet'}
           </span>
         </div>
       </div>
     </article>
+  );
+}
+
+function ChapterWaitlistArtwork({
+  product,
+  collectionImage,
+  collectionTitle,
+}: {
+  product: ChapterProduct;
+  collectionImage: ChapterCollection['image'];
+  collectionTitle: string;
+}) {
+  const image = product.featuredImage || collectionImage;
+  const estate = product.estate?.value || product.title;
+
+  return (
+    <div className="waitlist-artwork">
+      <div className="waitlist-artwork-copy">
+        <span className="waitlist-artwork-chapter">{collectionTitle}</span>
+        <span className="waitlist-artwork-rule" />
+        <strong>Arriving Soon</strong>
+        <span className="waitlist-artwork-estate">{estate}</span>
+        <span className="waitlist-artwork-place">Assam, India</span>
+        <p>A rare single-estate tea, carefully selected and crafted for the Reserve.</p>
+      </div>
+      {image && (
+        <Image
+          data={image}
+          alt={image.altText || product.title}
+          loading="lazy"
+          sizes="(min-width: 768px) 220px, 45vw"
+          className="waitlist-artwork-image"
+        />
+      )}
+      <div className="waitlist-progress" aria-label="Reserve preparation progress">
+        <span className="is-active"><i />Sourcing complete</span>
+        <span><i />In curation</span>
+        <span><i />Launching this season</span>
+      </div>
+    </div>
   );
 }
 
@@ -457,7 +503,7 @@ export default function Homepage() {
                 children: [
                   y("div", {
                     className:
-                      "hero-eyebrow inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-6",
+                      "hero-eyebrow inline-flex items-center gap-2 text-[12px] tracking-[0.16em] uppercase text-[#C4A484] font-[600] mb-6",
                     children: [
                       f("span", { className: "w-6 h-[1px] bg-[#C4A484]" }),
                       "Assam, North-East India",
@@ -465,7 +511,7 @@ export default function Homepage() {
                   }),
                   y("h1", {
                     className:
-                      "hero-display-title serif text-[42px] md:text-[64px] leading-[0.95] tracking-[-0.03em] max-w-[560px]",
+                      "hero-display-title serif text-[42px] md:text-[64px] leading-[0.93] tracking-[-0.025em] max-w-[560px]",
                     children: [
                       "The Reserve List of ",
                       f("span", {
@@ -477,7 +523,7 @@ export default function Homepage() {
                   }),
                   f("p", {
                     className:
-                      "hero-intro mt-6 text-[16px] md:text-[17px] leading-[1.7] text-[#132A1F]/70 max-w-[480px]",
+                      "hero-intro mt-5 text-[16px] md:text-[17px] leading-[1.5] text-[#132A1F]/70 max-w-[500px]",
                     children:
                       "Single-estate, single-harvest teas sourced directly from historic gardens in Assam and reserved in order, chapter by chapter. Once a garden enters our list, it stays.",
                   }),
@@ -509,7 +555,7 @@ export default function Homepage() {
                   f("div", {
                     className: "hero-proof mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
                     children: f("p", {
-                      className: "text-[11.5px] tracking-[0.14em] uppercase text-[#5A6B62] font-[500]",
+                      className: "text-[12px] tracking-[0.12em] uppercase text-[#5A6B62] font-[600]",
                       children: "One Estate, One Harvest, Fully Traceable, No Blends.",
                     }),
                   }),
@@ -656,11 +702,11 @@ export default function Homepage() {
                       children: "Our Reserves",
                     }),
                     f("h2", {
-                      className: "serif text-[32px] md:text-[44px] leading-[0.95]",
+                      className: "serif text-[36px] md:text-[48px] leading-[0.98]",
                       children: "The Reserves people return to.",
                     }),
                     f("p", {
-                      className: "mt-3 text-[14.5px] text-[#5A6B62] max-w-[420px]",
+                      className: "mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]",
                       children: "Each pouch is one estate, one harvest, fully traceable. No blends.",
                     }),
                   ],
@@ -695,19 +741,19 @@ export default function Homepage() {
               children: [
                 f("div", {
                   className: "text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-4",
-                  children: "More than a place of origin",
+                  children: "Where it began",
                 }),
                 f("h2", {
-                  className: "serif text-[32px] md:text-[44px] leading-[0.95] max-w-[420px]",
+                  className: "serif text-[36px] md:text-[48px] leading-[0.98] max-w-[480px]",
                   children: "Because every tea deserves to carry the name of where it began.",
                 }),
                 f("p", {
-                  className: "mt-6 text-[15px] leading-[1.8] text-[#132A1F]/70 max-w-[460px]",
+                  className: "mt-5 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
                   children:
                     "Every tea we reserve is traceable to the garden it came from. Not a region, not a blend- a single estate, a single pluck, a single story. When you hold a pouch of Charaideo Reserves, you hold the place itself. The soil, the season, the hands that picked it.",
                 }),
                 f("p", {
-                  className: "mt-4 text-[15px] leading-[1.8] text-[#132A1F]/70 max-w-[460px]",
+                  className: "mt-3 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
                   children:
                     "That is why we list estates in order. Once a garden enters our Reserve List, it stays- Chapter after Chapter- so you can follow a place through time.",
                 }),
@@ -761,7 +807,7 @@ export default function Homepage() {
         children: [
           f("span", {
             className: "eyebrow",
-            children: "More than a place of origin",
+            children: "Why the estate name matters",
           }),
           y("div", {
             children: [
@@ -822,7 +868,7 @@ export default function Homepage() {
                   children: "The art of taking a moment",
                 }),
                 f("h2", {
-                  className: "serif text-[32px] md:text-[48px] leading-[0.95]",
+                  className: "serif text-[36px] md:text-[48px] leading-[0.98]",
                   children: "Nothing to hurry. Something to savour.",
                 }),
               ],
@@ -854,8 +900,8 @@ export default function Homepage() {
                         className: "text-[12px] tracking-[0.14em] uppercase text-[#C4A484] font-[600] mb-3",
                         children: a.n,
                       }),
-                      f("h3", { className: "serif text-[20px]", children: a.t }),
-                      f("p", { className: "mt-3 text-[14px] leading-[1.7] text-[#5A6B62]", children: a.d }),
+                      f("h3", { className: "serif text-[22px] leading-[1.15]", children: a.t }),
+                      f("p", { className: "mt-2 text-[14px] leading-[1.5] text-[#5A6B62]", children: a.d }),
                     ],
                   },
                   a.n,

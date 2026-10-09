@@ -11,7 +11,7 @@ import type {loader as rootLoader} from '~/root';
 import {DiscountProgress} from '~/components/DiscountProgress';
 import {useAside} from '~/components/Aside';
 import {CartLineItem, type CartLine} from '~/components/CartLineItem';
-import {CartSummary} from './CartSummary';
+import {CartSummary, SecurePayments} from './CartSummary';
 import {AddToCartButton} from './AddToCartButton';
 import {
   RECENT_PRODUCTS_UPDATED_EVENT,
@@ -82,6 +82,32 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           <strong>Updating your cart…</strong>
         </div>
       )}
+      {layout === 'page' && (
+        <header className="cart-page-head">
+          <div>
+            <nav className="cart-page-crumbs" aria-label="Breadcrumb">
+              <Link to="/" prefetch="intent">
+                Home
+              </Link>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">Cart</span>
+            </nav>
+            <h1>
+              Your cart
+              {cartHasItems && (
+                <small>
+                  {cart?.totalQuantity} {cart?.totalQuantity === 1 ? 'item' : 'items'}
+                </small>
+              )}
+            </h1>
+          </div>
+          {cartHasItems && (
+            <Link className="cart-page-continue" to="/reserve-list" prefetch="viewport">
+              <span aria-hidden="true">←</span> Continue shopping
+            </Link>
+          )}
+        </header>
+      )}
       <CartEmpty hidden={linesCount} layout={layout} />
       <div className="cart-details" hidden={!linesCount}>
         <DiscountProgress
@@ -91,10 +117,11 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
         />
-        <p id="cart-lines" className="sr-only">
-          Line items
-        </p>
         <div className="cart-lines-wrap">
+          <h2 id="cart-lines" className="cart-section-label">
+            <span>In your cart</span>
+            <b>{cart?.totalQuantity ?? 0}</b>
+          </h2>
           <ul aria-labelledby="cart-lines">
             {(cart?.lines?.nodes ?? []).map((line) => {
               // we do not render non-parent lines at the root of the cart
@@ -111,13 +138,27 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               );
             })}
           </ul>
-          {layout === 'aside' && (
-            <CartRecommendations
-              productIds={(cart?.lines?.nodes ?? []).map(
-                (line) => line.merchandise.product.id,
-              )}
-            />
+          {layout === 'page' && (
+            <ul className="cart-trust" aria-label="Our promise">
+              <li>
+                <strong>Free delivery</strong>
+                <span>On orders above ₹399</span>
+              </li>
+              <li>
+                <strong>Fresh from Assam</strong>
+                <span>Packed in small batches</span>
+              </li>
+              <li className="cart-trust-secure">
+                <SecurePayments />
+              </li>
+            </ul>
           )}
+          <CartRecommendations
+            layout={layout}
+            productIds={(cart?.lines?.nodes ?? []).map(
+              (line) => line.merchandise.product.id,
+            )}
+          />
         </div>
         {cartHasItems && <CartSummary cart={cart} layout={layout} />}
       </div>
@@ -125,21 +166,28 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   );
 }
 
-function CartRecommendations({productIds}: {productIds: string[]}) {
+function CartRecommendations({
+  productIds,
+  layout,
+}: {
+  productIds: string[];
+  layout: CartLayout;
+}) {
   const {type} = useAside();
+  const active = layout === 'page' || type === 'cart';
   const fetcher = useFetcher<typeof cartRecommendationsLoader>();
   const productKey = [...new Set(productIds)].slice(0, 3).join('|');
   const [requestedKey, setRequestedKey] = useState('');
 
   useEffect(() => {
-    if (type !== 'cart' || !productKey || requestedKey === productKey) return;
+    if (!active || !productKey || requestedKey === productKey) return;
     const params = new URLSearchParams();
     productKey.split('|').forEach((id) => params.append('productId', id));
     setRequestedKey(productKey);
     fetcher.load(`/api/cart-recommendations?${params.toString()}`);
-  }, [fetcher, productKey, requestedKey, type]);
+  }, [fetcher, productKey, requestedKey, active]);
 
-  if (type !== 'cart' || !productKey) return null;
+  if (!active || !productKey) return null;
   const isCurrentResponse = requestedKey === productKey;
   const loading = !isCurrentResponse || fetcher.state !== 'idle';
   const recommendations = isCurrentResponse ? (fetcher.data?.recommendations ?? []) : [];
@@ -151,7 +199,10 @@ function CartRecommendations({productIds}: {productIds: string[]}) {
       className="cart-recommendations"
       aria-labelledby="cart-recommendations-title"
     >
-      <h3 id="cart-recommendations-title">Frequently bought together</h3>
+      <h3 id="cart-recommendations-title">
+        <span className="cart-reco-badge">Add-ons</span>
+        Frequently bought together
+      </h3>
       {loading ? (
         <p className="cart-recommendations-status" role="status">
           Finding a good pairing…
@@ -196,7 +247,7 @@ function CartRecommendations({productIds}: {productIds: string[]}) {
                   lines={variant ? [{merchandiseId: variant.id, quantity: 1}] : []}
                   disabled={!variant?.availableForSale}
                 >
-                  Add
+                  <span aria-hidden="true">+</span> Add
                 </AddToCartButton>
               </li>
             );

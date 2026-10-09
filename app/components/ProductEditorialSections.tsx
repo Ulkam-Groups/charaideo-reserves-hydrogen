@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 
 type MetafieldValue = {value: string} | null | undefined;
 
@@ -62,6 +62,17 @@ type Recipe = {
   title: string;
   description: string;
   items: Array<{label: string; value: string}>;
+  video?: {
+    url: string;
+    title?: string;
+    thumbnail?: string;
+  };
+};
+
+type RecipeVideoEmbed = {
+  provider: 'instagram' | 'video' | 'youtube';
+  src: string;
+  thumbnail?: string;
 };
 
 const PROFILE_FIELDS = [
@@ -235,9 +246,10 @@ function RecipeExperience({product}: {product: ProductEditorialData}) {
       >
         {active.recipe ? (
           <>
-            <div>
+            <div className="tea-recipe-copy">
               <h3>{active.recipe.title}</h3>
               <p>{active.recipe.description}</p>
+              <RecipeVideo video={active.recipe.video} />
             </div>
             <dl>
               {active.recipe.items.map((item) => (
@@ -256,6 +268,98 @@ function RecipeExperience({product}: {product: ProductEditorialData}) {
         )}
       </div>
     </section>
+  );
+}
+
+function RecipeVideo({video}: {video?: Recipe['video']}) {
+  const embed = getRecipeVideoEmbed(video?.url);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isOpen]);
+
+  if (!embed) return null;
+
+  const title = video?.title?.trim() || 'Watch this tea preparation';
+  const thumbnail = getSafeImageUrl(video?.thumbnail) || embed.thumbnail;
+  const modalSrc =
+    embed.provider === 'youtube' ? `${embed.src}?autoplay=1` : embed.src;
+
+  return (
+    <>
+      <button
+        aria-label={`Play video: ${title}`}
+        className={`tea-recipe-video-thumb tea-recipe-video-thumb--${embed.provider}`}
+        onClick={() => setIsOpen(true)}
+        type="button"
+      >
+        {thumbnail ? (
+          <img alt="" loading="lazy" src={thumbnail} />
+        ) : (
+          <span className="tea-recipe-video-placeholder" aria-hidden="true">
+            {embed.provider === 'instagram' ? 'Instagram Reel' : 'Preparation video'}
+          </span>
+        )}
+        <span className="tea-recipe-video-play" aria-hidden="true">▶</span>
+        <span className="tea-recipe-video-label">Watch preparation</span>
+      </button>
+
+      {isOpen && (
+        <div
+          aria-label={title}
+          aria-modal="true"
+          className="tea-recipe-video-backdrop"
+          onClick={(event) => {
+            if (event.currentTarget === event.target) setIsOpen(false);
+          }}
+          role="dialog"
+        >
+          <div className={`tea-recipe-video-modal tea-recipe-video-modal--${embed.provider}`}>
+            <button
+              aria-label="Close video"
+              className="tea-recipe-video-close"
+              onClick={() => setIsOpen(false)}
+              type="button"
+            >
+              ×
+            </button>
+            {embed.provider === 'video' ? (
+              <video
+                autoPlay
+                controls
+                playsInline
+                poster={thumbnail}
+                preload="metadata"
+                src={embed.src}
+              >
+                Your browser does not support embedded video.
+              </video>
+            ) : (
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+                src={modalSrc}
+                title={title}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -343,18 +447,13 @@ function TeaRecord({
           ))}
         </dl>
       )}
-      <details className="tea-record-details">
-        <summary>
+      <div className="tea-record-details">
+        <div className="tea-record-summary">
           <span className="tea-record-summary-copy">
             <strong>Complete product information</strong>
             <small>Ingredients, processing, storage, pack size and more</small>
           </span>
-          <span className="tea-record-summary-action" aria-hidden="true">
-            <span className="tea-record-show-label">Show all {meaningful.length} details</span>
-            <span className="tea-record-hide-label">Hide details</span>
-            <span className="tea-record-chevron">↓</span>
-          </span>
-        </summary>
+        </div>
         <dl className="tea-record-grid">
           {meaningful.map(([label, value]) => (
             <div key={label}>
@@ -363,7 +462,7 @@ function TeaRecord({
             </div>
           ))}
         </dl>
-      </details>
+      </div>
       <div className="tea-record-shop-cta">
         <div>
           <strong>Ready to try this tea?</strong>
@@ -481,9 +580,93 @@ function parseRecipe(value?: string): Recipe | null {
       title: parsed.title,
       description: typeof parsed.description === 'string' ? parsed.description : '',
       items,
+      video:
+        parsed.video &&
+        typeof parsed.video === 'object' &&
+        typeof parsed.video.url === 'string' &&
+        parsed.video.url.trim()
+          ? {
+              url: parsed.video.url.trim(),
+              title:
+                typeof parsed.video.title === 'string'
+                  ? parsed.video.title.trim()
+                  : undefined,
+              thumbnail:
+                typeof parsed.video.thumbnail === 'string'
+                  ? parsed.video.thumbnail.trim()
+                  : undefined,
+            }
+          : undefined,
     };
   } catch {
     return null;
+  }
+}
+
+function getRecipeVideoEmbed(url?: string): RecipeVideoEmbed | null {
+  if (!url?.trim()) return null;
+
+  try {
+    const parsed = new URL(url.trim());
+    const hostname = parsed.hostname.toLowerCase().replace(/^www\./, '');
+
+    if (/\.(mp4|m4v|webm|ogg)$/i.test(parsed.pathname)) {
+      return {
+        provider: 'video',
+        src: parsed.toString(),
+      };
+    }
+
+    if (hostname === 'youtu.be') {
+      const id = parsed.pathname.split('/').filter(Boolean)[0];
+      return youtubeEmbed(id);
+    }
+
+    if (hostname === 'youtube.com' || hostname === 'm.youtube.com') {
+      const segments = parsed.pathname.split('/').filter(Boolean);
+      const id =
+        parsed.pathname === '/watch'
+          ? parsed.searchParams.get('v')
+          : ['embed', 'shorts', 'live'].includes(segments[0] ?? '')
+            ? segments[1]
+            : null;
+      return youtubeEmbed(id);
+    }
+
+    if (hostname === 'instagram.com') {
+      const segments = parsed.pathname.split('/').filter(Boolean);
+      if (!['p', 'reel', 'reels', 'tv'].includes(segments[0] ?? '') || !segments[1]) {
+        return null;
+      }
+      const mediaType = segments[0] === 'reels' ? 'reel' : segments[0];
+      return {
+        provider: 'instagram',
+        src: `https://www.instagram.com/${mediaType}/${segments[1]}/embed/`,
+      };
+    }
+  } catch {
+    // Ignore malformed or unsupported URLs from the metafield.
+  }
+
+  return null;
+}
+
+function youtubeEmbed(id?: string | null): RecipeVideoEmbed | null {
+  if (!id || !/^[A-Za-z0-9_-]{6,}$/.test(id)) return null;
+  return {
+    provider: 'youtube',
+    src: `https://www.youtube-nocookie.com/embed/${id}`,
+    thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+  };
+}
+
+function getSafeImageUrl(url?: string) {
+  if (!url?.trim()) return undefined;
+  try {
+    const parsed = new URL(url.trim());
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.toString() : undefined;
+  } catch {
+    return undefined;
   }
 }
 
