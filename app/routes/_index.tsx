@@ -211,7 +211,7 @@ function ChapterCollectionCard({
 
   return (
     <article
-      className={`rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
+      className={`chapter-card ${canJoinWaitlist ? 'chapter-card--waitlist' : ''} rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
       role={isOpen ? 'link' : canJoinWaitlist ? 'button' : undefined}
       tabIndex={isOpen || canJoinWaitlist ? 0 : undefined}
       aria-label={isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? `Join waitlist for ${collection.title}` : `${collection.title}, ${status}`}
@@ -224,8 +224,14 @@ function ChapterCollectionCard({
         }
       }}
     >
-      <div className="relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center">
-        {isOpen ? (
+      <div className={`chapter-card-art relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center ${canJoinWaitlist ? 'chapter-card-art--waitlist' : ''}`}>
+        {canJoinWaitlist && primaryProduct ? (
+          <ChapterWaitlistArtwork
+            product={primaryProduct}
+            collectionImage={collection.image}
+            collectionTitle={collection.title}
+          />
+        ) : isOpen ? (
           <ChapterProductArtwork
             products={products}
             collectionImage={collection.image}
@@ -233,14 +239,14 @@ function ChapterCollectionCard({
         ) : (
           <ChapterComingSoonArtwork collectionTitle={collection.title} />
         )}
-        <span className="absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F]">
+        <span className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''}`}>
           {collection.title} · {status}
         </span>
       </div>
       <div className="pt-5 px-1 pb-1 flex flex-col flex-1">
         <h3 className="serif text-[18px] leading-tight">{collection.title}</h3>
         {canJoinWaitlist ? (
-          <p className="mt-2 text-[12.5px] leading-[1.55] text-[#5A6B62]">A new reserve is being prepared.</p>
+          <p className="mt-2 text-[12.5px] leading-[1.55] text-[#5A6B62]">A rare single-estate tea is being prepared for the Reserve.</p>
         ) : (
           <>
             {collection.description && <p className="mt-2 text-[12.5px] leading-[1.55] text-[#5A6B62]">{collection.description}</p>}
@@ -252,11 +258,51 @@ function ChapterCollectionCard({
         )}
         <div className="mt-4 flex-1 flex items-end">
           <span className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#132A1F] bg-[#132A1F] text-white hover:bg-black' : isOpen ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}>
-            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? '🔒 Join the waitlist' : hasProducts ? `${collection.title} · Coming soon` : 'No teas listed yet'}
+            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? 'Notify me →' : hasProducts ? `${collection.title} · Coming soon` : 'No teas listed yet'}
           </span>
         </div>
       </div>
     </article>
+  );
+}
+
+function ChapterWaitlistArtwork({
+  product,
+  collectionImage,
+  collectionTitle,
+}: {
+  product: ChapterProduct;
+  collectionImage: ChapterCollection['image'];
+  collectionTitle: string;
+}) {
+  const image = product.featuredImage || collectionImage;
+  const estate = product.estate?.value || product.title;
+
+  return (
+    <div className="waitlist-artwork">
+      <div className="waitlist-artwork-copy">
+        <span className="waitlist-artwork-chapter">{collectionTitle}</span>
+        <span className="waitlist-artwork-rule" />
+        <strong>Arriving Soon</strong>
+        <span className="waitlist-artwork-estate">{estate}</span>
+        <span className="waitlist-artwork-place">Assam, India</span>
+        <p>A rare single-estate tea, carefully selected and crafted for the Reserve.</p>
+      </div>
+      {image && (
+        <Image
+          data={image}
+          alt={image.altText || product.title}
+          loading="lazy"
+          sizes="(min-width: 768px) 220px, 45vw"
+          className="waitlist-artwork-image"
+        />
+      )}
+      <div className="waitlist-progress" aria-label="Reserve preparation progress">
+        <span className="is-active"><i />Sourcing complete</span>
+        <span><i />In curation</span>
+        <span><i />Launching this season</span>
+      </div>
+    </div>
   );
 }
 
