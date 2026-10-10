@@ -203,22 +203,24 @@ function ChapterCollectionCard({
   const isOpen = stockedProduct !== null;
   const hasProducts = products.length > 0;
   const canJoinWaitlist = hasProducts && !isOpen;
-  const status = isOpen ? 'Open' : hasProducts ? 'Coming soon' : 'Locked';
+  const canJoinChapterUpdates = !hasProducts;
+  const isInteractive = isOpen || canJoinWaitlist || canJoinChapterUpdates;
+  const status = isOpen ? 'Open' : hasProducts ? 'Next release' : 'Upcoming release';
   const inventoryLabel = variants.length
     ? `${stockedVariants} of ${variants.length} ${variants.length === 1 ? 'variant' : 'variants'} in stock`
     : '0 teas available';
   const href = `/collections/${collection.handle}`;
   const activate = (event: React.SyntheticEvent) => {
     if (isOpen) void navigate(href);
-    else if (canJoinWaitlist) onWaitlist(collection, event);
+    else if (canJoinWaitlist || canJoinChapterUpdates) onWaitlist(collection, event);
   };
 
   return (
     <article
-      className={`chapter-card ${canJoinWaitlist ? 'chapter-card--waitlist' : ''} rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isOpen || canJoinWaitlist ? 'cursor-pointer' : ''}`}
-      role={isOpen ? 'link' : canJoinWaitlist ? 'button' : undefined}
-      tabIndex={isOpen || canJoinWaitlist ? 0 : undefined}
-      aria-label={isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? `Join waitlist for ${collection.title}` : `${collection.title}, ${status}`}
+      className={`chapter-card ${canJoinWaitlist ? 'chapter-card--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card--teaser' : ''} rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isInteractive ? 'cursor-pointer' : ''}`}
+      role={isOpen ? 'link' : isInteractive ? 'button' : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+      aria-label={isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? `Join waitlist for ${collection.title}` : `Join the Reserve List for ${collection.title}`}
       onClick={activate}
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return;
@@ -243,7 +245,7 @@ function ChapterCollectionCard({
         ) : (
           <ChapterComingSoonArtwork collectionTitle={collection.title} />
         )}
-        <span className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''}`}>
+        <span className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card-status--teaser' : ''}`}>
           {collection.title} · {status}
         </span>
       </div>
@@ -252,6 +254,10 @@ function ChapterCollectionCard({
         {canJoinWaitlist ? (
           <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
             {collection.description || 'A rare single-estate tea is being prepared for the Reserve.'}
+          </p>
+        ) : canJoinChapterUpdates ? (
+          <p className="mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
+            The next estate will be revealed here.
           </p>
         ) : (
           <>
@@ -267,8 +273,8 @@ function ChapterCollectionCard({
           </>
         )}
         <div className="mt-4 flex-1 flex items-end">
-          <span className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#132A1F] bg-[#132A1F] text-white hover:bg-black' : isOpen ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}>
-            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? 'Notify me →' : hasProducts ? `${collection.title} · Coming soon` : 'No teas listed yet'}
+          <span className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#132A1F] bg-[#132A1F] text-white hover:bg-black' : isOpen ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : canJoinChapterUpdates ? 'border-[#5C171C] bg-[#5C171C] text-white hover:bg-[#3F1014]' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}>
+            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? 'Notify me →' : canJoinChapterUpdates ? 'Join the Reserve List →' : `${collection.title} · Coming soon`}
           </span>
         </div>
       </div>
@@ -377,10 +383,11 @@ function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) 
         className="absolute w-[68%] aspect-square opacity-60"
         style={{background: '#E7EDE0', borderRadius: '62% 38% 52% 48% / 48% 62% 38% 52%'}}
       />
-      <div className="relative z-10 flex flex-col items-center gap-2 text-center">
-        <span className="text-[10px] tracking-[0.20em] uppercase text-[#5A6B62] font-[600]">{collectionTitle}</span>
-        <span className="serif text-[22px] text-[#132A1F]/70">Coming Soon</span>
-        <span className="w-8 h-[1px] bg-[#132A1F]/15 mt-1" />
+      <div className="chapter-teaser-copy relative z-10 flex flex-col items-center gap-2 text-center">
+        <span className="chapter-teaser-label">{collectionTitle}</span>
+        <span className="chapter-teaser-title serif">Something is steeping.</span>
+        <span className="chapter-teaser-rule" />
+        <span className="chapter-teaser-note">Estate reveal coming soon</span>
       </div>
     </>
   );

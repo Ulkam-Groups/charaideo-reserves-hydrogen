@@ -689,23 +689,36 @@
 }
 
 .chapter-collection-stage {
+  background: #fff !important;
+}
+
+.chapter-collection-inner,
+.chapter-card-track {
   background: #fff;
 }
 
 .chapter-collection-stage article {
+  overflow: hidden;
+  padding: 5px !important;
   border-color: var(--reserve-line) !important;
-  box-shadow: 0 12px 36px rgb(19 42 31 / 5%) !important;
+  box-shadow: none !important;
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .chapter-collection-stage article:hover {
   border-color: rgb(19 42 31 / 20%) !important;
-  box-shadow: 0 20px 55px rgb(19 42 31 / 11%) !important;
+  box-shadow: none !important;
   transform: translateY(-7px);
 }
 
 .chapter-collection-stage article > div:first-child {
+  height: 300px !important;
+  border-radius: 19px !important;
   background: #edf1ee !important;
+}
+
+.chapter-card > div:last-child {
+  padding: 18px 15px 11px !important;
 }
 
 .chapter-card--waitlist {
@@ -714,7 +727,7 @@
 }
 
 .chapter-card--waitlist .chapter-card-art--waitlist {
-  height: 320px;
+  height: 300px;
   align-items: stretch;
   background:
     radial-gradient(circle at 82% 22%, rgb(196 164 132 / 18%), transparent 34%),
@@ -726,6 +739,53 @@
   color: #132a1f !important;
   font-size: 11px !important;
   letter-spacing: 0.12em !important;
+}
+
+.chapter-card--teaser .chapter-card-art {
+  background:
+    radial-gradient(circle at 72% 28%, rgb(184 121 54 / 22%), transparent 31%),
+    radial-gradient(circle at 28% 76%, rgb(92 23 28 / 12%), transparent 38%),
+    linear-gradient(145deg, #fffef8 0%, #edf2ee 100%) !important;
+}
+
+.chapter-card-status--teaser {
+  background: #5c171c !important;
+  color: #fffef8 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: none;
+}
+
+.chapter-teaser-copy {
+  max-width: 245px;
+  padding: 24px;
+}
+
+.chapter-teaser-label {
+  color: #5c171c;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+}
+
+.chapter-teaser-title {
+  max-width: 220px;
+  color: #132a1f;
+  font-size: clamp(26px, 2.3vw, 34px);
+  line-height: 1.02;
+}
+
+.chapter-teaser-rule {
+  width: 38px;
+  height: 2px;
+  margin: 7px 0 5px;
+  background: #b87936;
+}
+
+.chapter-teaser-note {
+  color: #53645b;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .waitlist-artwork {
@@ -743,6 +803,24 @@
   border-radius: 50%;
   background: rgb(228 234 230 / 55%);
   content: '';
+}
+
+.waitlist-artwork::after {
+  position: absolute;
+  z-index: 2;
+  top: 48px;
+  bottom: 62px;
+  left: 0;
+  width: 70%;
+  background: linear-gradient(
+    90deg,
+    rgb(247 250 248 / 98%) 0%,
+    rgb(247 250 248 / 94%) 68%,
+    rgb(247 250 248 / 62%) 84%,
+    transparent 100%
+  );
+  content: '';
+  pointer-events: none;
 }
 
 .waitlist-artwork-copy {
@@ -809,10 +887,10 @@
 
 .waitlist-artwork-image {
   position: absolute;
-  z-index: 2;
-  right: -8%;
+  z-index: 1;
+  right: -11%;
   bottom: 53px;
-  width: 52%;
+  width: 48%;
   height: 63%;
   object-fit: contain;
   object-position: right bottom;
@@ -884,6 +962,16 @@
   color: #fffef8 !important;
 }
 
+.chapter-card--teaser > div:last-child > div:last-child > span {
+  border-color: #5c171c !important;
+  background: #5c171c !important;
+  color: #fffef8 !important;
+}
+
+.chapter-card--teaser:hover > div:last-child > div:last-child > span {
+  background: #3f1014 !important;
+}
+
 .chapter-card--waitlist:hover > div:last-child > div:last-child > span {
   background: #3f1014 !important;
 }
@@ -898,6 +986,8 @@
 .chapter-card-track {
   display: flex;
   gap: 24px;
+  margin-top: -8px;
+  padding-top: 8px;
   padding-bottom: 10px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
@@ -993,7 +1083,7 @@
   }
 
   .chapter-card--waitlist .chapter-card-art--waitlist {
-    height: 350px;
+    height: 300px;
   }
 
   .waitlist-artwork-copy {
