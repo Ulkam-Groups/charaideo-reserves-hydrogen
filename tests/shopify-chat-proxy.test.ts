@@ -179,7 +179,7 @@ test('Shopify agent runtime trusts its same-origin proxied iframe shell', async 
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () =>
     new Response(
-      'function zt(e=window.location.href){const t=dt(e);if(t)return t;return new URL(e).hostname.endsWith(".shop.dev")?It:Ot}const next=1;',
+      'function qt(e=window.location.href){return e}new IframeHost({iframeUrl:Wt(),iframeShellOrigin:qt(),initialLayout:e});',
       {headers: {'Content-Type': 'application/javascript'}},
     );
 
@@ -192,8 +192,8 @@ test('Shopify agent runtime trusts its same-origin proxied iframe shell', async 
     const script = await response.text();
 
     assert.equal(response.status, 200);
-    assert.match(script, /function zt\(\)\s*\{\s*return window\.location\.origin;\s*\}/);
-    assert.doesNotMatch(script, /\.shop\.dev/);
+    assert.match(script, /iframeShellOrigin:window\.location\.origin/);
+    assert.doesNotMatch(script, /iframeShellOrigin:qt\(\)/);
   } finally {
     globalThis.fetch = originalFetch;
   }

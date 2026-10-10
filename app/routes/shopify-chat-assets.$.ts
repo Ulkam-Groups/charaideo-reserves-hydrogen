@@ -1,14 +1,15 @@
 import type {Route} from './+types/shopify-chat-assets.$';
-
-const CHAT_ASSET_ORIGIN = 'https://cdn.shopify.com';
-const CHAT_ASSET_PREFIX = '/storefront/web-components/';
-const LOCAL_CHAT_ASSET_PREFIX = '/shopify-chat-assets/';
-const ALLOWED_REMOTE_ASSET =
-  /^(?:chat\.js|agent-iframe\.js|(?:chat|agent-iframe)\/[A-Za-z0-9_-]{6,120}\.js)$/;
+import {
+  ALLOWED_SHOPIFY_CHAT_ASSET,
+  rewriteShopifyChatAssetSource,
+  SHOPIFY_CHAT_ASSET_ORIGIN,
+  SHOPIFY_CHAT_LOCAL_PREFIX,
+  SHOPIFY_CHAT_REMOTE_PREFIX,
+} from '../lib/shopify-chat-assets.ts';
 
 export async function loader({request, context}: Route.LoaderArgs) {
   const requestUrl = new URL(request.url);
-  const assetPath = requestUrl.pathname.slice(LOCAL_CHAT_ASSET_PREFIX.length);
+  const assetPath = requestUrl.pathname.slice(SHOPIFY_CHAT_LOCAL_PREFIX.length);
 
   if (!assetPath || assetPath.includes('..')) {
     return new Response('Invalid Shopify chat asset path', {status: 400});
@@ -33,7 +34,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
     );
   }
 
-  if (!ALLOWED_REMOTE_ASSET.test(assetPath)) {
+  if (!ALLOWED_SHOPIFY_CHAT_ASSET.test(assetPath)) {
     return new Response('Unsupported Shopify chat asset', {
       status: 404,
       headers: {
@@ -43,7 +44,10 @@ export async function loader({request, context}: Route.LoaderArgs) {
     });
   }
 
-  const upstreamUrl = new URL(`${CHAT_ASSET_PREFIX}${assetPath}`, CHAT_ASSET_ORIGIN);
+  const upstreamUrl = new URL(
+    `${SHOPIFY_CHAT_REMOTE_PREFIX}${assetPath}`,
+    SHOPIFY_CHAT_ASSET_ORIGIN,
+  );
   let upstream: Response | undefined;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     try {
@@ -73,31 +77,10 @@ export async function loader({request, context}: Route.LoaderArgs) {
     });
   }
 
-  let source = await upstream.text();
-  if (assetPath === 'chat.js') {
-    source = source.replace(
-      /(["'])\.\/chat\/((?:shopify-chat-telemetry|host-monorail)-[^"']+\.js)\1/g,
-      (_match, quote: string, file: string) =>
-        `${quote}${LOCAL_CHAT_ASSET_PREFIX}chat/${file}${quote}`,
-    );
-  }
-  if (assetPath.startsWith('chat/')) {
-    if (/\/agent-runtime-[\w-]+\.js$/.test(requestUrl.pathname)) {
-      source = source.replace(
-        /function zt\(e=window\.location\.href\)\{[^{}]*\}/,
-        `function zt() {\n  return window.location.origin;\n}`,
-      );
-    }
-    source = source.replace(
-      /(["'])\.\/([^"']+\.js)\1/g,
-      (_match, quote: string, file: string) =>
-        `${quote}${LOCAL_CHAT_ASSET_PREFIX}chat/${file}${quote}`,
-    );
-    source = source.replace(
-      /(["'])\.\.\/chat\.js\1/g,
-      (_match, quote: string) => `${quote}${LOCAL_CHAT_ASSET_PREFIX}chat.js${quote}`,
-    );
-  }
+  const source = rewriteShopifyChatAssetSource(
+    assetPath,
+    await upstream.text(),
+  );
 
   return new Response(source, {
     status: upstream.status,
