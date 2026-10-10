@@ -753,8 +753,12 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
       warmupTimer = window.setTimeout(() => {
         if (disposed) return;
+        if (chat.dataset.userRequestedOpen === 'true') {
+          delete chat.dataset.userRequestedOpen;
+          chat.dataset.prewarmed = 'true';
+          return;
+        }
         chat.removeAttribute('open');
-        chat.removeAttribute('data-prewarming');
         chat.dataset.prewarmed = 'true';
       }, SHOPIFY_CHAT_WARMUP_MS);
     };
