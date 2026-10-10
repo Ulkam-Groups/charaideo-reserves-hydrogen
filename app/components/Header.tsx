@@ -241,7 +241,7 @@ function openShopifyChat(trigger: HTMLElement | null) {
   if (!chat) return;
 
   const revealChat = () => {
-    if (chat.hasAttribute('open')) return;
+    if (chat.hasAttribute('open') && chat.dataset.prewarming !== 'true') return;
 
     revealShopifyChat(chat, trigger);
   };
@@ -259,6 +259,15 @@ function revealShopifyChat(
   chat: HTMLElement & {show?: () => void},
   trigger: HTMLElement | null,
 ) {
+  if (chat.dataset.prewarming === 'true') {
+    // Prewarming opens the real component while its host is hidden. Convert
+    // that internal open into an explicit user open without letting the
+    // warmup timer close it again.
+    chat.dataset.userRequestedOpen = 'true';
+    chat.removeAttribute('open');
+    chat.removeAttribute('data-prewarming');
+  }
+
   shopifyChatGeometryCleanup?.();
   shopifyChatGeometryCleanup = null;
   document.documentElement.dataset.shopifyChatOpen = 'true';
@@ -362,8 +371,10 @@ function revealShopifyChat(
     shopifyChatGeometryCleanup = cleanup;
   }
 
-  if (typeof chat.show === 'function') chat.show();
-  else chat.setAttribute('open', '');
+  if (!chat.hasAttribute('open')) {
+    if (typeof chat.show === 'function') chat.show();
+    else chat.setAttribute('open', '');
+  }
 }
 
 function CartBadge({count}: {count: number | null}) {

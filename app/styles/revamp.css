@@ -2995,6 +2995,13 @@ shopify-chat::part(activator) {
     box-shadow 180ms ease;
 }
 
+/* Keep the floating assistant from overlapping the open cart drawer. */
+html:has(.overlay--cart.expanded) shopify-chat::part(activator) {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 shopify-chat::part(activator):hover,
 shopify-chat::part(activator):focus-visible {
   width: 148px;
