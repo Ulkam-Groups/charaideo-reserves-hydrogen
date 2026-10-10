@@ -30,9 +30,14 @@
   inset: 0;
   content: "";
   pointer-events: none;
-  background-image:
-    linear-gradient(90deg, rgb(255 254 248 / 92%) 0%, rgb(255 254 248 / 84%) 34%, rgb(255 254 248 / 58%) 55%, transparent 82%),
-    linear-gradient(180deg, rgb(245 241 230 / 8%) 38%, rgb(19 42 31 / 12%) 100%);
+  background-image: radial-gradient(
+    ellipse 64% 72% at 24% 43%,
+    rgb(255 254 248 / 96%) 0%,
+    rgb(255 254 248 / 90%) 38%,
+    rgb(255 254 248 / 56%) 60%,
+    rgb(255 254 248 / 16%) 80%,
+    transparent 100%
+  );
 }
 
 .revamp-home .hero-eyebrow {
@@ -546,9 +551,14 @@
   }
 
   .home-hero-stage::before {
-    background-image:
-      linear-gradient(90deg, rgb(255 254 248 / 90%) 0%, rgb(255 254 248 / 82%) 58%, rgb(255 254 248 / 48%) 100%),
-      linear-gradient(180deg, rgb(255 254 248 / 12%) 0%, transparent 56%, rgb(19 42 31 / 10%) 100%);
+    background: linear-gradient(
+      180deg,
+      rgb(255 254 248 / 8%) 0%,
+      rgb(255 254 248 / 42%) 16%,
+      rgb(255 254 248 / 46%) 48%,
+      rgb(255 254 248 / 28%) 72%,
+      transparent 94%
+    );
   }
 
   .hero-brand-art {
@@ -751,8 +761,7 @@
 .waitlist-artwork-place {
   font-size: 11px;
   font-weight: 650;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .waitlist-artwork-chapter {
@@ -828,9 +837,8 @@
   font-size: 9.5px;
   font-weight: 650;
   line-height: 1.2;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
   text-align: center;
-  text-transform: uppercase;
 }
 
 .waitlist-progress i {
@@ -851,19 +859,66 @@
 
 .waitlist-progress .is-active i {
   background: #5c171c;
+  animation: sourcing-dot-pulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgb(92 23 28 / 35%);
+}
+
+@keyframes sourcing-dot-pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    box-shadow: 0 0 0 0 rgb(92 23 28 / 35%);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translateX(-50%) scale(1.18);
+    box-shadow: 0 0 0 5px rgb(92 23 28 / 0%);
+    opacity: 0.72;
+  }
 }
 
 .chapter-card--waitlist > div:last-child > div:last-child > span {
-  min-height: 42px;
   border-color: #5c171c !important;
   background: #5c171c !important;
   color: #fffef8 !important;
-  letter-spacing: 0.16em;
-  font-size: 12px;
 }
 
 .chapter-card--waitlist:hover > div:last-child > div:last-child > span {
   background: #3f1014 !important;
+}
+
+.chapter-card-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.chapter-card-track {
+  display: flex;
+  gap: 24px;
+  padding-bottom: 10px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: rgb(19 42 31 / 24%) transparent;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chapter-card-track::-webkit-scrollbar {
+  height: 4px;
+}
+
+.chapter-card-track::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(19 42 31 / 24%);
+}
+
+.chapter-card-track > .chapter-card {
+  flex: 0 0 clamp(300px, calc((100% - 48px) / 3), 400px);
+  scroll-snap-align: start;
 }
 
 .revamp-home #about > div > div:last-child {
@@ -872,6 +927,24 @@
 }
 
 @media (max-width: 767px) {
+  .chapter-card-track {
+    gap: 14px;
+    margin-right: -24px;
+    padding-right: 24px;
+    scroll-padding-inline: 0 24px;
+    scrollbar-width: none;
+  }
+
+  .chapter-card-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chapter-card-track > .chapter-card {
+    flex: 0 0 86%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
   .revamp-home .hero-display-title {
     max-width: 520px;
     font-size: clamp(38px, 11.5vw, 48px);
@@ -880,8 +953,10 @@
 
   .revamp-home .hero-intro {
     margin-top: 14px;
+    color: var(--reserve-warm-white);
     font-size: 15px;
     line-height: 1.42;
+    text-shadow: 0 1px 10px rgb(19 42 31 / 58%);
   }
 
   .revamp-home .hero-actions a {
@@ -889,9 +964,30 @@
     height: 46px;
   }
 
+  .revamp-home .hero-actions a:nth-child(2) {
+    color: var(--reserve-warm-white);
+    text-decoration-color: rgb(255 254 248 / 72%);
+    text-shadow: 0 1px 8px rgb(19 42 31 / 62%);
+  }
+
+  .revamp-home .hero-actions a:nth-child(2):hover,
+  .revamp-home .hero-actions a:nth-child(2):focus-visible {
+    color: var(--reserve-warm-white);
+    text-decoration-color: var(--reserve-warm-white);
+  }
+
+  .revamp-home .hero-proof p {
+    color: var(--reserve-warm-white);
+    text-shadow: 0 1px 9px rgb(19 42 31 / 68%);
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .waitlist-progress .is-active i {
+    animation: none;
+  }
+
   .chapter-collection-stage article {
     transition: none;
   }

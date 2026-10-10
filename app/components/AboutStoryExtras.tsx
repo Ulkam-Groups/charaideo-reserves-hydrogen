@@ -59,7 +59,7 @@ const JOURNEY = [
     id: 'cup',
     place: 'Your table',
     title: 'Your cup',
-    body: 'Scan the pouch to see the estate, the pluck date and the brew guide before you pour.',
+    body: 'Scan the code to see the estate, the pluck date and the brew guide before you pour.',
     x: 800,
     y: 90,
   },

@@ -12,8 +12,12 @@ import type {Route} from './+types/_index';
 import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
 
 export const meta: Route.MetaFunction = () => [
-  {title: "Charaideo Reserves™ | The Reserve List of Assam's Fine Tea Estates"},
-  {name: 'description', content: 'One estate, one harvest, fully traceable, no blends.'},
+  {title: "Charaideo Reserves™ | The Reserve List of Assam's Finest Tea Estates"},
+  {
+    name: 'description',
+    content:
+      'Discover teas sourced directly from historic gardens in Assam, reserved in order—chapter by chapter.',
+  },
 ];
 
 export const links = () => [
@@ -186,7 +190,7 @@ function ChapterCollectionCard({
 }: {
   collection: ChapterCollection;
   index: number;
-  onWaitlist: (event?: React.SyntheticEvent) => void;
+  onWaitlist: (collection: ChapterCollection, event?: React.SyntheticEvent) => void;
 }) {
   const navigate = useNavigate();
   const products = collection.products.nodes;
@@ -198,7 +202,7 @@ function ChapterCollectionCard({
   ).length;
   const isOpen = stockedProduct !== null;
   const hasProducts = products.length > 0;
-  const canJoinWaitlist = index === 0 && hasProducts && !isOpen;
+  const canJoinWaitlist = hasProducts && !isOpen;
   const status = isOpen ? 'Open' : hasProducts ? 'Coming soon' : 'Locked';
   const inventoryLabel = variants.length
     ? `${stockedVariants} of ${variants.length} ${variants.length === 1 ? 'variant' : 'variants'} in stock`
@@ -206,7 +210,7 @@ function ChapterCollectionCard({
   const href = `/collections/${collection.handle}`;
   const activate = (event: React.SyntheticEvent) => {
     if (isOpen) void navigate(href);
-    else if (canJoinWaitlist) onWaitlist(event);
+    else if (canJoinWaitlist) onWaitlist(collection, event);
   };
 
   return (
@@ -246,10 +250,16 @@ function ChapterCollectionCard({
       <div className="pt-5 px-1 pb-1 flex flex-col flex-1">
         <h3 className="serif text-[22px] leading-[1.12]">{collection.title}</h3>
         {canJoinWaitlist ? (
-          <p className="mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">A rare single-estate tea is being prepared for the Reserve.</p>
+          <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
+            {collection.description || 'A rare single-estate tea is being prepared for the Reserve.'}
+          </p>
         ) : (
           <>
-            {collection.description && <p className="mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">{collection.description}</p>}
+            {collection.description && (
+              <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
+                {collection.description}
+              </p>
+            )}
             <p className="mt-2 text-[13px] leading-[1.4] text-[#5A6B62]">
               {products.length} {products.length === 1 ? 'tea' : 'teas'} · {inventoryLabel}
             </p>
@@ -298,7 +308,7 @@ function ChapterWaitlistArtwork({
         />
       )}
       <div className="waitlist-progress" aria-label="Reserve preparation progress">
-        <span className="is-active"><i />Sourcing complete</span>
+        <span className="is-active"><i />Sourcing</span>
         <span><i />In curation</span>
         <span><i />Launching this season</span>
       </div>
@@ -384,7 +394,6 @@ export default function Homepage() {
   const firstChapterProduct = firstChapter?.products.nodes[0] ?? null;
   const chapterOneHasProducts = Boolean(firstChapter?.products.nodes.length);
   const isRevealed = Boolean(chapterProduct);
-  const isChapterOneWaitlist = chapterOneHasProducts && !isRevealed;
   const estateName = chapterProduct?.estate?.value || firstChapterProduct?.estate?.value || firstChapterProduct?.title || 'Revealed soon';
 
   React.useEffect(() => {
@@ -398,8 +407,12 @@ export default function Homepage() {
       window.removeEventListener('focus', checkInventory);
     };
   }, [revalidator]);
-  let [A, u] = xe.useState(!1),
-    [l, i] = xe.useState(""),
+  const [waitlistChapter, setWaitlistChapter] = xe.useState<ChapterCollection | null>(null);
+  const A = waitlistChapter !== null;
+  const waitlistProduct = waitlistChapter?.products.nodes[0] ?? null;
+  const waitlistEstateName =
+    waitlistProduct?.estate?.value || waitlistProduct?.title || 'Revealed soon';
+  let [l, i] = xe.useState(""),
     [submitting, setSubmitting] = xe.useState(!1),
     [o, c] = xe.useState({ visible: !1, message: "" }),
     p = xe.useRef(null),
@@ -407,13 +420,13 @@ export default function Homepage() {
       let a = document.getElementById("chapter-collection");
       if (a) a.scrollIntoView({ behavior: "smooth", block: "start" });
     },
-    d = (a) => {
-      if (a) a.preventDefault();
-      u(!0);
+    d = (collection: ChapterCollection, event?: React.SyntheticEvent) => {
+      if (event) event.preventDefault();
+      setWaitlistChapter(collection);
       z();
     },
     E = () => {
-      u(!1);
+      setWaitlistChapter(null);
     };
   xe.useEffect(() => {
     if (A) {
@@ -427,16 +440,20 @@ export default function Homepage() {
     };
   }, [A]);
   xe.useEffect(() => {
+    const requestedHandle = searchParams.get('join');
+    const requestedChapter = chapterCollections.find(
+      (collection) => collection.handle === requestedHandle,
+    );
     if (
-      searchParams.get('join') !== firstChapter?.handle ||
-      !isChapterOneWaitlist
+      !requestedChapter?.products.nodes.length ||
+      selectStockedChapterProduct(requestedChapter.products.nodes)
     ) return;
 
-    u(!0);
+    setWaitlistChapter(requestedChapter);
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('join');
     setSearchParams(nextParams, {preventScrollReset: true, replace: true});
-  }, [firstChapter?.handle, isChapterOneWaitlist, searchParams, setSearchParams]);
+  }, [chapterCollections, searchParams, setSearchParams]);
   xe.useEffect(() => {
     let a = (P) => {
       if (P.key === "Escape" && A) E();
@@ -478,7 +495,7 @@ export default function Homepage() {
       if (!(await submitWaitlist(l))) return;
       E();
       i("");
-      q(`You're on the list for ${firstChapter?.title ?? 'the next reserve'}`);
+      q(`You're on the list for ${waitlistChapter?.title ?? 'the next reserve'}`);
     };
   return y("div", {
     className:
@@ -525,7 +542,7 @@ export default function Homepage() {
                     className:
                       "hero-intro mt-5 text-[16px] md:text-[17px] leading-[1.5] text-[#132A1F]/70 max-w-[500px]",
                     children:
-                      "Single-estate, single-harvest teas sourced directly from historic gardens in Assam and reserved in order, chapter by chapter. Once a garden enters our list, it stays.",
+                      "Single-estate, single-harvest teas sourced directly from historic gardens in Assam, reserved in order—chapter by chapter.",
                   }),
                   y("div", {
                     className: "hero-actions mt-8",
@@ -534,10 +551,10 @@ export default function Homepage() {
                         href: "#chapter-collection",
                         className:
                           "hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition",
-                        "data-mobile-label": "Explore Reserves",
+                        "data-mobile-label": "Explore the Reserve",
                         children: f("span", {
                           className: "hero-action-label--desktop",
-                          children: "Explore Our Reserves",
+                          children: "Explore the Reserve",
                         }),
                       }),
                       f("a", {
@@ -547,7 +564,7 @@ export default function Homepage() {
                         "data-mobile-label": "Our Story",
                         children: f("span", {
                           className: "hero-action-label--desktop",
-                          children: "The story of Charaideo Reserves",
+                          children: "Our Story",
                         }),
                       }),
                     ],
@@ -556,7 +573,7 @@ export default function Homepage() {
                     className: "hero-proof mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
                     children: f("p", {
                       className: "text-[12px] tracking-[0.12em] uppercase text-[#5A6B62] font-[600]",
-                      children: "One Estate, One Harvest, Fully Traceable, No Blends.",
+                      children: "From the garden, with its name intact.",
                     }),
                   }),
                 ],
@@ -703,11 +720,11 @@ export default function Homepage() {
                     }),
                     f("h2", {
                       className: "serif text-[36px] md:text-[48px] leading-[0.98]",
-                      children: "The Reserves people return to.",
+                      children: "The Reserve, chapter by chapter.",
                     }),
                     f("p", {
                       className: "mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]",
-                      children: "Each pouch is one estate, one harvest, fully traceable. No blends.",
+                      children: "Discover each garden as it enters the list.",
                     }),
                   ],
                 }),
@@ -719,7 +736,7 @@ export default function Homepage() {
               children: `LIBRARY • ${chapterCollections.length} CHAPTERS • PERMANENT`,
             }),
             f("div", {
-              className: "grid grid-cols-1 md:grid-cols-3 gap-6",
+              className: "chapter-card-track",
               children: chapterCollections.map((collection, index) =>
                 f(
                   ChapterCollectionCard,
@@ -749,13 +766,13 @@ export default function Homepage() {
                 }),
                 f("p", {
                   className: "mt-5 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
-                  children:
-                    "Every tea we reserve is traceable to the garden it came from. Not a region, not a blend- a single estate, a single pluck, a single story. When you hold a pouch of Charaideo Reserves, you hold the place itself. The soil, the season, the hands that picked it.",
+                    children:
+                      "Each tea names its garden and records its harvest—the soil, the season and the hands that picked it.",
                 }),
                 f("p", {
                   className: "mt-3 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
-                  children:
-                    "That is why we list estates in order. Once a garden enters our Reserve List, it stays- Chapter after Chapter- so you can follow a place through time.",
+                    children:
+                      "Estates remain in the Reserve List, so you can return to a place and follow it through time.",
                 }),
               ],
             }),
@@ -795,7 +812,7 @@ export default function Homepage() {
                 f("div", {
                   className: "mt-6 text-[11px] text-[#5A6B62]/70 leading-[1.6]",
                   children:
-                    "Full details revealed to Reserve List on opening. Each pouch carries its own trace card.",
+                    "Full details revealed to the Reserve List on opening. Every tea includes its own trace card.",
                 }),
               ],
             }),
@@ -819,13 +836,13 @@ export default function Homepage() {
                 ],
               }),
               f("p", {
-                children:
-                  "Assam's finest teas lose their name before they reach you - blended into 'Premium Assam Tea'. We do the opposite. We source directly from one historic garden at a time, document its harvest, and release it as a permanent Chapter. For the drinker - you know the garden, the flush, the grade. For the garden - it finally gets its name and premium.",
+                  children:
+                    "Too often, an estate's name disappears before its tea reaches the cup. We keep it visible, documenting the garden, flush and grade in every Chapter.",
               }),
               f("a", {
                 className: "text-link",
                 href: "/pages/about-us",
-                children: "The story of Charaideo Reserves \u2197",
+                  children: "Our story \u2197",
               }),
             ],
           }),
@@ -879,17 +896,17 @@ export default function Homepage() {
                 {
                   n: "01",
                   t: "Choose with care",
-                  d: "A bold morning black or a light afternoon green. Begin with the estate and harvest, not just flavour.",
+                  d: "A bold morning black or a light afternoon green. Begin with the cup you want.",
                 },
                 {
                   n: "02",
                   t: "Give it time",
-                  d: "Fresh water. Your favourite cup. Whole leaves need time to open - 3g, 85°C, 3 mins. Tasting notes on every pouch.",
+                  d: "Fresh water, your favourite cup and a little patience. Follow the included brew guide.",
                 },
                 {
                   n: "03",
                   t: "Make room",
-                  d: "For one more cup. For conversation. Every pouch is traceable to its garden with QR - estate, pluck date, and brew guide.",
+                  d: "For one more cup. For conversation. For a quiet pause in the day.",
                 },
               ].map((a) =>
                 y(
@@ -942,26 +959,26 @@ export default function Homepage() {
                         "inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-4",
                       children: [
                         f("span", { className: "w-5 h-[1px] bg-[#C4A484]" }),
-                        `Reserve Access • ${firstChapter?.products.nodes.length ?? 0} ${(firstChapter?.products.nodes.length ?? 0) === 1 ? 'Tea' : 'Teas'}`,
+                        `Reserve Access • ${waitlistChapter?.products.nodes.length ?? 0} ${(waitlistChapter?.products.nodes.length ?? 0) === 1 ? 'Tea' : 'Teas'}`,
                       ],
                     }),
                     f("h3", {
                       id: "waitlist-title",
                       className: "serif text-[28px] md:text-[32px] leading-[0.95] tracking-[-0.02em]",
-                      children: `Join Waitlist- ${firstChapter?.title}`,
+                      children: `Join Waitlist- ${waitlistChapter?.title}`,
                     }),
                     y("div", {
                       className:
                         "mt-4 flex flex-wrap items-center gap-2 text-[13px] leading-[1.6] text-[#5A6B62]",
                       children: [
-                        f("span", { children: `${firstChapterProduct?.title ?? 'Reserve'} • Opening Soon- Estate:` }),
-                        f("span", { className: `${isRevealed ? '' : 'blur-mystery'} text-[13px]`, children: estateName }),
+                        f("span", { children: `${waitlistProduct?.title ?? 'Reserve'} • Opening Soon- Estate:` }),
+                        f("span", { className: "text-[13px]", children: waitlistEstateName }),
                       ],
                     }),
                     f("p", {
                       className: "mt-3 text-[13.5px] leading-[1.6] text-[#5A6B62]/90",
                       children:
-                        "Single-estate, whole leaf. No blends. Invitation when Chapter opens- no payment today.",
+                        "Receive an invitation when this Chapter opens. No payment today.",
                     }),
                   ],
                 }),
@@ -973,7 +990,7 @@ export default function Homepage() {
                       htmlFor: "waitlist-email",
                       className:
                         "block text-[11px] tracking-[0.14em] uppercase font-[600] text-[#5A6B62] mb-2.5",
-                      children: `Email for ${firstChapter?.title} access`,
+                      children: `Email for ${waitlistChapter?.title} access`,
                     }),
                     y("div", {
                       className: "flex flex-col gap-3",
@@ -996,14 +1013,14 @@ export default function Homepage() {
                           disabled: submitting,
                           className:
                             "w-full h-[52px] rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.06em] uppercase font-[600] inline-flex items-center justify-center hover:bg-black transition",
-                          children: `Reserve My Access for ${firstChapter?.title}`,
+                          children: `Reserve My Access for ${waitlistChapter?.title}`,
                         }),
                       ],
                     }),
                     f("div", {
                       className: "mt-4 text-center text-[11px] leading-[1.5] text-[#5A6B62]/70",
                       children:
-                        `By joining, you agree to receive the ${firstChapter?.title ?? 'reserve'} opening invitation. No spam, unsubscribe anytime.`,
+                        `By joining, you agree to receive the ${waitlistChapter?.title ?? 'reserve'} opening invitation. No spam, unsubscribe anytime.`,
                     }),
                   ],
                 }),
