@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
 import type {ProductVariantFragment} from 'storefrontapi.generated';
 import {Image, useAnalytics} from '@shopify/hydrogen';
 
@@ -29,11 +30,30 @@ export function ProductImage({
   useEffect(() => {
     if (!zoomed) return;
 
+    const scrollY = window.scrollY;
+    const previousBodyStyles = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    };
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setZoomed(false);
     };
     document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape);
+      document.body.style.overflow = previousBodyStyles.overflow;
+      document.body.style.position = previousBodyStyles.position;
+      document.body.style.top = previousBodyStyles.top;
+      document.body.style.width = previousBodyStyles.width;
+      window.scrollTo(0, scrollY);
+    };
   }, [zoomed]);
 
   if (!galleryImages.length) {
@@ -85,11 +105,15 @@ export function ProductImage({
           setZoomed(true);
         }}
       >
-        <Image
+        <img
           alt={activeImage.altText || 'Product image'}
-          data={activeImage}
+          src={activeImage.url}
           key={imageKey(activeImage)}
-          sizes="(min-width: 70em) 480px, (min-width: 45em) 44vw, 92vw"
+          width={activeImage.width ?? undefined}
+          height={activeImage.height ?? undefined}
+          loading="eager"
+          {...{fetchpriority: 'high'}}
+          decoding="async"
         />
         <span className="product-image-count" aria-hidden="true">
           {activeIndex + 1} / {galleryImages.length}
@@ -128,8 +152,8 @@ export function ProductImage({
           })}
         </div>
       )}
-      {zoomed && (
-        <div
+      {zoomed && typeof document !== 'undefined'
+        ? createPortal(<div
           className="product-image-lightbox"
           role="dialog"
           aria-modal="true"
@@ -148,14 +172,16 @@ export function ProductImage({
             className="product-image-lightbox-content"
             onClick={(event) => event.stopPropagation()}
           >
-            <Image
+            <img
               alt={activeImage.altText || 'Product image'}
-              data={activeImage}
-              sizes="95vw"
+              src={activeImage.url}
+              width={activeImage.width ?? undefined}
+              height={activeImage.height ?? undefined}
+              decoding="async"
             />
           </div>
-        </div>
-      )}
+        </div>, document.body)
+        : null}
     </div>
   );
 }
