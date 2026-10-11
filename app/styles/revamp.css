@@ -4439,9 +4439,9 @@ body {
   background: #ffffff;
 }
 .product.product-purchase {
-  grid-template-columns: minmax(420px, 570px) minmax(420px, 550px);
+  grid-template-columns: minmax(420px, 630px) minmax(420px, 550px);
   gap: clamp(40px, 4vw, 64px);
-  max-width: 1220px;
+  max-width: 1280px;
   padding-block: 86px 48px;
 }
 .product-purchase .product-gallery {
@@ -4450,7 +4450,7 @@ body {
   z-index: 1;
   align-self: start;
   height: fit-content;
-  max-width: 570px;
+  max-width: 630px;
   border-color: #e2e8de;
   background: #f6f3ea;
   box-shadow: 0 14px 38px rgba(19, 42, 31, 0.06);
@@ -4518,7 +4518,7 @@ body {
 }
 .product-image-lightbox {
   position: fixed;
-  z-index: 1000;
+  z-index: 2147483646;
   inset: 0;
   display: grid;
   place-items: center;
