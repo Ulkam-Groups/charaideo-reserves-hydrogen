@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  getPublishedCart,
-  publishCart,
-  subscribeToCart,
-} from '../app/lib/cart-sync.ts';
+import {getPublishedCart, publishCart, subscribeToCart} from '../app/lib/cart-sync.ts';
 
 test('successful cart mutations publish their authoritative cart', () => {
   let notifications = 0;
