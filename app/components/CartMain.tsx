@@ -1,9 +1,8 @@
 import {
   Image,
   Money,
-  useOptimisticCart,
 } from '@shopify/hydrogen';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {Link, useFetcher, useFetchers, useRouteLoaderData} from 'react-router';
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import type {loader as cartRecommendationsLoader} from '~/routes/api.cart-recommendations';
@@ -52,9 +51,12 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
  * It is used by both the /cart route and the cart aside dialog.
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
-  // The useOptimisticCart hook applies pending actions to the cart
-  // so the user immediately sees feedback when they modify the cart.
-  const cart = useOptimisticCart(originalCart);
+  const {type: asideType} = useAside();
+  const cartVisible = layout === 'page' || asideType === 'cart';
+  const [cart, setCart] = useState(originalCart);
+  const [refreshingCart, setRefreshingCart] = useState(false);
+  const refreshSequence = useRef(0);
+  const mutationWasPending = useRef(false);
   const fetchers = useFetchers();
   const cartMutationPending = fetchers.some(
     (fetcher) =>
@@ -64,6 +66,50 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           new URL(fetcher.formAction, 'https://storefront.invalid').pathname === '/cart',
       ),
   );
+  const refreshCart = useCallback(async () => {
+    const sequence = ++refreshSequence.current;
+    setRefreshingCart(true);
+    try {
+      const response = await fetch('/api/cart-state', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {Accept: 'application/json'},
+      });
+      if (!response.ok) throw new Error(`Cart refresh failed: ${response.status}`);
+      const result = (await response.json()) as {cart: CartApiQueryFragment | null};
+      if (sequence === refreshSequence.current) setCart(result.cart);
+    } catch {
+      // Keep the last confirmed cart visible after the loading state.
+    } finally {
+      if (sequence === refreshSequence.current) setRefreshingCart(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cartVisible) void refreshCart();
+  }, [cartVisible, refreshCart]);
+
+  useEffect(() => {
+    if (cartMutationPending) {
+      mutationWasPending.current = true;
+      setRefreshingCart(true);
+      return;
+    }
+    if (!mutationWasPending.current) return;
+    mutationWasPending.current = false;
+    void refreshCart();
+  }, [cartMutationPending, refreshCart]);
+
+  useEffect(() => {
+    if (!originalCart) return;
+    setCart((current) =>
+      !current || Date.parse(originalCart.updatedAt) > Date.parse(current.updatedAt)
+        ? originalCart
+        : current,
+    );
+  }, [originalCart]);
+
+  const cartBusy = cartMutationPending || refreshingCart;
 
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
   const withDiscount =
@@ -75,8 +121,8 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
 
   return (
-    <div className={className} aria-busy={cartMutationPending}>
-      {cartMutationPending && (
+    <div className={className} aria-busy={cartBusy}>
+      {cartBusy && (
         <div className="cart-update-overlay" role="status" aria-live="polite">
           <span className="cart-update-spinner" aria-hidden="true" />
           <strong>Updating your cart…</strong>
@@ -108,15 +154,27 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           )}
         </header>
       )}
-      <CartEmpty hidden={linesCount} layout={layout} />
-      <div className="cart-details" hidden={!linesCount}>
+      {linesCount && (
         <DiscountProgress
           surface="cart"
-          paused={cartMutationPending}
+          paused={cartBusy}
           items={discountItems}
           milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
         />
+      )}
+      <div
+        aria-hidden={cartBusy || undefined}
+        style={{display: 'contents', ...(cartBusy ? {visibility: 'hidden'} : {})}}
+      >
+        <CartEmpty hidden={linesCount} layout={layout} />
+      </div>
+      <div
+        className="cart-details"
+        hidden={!linesCount}
+        aria-hidden={cartBusy || undefined}
+        style={cartBusy ? {visibility: 'hidden'} : undefined}
+      >
         <div className="cart-lines-wrap">
           <h2 id="cart-lines" className="cart-section-label">
             <span>In your cart</span>
@@ -160,7 +218,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
             )}
           />
         </div>
-        {cartHasItems && <CartSummary cart={cart} layout={layout} />}
+        {cartHasItems && cart && <CartSummary cart={cart} layout={layout} />}
       </div>
     </div>
   );
@@ -244,7 +302,7 @@ function CartRecommendations({
                   <Money data={product.priceRange.minVariantPrice} />
                 </div>
                 <AddToCartButton
-                  lines={variant ? [{merchandiseId: variant.id, quantity: 1}] : []}
+                  lines={variant ? [{merchandiseId: variant.id, quantity: 1, selectedVariant: variant}] : []}
                   disabled={!variant?.availableForSale}
                 >
                   <span aria-hidden="true">+</span> Add
@@ -355,7 +413,21 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
           <strong>{formatRecentProductPrice(product)}</strong>
         </div>
       </div>
-      <AddToCartButton lines={[{merchandiseId: product.variantId, quantity: 1}]}>
+      <AddToCartButton
+        lines={[{
+          merchandiseId: product.variantId,
+          quantity: 1,
+          selectedVariant: {
+            id: product.variantId,
+            title: product.variantTitle,
+            availableForSale: true,
+            price: product.price,
+            image: product.image,
+            selectedOptions: [{name: 'Title', value: product.variantTitle}],
+            product: {handle: product.handle, title: product.title},
+          },
+        }]}
+      >
         Add
       </AddToCartButton>
     </article>

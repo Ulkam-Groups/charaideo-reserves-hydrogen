@@ -3,7 +3,6 @@ import type {CartLayout} from '~/components/CartMain';
 import {
   CartForm,
   Money,
-  type OptimisticCart,
   useAnalytics,
 } from '@shopify/hydrogen';
 import {useEffect, useRef, useState} from 'react';
@@ -25,7 +24,7 @@ import {
 } from '~/lib/ads/meta/meta-pixel';
 
 type CartSummaryProps = {
-  cart: OptimisticCart<CartApiQueryFragment | null>;
+  cart: CartApiQueryFragment & {isOptimistic?: boolean};
   layout: CartLayout;
 };
 
