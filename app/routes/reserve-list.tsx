@@ -81,7 +81,11 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 const COLLECTIONS_QUERY = `#graphql
-  query ReserveListCollections($after: String) {
+  query ReserveListCollections(
+    $after: String
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
     collections(first: 100, after: $after) {
       nodes { title handle description }
       pageInfo { hasNextPage endCursor }
@@ -90,7 +94,12 @@ const COLLECTIONS_QUERY = `#graphql
 ` as const;
 
 const COLLECTION_PRODUCTS_QUERY = `#graphql
-  query ReserveListProducts($handle: String!, $after: String) {
+  query ReserveListProducts(
+    $handle: String!
+    $after: String
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       products(first: 100, after: $after) {
         nodes {

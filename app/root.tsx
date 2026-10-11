@@ -37,6 +37,7 @@ import {RAZORPAY_ASSETS} from '~/lib/checkout/providers/razorpay/razorpay.config
 import {resolveMetaPixelId} from '~/lib/ads/meta/meta-pixel';
 import {warmFastrrCheckout} from '~/lib/checkout/providers/fastrr/fastrr.client';
 import {loadShopifyDiscountProgress} from '~/lib/shopify-discounts.server';
+import {detectSuggestedLocale, LOCALES} from '~/lib/i18n';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
 const SHOPIFY_CHAT_WARMUP_MS = 120;
@@ -164,7 +165,7 @@ export function links() {
   ];
 }
 
-export async function loader({context}: Route.LoaderArgs) {
+export async function loader({context, request}: Route.LoaderArgs) {
   const {cart, customerAccount, env, storefront} = context;
   const publicStoreDomain = env.PUBLIC_STORE_DOMAIN;
   const metaPixelId = resolveMetaPixelId(env.PUBLIC_META_PIXEL_ID);
@@ -265,6 +266,10 @@ export async function loader({context}: Route.LoaderArgs) {
   );
 
   return {
+    locale: context.locale,
+    suggestedLocale: context.session.get('localePreference')
+      ? null
+      : detectSuggestedLocale(request),
     cart: measureOptionalStorefront(context.monitor, 'cart', () => cart.get()),
     cartDiscountProgress,
     consent: buildAnalyticsConsent(env),
@@ -293,7 +298,8 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 const GLOBAL_NOTICES_QUERY = `#graphql
-  query GlobalNotices {
+  query GlobalNotices($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
     collections(first: 50, sortKey: TITLE) {
       nodes {
         title
@@ -328,7 +334,7 @@ export default function App() {
   const nonce = useNonce();
 
   return (
-    <html lang="en">
+    <html lang={data.locale.languageTag}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -337,6 +343,10 @@ export default function App() {
           <meta name="sentry-environment" content={data.sentryEnvironment} />
         )}
         <Meta />
+        <link rel="alternate" hrefLang="x-default" href="/" />
+        {Object.entries(LOCALES).map(([key, locale]) => (
+          <link key={key} rel="alternate" hrefLang={locale.languageTag} href={locale.prefix ? `/${locale.prefix}` : '/'} />
+        ))}
         <Links />
         <link rel="stylesheet" href={stylesheet} />
         <link rel="stylesheet" href={identity} />

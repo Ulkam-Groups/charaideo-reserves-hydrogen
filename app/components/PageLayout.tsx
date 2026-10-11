@@ -9,6 +9,9 @@ import {SEARCH_ENDPOINT, SearchFormPredictive} from '~/components/SearchFormPred
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import type {StorefrontNotice} from '~/lib/storefront-notices';
 import type {DiscountProgressData, DiscountProgressMilestone} from '~/lib/discount-progress';
+import {LocaleSelector} from '~/components/LocaleSelector';
+import type {LocaleKey} from '~/lib/i18n';
+import {LOCALES} from '~/lib/i18n';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -17,6 +20,8 @@ interface PageLayoutProps {
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
   cartDiscountProgress: DiscountProgressData;
+  locale: {key: LocaleKey; languageTag: string};
+  suggestedLocale: LocaleKey | null;
   children?: React.ReactNode;
 }
 
@@ -28,6 +33,8 @@ export function PageLayout({
   isLoggedIn,
   publicStoreDomain,
   cartDiscountProgress,
+  locale,
+  suggestedLocale,
 }: PageLayoutProps) {
   const {pathname} = useLocation();
   const freeShippingMilestone =
@@ -43,16 +50,20 @@ export function PageLayout({
     <Aside.Provider>
       <CartAside cart={cart} />
       <SearchAside />
-      <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
+      <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} activeLocale={locale.key} />
       <NoticeBoard
         notices={notices}
         freeShippingMilestone={freeShippingMilestone}
       />
+      {suggestedLocale && suggestedLocale !== locale.key && (
+        <MarketSuggestion destination={suggestedLocale} />
+      )}
       <Header
         header={header}
         cart={cart}
         isLoggedIn={isLoggedIn}
         publicStoreDomain={publicStoreDomain}
+        activeLocale={locale.key}
       />
       <a className="skip-link" href="#main-content">
         Skip to content
@@ -60,6 +71,24 @@ export function PageLayout({
       <main id="main-content" className={pathname === '/' ? undefined : 'main--offset'}>{children}</main>
       <Footer />
     </Aside.Provider>
+  );
+}
+
+function MarketSuggestion({destination}: {destination: LocaleKey}) {
+  const location = useLocation();
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  const target = LOCALES[destination];
+  return (
+    <aside className="market-suggestion" aria-label="Country suggestion">
+      <span>Shopping from {target.label}?</span>
+      <form action="/locale" method="post">
+        <input name="locale" type="hidden" value={destination} />
+        <input name="returnTo" type="hidden" value={`${location.pathname}${location.search}`} />
+        <button type="submit">Shop this market</button>
+      </form>
+      <button type="button" aria-label="Dismiss country suggestion" onClick={() => setDismissed(true)}>×</button>
+    </aside>
   );
 }
 
@@ -298,9 +327,11 @@ function SearchAside() {
 function MobileMenuAside({
   header,
   publicStoreDomain,
+  activeLocale,
 }: {
   header: PageLayoutProps['header'];
   publicStoreDomain: PageLayoutProps['publicStoreDomain'];
+  activeLocale: LocaleKey;
 }) {
   const primaryDomainUrl =
     header?.shop.primaryDomain.url ?? `https://${publicStoreDomain}`;
@@ -313,6 +344,7 @@ function MobileMenuAside({
         primaryDomainUrl={primaryDomainUrl}
         publicStoreDomain={publicStoreDomain}
       />
+      <LocaleSelector activeLocale={activeLocale} compact />
     </Aside>
   );
 }

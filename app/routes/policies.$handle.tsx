@@ -67,7 +67,8 @@ export default function Policy() {
 }
 
 const POLICY_CONTENT_QUERY = `#graphql
-  query Policy {
+  query Policy($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
     shop {
       privacyPolicy { title body }
       refundPolicy { title body }

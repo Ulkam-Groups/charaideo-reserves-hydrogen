@@ -8,12 +8,15 @@ import {
 } from '@shopify/hydrogen';
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
+import {LocaleSelector} from '~/components/LocaleSelector';
+import type {LocaleKey} from '~/lib/i18n';
 
 interface HeaderProps {
   header: HeaderQuery | null;
   cart: Promise<CartApiQueryFragment | null>;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
+  activeLocale: LocaleKey;
 }
 
 type Viewport = 'desktop' | 'mobile';
@@ -23,6 +26,7 @@ export function Header({
   isLoggedIn,
   cart,
   publicStoreDomain,
+  activeLocale,
 }: HeaderProps) {
   const menu = header?.menu ?? null;
   const primaryDomainUrl =
@@ -56,14 +60,17 @@ export function Header({
           primaryDomainUrl={primaryDomainUrl}
           publicStoreDomain={publicStoreDomain}
         />
-        <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+        <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} activeLocale={activeLocale} />
       </div>
     </header>
   );
 }
 
 export function HeaderMenu({
+  menu,
+  primaryDomainUrl,
   viewport,
+  publicStoreDomain,
 }: {
   menu: HeaderQuery['menu'];
   primaryDomainUrl: string;
@@ -72,53 +79,58 @@ export function HeaderMenu({
 }) {
   const className = `header-menu-${viewport}`;
   const {close} = useAside();
-  const [libraryOpen, setLibraryOpen] = useState(false);
 
-  if (viewport === 'mobile') {
+  const localizeMenuUrl = (menuUrl: string) => {
+    try {
+      const url = new URL(menuUrl);
+      if (
+        url.origin === new URL(primaryDomainUrl).origin ||
+        url.hostname === publicStoreDomain
+      ) {
+        return `${url.pathname}${url.search}${url.hash}`;
+      }
+    } catch {
+      // Relative Shopify menu URLs are already valid Hydrogen routes.
+    }
+    return menuUrl;
+  };
+
+  if (menu?.items.length) {
     return (
       <nav className={className} aria-label="Main navigation">
-        <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">
-          Home
-        </NavLink>
-        <div className="mobile-library-menu" data-open={libraryOpen}>
-          <button
-            aria-controls="mobile-tea-library-sections"
-            aria-expanded={libraryOpen}
-            className="header-menu-item mobile-library-toggle reset"
-            onClick={() => setLibraryOpen((current) => !current)}
-            type="button"
-          >
-            <span>Tea Library</span>
-            <ChevronIcon />
-          </button>
-          <div
-            className="mobile-library-sections"
-            id="mobile-tea-library-sections"
-            hidden={!libraryOpen}
-          >
-            <Link onClick={close} prefetch="none" to="/reserve-list?tab=collections">
-              <span>Collections</span>
-              <small>Explore curated groups of reserve teas</small>
-            </Link>
-            <Link onClick={close} prefetch="none" to="/reserve-list?tab=chapters">
-              <span>Chapters</span>
-              <small>Browse releases by estate chapter</small>
-            </Link>
-          </div>
-        </div>
-        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
-        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
-        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
-        <button
-          className="header-menu-item reset"
-          onClick={(event) => {
-            close();
-            openShopifyChat(event.currentTarget);
-          }}
-          type="button"
-        >
-          Search
-        </button>
+        {viewport === 'mobile' && (
+          <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">
+            Home
+          </NavLink>
+        )}
+        {menu.items.map((item) => {
+          const to = localizeMenuUrl(item.url ?? '/');
+          if (viewport === 'mobile' && item.items.length) {
+            return (
+              <div className="mobile-library-menu" key={item.id}>
+                <span className="header-menu-item">{item.title}</span>
+                <div className="mobile-library-sections">
+                  {item.items.map((child) => (
+                    <Link key={child.id} onClick={close} prefetch="intent" to={localizeMenuUrl(child.url ?? '/')}>
+                      <span>{child.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          return (
+            <NavLink
+              className="header-menu-item"
+              key={item.id}
+              onClick={close}
+              prefetch="intent"
+              to={to}
+            >
+              {item.title}
+            </NavLink>
+          );
+        })}
       </nav>
     );
   }
@@ -143,9 +155,11 @@ function ChevronIcon() {
 function HeaderCtas({
   isLoggedIn,
   cart,
-}: Pick<HeaderProps, 'isLoggedIn' | 'cart'>) {
+  activeLocale,
+}: Pick<HeaderProps, 'isLoggedIn' | 'cart' | 'activeLocale'>) {
   return (
     <nav className="header-ctas" aria-label="Store tools">
+      <LocaleSelector activeLocale={activeLocale} />
       <HeaderMenuMobileToggle />
       <SearchToggle />
       <Suspense fallback={<AccountLink loggedIn={false} />}>
