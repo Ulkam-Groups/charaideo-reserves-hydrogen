@@ -16,11 +16,11 @@
     linear-gradient(
       180deg,
       #17392f 0,
-      #24483c 150px,
-      #58766b 360px,
-      #aabbb4 550px,
-      #e4eae7 740px,
-      #ffffff 900px
+      #24483c 100px,
+      #58766b 240px,
+      #aabbb4 365px,
+      #e4eae7 495px,
+      #ffffff 600px
     ) no-repeat,
     var(--reserve-canvas);
   color: var(--reserve-text);
@@ -317,7 +317,7 @@
   flex-direction: column;
   min-height: 0;
   height: auto;
-  padding: 7px 7px 0;
+  padding: 5px 5px 0;
   color: inherit;
   text-align: left;
   text-decoration: none;
