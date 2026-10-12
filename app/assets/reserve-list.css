@@ -562,18 +562,22 @@
 .reserve-card-variants label:has(input:checked) span {border-color: var(--reserve-green); background: #eef4ef; color: var(--reserve-green); box-shadow: inset 0 0 0 1px var(--reserve-green)}
 .reserve-card-variants label:focus-within span {outline: 2px solid #9c6638; outline-offset: 2px}
 .reserve-card-variants label[data-available="false"] span {background: #f3f0eb; color: #9b958d; text-decoration: line-through; cursor: not-allowed}
-.reserve-card-actions {display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0}
+.reserve-card-actions {display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 7px; margin-top: auto; padding: 0}
 .reserve-card-actions form {display: contents}
 .reserve-card-actions button,
-.reserve-unavailable-action {min-height: 44px; padding: 0 13px; border: 1px solid var(--reserve-green); border-radius: 7px; font: 700 11px/1 "General Sans", sans-serif; cursor: pointer}
+.reserve-unavailable-action {display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 34px; min-height: 34px; padding: 0 10px; border-radius: 8px; font: 700 10px/1 "General Sans", sans-serif; letter-spacing: .05em; box-shadow: none; cursor: pointer}
 .reserve-card-actions form button,
-.reserve-add-button {background: var(--reserve-green); color: #fff}
-.reserve-card-actions form:last-of-type button {background: #fff; color: var(--reserve-green)}
-.reserve-card-actions form button:hover,
-.reserve-add-button:hover {background: var(--reserve-green-deep)}
-.reserve-card-actions form:last-of-type button:hover {background: #eef4ef}
+.reserve-add-button {border: 1px solid #d0a23a; background: #e4b84b; color: #132a1f; box-shadow: 0 5px 14px rgba(151,111,30,.16)}
+.reserve-card-actions .reserve-buy-now {gap: 6px; border: 1px solid #132a1f; background: #132a1f; color: #fff}
+.reserve-card-actions .reserve-buy-now .razorpay-brand {width: 18px; height: 18px}
+.reserve-card-actions .reserve-buy-now .razorpay-brand-crop {width: 11px; height: 15px}
+.reserve-card-actions .reserve-buy-now .razorpay-brand img {height: 15px}
+.reserve-card-actions form button:hover:not(:disabled),
+.reserve-add-button:hover:not(:disabled) {border-color: #b88a24; background: #d8aa35; color: #132a1f}
+.reserve-card-actions .reserve-buy-now:hover:not(:disabled) {border-color: #132a1f; background: #132a1f; color: #fff}
 .reserve-card-actions button:disabled {opacity: .5; cursor: not-allowed}
-.reserve-unavailable-action {display: grid; color: var(--reserve-green); text-decoration: none; place-items: center}
+.reserve-card-actions .reserve-buy-now:disabled {border-color: #132a1f; background: #132a1f; color: #fff; opacity: 1}
+.reserve-unavailable-action {border: 1px solid #132a1f; color: #132a1f; text-decoration: none}
 .reserve-card-actions [role="alert"] {grid-column: 1 / -1; margin: 0; color: #9b2c2c; font-size: 10px}
 .reserve-card-details {align-self: center; color: #52675a; font-size: 10px; font-weight: 650; text-underline-offset: 3px}
 

@@ -1,11 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {
   DEFAULT_CHECKOUT_PROVIDER,
   resolveCheckoutProvider,
 } from '../app/lib/checkout/provider.ts';
 import {canStartCheckout} from '../app/lib/checkout/checkout.ts';
 import {startCheckout} from '../app/lib/checkout/checkout.client.ts';
+
+test('reserve-list Buy now uses the configured checkout provider', () => {
+  const source = readFileSync(
+    new URL('../app/routes/reserve-list.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /startCheckout\(rootData\.checkoutProvider/);
+  assert.match(source, /canStartCheckout\(rootData\.checkoutProvider/);
+  assert.doesNotMatch(source, /<AddToCartButton\s+checkout/);
+});
 
 test('checkout provider defaults to Fastrr and rejects unknown values', () => {
   assert.equal(resolveCheckoutProvider(undefined), DEFAULT_CHECKOUT_PROVIDER);

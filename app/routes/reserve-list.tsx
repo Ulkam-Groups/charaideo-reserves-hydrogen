@@ -1,11 +1,15 @@
 import {useEffect, useRef, useState, type CSSProperties, type KeyboardEvent} from 'react';
 import {flushSync} from 'react-dom';
-import {data, Link, useLoaderData, useSearchParams} from 'react-router';
-import {Image, Money} from '@shopify/hydrogen';
+import {data, Link, useLoaderData, useRouteLoaderData, useSearchParams} from 'react-router';
+import {Image, Money, useAnalytics} from '@shopify/hydrogen';
 import type {Route} from './+types/reserve-list';
+import type {loader as rootLoader} from '~/root';
 import {chapterState, isAvailableForSale, partitionReserveCollections, reserveVariantLabel, type ReserveCollection} from '~/lib/reserve-list';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
+import {RazorpayBrand} from '~/components/RazorpayBrand';
+import {canStartCheckout} from '~/lib/checkout/checkout';
+import {startCheckout} from '~/lib/checkout/checkout.client';
 
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
 
@@ -490,13 +494,7 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
           >
             Add to bag
           </AddToCartButton>
-          <AddToCartButton
-            checkout
-            disabled={!selectedVariant?.availableForSale}
-            lines={selectedVariant ? [{merchandiseId: selectedVariant.id, quantity: 1, selectedVariant}] : []}
-          >
-            Buy now
-          </AddToCartButton>
+          <ReserveBuyNowButton variant={selectedVariant} />
         </div>
       ) : (
         <Link to={`/products/${product.handle}`} prefetch="intent" className="reserve-unavailable-action">
@@ -508,6 +506,58 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
       </Link>
     </div>
   </article>;
+}
+
+function ReserveBuyNowButton({
+  variant,
+}: {
+  variant: ReserveCollection['products'][number]['variants']['nodes'][number] | undefined;
+}) {
+  const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const {publish} = useAnalytics();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const products = variant ? [{variantId: variant.id, quantity: 1}] : [];
+  const enabled = Boolean(
+    variant?.availableForSale &&
+      rootData?.checkoutReady &&
+      canStartCheckout(rootData.checkoutProvider, products),
+  );
+
+  return <>
+    <button
+      type="button"
+      className="reserve-buy-now"
+      disabled={!enabled || pending}
+      onClick={async () => {
+        if (!variant || !rootData?.checkoutProvider) return;
+        setPending(true);
+        setError('');
+        publish('custom_buy_now_started', {quantity: 1, variantId: variant.id});
+        const utmParams = new URLSearchParams(
+          [...new URLSearchParams(window.location.search)].filter(([key]) =>
+            key.startsWith('utm_'),
+          ),
+        ).toString();
+        try {
+          const started = await startCheckout(rootData.checkoutProvider, {
+            source: 'product',
+            products,
+            ...(utmParams ? {utmParams} : {}),
+          });
+          if (!started) {
+            setError('Checkout is temporarily unavailable. Please try again.');
+          }
+        } finally {
+          setPending(false);
+        }
+      }}
+    >
+      <span>{pending ? 'Opening checkout…' : 'Buy now'}</span>
+      {rootData?.checkoutProvider === 'razorpay' && <RazorpayBrand />}
+    </button>
+    {error && <p role="alert">{error}</p>}
+  </>;
 }
 
 function reserveDisplayTitle(title: string) {

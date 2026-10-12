@@ -122,7 +122,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
 
   return (
     <div className={className} aria-busy={cartBusy}>
-      {cartBusy && (
+      {cartBusy && !linesCount && (
         <div className="cart-update-overlay" role="status" aria-live="polite">
           <span className="cart-update-spinner" aria-hidden="true" />
           <strong>Updating your cart…</strong>
@@ -172,10 +172,14 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
       <div
         className="cart-details"
         hidden={!linesCount}
-        aria-hidden={cartBusy || undefined}
-        style={cartBusy ? {visibility: 'hidden'} : undefined}
       >
-        <div className="cart-lines-wrap">
+        <div className="cart-lines-wrap" aria-busy={cartBusy}>
+          {cartBusy && (
+            <div className="cart-update-overlay" role="status" aria-live="polite">
+              <span className="cart-update-spinner" aria-hidden="true" />
+              <strong>Updating your cart…</strong>
+            </div>
+          )}
           <h2 id="cart-lines" className="cart-section-label">
             <span>In your cart</span>
             <b>{cart?.totalQuantity ?? 0}</b>
