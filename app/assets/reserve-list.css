@@ -480,6 +480,7 @@
 .reserve-collection-note p {margin: 0}
 .reserve-collection-note p:first-child {color: var(--reserve-green); font-weight: 600}
 .reserve-visually-hidden {position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0}
+.reserve-discovery-sentinel {display: block; height: 0}
 
 .reserve-discovery {
   position: sticky;
@@ -495,6 +496,7 @@
   background: rgba(255,255,255,.96);
   box-shadow: 0 8px 24px rgba(22,46,34,.06);
   backdrop-filter: blur(12px);
+  transition: padding 180ms ease, border-radius 180ms ease, box-shadow 180ms ease;
 }
 .reserve-search {display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 12px; border: 1px solid #d8d0c4; border-radius: 7px; background: #fff}
 .reserve-search input {min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; color: var(--reserve-text); font: 500 12px/1.2 "General Sans", sans-serif}
@@ -577,6 +579,22 @@
 .reserve-sort select {min-width: 0; width: 100%; text-overflow: ellipsis}
 .reserve-sort {position: relative; display: block; padding: 0; border: 0; background: transparent}
 .reserve-sort-trigger {display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px; width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid #d8d0c4; border-radius: 7px; background: #fff; color: #17382a; cursor: pointer; transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease}
+@media (min-width: 821px) {
+  .reserve-discovery--stuck {
+    padding: 3px 4px 2px;
+    border-color: #c9bdab;
+    border-radius: 8px;
+    background: rgba(247,243,235,.98);
+    box-shadow: 0 7px 20px rgba(16,41,30,.14);
+  }
+  .reserve-discovery--stuck .reserve-search,
+  .reserve-discovery--stuck .reserve-filter-trigger,
+  .reserve-discovery--stuck .reserve-sort-trigger {min-height: 34px}
+  .reserve-discovery--stuck .reserve-search {height: 34px; padding-block: 0}
+  .reserve-discovery--stuck .reserve-search input {height: 100%; min-height: 0; padding-block: 0}
+  .reserve-discovery--stuck .reserve-filters,
+  .reserve-discovery--stuck .reserve-sort {height: 34px; min-height: 34px}
+}
 .reserve-sort-trigger:hover {border-color: #809086; background: #f8faf8}
 .reserve-sort-trigger[aria-expanded="true"] {border-color: var(--reserve-green); box-shadow: 0 0 0 2px rgba(23,56,42,.14)}
 .reserve-sort-trigger span {font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase}

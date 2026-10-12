@@ -137,6 +137,9 @@ export default function ReserveList() {
   const [tab, setTab] = useState<'chapters' | 'collections'>(requestedTab);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
+  const discoveryRef = useRef<HTMLDivElement>(null);
+  const discoverySentinelRef = useRef<HTMLSpanElement>(null);
+  const [discoveryStuck, setDiscoveryStuck] = useState(false);
   const [teaStyleOpen, setTeaStyleOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -150,6 +153,28 @@ export default function ReserveList() {
   const maxPrice = searchParams.get('max') ?? '';
 
   useEffect(() => setTab(requestedTab), [requestedTab]);
+
+  useEffect(() => {
+    const updateStickyState = () => {
+      const discovery = discoveryRef.current;
+      const sentinel = discoverySentinelRef.current;
+      if (!discovery || !sentinel || window.matchMedia('(max-width: 820px)').matches) {
+        setDiscoveryStuck(false);
+        return;
+      }
+
+      const stickyTop = Number.parseFloat(getComputedStyle(discovery).top) || 0;
+      setDiscoveryStuck(sentinel.getBoundingClientRect().top <= stickyTop);
+    };
+
+    updateStickyState();
+    window.addEventListener('scroll', updateStickyState, {passive: true});
+    window.addEventListener('resize', updateStickyState);
+    return () => {
+      window.removeEventListener('scroll', updateStickyState);
+      window.removeEventListener('resize', updateStickyState);
+    };
+  }, []);
   useEffect(() => {
     if (!filtersOpen) setTeaStyleOpen(false);
   }, [filtersOpen]);
@@ -322,7 +347,11 @@ export default function ReserveList() {
           </div>
         </header>
 
-        <div className="reserve-discovery">
+        <span className="reserve-discovery-sentinel" ref={discoverySentinelRef} aria-hidden="true" />
+        <div
+          className={`reserve-discovery${discoveryStuck ? ' reserve-discovery--stuck' : ''}`}
+          ref={discoveryRef}
+        >
           <label className="reserve-search" htmlFor="reserve-search">
             <span aria-hidden="true">⌕</span>
             <input id="reserve-search" type="search" value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
