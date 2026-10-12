@@ -6,9 +6,29 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {DiscountProgress} from '../../app/components/DiscountProgress.tsx';
 import {loadShopifyDiscountProgress} from '../../app/lib/shopify-discounts.server.ts';
 import {
+  cartDiscountProgressItems,
   discountProgressAmount,
   isDiscountProgressEligible,
 } from '../../app/lib/discount-progress.ts';
+
+test('cart discount progress ignores an incomplete optimistic line', () => {
+  assert.deepEqual(
+    cartDiscountProgressItems({
+      lines: {
+        nodes: [
+          {
+            quantity: 1,
+            merchandise: {
+              id: 'gid://shopify/ProductVariant/optimistic',
+              price: {amount: '450.00', currencyCode: 'INR'},
+            },
+          },
+        ],
+      },
+    } as never),
+    [],
+  );
+});
 
 test('Shopify discount progress parses order and product milestones in threshold order', async () => {
   const originalFetch = globalThis.fetch;

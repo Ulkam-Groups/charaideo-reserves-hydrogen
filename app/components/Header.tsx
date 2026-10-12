@@ -4,10 +4,10 @@ import {Await, Link, NavLink, useAsyncValue} from 'react-router';
 import {
   type CartViewPayload,
   useAnalytics,
-  useOptimisticCart,
 } from '@shopify/hydrogen';
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
+import {useSyncedCart} from '~/hooks/useSyncedCart';
 
 interface HeaderProps {
   header: HeaderQuery | null;
@@ -96,13 +96,13 @@ export function HeaderMenu({
             id="mobile-tea-library-sections"
             hidden={!libraryOpen}
           >
-            <Link onClick={close} prefetch="none" to="/reserve-list?tab=collections">
-              <span>Collections</span>
-              <small>Explore curated groups of reserve teas</small>
-            </Link>
             <Link onClick={close} prefetch="none" to="/reserve-list?tab=chapters">
               <span>Chapters</span>
               <small>Browse releases by estate chapter</small>
+            </Link>
+            <Link onClick={close} prefetch="none" to="/reserve-list?tab=collections">
+              <span>Collections</span>
+              <small>Explore curated groups of reserve teas</small>
             </Link>
           </div>
         </div>
@@ -419,7 +419,7 @@ function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
 
 function CartBanner() {
   const originalCart = useAsyncValue() as CartApiQueryFragment | null;
-  const cart = useOptimisticCart(originalCart);
+  const cart = useSyncedCart(originalCart);
   return <CartBadge count={cart?.totalQuantity ?? 0} />;
 }
 

@@ -84,7 +84,29 @@ const CART_RECOMMENDATIONS_QUERY = `#graphql
               }
               selectedOrFirstAvailableVariant {
                 id
+                title
                 availableForSale
+                image {
+                  id
+                  altText
+                  url
+                  width
+                  height
+                }
+                price {
+                  amount
+                  currencyCode
+                }
+                selectedOptions {
+                  name
+                  value
+                }
+                product {
+                  id
+                  handle
+                  title
+                  collections(first: 20) { nodes { id } }
+                }
               }
             }
           }
@@ -110,7 +132,29 @@ const CART_RECOMMENDATIONS_QUERY = `#graphql
       }
       selectedOrFirstAvailableVariant {
         id
+        title
         availableForSale
+        image {
+          id
+          altText
+          url
+          width
+          height
+        }
+        price {
+          amount
+          currencyCode
+        }
+        selectedOptions {
+          name
+          value
+        }
+        product {
+          id
+          handle
+          title
+          collections(first: 20) { nodes { id } }
+        }
       }
     }
   }

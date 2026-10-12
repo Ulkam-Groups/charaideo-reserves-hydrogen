@@ -24,6 +24,13 @@ import type {
 } from 'customer-accountapi.generated';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 
+const ORDER_DATE_FORMATTER = new Intl.DateTimeFormat('en', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
 type OrdersLoaderData = {
   customer: CustomerOrdersFragment;
   filters: OrderFilterParams;
@@ -221,7 +228,9 @@ function OrderItem({order}: {order: OrderItemFragment}) {
         <strong>#{order.number}</strong>
       </div>
       <div className="account-order-card-main">
-        <p className="account-order-date">Placed {new Intl.DateTimeFormat('en-IN', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(order.processedAt))}</p>
+        <p className="account-order-date">
+          Placed {ORDER_DATE_FORMATTER.format(new Date(order.processedAt))}
+        </p>
         {order.confirmationNumber && <p>Confirmation · {order.confirmationNumber}</p>}
         <div className="account-order-statuses">
           <span>{order.financialStatus}</span>

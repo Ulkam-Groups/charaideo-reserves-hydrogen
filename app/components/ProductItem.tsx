@@ -145,7 +145,7 @@ export function ProductItem({
               disabled={!canAddToCart}
               lines={
                 canAddToCart
-                  ? [{merchandiseId: cartVariant.id, quantity: 1}]
+                  ? [{merchandiseId: cartVariant.id, quantity: 1, selectedVariant: cartVariant}]
                   : []
               }
               onClick={() => open('cart')}

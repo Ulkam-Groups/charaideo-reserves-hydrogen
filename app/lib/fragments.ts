@@ -136,6 +136,7 @@ export const CART_QUERY_FRAGMENT = `#graphql
   fragment CartApiQuery on Cart {
     updatedAt
     id
+    checkoutUrl
     appliedGiftCards {
       id
       lastCharacters
