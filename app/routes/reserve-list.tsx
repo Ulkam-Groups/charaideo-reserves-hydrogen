@@ -133,7 +133,7 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
 export default function ReserveList() {
   const {chapters, others} = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const requestedTab = searchParams.get('tab') === 'chapters' ? 'chapters' : 'collections';
+  const requestedTab = searchParams.get('tab') === 'collections' ? 'collections' : 'chapters';
   const [tab, setTab] = useState<'chapters' | 'collections'>(requestedTab);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);

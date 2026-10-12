@@ -566,7 +566,6 @@ button {cursor: pointer}
 /* Sign in */
 .signin-page {display: grid; grid-template-columns: 1.15fr .85fr; min-height: calc(100vh - var(--header-height)); padding: 0}
 .signin-story {position: relative; display: flex; flex-direction: column; justify-content: center; padding: 70px var(--gutter); overflow: hidden; background: var(--aged-indigo); color: var(--gamosa-cream)}
-.signin-story::after {content: ''; position: absolute; width: 110%; height: 160px; left: -5%; bottom: 10%; border-top: 2px solid var(--river-mist); border-radius: 50%; transform: rotate(-5deg)}
 .signin-story .eyebrow {color: var(--tea-liquor)}
 .signin-cha {position: absolute; right: 7%; top: 8%; color: rgba(120,144,140,.24); font-size: clamp(180px,28vw,480px); font-family: serif; line-height: 1}
 .signin-story h1 {position: relative; z-index: 2; margin: 0; color: var(--gamosa-cream); font-size: clamp(60px,8vw,118px); line-height: .82}

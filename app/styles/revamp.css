@@ -2103,6 +2103,10 @@ button.header-search-trigger:hover .header-search-ai-icon {
   border-radius: 24px;
 }
 
+.signin-page {
+  margin-top: -20px;
+}
+
 .signin-panel {
   position: relative;
   isolation: isolate;
@@ -5495,6 +5499,7 @@ body {
   background: #ffffff;
   box-shadow: 0 6px 16px rgba(19, 42, 31, 0.08);
 }
+
 .header.header-solid.header-scrolled {
   border-bottom: 1px solid #d5ded8;
   background: #ffffff;

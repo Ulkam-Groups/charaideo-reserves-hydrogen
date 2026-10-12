@@ -96,13 +96,13 @@ export function HeaderMenu({
             id="mobile-tea-library-sections"
             hidden={!libraryOpen}
           >
-            <Link onClick={close} prefetch="none" to="/reserve-list?tab=collections">
-              <span>Collections</span>
-              <small>Explore curated groups of reserve teas</small>
-            </Link>
             <Link onClick={close} prefetch="none" to="/reserve-list?tab=chapters">
               <span>Chapters</span>
               <small>Browse releases by estate chapter</small>
+            </Link>
+            <Link onClick={close} prefetch="none" to="/reserve-list?tab=collections">
+              <span>Collections</span>
+              <small>Explore curated groups of reserve teas</small>
             </Link>
           </div>
         </div>
