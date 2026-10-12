@@ -7,7 +7,6 @@ import type {loader as rootLoader} from '~/root';
 import {chapterState, isAvailableForSale, partitionReserveCollections, reserveVariantLabel, type ReserveCollection} from '~/lib/reserve-list';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
-import {RazorpayBrand} from '~/components/RazorpayBrand';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 
@@ -138,9 +137,11 @@ export default function ReserveList() {
   const [tab, setTab] = useState<'chapters' | 'collections'>(requestedTab);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const filtersRef = useRef<HTMLDivElement>(null);
+  const [teaStyleOpen, setTeaStyleOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef<HTMLDivElement>(null);
   const query = searchParams.get('q') ?? '';
+  const [queryInput, setQueryInput] = useState(query);
   const availability = searchParams.get('availability') ?? 'all';
   const selectedCollection = searchParams.get('collection');
   const selectedTag = searchParams.get('tag');
@@ -149,6 +150,22 @@ export default function ReserveList() {
   const maxPrice = searchParams.get('max') ?? '';
 
   useEffect(() => setTab(requestedTab), [requestedTab]);
+  useEffect(() => {
+    if (!filtersOpen) setTeaStyleOpen(false);
+  }, [filtersOpen]);
+  useEffect(() => setQueryInput(query), [query]);
+  useEffect(() => {
+    if (queryInput === query) return;
+    const timeout = window.setTimeout(() => {
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        if (queryInput) next.set('q', queryInput);
+        else next.delete('q');
+        return next;
+      }, {preventScrollReset: true, replace: true});
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [query, queryInput, setSearchParams]);
   useEffect(() => {
     const focusSearch = (event: globalThis.KeyboardEvent) => {
       if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -238,7 +255,7 @@ export default function ReserveList() {
     .slice(0, 16);
 
   const filterProducts = (products: typeof uniqueProducts) => {
-    const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = queryInput.trim().toLowerCase();
     const floor = minPrice ? Number(minPrice) : null;
     const ceiling = maxPrice ? Number(maxPrice) : null;
     const filtered = products.filter((product) => {
@@ -262,6 +279,7 @@ export default function ReserveList() {
   const visibleCollectionProducts = filterProducts(collectionPool);
   const activeFilterCount = [availability !== 'all', Boolean(selectedTag), Boolean(minPrice), Boolean(maxPrice)].filter(Boolean).length;
   const clearFilters = () => {
+    setQueryInput('');
     const next = new URLSearchParams(searchParams);
     ['q', 'availability', 'tag', 'min', 'max', 'sort'].forEach((key) => next.delete(key));
     setSearchParams(next, {preventScrollReset: true, replace: true});
@@ -292,25 +310,22 @@ export default function ReserveList() {
     <div className="reserve-list-page">
       <div className="reserve-list-main">
         <header className="reserve-list-introduction">
-          <p className="reserve-list-eyebrow">Permanent tea archive</p>
           <h1>The Reserve List</h1>
           <p className="reserve-list-intro">Rare Assam teas, selected by estate, season, and character.</p>
-          <p className="reserve-browse-label">Browse the archive</p>
           <div className="reserve-list-tabs" data-active={tab} role="tablist" aria-label="Browse the Reserve List">
             <button type="button" role="tab" id="reserve-collections-tab" aria-selected={tab === 'collections'} aria-controls="reserve-collections-panel" tabIndex={tab === 'collections' ? 0 : -1} onKeyDown={handleTabKeyDown} onClick={() => selectTab('collections')}>
-              <span className="reserve-tab-icon" aria-hidden="true">◇</span><strong>By Collection</strong><small>Shop by flavour, style, or occasion</small>
+              <span className="reserve-tab-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M16.8 3.2C10.7 3.4 6.2 5.6 4.5 9.1c-1.1 2.2-.5 4.8 1.5 6.1 2 1.3 4.7.7 6.2-1.2 2.2-2.8 3.5-6.4 4.6-10.8Z" /><path d="M3.2 16.8c2.4-3.8 5.5-6.7 9.4-8.8" /></svg></span><strong>Shop by Collection</strong><small>{tab === 'collections' ? 'Viewing now ✓' : 'Shop collections'}</small>
             </button>
             <button type="button" role="tab" id="reserve-chapters-tab" aria-selected={tab === 'chapters'} aria-controls="reserve-chapters-panel" tabIndex={tab === 'chapters' ? 0 : -1} onKeyDown={handleTabKeyDown} onClick={() => selectTab('chapters')}>
-              <span className="reserve-tab-icon" aria-hidden="true">⌖</span><strong>By Chapter</strong><small>Explore releases from each tea estate</small>
+              <span className="reserve-tab-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M10 17s5-4.4 5-9a5 5 0 1 0-10 0c0 4.6 5 9 5 9Z" /><circle cx="10" cy="8" r="1.8" /></svg></span><strong>Explore by Chapter</strong><small>{tab === 'chapters' ? 'Viewing now ✓' : 'Explore chapters'}</small>
             </button>
           </div>
-          <p className="reserve-mode-help"><strong>Chapter</strong> is where a tea comes from. <strong>Collection</strong> is how it is curated.</p>
         </header>
 
         <div className="reserve-discovery">
           <label className="reserve-search" htmlFor="reserve-search">
             <span aria-hidden="true">⌕</span>
-            <input id="reserve-search" type="search" value={query} onChange={(event) => updateParam('q', event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
+            <input id="reserve-search" type="search" value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
             <kbd>/</kbd>
           </label>
           <div className="reserve-filters" ref={filtersRef}>
@@ -325,7 +340,18 @@ export default function ReserveList() {
                   {[['all', 'All'], ['in-stock', 'In stock'], ['coming-soon', 'Coming soon']].map(([value, label]) => <button key={value} type="button" aria-pressed={availability === value} onClick={() => updateParam('availability', value === 'all' ? null : value)}>{label}</button>)}
                 </div>
               </div>
-              <label className="reserve-filter-section"><span className="reserve-filter-label">Tea style</span><select value={selectedTag ?? ''} onChange={(event) => updateParam('tag', event.target.value)}><option value="">All styles</option>{availableTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></label>
+              <div className="reserve-filter-section reserve-tag-filter">
+                <span className="reserve-filter-label">Tea style</span>
+                <div className="reserve-tag-select">
+                  <button type="button" className="reserve-tag-trigger" aria-expanded={teaStyleOpen} aria-haspopup="listbox" onClick={() => setTeaStyleOpen((open) => !open)}>
+                    <span>{selectedTag || 'All styles'}</span><i aria-hidden="true" />
+                  </button>
+                  {teaStyleOpen && <div className="reserve-tag-menu" role="listbox" aria-label="Tea style">
+                    <button type="button" role="option" aria-selected={!selectedTag} onClick={() => {updateParam('tag', null); setTeaStyleOpen(false);}}>All styles{!selectedTag && <b aria-hidden="true">✓</b>}</button>
+                    {availableTags.map((tag) => <button key={tag} type="button" role="option" aria-selected={selectedTag === tag} onClick={() => {updateParam('tag', tag); setTeaStyleOpen(false);}}><span>{tag}</span>{selectedTag === tag && <b aria-hidden="true">✓</b>}</button>)}
+                  </div>}
+                </div>
+              </div>
               <fieldset className="reserve-filter-section reserve-price-range"><legend className="reserve-filter-label">Price range</legend>
                 <div className="reserve-range-values"><strong>{formatRangePrice(selectedMinPrice)}</strong><span>to</span><strong>{formatRangePrice(selectedMaxPrice)}</strong></div>
                 <div className="reserve-range-control" style={{'--range-start': `${Math.max(0, Math.min(priceRangeStart, 100))}%`, '--range-end': `${Math.max(0, Math.min(priceRangeEnd, 100))}%`} as CSSProperties}>
@@ -364,7 +390,14 @@ export default function ReserveList() {
           {selectedCollectionData && <header className="reserve-active-collection"><div><span>Curated collection</span><h2>{selectedCollectionData.title}</h2></div><p>{selectedCollectionData.description || 'A considered selection from the Charaideo Reserves tea library.'}</p></header>}
           {visibleCollectionProducts.length ? <div className="reserve-products-grid reserve-products-grid--collections">
             {visibleCollectionProducts.map((product) => <ReserveTeaCard key={product.handle} product={product} collectionTitle={selectedCollectionData?.title || productCollectionLabels.get(product.handle) || 'Tea collection'} />)}
-          </div> : <div className="reserve-empty"><strong>No teas match these filters.</strong><br /><button type="button" onClick={clearFilters}>Clear filters</button></div>}
+          </div> : <div className="reserve-empty" role="status">
+            <span className="reserve-empty-icon" aria-hidden="true">⌕</span>
+            <div>
+              <strong>No teas found</strong>
+              <p>Try another search or reset your filters to explore the tea library.</p>
+            </div>
+            <button type="button" onClick={clearFilters}>Clear search &amp; filters</button>
+          </div>}
         </section>
 
         <aside className="reserve-trust" aria-label="Our reserve promise">
@@ -465,7 +498,7 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
       </div>
 
       {product.variants.nodes.length > 0 && (
-        <fieldset className="reserve-card-variants">
+        <fieldset className="reserve-card-variants" data-product-available={product.availableForSale}>
           <legend>Select pack</legend>
           <div>
             {product.variants.nodes.map((variant) => (
@@ -554,7 +587,6 @@ function ReserveBuyNowButton({
       }}
     >
       <span>{pending ? 'Opening checkout…' : 'Buy now'}</span>
-      {rootData?.checkoutProvider === 'razorpay' && <RazorpayBrand />}
     </button>
     {error && <p role="alert">{error}</p>}
   </>;
