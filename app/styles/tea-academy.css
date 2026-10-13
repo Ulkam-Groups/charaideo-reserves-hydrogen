@@ -77,6 +77,58 @@ body:has(.academy-page) .header.header-solid:not(.header-scrolled){background:#1
 @keyframes academy-panel-in{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:760px){.academy-hero{grid-template-columns:1fr;padding-block:26px}.academy-hero-mark{justify-self:start;width:150px}.academy-hero-mark strong{font-size:3rem}.academy-section-menu{top:var(--header-height);padding:0}.academy-section-menu button{min-height:72px;padding:13px 14px}.academy-section-menu small{display:none}.academy-inline-content{scroll-margin-top:calc(var(--header-height) + 72px)}.academy-panel-heading{padding-top:28px}}
 @media(prefers-reduced-motion:reduce){.academy-panel{animation:none}.academy-section-menu button{transition:none}}
+
+/* Keep the Tea Academy badge prominent, with a periodic PDP-style light sweep. */
+.header-menu-new,
+.header-menu-item-with-badge:hover .header-menu-new,
+.header-menu-item-with-badge.active .header-menu-new {
+  overflow: hidden;
+  isolation: isolate;
+  background: #303030;
+  color: #fff;
+}
+
+.header-menu-new::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -55%;
+  bottom: -55%;
+  left: -65%;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.82),
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(-180%) skewX(-18deg);
+  animation: header-new-flash 5s ease-in-out infinite;
+}
+
+@keyframes header-new-flash {
+  0% {
+    opacity: 0;
+    transform: translateX(-180%) skewX(-18deg);
+  }
+  2% {opacity: 1}
+  12% {
+    opacity: 1;
+    transform: translateX(520%) skewX(-18deg);
+  }
+  14%, 100% {
+    opacity: 0;
+    transform: translateX(520%) skewX(-18deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-new::after {animation: none}
+}
 /* Tea Academy hero stamp */
 .academy-hero-mark {
   border: 0;
