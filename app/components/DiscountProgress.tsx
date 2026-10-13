@@ -51,13 +51,22 @@ export function DiscountProgress({
     ]),
   );
   const maximum = Math.max(...eligibleMilestones.map((item) => item.threshold));
+  // Leave a short runway after the final offer so the last milestone does not
+  // look like a hard limit on how much a customer can add to their cart.
+  const visualMaximum = maximum * 1.1;
   const progress = Math.min(
     100,
     Math.max(
       ...eligibleMilestones.map(
-        (milestone) =>
-          (Math.min(amounts.get(milestone.id) ?? 0, milestone.threshold) / maximum) *
-          100,
+        (milestone) => {
+          const fillLimit =
+            milestone.threshold === maximum ? visualMaximum : milestone.threshold;
+          return (
+            (Math.min(amounts.get(milestone.id) ?? 0, fillLimit) /
+              visualMaximum) *
+            100
+          );
+        },
       ),
     ),
   );
@@ -111,7 +120,7 @@ export function DiscountProgress({
             <span
               key={milestone.id}
               className={`discount-progress-marker${reachedMilestone ? ' is-reached' : ''}`}
-              style={{left: `${(milestone.threshold / maximum) * 100}%`}}
+              style={{left: `${(milestone.threshold / visualMaximum) * 100}%`}}
               title={`${milestone.reward} at ${milestone.threshold}`}
               aria-hidden="true"
             >
@@ -124,7 +133,7 @@ export function DiscountProgress({
         <div className="discount-progress-labels" aria-hidden="true">
           {eligibleMilestones.map((milestone) => {
             const done = (amounts.get(milestone.id) ?? 0) >= milestone.threshold;
-            const position = (milestone.threshold / maximum) * 100;
+            const position = (milestone.threshold / visualMaximum) * 100;
             return (
               <span
                 key={milestone.id}

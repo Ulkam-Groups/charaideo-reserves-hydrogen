@@ -5534,6 +5534,109 @@ body {
   background: transparent;
   border-bottom-color: transparent;
 }
+
+/* Preserve a tappable outside-close gutter for the cart on narrow screens. */
+@media (max-width: 520px) {
+  .overlay--cart {
+    --aside-width: calc(100vw - 28px);
+  }
+  .overlay--cart aside {
+    right: calc(28px - 100vw);
+    width: calc(100vw - 28px);
+    max-width: calc(100vw - 28px);
+  }
+  .overlay--cart.expanded aside {
+    transform: translateX(calc(28px - 100vw));
+  }
+  .overlay--cart .close-outside {
+    width: 28px;
+  }
+  .overlay--cart aside header {
+    padding-inline: 14px;
+  }
+  .overlay--cart .cart-lines-wrap {
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .overlay--cart .cart-line-inner {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 9px;
+  }
+  .overlay--cart .cart-line-inner img {
+    width: 60px;
+    height: 72px;
+  }
+  .overlay--cart .cart-line-inner strong {
+    font-size: 12.5px;
+  }
+  .overlay--cart .cart-line-quantity {
+    gap: 6px;
+  }
+  .overlay--cart .discount-progress {
+    padding-inline: 12px;
+  }
+}
+
+/* Cart drawer: keep the close action visible at the far-right of the header. */
+.overlay--cart aside > header .close {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid #d8e0d5;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #17392f;
+  cursor: pointer;
+  line-height: 0;
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(19, 42, 31, 0.08);
+  transition: background-color 180ms ease, color 180ms ease,
+    border-color 180ms ease, transform 180ms ease;
+}
+
+.overlay--cart aside > header .close svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.overlay--cart aside > header .close:hover {
+  border-color: #17392f;
+  background: #17392f;
+  color: #ffffff;
+}
+
+.overlay--cart aside > header .close:focus-visible {
+  outline: 2px solid #c99861;
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .overlay--cart aside > header .close {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .overlay--cart aside > header .close svg {
+    width: 16px;
+    height: 16px;
+  }
+}
 /* Keep page content clear of the floating header on every non-home route. */
 main.main--offset {
   padding-top: 20px;
