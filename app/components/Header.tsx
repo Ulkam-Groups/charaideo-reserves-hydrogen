@@ -77,7 +77,7 @@ export function HeaderMenu({
   if (viewport === 'mobile') {
     return (
       <nav className={className} aria-label="Main navigation">
-        <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">
+        <NavLink className="header-menu-item" end onClick={close} prefetch="none" to="/">
           Home
         </NavLink>
         <div className="mobile-library-menu" data-open={libraryOpen}>
@@ -106,12 +106,12 @@ export function HeaderMenu({
             </Link>
           </div>
         </div>
-        <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="intent" to="/tea-academy">
+        <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
           Tea Academy <span className="header-menu-new">New</span>
         </NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
-        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
-        <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/sign-in">Account</NavLink>
         <button
           className="header-menu-item reset"
           onClick={(event) => {
@@ -129,11 +129,11 @@ export function HeaderMenu({
   return (
     <nav className={className} aria-label="Main navigation">
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/reserve-list">Tea Library</NavLink>
-      <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="intent" to="/tea-academy">
+      <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
         Tea Academy <span className="header-menu-new">New</span>
       </NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
-      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
+      <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
     </nav>
   );
 }
@@ -174,7 +174,7 @@ function AccountLink({loggedIn}: {loggedIn: boolean}) {
       aria-label={label}
       className="header-icon-button header-account"
       data-tooltip={label}
-      prefetch="intent"
+      prefetch="none"
       to={loggedIn ? '/account' : '/sign-in'}
     >
       <AccountIcon />
@@ -445,8 +445,13 @@ function AccountIcon() {
 function CartIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M4.5 7.5h15l-1.15 10.25H5.65L4.5 7.5Z" />
-      <path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2" />
+      <path
+        d="M2.75 4.75h2.1l2.15 9.1h10.7l2.15-6.6H5.55"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="18.25" r="1.25" />
+      <circle cx="17" cy="18.25" r="1.25" />
     </svg>
   );
 }

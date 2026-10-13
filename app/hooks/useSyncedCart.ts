@@ -19,8 +19,11 @@ export function useSyncedCart(originalCart: CartApiQueryFragment | null) {
     getServerCart,
   );
   const [confirmedCart, setConfirmedCart] = useState(originalCart);
-  const mutationCart = newerCart(lineFetcher.data?.cart ?? null, publishedCart);
-  const baseCart = newerCart(confirmedCart, mutationCart);
+  // A completed client mutation is authoritative for this browser session.
+  // Shopify can return identical `updatedAt` values for rapid mutations, so
+  // timestamp comparison alone can allow the older root cart to win.
+  const mutationCart = publishedCart ?? lineFetcher.data?.cart ?? null;
+  const baseCart = mutationCart ?? confirmedCart;
 
   useEffect(() => {
     setConfirmedCart((current) => newerCart(current, originalCart));
@@ -30,7 +33,7 @@ export function useSyncedCart(originalCart: CartApiQueryFragment | null) {
     if (mutationCart) {
       setConfirmedCart((current) => newerCart(current, mutationCart));
     }
-  }, [mutationCart?.id, mutationCart?.updatedAt]);
+  }, [mutationCart?.id, mutationCart?.updatedAt, mutationCart?.totalQuantity]);
 
   return useOptimisticCart(baseCart);
 }

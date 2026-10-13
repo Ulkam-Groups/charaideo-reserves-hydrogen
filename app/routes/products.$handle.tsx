@@ -493,7 +493,7 @@ export default function Product() {
                 This reserve is waiting for its first verified review. Already tasted it?
                 You can share private feedback directly with our tea room.
               </p>
-              <Link className="text-link" prefetch="intent" to="/pages/contact">
+              <Link className="text-link" prefetch="none" to="/pages/contact">
                 Share feedback →
               </Link>
             </div>
@@ -516,7 +516,7 @@ export default function Product() {
                     <h2 id="related-products-title">You may also enjoy.</h2>
                     <p>Selected by shared tea tags and collections.</p>
                   </div>
-                  <Link className="text-link" prefetch="intent" to="/collections/all">
+                  <Link className="text-link" prefetch="none" to="/collections/all">
                     Shop all teas →
                   </Link>
                 </div>

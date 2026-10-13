@@ -67,7 +67,7 @@ export function ProductItem({
     <article
       className={`catalog-card${showVariants ? ' catalog-card--commerce' : ''}`}
     >
-      <Link className="catalog-card-image" prefetch="intent" to={url}>
+      <Link className="catalog-card-image" prefetch="none" to={url}>
         {product.featuredImage ? (
           <Image
             alt={product.featuredImage.altText || product.title}
@@ -83,7 +83,7 @@ export function ProductItem({
       <div className="catalog-card-body">
         <div className="catalog-card-heading">
           <p>{product.productType || 'The tea cabinet'}</p>
-          <h2><Link prefetch="intent" to={url}>{product.title}</Link></h2>
+          <h2><Link prefetch="none" to={url}>{product.title}</Link></h2>
         </div>
         <p className="catalog-card-description">
           {cardDescription}
@@ -153,7 +153,7 @@ export function ProductItem({
               {canAddToCart ? 'Add to cart' : 'Unavailable'}
             </AddToCartButton>
           ) : (
-            <Link className="text-link" prefetch="intent" to={url}>Choose tea →</Link>
+            <Link className="text-link" prefetch="none" to={url}>Choose tea →</Link>
           )}
         </div>
       </div>

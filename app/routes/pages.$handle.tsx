@@ -129,7 +129,7 @@ function StaticPage({page}: {page: StaticPageContent}) {
           <h1>{page.title}</h1>
           <p>{page.excerpt}</p>
           {page.cta && (
-            <Link className="button primary" prefetch="intent" to={page.cta.to}>
+            <Link className="button primary" prefetch="none" to={page.cta.to}>
               {page.cta.label}
             </Link>
           )}

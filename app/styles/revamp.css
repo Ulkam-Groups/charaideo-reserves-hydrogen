@@ -4377,8 +4377,13 @@ body {
 }
 .revamp-home .home-hero-layout {
   padding-block: clamp(32px, 3.2vw, 48px);
-  /* Lower hero copy and artwork without moving the header or changing the hero's flow height. */
-  transform: translateY(30px);
+  transform: none;
+}
+@media (min-width: 768px) {
+  .revamp-home .hero-copy-reveal {
+    align-self: start;
+    margin-top: clamp(65px, 500vw, 80px);
+  }
 }
 .revamp-home h1,
 .revamp-home h2,
@@ -5505,6 +5510,29 @@ body {
   background: #ffffff;
   box-shadow: 0 1px 0 rgba(19, 42, 31, 0.04);
   backdrop-filter: none;
+}
+
+/* Keep the navigation optically crisp on every route and scroll state. */
+.header,
+.header.header-solid,
+.header.header-scrolled,
+.header.header-solid.header-scrolled {
+  background: #ffffff;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.header.header-solid .header-inner,
+.header.header-solid.header-scrolled .header-inner {
+  background: #ffffff;
+  border-color: #cfd9d2;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.header.header-solid:not(.header-scrolled) {
+  background: transparent;
+  border-bottom-color: transparent;
 }
 /* Keep page content clear of the floating header on every non-home route. */
 main.main--offset {

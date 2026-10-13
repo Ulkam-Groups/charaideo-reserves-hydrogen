@@ -173,7 +173,7 @@ function NoticeLink({
   if (!notice.buttonLink) return <div {...sharedProps}>{content}</div>;
   if (notice.buttonLink.startsWith('/') && !notice.buttonLink.startsWith('//')) {
     return (
-      <Link {...sharedProps} prefetch="intent" to={notice.buttonLink}>
+      <Link {...sharedProps} prefetch="none" to={notice.buttonLink}>
         {content}
       </Link>
     );

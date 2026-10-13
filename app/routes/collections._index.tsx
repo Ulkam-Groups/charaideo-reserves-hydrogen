@@ -50,14 +50,14 @@ export default function Collections() {
       <header className="listing-hero">
         <div className="listing-hero-inner">
           <nav className="listing-breadcrumb" aria-label="Breadcrumb">
-            <Link prefetch="intent" to="/">Home</Link>
+            <Link prefetch="none" to="/">Home</Link>
             <span aria-hidden="true">/</span>
             <span>Collections</span>
           </nav>
           <span className="eyebrow">The tea library</span>
           <h1>Explore our collections</h1>
           <p>Discover the teas of Charaideo Reserves™, gathered by character and craft.</p>
-          <Link className="listing-hero-link" prefetch="intent" to="/reserve-list">
+          <Link className="listing-hero-link" prefetch="none" to="/reserve-list">
             View the Reserve List <span aria-hidden="true">→</span>
           </Link>
         </div>
@@ -86,7 +86,7 @@ function CollectionItem({
       className="collection-item"
       key={collection.id}
       to={`/collections/${collection.handle}`}
-      prefetch="intent"
+      prefetch="none"
     >
       {collection?.image ? (
         <Image

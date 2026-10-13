@@ -1,5 +1,5 @@
 .main--offset:has(> .reserve-list-page) {
-  background: #17392f;
+  background: #ffffff;
 }
 
 .reserve-list-page {
@@ -12,17 +12,7 @@
   --reserve-line: #d7cebf;
   --reserve-soft: #ffffff;
   --reserve-gold: #bd9162;
-  background:
-    linear-gradient(
-      180deg,
-      #17392f 0,
-      #24483c 100px,
-      #58766b 240px,
-      #aabbb4 365px,
-      #e4eae7 495px,
-      #ffffff 600px
-    ) no-repeat,
-    var(--reserve-canvas);
+  background: var(--reserve-canvas);
   color: var(--reserve-text);
   font-family: "General Sans", system-ui, sans-serif;
 }
@@ -43,7 +33,7 @@
 
 .reserve-list-introduction {
   padding: 18px 20px 12px;
-  color: #f4ebdd;
+  color: var(--reserve-text);
   text-align: center;
 }
 
@@ -58,14 +48,14 @@
 
 .reserve-list-introduction h1 {
   margin: 0;
-  color: #d8a35d;
+  color: var(--reserve-green);
   font-size: clamp(38px, 4vw, 48px);
   line-height: 1;
 }
 
 .reserve-list-intro {
   margin: 10px auto 0;
-  color: rgba(244,235,221,.78);
+  color: var(--reserve-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -727,14 +717,48 @@
   .reserve-list-main {padding-top: 40px}
   .reserve-list-introduction {padding: 10px 4px 4px}
   .reserve-list-introduction h1 {font-size: 37px}
-  .reserve-list-tabs {grid-template-columns: 1fr}
-  .reserve-list-tabs button {min-height: 54px}
+  .reserve-list-tabs {grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px}
+  .reserve-list-tabs button {min-width: 0; min-height: 62px; padding: 8px 7px 8px 38px}
+  .reserve-list-tabs button strong {font-size: 13px; line-height: 1.1}
+  .reserve-list-tabs button small {font-size: 9px; line-height: 1.15}
+  .reserve-list-tabs .reserve-tab-icon {left: 10px; width: 17px; height: 17px}
+  .reserve-discovery {grid-template-columns: minmax(0, 1fr) 78px 96px; gap: 5px; padding: 6px}
+  .reserve-search {grid-column: auto; min-width: 0; min-height: 38px; gap: 5px; padding-inline: 8px}
+  .reserve-search input {font-size: 10.5px; text-overflow: ellipsis}
+  .reserve-search kbd {display: none}
+  .reserve-filters,
+  .reserve-sort {width: 100%; min-width: 0; min-height: 38px}
+  .reserve-filter-trigger,
+  .reserve-sort-trigger {min-height: 38px; border-radius: 7px}
+  .reserve-filter-trigger {justify-content: center; gap: 4px; padding-inline: 6px; font-size: 10px}
+  .reserve-filter-trigger > span {font-size: 13px}
+  .reserve-filter-trigger i {display: none}
+  .reserve-sort-trigger {grid-template-columns: minmax(0, 1fr) auto; gap: 4px; padding-inline: 7px}
+  .reserve-sort-trigger span {display: none}
+  .reserve-sort-trigger strong {font-size: 10px}
   .reserve-collection-sections,
   .reserve-chapter-sections {gap: 20px}
-  .reserve-products-grid {grid-template-columns: 1fr}
-  .reserve-tea-image {height: 270px}
+  .reserve-products-grid {grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px}
+  .reserve-tea-card {border-radius: 8px; box-shadow: 0 4px 14px rgba(31,51,41,.07)}
+  .reserve-tea-link {padding: 4px 4px 0}
+  .reserve-tea-image {height: clamp(132px, 42vw, 170px); margin-bottom: 6px}
   .reserve-tea-link,
-  .reserve-tea-card-locked {min-height: 270px}
+  .reserve-tea-card-locked {min-height: 0}
+  .reserve-tea-collection {font-size: 7px; letter-spacing: .08em}
+  .reserve-tea-card h3 {min-height: 2.3em; margin: 4px 0 5px; font-size: 14px; line-height: 1.15; -webkit-line-clamp: 2}
+  .reserve-tasting-notes {min-height: 2.6em; margin-bottom: 7px; font-size: 9px; line-height: 1.3}
+  .reserve-commerce-panel {gap: 6px; margin-top: 3px; padding: 6px}
+  .reserve-tea-meta {align-items: flex-start; flex-direction: column; gap: 2px}
+  .reserve-tea-price {font-size: 14px}
+  .reserve-availability {font-size: 7.5px; letter-spacing: .05em}
+  .reserve-card-variants {gap: 5px}
+  .reserve-card-variants legend {font-size: 7.5px}
+  .reserve-card-variants > div {gap: 4px}
+  .reserve-card-variants label span {min-height: 30px; padding-inline: 7px; font-size: 8.5px}
+  .reserve-card-actions {gap: 4px}
+  .reserve-card-actions button,
+  .reserve-unavailable-action {min-height: 36px; height: 36px; padding-inline: 5px; font-size: 10px; letter-spacing: .015em}
+  .reserve-card-details {font-size: 8px; text-align: center}
   .reserve-collection-note {grid-template-columns: 1fr}
   .reserve-modal-backdrop {padding: 0; align-items: end}
   .reserve-quick-view {grid-template-columns: 1fr; max-height: 92vh; border-radius: 14px 14px 0 0}
