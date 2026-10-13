@@ -1,6 +1,9 @@
 import {data} from 'react-router';
 import type {Route} from './+types/api.cart-recommendations';
-import {measureOptionalStorefront} from '~/lib/monitoring.server';
+import {
+  measureOptionalStorefront,
+  safeMonitorFailure,
+} from '~/lib/monitoring.server';
 
 const MAX_SOURCE_PRODUCTS = 3;
 const MAX_EXCLUDED_PRODUCTS = 50;
@@ -46,25 +49,28 @@ export async function loader({request, context}: Route.LoaderArgs) {
     throw new Response('Product IDs are required.', {status: 400});
   }
 
-  const recommendationResults = await Promise.all(
-    productIds.map((productId) =>
-      measureOptionalStorefront(context.monitor, 'cart_product_recommendations', () =>
-        context.storefront.query(CART_RECOMMENDATIONS_QUERY, {
-          variables: {productId},
-          cache: context.storefront.CacheShort({
-            maxAge: 60,
-            staleWhileRevalidate: 300,
-          }),
-        }),
-      ),
-    ),
-  );
-
-  if (recommendationResults.every((result) => result === null)) {
-    return data({recommendations: [], unavailable: true});
-  }
-
   try {
+    const recommendationResults = await Promise.all(
+      productIds.map((productId) =>
+        measureOptionalStorefront(
+          context.monitor,
+          'cart_product_recommendations',
+          () =>
+            context.storefront.query(CART_RECOMMENDATIONS_QUERY, {
+              variables: {productId},
+              cache: context.storefront.CacheShort({
+                maxAge: 60,
+                staleWhileRevalidate: 300,
+              }),
+            }),
+        ),
+      ),
+    );
+
+    if (recommendationResults.every((result) => result === null)) {
+      return data({recommendations: [], unavailable: true});
+    }
+
     const cartProductIds = new Set(excludedProductIds);
     const recommendations = [
       ...new Map(
@@ -94,7 +100,13 @@ export async function loader({request, context}: Route.LoaderArgs) {
       }));
 
     return data({recommendations, unavailable: false});
-  } catch {
+  } catch (error) {
+    safeMonitorFailure(
+      context.monitor,
+      'cart_product_recommendations.loader_failure',
+      {sourceProductCount: productIds.length},
+      error,
+    );
     return data({recommendations: [], unavailable: true});
   }
 }

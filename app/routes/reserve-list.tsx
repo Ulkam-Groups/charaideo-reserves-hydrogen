@@ -354,7 +354,7 @@ export default function ReserveList() {
         >
           <label className="reserve-search" htmlFor="reserve-search">
             <span aria-hidden="true">⌕</span>
-            <input id="reserve-search" type="search" value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
+            <input id="reserve-search" name="reserve-catalog-search" type="search" autoComplete="off" spellCheck={false} value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
             <kbd>/</kbd>
           </label>
           <div className="reserve-filters" ref={filtersRef}>
