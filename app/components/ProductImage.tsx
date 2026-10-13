@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {createPortal} from 'react-dom';
 import type {ProductVariantFragment} from 'storefrontapi.generated';
 import {Image, useAnalytics} from '@shopify/hydrogen';
@@ -8,9 +9,11 @@ type GalleryImage = NonNullable<ProductVariantFragment['image']>;
 export function ProductImage({
   image,
   images = [],
+  overlay,
 }: {
   image: ProductVariantFragment['image'];
   images?: GalleryImage[];
+  overlay?: ReactNode;
 }) {
   const {publish} = useAnalytics();
   const galleryImages = useMemo(() => {
@@ -91,6 +94,7 @@ export function ProductImage({
           if (Math.abs(delta) > 40) step(delta < 0 ? 1 : -1);
         }}
       >
+      {overlay}
       <button
         type="button"
         className="product-image product-image-trigger"

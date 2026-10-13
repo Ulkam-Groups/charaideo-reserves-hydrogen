@@ -70,6 +70,9 @@ function AccountMenu() {
       <NavLink to="/account/addresses" prefetch="none" className={accountLinkClass}>
         <span aria-hidden="true">03</span> Addresses
       </NavLink>
+      <NavLink to="/wishlist" prefetch="none" className={accountLinkClass}>
+        <span aria-hidden="true">04</span> Saved teas
+      </NavLink>
       <Logout />
       </nav>
       <p className="account-sidebar-note">Your account details are kept private and used only to fulfil your tea orders.</p>

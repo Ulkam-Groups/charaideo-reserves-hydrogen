@@ -1,6 +1,7 @@
 import type {ProductItemFragment} from 'storefrontapi.generated';
 
 export type ReserveProduct = {
+  id?: string;
   title: string;
   handle: string;
   description?: string;

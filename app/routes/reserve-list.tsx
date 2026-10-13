@@ -9,6 +9,7 @@ import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
+import {WishlistButton} from '~/components/WishlistButton';
 
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
 
@@ -500,6 +501,20 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
   }
 
   return <article className="reserve-tea-card reserve-shop-card">
+    {product.id && (
+      <WishlistButton
+        className="wishlist-button--card"
+        product={{
+          id: product.id,
+          handle: product.handle,
+          title: product.title,
+          image: product.featuredImage
+            ? {url: product.featuredImage.url, altText: product.featuredImage.altText}
+            : null,
+          price: product.priceRange?.minVariantPrice ?? null,
+        }}
+      />
+    )}
     <Link to={`/products/${product.handle}`} className="reserve-tea-link" prefetch="none">
       <div className="reserve-tea-image">
         {originLabel && <span className="reserve-image-badge">{originLabel}</span>}

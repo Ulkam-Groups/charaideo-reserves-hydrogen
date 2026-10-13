@@ -8,6 +8,7 @@ import {
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 import {useSyncedCart} from '~/hooks/useSyncedCart';
+import {useWishlist} from '~/components/WishlistProvider';
 
 interface HeaderProps {
   header: HeaderQuery | null;
@@ -111,6 +112,7 @@ export function HeaderMenu({
         </NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/wishlist">Saved teas</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/sign-in">Account</NavLink>
         <button
           className="header-menu-item reset"
@@ -154,6 +156,7 @@ function HeaderCtas({
     <nav className="header-ctas" aria-label="Store tools">
       <HeaderMenuMobileToggle />
       <SearchToggle />
+      <WishlistLink />
       <Suspense fallback={<AccountLink loggedIn={false} />}>
         <Await
           resolve={isLoggedIn}
@@ -164,6 +167,29 @@ function HeaderCtas({
       </Suspense>
       <CartToggle cart={cart} />
     </nav>
+  );
+}
+
+function WishlistLink() {
+  const {products} = useWishlist();
+
+  return (
+    <NavLink
+      aria-label="View saved teas"
+      className="header-icon-button header-wishlist header-menu-desktop"
+      data-tooltip="Saved teas"
+      prefetch="none"
+      to="/wishlist"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.5a5.5 5.5 0 0 0 0-7.8Z" />
+      </svg>
+      {products.length > 0 && (
+        <span className="header-wishlist-count" aria-hidden="true">
+          {products.length}
+        </span>
+      )}
+    </NavLink>
   );
 }
 

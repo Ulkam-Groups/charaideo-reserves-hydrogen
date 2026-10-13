@@ -3781,7 +3781,7 @@ html {
 .contact-page {
   margin-top: -20px;
   background: #f4ebdd;
-  color: #17392f;
+  color: #B12B2D;
 }
 main.main--offset:has(> .contact-page) {
   background: #17392f;
@@ -5649,6 +5649,102 @@ main.main--offset .blog {
 }
 main.main--offset .search {
   padding-top: 84px;
+}
+
+/* Customer wishlist */
+.wishlist-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #d8e0d5;
+  border-radius: 999px;
+  background: #fff;
+  color: #17392f;
+  font: 700 12px/1 var(--sans);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+.wishlist-button svg {width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8}
+.wishlist-button:hover {border-color: #B12B2D; background: #fff7f7}
+.wishlist-button.is-saved {border-color: #B12B2D; background: #B12B2D; color: #fff}
+.wishlist-button.is-saved svg {fill: currentColor}
+.wishlist-button:focus-visible {outline: 2px solid #c99861; outline-offset: 2px}
+.wishlist-button:disabled {opacity: .45; cursor: wait}
+
+.reserve-shop-card {position: relative}
+.wishlist-button--card {
+  position: absolute;
+  z-index: 3;
+  top: 9px;
+  right: 9px;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  box-shadow: 0 4px 14px rgba(19,42,31,.12);
+}
+.wishlist-button--pdp-image {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  left: 12px;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  box-shadow: 0 4px 14px rgba(19,42,31,.12);
+}
+.header-wishlist {position: relative; color: #B12B2D !important}
+.header-wishlist svg {width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8}
+.header-wishlist.active svg {fill: currentColor}
+.header-wishlist-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #17392f;
+  color: #fff;
+  font: 700 9px/1 var(--sans);
+  place-items: center;
+}
+
+@media (max-width: 900px) {
+  .header .header-ctas > .header-wishlist.header-menu-desktop {display: none !important}
+  .header .header-menu-mobile-toggle {display: inline-flex !important}
+}
+
+.wishlist-page {max-width: 1180px; margin: 0 auto; padding: 72px var(--gutter) 90px}
+.wishlist-hero {max-width: 680px; margin-bottom: 34px}
+.wishlist-hero h1 {margin: 8px 0 10px; color: #17392f; font: 500 clamp(2.5rem,5vw,4.5rem)/.95 var(--serif)}
+.wishlist-hero p {margin: 0; color: #64736a}
+.wishlist-grid {display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px}
+.wishlist-card {position: relative; overflow: hidden; border: 1px solid #dce3da; border-radius: 14px; background: #fff}
+.wishlist-card > a {display: block; padding-bottom: 16px; color: inherit; text-decoration: none}
+.wishlist-card-image {display: grid; aspect-ratio: 4/3; overflow: hidden; background: #f3f1eb; place-items: center}
+.wishlist-card-image img {width: 100%; height: 100%; object-fit: cover}
+.wishlist-card h2 {margin: 15px 16px 5px; color: #17392f; font: 500 1.35rem/1.05 var(--serif)}
+.wishlist-card p {margin: 0 16px; color: #53685c; font-weight: 700}
+.wishlist-card > .wishlist-button {margin: 0 16px 16px}
+.wishlist-empty {display: grid; min-height: 300px; padding: 34px; border: 1px solid #dce3da; border-radius: 16px; background: #faf9f5; text-align: center; place-items: center}
+.wishlist-empty > span {color: #9e6943; font-size: 3rem}
+.wishlist-empty h2 {margin: 4px 0; color: #17392f; font: 500 2rem/1 var(--serif)}
+.wishlist-empty p {margin: 4px 0 18px; color: #64736a}
+.wishlist-empty a {padding: 12px 18px; border-radius: 999px; background: #17392f; color: #fff; text-decoration: none}
+.wishlist-status {padding: 40px 0; color: #64736a}
+
+@media (max-width: 760px) {
+  .wishlist-page {padding: 52px 14px 64px}
+  .wishlist-grid {grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px}
+  .wishlist-card h2 {margin-inline: 11px; font-size: 1.05rem}
+  .wishlist-card p {margin-inline: 11px; font-size: 12px}
+  .wishlist-card > .wishlist-button {margin: 0 11px 11px; min-height: 34px; padding-inline: 10px; font-size: 10px}
+  .wishlist-button--card {top: 6px; right: 6px; width: 30px; min-height: 30px}
+  .wishlist-button--pdp-image {top: 8px; left: 8px; width: 32px; min-height: 32px}
 }
 main.main--offset .catalog-page {
   padding-top: 24px;
