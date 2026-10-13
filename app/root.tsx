@@ -19,6 +19,7 @@ import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
 import productExperience from '~/styles/product-experience.css?url';
 import cartPage from '~/styles/cart-page.css?url';
+import teaAcademy from '~/styles/tea-academy.css?url';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
@@ -344,6 +345,7 @@ export default function App() {
         <link rel="stylesheet" href={productExperience} />
         <link rel="stylesheet" href={reserveListStylesheet} />
         <link rel="stylesheet" href={cartPage} />
+              <link rel="stylesheet" href={teaAcademy} />
       </head>
       <body>
         {data.fastrrSellerDomain && (

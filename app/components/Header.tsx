@@ -106,6 +106,9 @@ export function HeaderMenu({
             </Link>
           </div>
         </div>
+        <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="intent" to="/tea-academy">
+          Tea Academy <span className="header-menu-new">New</span>
+        </NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/sign-in">Account</NavLink>
@@ -126,6 +129,9 @@ export function HeaderMenu({
   return (
     <nav className={className} aria-label="Main navigation">
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/reserve-list">Tea Library</NavLink>
+      <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="intent" to="/tea-academy">
+        Tea Academy <span className="header-menu-new">New</span>
+      </NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
     </nav>

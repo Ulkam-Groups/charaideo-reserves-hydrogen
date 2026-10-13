@@ -3,9 +3,11 @@ import {
   Money,
 } from '@shopify/hydrogen';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {Link, useFetcher, useFetchers, useRouteLoaderData} from 'react-router';
-import type {CartApiQueryFragment} from 'storefrontapi.generated';
-import type {loader as cartRecommendationsLoader} from '~/routes/api.cart-recommendations';
+import {Link, useFetchers, useRouteLoaderData} from 'react-router';
+import type {
+  CartApiQueryFragment,
+  CartRecommendationsQuery,
+} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
 import {DiscountProgress} from '~/components/DiscountProgress';
 import {useAside} from '~/components/Aside';
@@ -122,7 +124,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
 
   return (
     <div className={className} aria-busy={cartBusy}>
-      {cartBusy && !linesCount && (
+      {cartBusy && (
         <div className="cart-update-overlay" role="status" aria-live="polite">
           <span className="cart-update-spinner" aria-hidden="true" />
           <strong>Updating your cart…</strong>
@@ -174,12 +176,6 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
         hidden={!linesCount}
       >
         <div className="cart-lines-wrap" aria-busy={cartBusy}>
-          {cartBusy && (
-            <div className="cart-update-overlay" role="status" aria-live="polite">
-              <span className="cart-update-spinner" aria-hidden="true" />
-              <strong>Updating your cart…</strong>
-            </div>
-          )}
           <h2 id="cart-lines" className="cart-section-label">
             <span>In your cart</span>
             <b>{cart?.totalQuantity ?? 0}</b>
@@ -237,23 +233,55 @@ function CartRecommendations({
 }) {
   const {type} = useAside();
   const active = layout === 'page' || type === 'cart';
-  const fetcher = useFetcher<typeof cartRecommendationsLoader>();
   const productKey = [...new Set(productIds)].slice(0, 3).join('|');
-  const [requestedKey, setRequestedKey] = useState('');
+  const [response, setResponse] = useState<{
+    key: string;
+    recommendations: NonNullable<
+      CartRecommendationsQuery['productRecommendations']
+    >;
+    unavailable: boolean;
+  } | null>(null);
+  const [loadingKey, setLoadingKey] = useState('');
 
   useEffect(() => {
-    if (!active || !productKey || requestedKey === productKey) return;
+    if (!active || !productKey || response?.key === productKey) return;
+
+    const controller = new AbortController();
     const params = new URLSearchParams();
     productKey.split('|').forEach((id) => params.append('productId', id));
-    setRequestedKey(productKey);
-    fetcher.load(`/api/cart-recommendations?${params.toString()}`);
-  }, [fetcher, productKey, requestedKey, active]);
+    setLoadingKey(productKey);
+
+    void fetch(`/api/cart-recommendations?${params.toString()}`, {
+      signal: controller.signal,
+      headers: {Accept: 'application/json'},
+    })
+      .then(async (request) => {
+        if (!request.ok) throw new Error(`Recommendations failed: ${request.status}`);
+        return request.json() as Promise<{
+          recommendations: NonNullable<
+            CartRecommendationsQuery['productRecommendations']
+          >;
+          unavailable: boolean;
+        }>;
+      })
+      .then((result) => {
+        setResponse({key: productKey, ...result});
+        setLoadingKey('');
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setResponse({key: productKey, recommendations: [], unavailable: true});
+        setLoadingKey('');
+      });
+
+    return () => controller.abort();
+  }, [productKey, active, response?.key]);
 
   if (!active || !productKey) return null;
-  const isCurrentResponse = requestedKey === productKey;
-  const loading = !isCurrentResponse || fetcher.state !== 'idle';
-  const recommendations = isCurrentResponse ? (fetcher.data?.recommendations ?? []) : [];
-  const unavailable = isCurrentResponse && Boolean(fetcher.data?.unavailable);
+  const isCurrentResponse = response?.key === productKey;
+  const loading = loadingKey === productKey || !isCurrentResponse;
+  const recommendations = isCurrentResponse ? response.recommendations : [];
+  const unavailable = isCurrentResponse && response.unavailable;
   if (!loading && !unavailable && recommendations.length === 0) return null;
 
   return (
