@@ -54,25 +54,27 @@ export function DiscountProgress({
   // Leave a short runway after the final offer so the last milestone does not
   // look like a hard limit on how much a customer can add to their cart.
   const visualMaximum = maximum * 1.1;
-  const progress = Math.min(
-    100,
-    Math.max(
-      ...eligibleMilestones.map(
-        (milestone) => {
-          const fillLimit =
-            milestone.threshold === maximum ? visualMaximum : milestone.threshold;
-          return (
-            (Math.min(amounts.get(milestone.id) ?? 0, fillLimit) /
-              visualMaximum) *
-            100
-          );
-        },
-      ),
-    ),
-  );
   const next = eligibleMilestones.find(
     (milestone) => (amounts.get(milestone.id) ?? 0) < milestone.threshold,
   );
+  const progress = next
+    ? Math.min(
+        100,
+        Math.max(
+          ...eligibleMilestones.map((milestone) => {
+            const fillLimit =
+              milestone.threshold === maximum
+                ? visualMaximum
+                : milestone.threshold;
+            return (
+              (Math.min(amounts.get(milestone.id) ?? 0, fillLimit) /
+                visualMaximum) *
+              100
+            );
+          }),
+        ),
+      )
+    : 100;
   const reached = eligibleMilestones.filter(
     (milestone) => (amounts.get(milestone.id) ?? 0) >= milestone.threshold,
   );
