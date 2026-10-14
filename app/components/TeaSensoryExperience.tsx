@@ -173,15 +173,15 @@ function SensoryResult({ranked, answers, onRestart}: {ranked: ReturnType<typeof 
         {primary.tea.image ? <img src={primary.tea.image.url} alt={primary.tea.image.altText || primary.tea.title} /> : <div className="sensory-image-placeholder" aria-hidden="true">CR</div>}
         <div>
           <span className="sensory-match-score">Best match · {Math.round(primary.score)} points</span>
-          <h3><Link className="sensory-product-title-link" to={`/products/${primary.tea.handle}`}>{primary.tea.title}<span aria-hidden="true">↗</span></Link></h3>
+          <h3><Link prefetch="none" className="sensory-product-title-link" to={`/products/${primary.tea.handle}`}>{primary.tea.title}<span aria-hidden="true">↗</span></Link></h3>
           <p>{[primary.tea.profile.estate, primary.tea.profile.origin].filter(Boolean).join(' · ') || primary.tea.vendor}</p>
           <div className="sensory-tags">{primary.tea.profile.flavours.map((value) => <span key={value}>{value}</span>)}</div>
-          <div className="sensory-result-actions"><Link className="button primary" to={`/products/${primary.tea.handle}`}>Discover this tea</Link><button className="sensory-back" type="button" onClick={onRestart}>Start again</button></div>
+          <div className="sensory-result-actions"><Link prefetch="none" className="button primary" to={`/products/${primary.tea.handle}`}>Discover this tea</Link><button className="sensory-back" type="button" onClick={onRestart}>Start again</button></div>
         </div>
       </article>
       <BrewGuide tea={primary.tea} style={answers.style} />
     </div>
-    {ranked.length > 1 && <div className="sensory-alternatives"><p className="eyebrow">Also close to your taste</p><div>{ranked.slice(1).map(({tea}) => <Link key={tea.id} to={`/products/${tea.handle}`}><strong>{tea.title}</strong><span>{tea.profile.flavours.slice(0, 3).join(' · ')}</span><span aria-hidden="true">→</span></Link>)}</div></div>}
+    {ranked.length > 1 && <div className="sensory-alternatives"><p className="eyebrow">Also close to your taste</p><div>{ranked.slice(1).map(({tea}) => <Link prefetch="none" key={tea.id} to={`/products/${tea.handle}`}><strong>{tea.title}</strong><span>{tea.profile.flavours.slice(0, 3).join(' · ')}</span><span aria-hidden="true">→</span></Link>)}</div></div>}
   </section>;
 }
 
@@ -203,5 +203,5 @@ function BrewGuide({tea, style}: {tea: SensoryTea; style: string}) {
 }
 
 function SensoryPendingResult({onRestart}: {onRestart: () => void}) {
-  return <section className="sensory-empty" aria-live="polite"><p className="eyebrow">Your preferences are saved</p><h2>The matching table is being prepared.</h2><p>The sensory journey is working, but no published product has a valid <code>custom.tea_sensory_profile</code> yet. Add a profile in Shopify to turn these answers into a tea recommendation.</p><div className="sensory-result-actions"><button className="button primary" type="button" onClick={onRestart}>Try the wheel again</button><Link className="button secondary" to="/reserve-list">Explore the tea library</Link></div></section>;
+  return <section className="sensory-empty" aria-live="polite"><p className="eyebrow">Your preferences are saved</p><h2>The matching table is being prepared.</h2><p>The sensory journey is working, but no published product has a valid <code>custom.tea_sensory_profile</code> yet. Add a profile in Shopify to turn these answers into a tea recommendation.</p><div className="sensory-result-actions"><button className="button primary" type="button" onClick={onRestart}>Try the wheel again</button><Link prefetch="none" className="button secondary" to="/reserve-list">Explore the tea library</Link></div></section>;
 }

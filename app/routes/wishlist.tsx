@@ -56,7 +56,7 @@ export default function WishlistPage() {
           <span aria-hidden="true">♡</span>
           <h2>Your tea cabinet is empty</h2>
           <p>Save a tea from the Reserve List or any product page.</p>
-          <Link to="/reserve-list">Explore the Reserve List</Link>
+          <Link prefetch="none" to="/reserve-list">Explore the Reserve List</Link>
         </div>
       )}
     </section>
