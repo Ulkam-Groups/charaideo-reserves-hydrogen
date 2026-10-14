@@ -535,7 +535,7 @@ function WhyThisTea({product}: {product: ProductEditorialData}) {
         <blockquote className="tea-founder-note">
           <p>{product.whyChooseTea.value}</p>
           {product.whyChooseAttribution?.value && (
-            <footer>— {product.whyChooseAttribution.value}</footer>
+            <footer>- {product.whyChooseAttribution.value}</footer>
           )}
         </blockquote>
       </div>

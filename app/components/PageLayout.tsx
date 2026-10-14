@@ -9,6 +9,7 @@ import {SEARCH_ENDPOINT, SearchFormPredictive} from '~/components/SearchFormPred
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import type {StorefrontNotice} from '~/lib/storefront-notices';
 import type {DiscountProgressData, DiscountProgressMilestone} from '~/lib/discount-progress';
+import {WishlistProvider} from '~/components/WishlistProvider';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -40,6 +41,7 @@ export function PageLayout({
       : undefined;
 
   return (
+    <WishlistProvider>
     <Aside.Provider>
       <CartAside cart={cart} />
       <SearchAside />
@@ -60,6 +62,7 @@ export function PageLayout({
       <main id="main-content" className={pathname === '/' ? undefined : 'main--offset'}>{children}</main>
       <Footer />
     </Aside.Provider>
+    </WishlistProvider>
   );
 }
 
@@ -173,7 +176,7 @@ function NoticeLink({
   if (!notice.buttonLink) return <div {...sharedProps}>{content}</div>;
   if (notice.buttonLink.startsWith('/') && !notice.buttonLink.startsWith('//')) {
     return (
-      <Link {...sharedProps} prefetch="intent" to={notice.buttonLink}>
+      <Link {...sharedProps} prefetch="none" to={notice.buttonLink}>
         {content}
       </Link>
     );

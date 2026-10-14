@@ -1,0 +1,1259 @@
+.academy-page,.sensory-page,.journal-page,.journal-article-page{background:var(--paper);color:var(--leaf-ink)}
+.header-menu-desktop .header-menu-item{height:40px;padding-inline:11px;font-size:13px;font-weight:400}.header-menu-item-with-badge{gap:5px}.header-menu-new{position:relative;top:-7px;display:inline-flex;align-items:center;min-height:17px;padding:2px 5px;border-radius:4px;background:#5c5c5c;color:#fff;font:700 .6rem/1 var(--sans);letter-spacing:0;text-transform:none}.header-menu-item-with-badge:hover .header-menu-new,.header-menu-item-with-badge.active .header-menu-new{background:var(--assam-red);color:#fff}
+.sensory-data-notice{grid-column:1/-1;margin:0;padding:13px 17px;border:1px solid #c99259;background:#fff8e9;color:var(--leaf-ink);font-size:var(--type-small)}
+.academy-hero,.sensory-hero,.journal-hero,.journal-article-hero{padding:clamp(54px,8vw,110px) var(--gutter);background:var(--aged-indigo);color:var(--paper)}
+.academy-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.55fr);gap:clamp(36px,8vw,120px);align-items:center}
+.academy-hero>div:first-child,.sensory-hero>div,.journal-hero,.journal-article-hero{max-width:1120px;margin-inline:auto}
+.academy-hero>div:first-child{margin:0}.academy-hero .listing-breadcrumb,.sensory-hero .listing-breadcrumb,.journal-hero .listing-breadcrumb,.journal-article-hero .listing-breadcrumb{margin-bottom:clamp(40px,6vw,76px);color:#fff}.academy-hero .listing-breadcrumb a,.sensory-hero .listing-breadcrumb a,.journal-hero .listing-breadcrumb a,.journal-article-hero .listing-breadcrumb a{color:#fff}
+.academy-hero .eyebrow,.sensory-hero .eyebrow,.journal-hero .eyebrow,.journal-article-hero .eyebrow{color:#e7b474}
+.academy-hero h1,.sensory-hero h1,.journal-hero h1,.journal-article-hero h1{max-width:850px;margin:0;color:var(--paper);font-size:var(--type-page-title);line-height:.94}
+.academy-hero h1 em,.sensory-hero h1 em{color:#d8cab3}.academy-hero h1+p,.sensory-hero h1+p,.journal-hero h1+p,.journal-article-hero h1+p{max-width:660px;margin:26px 0 0;color:#fff;font-size:var(--type-body-large);line-height:1.8}
+.academy-hero-mark{display:grid;place-items:center;aspect-ratio:1;border:1px solid rgb(255 255 255/.35);border-radius:50%;outline:1px solid rgb(255 255 255/.15);outline-offset:12px;color:#e7b474;text-align:center}.academy-hero-mark strong{font:500 clamp(4rem,9vw,8rem)/.8 var(--serif)}.academy-hero-mark span{font:600 var(--type-label)/1 var(--sans);letter-spacing:.24em;text-transform:uppercase}
+.academy-paths{display:grid;grid-template-columns:1fr 1fr;max-width:1240px;margin:0 auto;padding:clamp(55px,8vw,105px) var(--gutter);gap:22px}.academy-paths>a{display:grid;grid-template-columns:auto 1fr auto;gap:24px;min-height:320px;padding:clamp(28px,4vw,50px);border:1px solid var(--thread);background:var(--pure-white);color:var(--leaf-ink);text-decoration:none;transition:transform .25s ease,background .25s ease}.academy-paths>a:hover{transform:translateY(-5px);background:var(--gamosa-cream)}.academy-path-number{color:var(--burnt-clay);font:600 var(--type-label)/1 var(--sans)}.academy-paths h2{margin:35px 0 16px;font-size:var(--type-section-title);line-height:1}.academy-paths p{max-width:430px;color:var(--quiet-ink);line-height:1.75}.academy-path-arrow{align-self:end;font-size:2rem}.academy-manifesto{padding:clamp(65px,9vw,120px) var(--gutter);background:var(--gamosa-cream);text-align:center}.academy-manifesto blockquote{max-width:900px;margin:20px auto;color:var(--assam-red);font:500 clamp(2.2rem,5vw,4.5rem)/1.08 var(--serif)}.academy-manifesto>p:last-child{color:var(--quiet-ink)}
+.sensory-hero>div{margin:0 auto}.sensory-experience{display:grid;grid-template-columns:minmax(330px,.85fr) minmax(0,1.15fr);gap:clamp(42px,8vw,110px);max-width:1240px;margin:0 auto;padding:clamp(60px,9vw,120px) var(--gutter)}.sensory-wheel-column{display:flex;flex-direction:column;align-items:center}.sensory-wheel-shell{position:relative;width:min(100%,430px);aspect-ratio:1;margin:30px auto}.sensory-wheel{position:absolute;inset:0;border:1px solid var(--thread);border-radius:50%;background:conic-gradient(#d8cab3 0 60deg,#dce5d7 60deg 120deg,#b98b66 120deg 180deg,#75513c 180deg 240deg,#c99259 240deg 300deg,#8ba18c 300deg);box-shadow:inset 0 0 0 42px rgb(255 255 255/.7),0 20px 60px rgb(19 42 31/.12);transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}.sensory-wheel::after{content:'';position:absolute;inset:29%;border:1px solid var(--paper);border-radius:50%;background:var(--aged-indigo)}.sensory-wheel>span{--angle:calc(var(--wheel-index)*60deg + 30deg);position:absolute;z-index:1;left:50%;top:50%;width:90px;margin-left:-45px;color:var(--aged-indigo);font:700 .62rem/1 var(--sans);letter-spacing:.12em;text-align:center;text-transform:uppercase;transform:rotate(var(--angle)) translateY(-172px) rotate(calc(var(--angle)*-1))}.sensory-wheel-centre{position:absolute;z-index:3;inset:39%;display:grid;place-items:center;border:1px solid rgb(255 255 255/.4);border-radius:50%;background:var(--aged-indigo);color:var(--paper);font:500 2rem/1 var(--serif)}.sensory-wheel-pointer{position:absolute;z-index:4;top:-8px;left:50%;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid var(--assam-red);transform:translateX(-50%)}.sensory-wheel-note{max-width:340px;margin:0;color:var(--quiet-ink);font-size:var(--type-small);text-align:center}
+.sensory-quiz-column{align-self:center;max-width:650px}.sensory-progress{display:flex;gap:10px;margin:0 0 35px;padding:0;list-style:none}.sensory-progress li{flex:1;height:2px;background:var(--thread)}.sensory-progress li.active{background:var(--assam-red)}.sensory-progress span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}.sensory-step{margin:0 0 8px;color:var(--burnt-clay);font:600 var(--type-label)/1 var(--sans);letter-spacing:.15em;text-transform:uppercase}.sensory-quiz-column h2{margin:0;font-size:clamp(2.4rem,5vw,4rem);line-height:1}.sensory-question-sub{margin:13px 0 30px;color:var(--quiet-ink)}.sensory-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sensory-choices button{min-height:84px;padding:18px 20px;border:1px solid var(--thread);background:var(--pure-white);color:var(--leaf-ink);text-align:left}.sensory-choices button:hover,.sensory-choices button.selected{border-color:var(--assam-red);background:var(--gamosa-cream)}.sensory-choices strong,.sensory-choices small{display:block}.sensory-choices strong{font:500 1.15rem/1.2 var(--serif)}.sensory-choices small{margin-top:7px;color:var(--quiet-ink);font-size:var(--type-caption)}.sensory-actions{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:28px}.sensory-back{padding:12px 0;border:0;background:transparent;color:var(--assam-red);font-weight:600}.sensory-back:disabled{opacity:.35}.sensory-actions .button:disabled{cursor:not-allowed;opacity:.45}
+.sensory-result{max-width:1240px;margin:0 auto;padding:clamp(60px,8vw,105px) var(--gutter)}.sensory-result-heading{max-width:800px;margin-bottom:45px}.sensory-result-heading h2{margin:0 0 18px;font-size:var(--type-section-title);line-height:1}.sensory-result-heading>p:last-child{color:var(--quiet-ink);font-size:var(--type-body-large)}.sensory-result-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(290px,.65fr);gap:22px}.sensory-primary-match{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,1.2fr);border:1px solid var(--thread);background:var(--pure-white)}.sensory-primary-match>img,.sensory-image-placeholder{width:100%;height:100%;min-height:430px;object-fit:cover;background:var(--gamosa-cream)}.sensory-image-placeholder{display:grid;place-items:center;color:var(--assam-red);font:500 4rem/1 var(--serif)}.sensory-primary-match>div{padding:clamp(28px,4vw,50px)}.sensory-match-score{color:var(--burnt-clay);font:600 var(--type-label)/1 var(--sans);letter-spacing:.1em;text-transform:uppercase}.sensory-primary-match h3{margin:24px 0 10px;font-size:2.3rem;line-height:1}.sensory-tags{display:flex;flex-wrap:wrap;gap:7px;margin:24px 0}.sensory-tags span{padding:6px 10px;border:1px solid var(--thread);font-size:var(--type-caption);text-transform:capitalize}.sensory-result-actions{display:flex;align-items:center;gap:18px;margin-top:30px}.sensory-brew-guide{padding:clamp(28px,4vw,42px);background:var(--aged-indigo);color:var(--paper)}.sensory-brew-guide .eyebrow{color:#e7b474}.sensory-brew-guide h3{margin:0 0 30px;color:var(--paper);font-size:2rem}.sensory-brew-guide dl{margin:0}.sensory-brew-guide dl>div{display:flex;justify-content:space-between;gap:20px;padding:14px 0;border-top:1px solid rgb(255 255 255/.2)}.sensory-brew-guide dt{color:#d8cab3}.sensory-brew-guide dd{margin:0;font-weight:600;text-align:right}.sensory-timer{margin-top:35px;padding-top:25px;border-top:1px solid rgb(255 255 255/.2);text-align:center}.sensory-timer output{display:block;margin-bottom:18px;font:500 3.4rem/1 var(--serif)}.sensory-timer>div{display:flex;justify-content:center;gap:8px}.sensory-timer button{padding:9px 14px;border:1px solid rgb(255 255 255/.5);background:transparent;color:#fff}.sensory-alternatives{margin-top:50px}.sensory-alternatives>div{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sensory-alternatives a{display:grid;grid-template-columns:1fr auto;gap:7px 20px;padding:22px;border:1px solid var(--thread);color:var(--leaf-ink);text-decoration:none}.sensory-alternatives a span:nth-of-type(1){color:var(--quiet-ink);font-size:var(--type-caption);text-transform:capitalize}.sensory-alternatives a span:last-child{grid-row:1/3;grid-column:2;align-self:center}.sensory-method{padding:clamp(60px,8vw,100px) var(--gutter);background:var(--gamosa-cream)}.sensory-method>.eyebrow,.sensory-method>div{max-width:1120px;margin-inline:auto}.sensory-method>div{display:grid;grid-template-columns:repeat(3,1fr);gap:35px}.sensory-method article{padding-top:20px;border-top:1px solid var(--thread)}.sensory-method article>span{color:var(--burnt-clay);font:600 var(--type-label)/1 var(--sans)}.sensory-method h2{font-size:2rem}.sensory-method p{color:var(--quiet-ink)}.sensory-empty,.journal-empty{max-width:800px;margin:0 auto;padding:clamp(65px,10vw,130px) var(--gutter);text-align:center}.sensory-empty h2,.journal-empty h2{font-size:var(--type-section-title)}.sensory-empty p,.journal-empty p{color:var(--quiet-ink)}.sensory-empty .button{display:inline-block;margin-top:20px}
+.journal-hero{text-align:center}.journal-hero .listing-breadcrumb{justify-content:center}.journal-hero h1{margin-inline:auto}.journal-hero h1+p{margin-inline:auto}.journal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;max-width:1240px;margin:0 auto;padding:clamp(55px,8vw,105px) var(--gutter)}.journal-card{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr);min-height:300px;border:1px solid var(--thread);color:var(--leaf-ink);text-decoration:none}.journal-card:hover{background:var(--gamosa-cream)}.journal-card-featured{grid-column:1/-1;grid-template-columns:1.1fr .9fr;min-height:480px}.journal-card img,.journal-card-placeholder{width:100%;height:100%;object-fit:cover;background:var(--gamosa-cream)}.journal-card-placeholder{display:grid;place-items:center;color:var(--assam-red);font:500 2rem/1.1 var(--serif);text-align:center}.journal-card>div{display:flex;flex-direction:column;align-items:flex-start;padding:clamp(24px,4vw,44px)}.journal-card h2{margin:20px 0 14px;font-size:clamp(1.8rem,3vw,3rem);line-height:1}.journal-card>div>p:not(.eyebrow){color:var(--quiet-ink)}.journal-card>div>span{margin-top:auto;color:var(--assam-red);font-weight:600}.journal-article-hero{text-align:center}.journal-article-hero .listing-breadcrumb{justify-content:center}.journal-article-hero h1,.journal-article-hero h1+p{margin-inline:auto}.journal-article-image{max-width:1100px;margin:clamp(45px,7vw,85px) auto;padding:0 var(--gutter)}.journal-article-image img{display:block;width:100%;max-height:680px;object-fit:cover}.journal-article-image figcaption{margin-top:10px;color:var(--quiet-ink);font-size:var(--type-caption)}.journal-article-body{max-width:760px;margin:0 auto;padding:0 var(--gutter) clamp(65px,9vw,110px);font-size:var(--type-body-large);line-height:1.85}.journal-article-body h2,.journal-article-body h3{margin:1.7em 0 .6em}.journal-article-body h2{font-size:2.5rem}.journal-article-body h3{font-size:1.8rem}.journal-article-body img{max-width:100%;height:auto}.journal-article-body a{color:var(--assam-red);text-decoration:underline}.journal-article-body blockquote{margin:2em 0;padding-left:25px;border-left:3px solid var(--burnt-clay);color:var(--assam-red);font:500 1.8rem/1.35 var(--serif)}.journal-article-footer{max-width:760px;margin:0 auto;padding:0 var(--gutter) 90px}.journal-article-footer a{color:var(--assam-red);font-weight:600}
+/* Tea Academy uses one expressive hero on its landing page. Interior pages
+   use compact editorial headers and a restrained reading scale. */
+.academy-hero h1{font-size:clamp(2.7rem,4.5vw,4rem)}.academy-hero h1+p{font-size:.9375rem}.academy-paths h2{font-size:clamp(2rem,3.3vw,2.8rem)}.academy-manifesto blockquote{font-size:clamp(2rem,4vw,3.5rem)}
+.sensory-hero,.journal-hero,.journal-article-hero{padding:38px var(--gutter) 44px;border-bottom:1px solid var(--thread);background:var(--paper);color:var(--leaf-ink)}
+.sensory-hero .listing-breadcrumb,.journal-hero .listing-breadcrumb,.journal-article-hero .listing-breadcrumb{margin-bottom:26px;color:var(--quiet-ink)}
+.sensory-hero .listing-breadcrumb a,.journal-hero .listing-breadcrumb a,.journal-article-hero .listing-breadcrumb a{color:var(--quiet-ink)}
+.sensory-hero .eyebrow,.journal-hero .eyebrow,.journal-article-hero .eyebrow{color:var(--burnt-clay)}
+.sensory-hero h1,.journal-hero h1,.journal-article-hero h1{max-width:760px;color:var(--assam-red);font-size:clamp(2.25rem,4vw,3.25rem);line-height:1}
+.sensory-hero h1 em{color:var(--aged-indigo)}
+.sensory-hero h1+p,.journal-hero h1+p,.journal-article-hero h1+p{max-width:620px;margin-top:17px;color:var(--quiet-ink);font-size:.9375rem;line-height:1.7}
+.sensory-experience{padding-block:clamp(44px,6vw,78px)}
+.sensory-quiz-column h2{font-size:clamp(2rem,3.6vw,3rem)}
+.sensory-choices strong{font-size:1.02rem}.sensory-result-heading h2{font-size:clamp(2.1rem,3.8vw,3.1rem)}
+.sensory-primary-match h3{font-size:2rem}.sensory-brew-guide h3{font-size:1.7rem}.sensory-method h2{font-size:1.7rem}
+.journal-card h2{font-size:clamp(1.6rem,2.4vw,2.35rem)}
+.journal-article-body{font-size:.9375rem;line-height:1.8}.journal-article-body h2{font-size:2rem}.journal-article-body h3{font-size:1.5rem}.journal-article-body blockquote{font-size:1.5rem}
+
+@media(max-width:900px){.academy-hero{grid-template-columns:1fr}.academy-hero-mark{width:min(280px,75vw)}.academy-paths,.sensory-experience,.sensory-result-grid{grid-template-columns:1fr}.sensory-wheel-shell{width:min(380px,90vw)}.sensory-wheel>span{transform:rotate(var(--angle)) translateY(-150px) rotate(calc(var(--angle)*-1))}.journal-card,.journal-card-featured{grid-template-columns:1fr}.journal-card img,.journal-card-placeholder{aspect-ratio:16/10}.journal-card-featured{grid-column:auto;min-height:300px}}
+@media(max-width:640px){.academy-paths,.journal-grid,.sensory-method>div{grid-template-columns:1fr}.academy-paths>a{min-height:250px}.sensory-choices{grid-template-columns:1fr}.sensory-wheel>span{transform:rotate(var(--angle)) translateY(-39vw) rotate(calc(var(--angle)*-1));font-size:.53rem}.sensory-primary-match{grid-template-columns:1fr}.sensory-primary-match>img,.sensory-image-placeholder{min-height:300px;aspect-ratio:1}.sensory-alternatives>div{grid-template-columns:1fr}.sensory-result-actions{align-items:flex-start;flex-direction:column}.journal-grid{padding-inline:20px}}
+@media(prefers-reduced-motion:reduce){.sensory-wheel{transition:none}.academy-paths>a{transition:none}}
+
+/* Sensory workspace: balanced placement, persistent context and clear feedback. */
+.sensory-hero{padding-top:72px}
+.sensory-experience{grid-template-columns:minmax(320px,420px) minmax(520px,640px);justify-content:center;align-items:start;gap:clamp(36px,5vw,68px);max-width:1180px}
+.sensory-wheel-column{position:sticky;top:calc(var(--header-height) + 28px);align-self:start}
+.sensory-quiz-column{width:100%;max-width:none;align-self:start;padding:clamp(24px,3vw,34px);border:1px solid var(--thread);background:var(--pure-white);box-shadow:0 18px 55px rgb(19 42 31/.07)}
+.sensory-progress{margin-bottom:26px}.sensory-question-sub{margin-bottom:24px}.sensory-actions{position:sticky;bottom:0;z-index:2;margin:24px -8px -8px;padding:12px 8px 8px;background:linear-gradient(180deg,rgb(255 255 255/0),var(--pure-white) 22%)}
+.sensory-choices button{position:relative;transition:border-color .18s ease,background .18s ease,transform .18s ease,box-shadow .18s ease}.sensory-choices button:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgb(19 42 31/.08)}.sensory-choices button.selected{border-width:2px;box-shadow:inset 3px 0 0 var(--assam-red)}
+.sensory-choice-check{float:right;display:inline-grid!important;place-items:center;width:19px;height:19px;margin-left:10px;border-radius:50%;background:var(--assam-red);color:#fff;font:700 .7rem/1 var(--sans)}
+.sensory-wheel>button{--angle:calc(var(--wheel-index)*60deg + 30deg);position:absolute;z-index:2;left:50%;top:50%;width:90px;margin:-8px 0 0 -45px;padding:4px 2px;border:0;border-radius:4px;background:transparent;color:var(--aged-indigo);font:700 .62rem/1 var(--sans);letter-spacing:.12em;text-align:center;text-transform:uppercase;transform:rotate(var(--angle)) translateY(-172px) rotate(var(--counter-rotation))}
+.sensory-wheel>button:not(:disabled){cursor:pointer}.sensory-wheel>button:not(:disabled):hover,.sensory-wheel>button.selected{background:var(--paper);box-shadow:0 0 0 2px var(--assam-red);color:var(--assam-red)}.sensory-wheel>button:disabled{cursor:default;opacity:1}.sensory-wheel-centre,.sensory-wheel-pointer{pointer-events:none}
+
+@media(max-width:900px){.sensory-hero{padding-top:52px}.sensory-experience{grid-template-columns:minmax(0,640px)}.sensory-wheel-column{position:static}.sensory-wheel>button{transform:rotate(var(--angle)) translateY(-150px) rotate(var(--counter-rotation))}.sensory-actions{position:static}}
+@media(max-width:640px){.sensory-quiz-column{padding:20px 16px}.sensory-wheel>button{transform:rotate(var(--angle)) translateY(-39vw) rotate(var(--counter-rotation));font-size:.53rem}.sensory-actions{align-items:stretch}.sensory-actions .button{min-width:0}}
+
+/* Keep the invitation, but reveal the playable wheel in the first viewport. */
+.sensory-hero{padding:22px var(--gutter) 26px}
+.sensory-hero .listing-breadcrumb{margin-bottom:12px}
+.sensory-hero .eyebrow{margin-bottom:8px}
+.sensory-hero h1{font-size:clamp(2.15rem,3.4vw,3rem)}
+.sensory-hero h1+p{max-width:720px;margin-top:10px;line-height:1.55}
+.sensory-experience{padding-top:28px}
+.sensory-wheel{transition:transform .58s cubic-bezier(.22,.75,.25,1)}
+.sensory-wheel-column>.eyebrow{margin-bottom:4px}
+.sensory-wheel-shell{margin-top:16px}
+@media(max-width:900px){.sensory-hero{padding-top:24px}.sensory-experience{padding-top:24px}}
+
+/* Compact Academy introduction and inline section switcher. */
+body:has(.academy-page) .header.header-solid:not(.header-scrolled){background:#17392f}
+.academy-hero{grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:clamp(18px,3vw,44px);min-height:0;padding:32px var(--gutter);background:#17392f}
+.academy-hero .listing-breadcrumb{margin-bottom:22px}.academy-hero .eyebrow{margin-bottom:10px}.academy-hero h1{font-size:clamp(2.35rem,3.8vw,3.35rem)}.academy-hero h1+p{max-width:680px;margin-top:15px;line-height:1.6}
+.academy-hero-mark{justify-self:center;width:220px}.academy-hero-mark strong{font-size:4.4rem}.academy-hero-mark span{font-size:.6rem}
+.academy-section-menu{position:sticky;z-index:12;top:var(--header-height);display:grid;grid-template-columns:1fr 1fr;max-width:1180px;margin:0 auto;padding:0 var(--gutter);background:var(--paper);box-shadow:0 1px 0 var(--thread)}
+.academy-section-menu button{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;min-height:82px;padding:16px 22px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--quiet-ink);text-align:left;transition:background .2s ease,border-color .2s ease,color .2s ease}
+.academy-section-menu button:hover{background:var(--gamosa-cream);color:var(--assam-red)}.academy-section-menu button.active{border-bottom-color:var(--assam-red);background:var(--gamosa-cream);color:var(--assam-red)}
+.academy-section-menu button>span{grid-row:1/3;color:var(--burnt-clay);font:600 var(--type-label)/1.4 var(--sans)}.academy-section-menu strong{font:500 1.25rem/1.1 var(--serif)}.academy-section-menu small{font-size:var(--type-caption);color:var(--quiet-ink)}
+.academy-inline-content{scroll-margin-top:calc(var(--header-height) + 82px);min-height:620px;border-bottom:1px solid var(--thread)}
+.academy-panel{animation:academy-panel-in .38s cubic-bezier(.22,.75,.25,1)}
+.academy-panel-heading{max-width:1180px;margin:0 auto;padding:38px var(--gutter) 0}.academy-panel-heading .eyebrow{margin-bottom:9px}.academy-panel-heading h2{margin:0;color:var(--assam-red);font-size:clamp(2.1rem,3.5vw,3rem);line-height:1}.academy-panel-heading h2 em{color:var(--aged-indigo)}.academy-panel-heading>p:last-child{max-width:700px;margin:13px 0 0;color:var(--quiet-ink);line-height:1.65}
+.academy-panel .sensory-experience{padding-top:30px}.academy-journal-panel .journal-grid{padding-top:34px}.academy-journal-panel .journal-card h3{margin:20px 0 14px;font-size:clamp(1.6rem,2.4vw,2.35rem);line-height:1}
+@keyframes academy-panel-in{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.academy-hero{grid-template-columns:1fr;padding-block:26px}.academy-hero-mark{justify-self:start;width:150px}.academy-hero-mark strong{font-size:3rem}.academy-section-menu{top:var(--header-height);padding:0}.academy-section-menu button{min-height:72px;padding:13px 14px}.academy-section-menu small{display:none}.academy-inline-content{scroll-margin-top:calc(var(--header-height) + 72px)}.academy-panel-heading{padding-top:28px}}
+@media(prefers-reduced-motion:reduce){.academy-panel{animation:none}.academy-section-menu button{transition:none}}
+
+/* Keep the Tea Academy badge prominent, with a periodic PDP-style light sweep. */
+.header-menu-new,
+.header-menu-item-with-badge:hover .header-menu-new,
+.header-menu-item-with-badge.active .header-menu-new {
+  overflow: hidden;
+  isolation: isolate;
+  background: #303030;
+  color: #fff;
+}
+
+.header-menu-new::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -55%;
+  bottom: -55%;
+  left: -65%;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.82),
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(-180%) skewX(-18deg);
+  animation: header-new-flash 5s ease-in-out infinite;
+}
+
+@keyframes header-new-flash {
+  0% {
+    opacity: 0;
+    transform: translateX(-180%) skewX(-18deg);
+  }
+  2% {opacity: 1}
+  12% {
+    opacity: 1;
+    transform: translateX(520%) skewX(-18deg);
+  }
+  14%, 100% {
+    opacity: 0;
+    transform: translateX(520%) skewX(-18deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-menu-new::after {animation: none}
+}
+/* Tea Academy hero stamp */
+.academy-hero-mark {
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.academy-hero-mark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.academy-hero-mark circle {
+  fill: none;
+  stroke: rgb(231 180 116 / 42%);
+  stroke-width: 1;
+}
+
+.academy-hero-mark circle + circle {
+  stroke: rgb(231 180 116 / 72%);
+}
+
+.academy-stamp-copy {
+  fill: #e7b474;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.academy-stamp-kanji {
+  fill: #e7b474;
+  font-family: var(--serif);
+  font-size: 72px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+/* Keep the complete stamp below the floating navigation. */
+.academy-page .academy-hero {
+  padding-top: 72px;
+}
+
+/* Compact, scannable Tea Journal rows. */
+.journal-grid,
+.academy-journal-panel .journal-grid {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  max-width: 1000px;
+  padding-top: 34px;
+  padding-bottom: clamp(48px, 7vw, 80px);
+}
+
+.journal-card,
+.journal-card-featured {
+  grid-column: auto;
+  grid-template-columns: 132px minmax(0, 1fr);
+  height: 132px;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--pure-white);
+  transition: background-color 180ms ease, transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.journal-card:hover,
+.journal-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgb(23 57 47 / 8%);
+}
+
+.journal-card img,
+.journal-card-placeholder {
+  width: 132px;
+  height: 132px;
+  aspect-ratio: auto;
+}
+
+.journal-card-placeholder {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  font-size: 1.25rem;
+}
+
+.journal-card > div:last-child {
+  justify-content: center;
+  padding: 10px 20px;
+}
+
+.journal-card h2,
+.academy-journal-panel .journal-card h3 {
+  margin: 6px 0;
+  font-size: clamp(1.4rem, 1.9vw, 1.8rem);
+  line-height: 1.08;
+}
+
+.journal-card > div:last-child > p:not(.eyebrow) {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+.journal-card > div:last-child > span {
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .journal-card,
+  .journal-card-featured {
+    grid-template-columns: 92px minmax(0, 1fr);
+    height: 92px;
+  }
+
+  .journal-card img,
+  .journal-card-placeholder {
+    width: 92px;
+    height: 92px;
+  }
+
+  .journal-card-placeholder {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .journal-card > div:last-child {
+    padding: 8px 12px;
+  }
+
+  .journal-card h2,
+  .academy-journal-panel .journal-card h3 {
+    margin-block: 4px;
+    font-size: 1.15rem;
+  }
+
+  .journal-card > div:last-child > p:not(.eyebrow) {
+    display: none;
+  }
+
+  .journal-card > div:last-child > span {
+    margin-top: 7px;
+    font-size: 0.8rem;
+  }
+}
+
+.sensory-matched .sensory-result {
+  padding-top: 24px;
+}
+
+.sensory-product-title-link {
+  display: inline;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgb(23 57 47 / 28%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+}
+
+.sensory-product-title-link span {
+  display: inline-block;
+  margin-left: 7px;
+  font-family: var(--sans);
+  font-size: 0.7em;
+  transition: transform 160ms ease;
+}
+
+.sensory-product-title-link:hover,
+.sensory-product-title-link:focus-visible {
+  color: var(--assam-red);
+  text-decoration-color: currentColor;
+}
+
+.sensory-product-title-link:hover span,
+.sensory-product-title-link:focus-visible span {
+  transform: translate(2px, -2px);
+}
+
+@media (max-width: 760px) {
+  .academy-page .academy-hero {
+    position: relative;
+    padding-right: var(--gutter);
+    padding-bottom: 154px;
+  }
+
+  .academy-page .academy-hero-mark {
+    position: absolute;
+    right: clamp(22px, 6vw, 38px);
+    bottom: 24px;
+    width: 122px;
+    justify-self: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .academy-page .academy-hero {
+    padding-bottom: 132px;
+  }
+
+  .academy-page .academy-hero-mark {
+    right: 20px;
+    bottom: 20px;
+    width: 105px;
+  }
+}
+
+/* Phone-only miniature mode; desktop and tablet proportions stay unchanged. */
+@media (max-width: 560px) {
+  .academy-section-menu {
+    gap: 5px;
+    padding: 4px 6px;
+  }
+
+  .academy-section-menu button {
+    min-height: 54px;
+    gap: 2px 8px;
+    padding: 7px 9px;
+    border-radius: 9px;
+  }
+
+  .academy-section-menu button > span {
+    font-size: 0.55rem;
+  }
+
+  .academy-section-menu strong {
+    font-size: 1rem;
+  }
+
+  .academy-section-menu small {
+    display: block;
+    font-size: 0.65rem;
+  }
+
+  .academy-panel .sensory-experience {
+    grid-template-columns: minmax(105px, 0.58fr) minmax(205px, 1fr);
+    gap: 7px;
+    padding-inline: 5px;
+  }
+
+  .sensory-wheel-column > .eyebrow,
+  .sensory-wheel-note {
+    display: none;
+  }
+
+  .sensory-wheel-shell {
+    margin-top: 4px;
+  }
+
+  .sensory-quiz-column {
+    padding: 10px 9px;
+    border-radius: 10px;
+  }
+
+  .sensory-progress {
+    gap: 4px;
+    margin-bottom: 9px;
+  }
+
+  .sensory-step {
+    margin-bottom: 5px;
+    font-size: 0.55rem;
+  }
+
+  .sensory-quiz-column h2 {
+    font-size: 1.2rem;
+  }
+
+  .sensory-question-sub {
+    margin-block: 5px 9px;
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .sensory-choices {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .sensory-choices button {
+    min-height: 50px;
+    padding: 7px 9px;
+    border-radius: 9px;
+  }
+
+  .sensory-choices strong {
+    font-size: 0.78rem;
+    line-height: 1.15;
+  }
+
+  .sensory-choices small {
+    margin-top: 3px;
+    font-size: 0.64rem;
+    line-height: 1.25;
+  }
+
+  .sensory-actions {
+    gap: 8px;
+    margin-top: 9px;
+    padding-top: 7px;
+  }
+
+  .sensory-actions .button,
+  .sensory-back {
+    min-height: 44px;
+    padding-block: 8px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .sensory-choices small {
+    display: none;
+  }
+
+  .sensory-choices button {
+    min-height: 48px;
+  }
+}
+
+/* Narrow side-by-side layout: never squeeze options into two tiny columns. */
+@media (max-width: 900px) {
+  .sensory-choices {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .sensory-choices button {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    padding: 8px 11px;
+  }
+
+  .sensory-choices strong {
+    width: 100%;
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
+  .sensory-choices small {
+    display: none;
+  }
+
+  .sensory-choice-check {
+    float: right;
+    margin-left: 8px;
+  }
+}
+
+/* Mobile Sensory: compact wheel and inputs remain side by side. */
+@media (max-width: 900px) {
+  .academy-panel .sensory-experience {
+    grid-template-columns: minmax(120px, 0.75fr) minmax(200px, 1fr);
+    align-items: start;
+    gap: clamp(10px, 3vw, 22px);
+    padding-inline: 12px;
+  }
+
+  .sensory-wheel-column {
+    position: sticky;
+    top: calc(var(--header-height) + 12px);
+    min-width: 0;
+  }
+
+  .sensory-wheel-column > .eyebrow {
+    font-size: 0.55rem;
+    text-align: center;
+  }
+
+  .sensory-wheel-shell {
+    width: 100%;
+    margin-block: 14px 10px;
+  }
+
+  .sensory-wheel {
+    box-shadow: inset 0 0 0 clamp(12px, 3.8vw, 24px)
+        rgb(255 255 255 / 70%),
+      0 10px 28px rgb(19 42 31 / 10%);
+  }
+
+  .sensory-wheel > button {
+    width: clamp(38px, 11vw, 64px);
+    margin-top: -6px;
+    margin-left: clamp(-32px, -5.5vw, -19px);
+    padding: 2px 1px;
+    font-size: clamp(0.36rem, 1.25vw, 0.5rem);
+    letter-spacing: 0.06em;
+    transform: rotate(var(--angle))
+      translateY(clamp(-104px, -16vw, -52px))
+      rotate(var(--counter-rotation));
+  }
+
+  .sensory-wheel-centre {
+    font-size: clamp(0.85rem, 3vw, 1.35rem);
+  }
+
+  .sensory-wheel-pointer {
+    top: -5px;
+    border-top-width: 12px;
+    border-right-width: 7px;
+    border-left-width: 7px;
+  }
+
+  .sensory-wheel-note {
+    max-width: 170px;
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  .sensory-quiz-column {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .sensory-progress {
+    margin-bottom: 12px;
+  }
+
+  .sensory-quiz-column h2 {
+    font-size: clamp(1.25rem, 3.2vw, 1.5rem);
+  }
+
+  .sensory-question-sub {
+    margin-block: 7px 12px;
+    font-size: 0.82rem;
+  }
+
+  .sensory-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .sensory-choices button {
+    min-height: 60px;
+    padding: 9px 11px;
+  }
+
+  .sensory-choices strong {
+    font-size: 0.86rem;
+  }
+
+  .sensory-choices small {
+    margin-top: 4px;
+    font-size: 0.7rem;
+  }
+
+  .sensory-actions {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .academy-panel .sensory-experience {
+    gap: 9px;
+    padding-inline: 8px;
+  }
+
+  .sensory-wheel-note {
+    display: none;
+  }
+
+  .sensory-quiz-column {
+    padding: 12px 10px;
+  }
+
+  .sensory-progress {
+    gap: 5px;
+  }
+
+  .sensory-choices {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .sensory-choices button {
+    min-height: 56px;
+    padding: 8px 10px;
+  }
+}
+
+/* Mobile Academy hero: supporting copy left, seal right. */
+@media (max-width: 760px) {
+  .academy-page .academy-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px;
+    column-gap: 18px;
+    row-gap: 10px;
+    align-items: start;
+    padding-bottom: 28px;
+  }
+
+  .academy-hero > div:first-child {
+    display: contents;
+  }
+
+  .academy-hero > div:first-child > .eyebrow,
+  .academy-hero > div:first-child > h1 {
+    grid-column: 1 / -1;
+  }
+
+  .academy-hero > div:first-child > .eyebrow {
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .academy-hero > div:first-child > h1 {
+    grid-row: 2;
+    margin: 0;
+  }
+
+  .academy-hero > div:first-child > h1 + p {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: center;
+    margin: 4px 0 0;
+  }
+
+  .academy-page .academy-hero-mark {
+    position: static;
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+    justify-self: end;
+    width: 108px;
+  }
+}
+
+@media (max-width: 420px) {
+  .academy-page .academy-hero {
+    grid-template-columns: minmax(0, 1fr) 92px;
+    column-gap: 12px;
+  }
+
+  .academy-page .academy-hero-mark {
+    position: static;
+    width: 92px;
+  }
+}
+
+/* Commerce-sized type scale for the complete Sensory journey. */
+.academy-panel-heading h2 {
+  font-size: clamp(1.75rem, 2.25vw, 2.1rem);
+}
+
+.sensory-result-heading h2 {
+  margin: 6px 0 8px;
+  font-size: clamp(1.65rem, 2.2vw, 2rem);
+  line-height: 1.1;
+}
+
+.sensory-result-heading > p:last-child {
+  max-width: 680px;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.sensory-primary-match h3 {
+  margin-block: 8px;
+  font-size: clamp(1.2rem, 1.7vw, 1.45rem);
+  line-height: 1.1;
+}
+
+.sensory-primary-match > div > p,
+.sensory-brew-guide,
+.sensory-alternatives {
+  font-size: 0.875rem;
+}
+
+.sensory-brew-guide h3 {
+  margin: 8px 0 16px;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.sensory-brew-guide dd,
+.sensory-match-price {
+  font-size: 0.9rem;
+}
+
+.sensory-timer output {
+  font-size: 2rem;
+}
+
+.sensory-alternatives strong {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .academy-panel-heading h2,
+  .sensory-result-heading h2 {
+    font-size: 1.6rem;
+  }
+
+  .sensory-primary-match h3 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Denser Sensory composition with a quieter type hierarchy. */
+.academy-panel-heading {
+  padding-top: 24px;
+}
+
+.academy-panel-heading h2 {
+  font-size: clamp(1.9rem, 2.7vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.academy-panel-heading > p:last-child {
+  max-width: 640px;
+  margin-top: 9px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.academy-panel .sensory-experience {
+  gap: clamp(36px, 5vw, 68px);
+  padding-top: 16px;
+  padding-bottom: 44px;
+}
+
+.sensory-wheel-shell {
+  margin-block: 18px;
+}
+
+.sensory-quiz-column {
+  padding: 22px 24px;
+}
+
+.sensory-progress {
+  margin-bottom: 18px;
+}
+
+.sensory-quiz-column h2 {
+  font-size: clamp(1.7rem, 2.25vw, 2rem);
+  line-height: 1.08;
+}
+
+.sensory-question-sub {
+  margin-top: 9px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.sensory-choices button {
+  min-height: 70px;
+  padding: 13px 16px;
+}
+
+.sensory-actions {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .academy-panel-heading {
+    padding-top: 20px;
+  }
+
+  .academy-panel-heading h2 {
+    font-size: 1.75rem;
+  }
+
+  .academy-panel .sensory-experience {
+    gap: 32px;
+    padding-top: 12px;
+    padding-bottom: 32px;
+  }
+
+  .sensory-quiz-column h2 {
+    font-size: 1.55rem;
+  }
+}
+
+/* The solid navigation overlaps the page flow by one header height. */
+.journal-page .journal-hero,
+.journal-article-page .journal-article-hero {
+  padding-top: calc(var(--header-height) + clamp(36px, 5vw, 64px));
+}
+
+.journal-article-page .journal-article-hero {
+  padding: calc(var(--header-height) + 28px) var(--gutter) 38px;
+}
+
+.journal-back-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  margin: 0 auto 26px 0;
+  color: var(--leaf-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.journal-back-button span {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--thread);
+  border-radius: 50%;
+  background: var(--pure-white);
+  box-shadow: 0 4px 14px rgb(23 57 47 / 8%);
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.journal-back-button span::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  margin-left: 3px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+@media (max-width: 760px) {
+  .journal-back-button {
+    gap: 7px;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+  }
+
+  .journal-back-button span {
+    width: 32px;
+    height: 32px;
+  }
+
+  .journal-back-button span::before {
+    width: 7px;
+    height: 7px;
+  }
+}
+
+.journal-back-button:hover span,
+.journal-back-button:focus-visible span {
+  transform: translateX(-2px);
+  background: var(--gamosa-cream);
+}
+
+.journal-article-page .journal-article-image {
+  margin-top: 28px;
+  margin-bottom: 36px;
+}
+
+/* Keep the Sensory experience subordinate to the Academy hero. */
+.academy-panel-heading h2 {
+  font-size: clamp(2.25rem, 3.4vw, 3rem);
+  line-height: 1.02;
+}
+
+.sensory-quiz-column h2 {
+  max-width: 520px;
+  font-size: clamp(2rem, 2.8vw, 2.55rem);
+  line-height: 1.04;
+}
+
+.sensory-question-sub {
+  font-size: 1rem;
+}
+
+.sensory-quiz-column,
+.sensory-choices button,
+.sensory-primary-match,
+.sensory-brew-guide,
+.sensory-alternatives a,
+.sensory-empty,
+.sensory-data-notice {
+  border-radius: 14px;
+}
+
+.sensory-quiz-column {
+  overflow: hidden;
+}
+
+.sensory-choices button {
+  padding: 17px 19px;
+}
+
+.sensory-choices strong {
+  font-size: 0.95rem;
+}
+
+.sensory-choices small {
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.academy-section-menu {
+  gap: 8px;
+  padding-block: 6px;
+  box-shadow: none;
+}
+
+.academy-section-menu button {
+  border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .academy-panel-heading h2 {
+    font-size: 2rem;
+  }
+
+  .sensory-quiz-column h2 {
+    font-size: 1.85rem;
+  }
+}
+
+/* Final mobile commerce scale: retain all copy, reduce type instead. */
+@media (max-width: 900px) {
+  .sensory-quiz-column h2 {
+    font-size: 1.35rem;
+    line-height: 1.08;
+  }
+
+  .sensory-question-sub {
+    margin-block: 6px 10px;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .sensory-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .sensory-choices button {
+    display: block;
+    min-height: 58px;
+    padding: 8px 9px;
+  }
+
+  .sensory-choices strong {
+    width: auto;
+    font-size: 0.74rem;
+    line-height: 1.15;
+  }
+
+  .sensory-choices small {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.61rem;
+    line-height: 1.25;
+  }
+}
+
+@media (max-width: 420px) {
+  .sensory-quiz-column h2 {
+    font-size: 1.18rem;
+  }
+
+  .sensory-question-sub {
+    font-size: 0.72rem;
+  }
+
+  .sensory-choices strong {
+    font-size: 0.68rem;
+  }
+
+  .sensory-choices small {
+    display: block;
+    font-size: 0.56rem;
+  }
+}
+
+/* Unified mobile e-commerce typography for Tea Academy. */
+@media (max-width: 760px) {
+  .academy-hero .eyebrow,
+  .academy-panel-heading .eyebrow,
+  .sensory-result-heading .eyebrow,
+  .journal-article-hero .eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+  }
+
+  .academy-hero h1,
+  .sensory-hero h1,
+  .journal-hero h1,
+  .journal-article-hero h1 {
+    font-size: 2rem;
+    line-height: 1.05;
+  }
+
+  .academy-hero h1 + p,
+  .sensory-hero h1 + p,
+  .journal-hero h1 + p,
+  .journal-article-hero h1 + p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .academy-panel-heading h2 {
+    font-size: 1.55rem;
+    line-height: 1.08;
+  }
+
+  .academy-panel-heading > p:last-child {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .academy-section-menu strong {
+    font-size: 0.95rem;
+  }
+
+  .academy-section-menu small {
+    font-size: 0.62rem;
+  }
+
+  .sensory-quiz-column h2 {
+    font-size: 1.18rem;
+  }
+
+  .sensory-question-sub {
+    font-size: 0.72rem;
+  }
+
+  .sensory-result-heading h2 {
+    font-size: 1.4rem;
+  }
+
+  .sensory-result-heading > p:last-child,
+  .sensory-primary-match > div > p,
+  .sensory-brew-guide,
+  .sensory-alternatives {
+    font-size: 0.75rem;
+  }
+
+  .sensory-primary-match h3,
+  .sensory-brew-guide h3 {
+    font-size: 1.05rem;
+  }
+
+  .academy-journal-panel .journal-card h3,
+  .journal-card h2 {
+    font-size: 1rem;
+  }
+
+  .journal-card > div:last-child > p:not(.eyebrow) {
+    font-size: 0.72rem;
+  }
+
+  .academy-manifesto blockquote {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .academy-hero h1,
+  .sensory-hero h1,
+  .journal-hero h1,
+  .journal-article-hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .academy-panel-heading h2 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Mobile interaction order: wheel first, questions immediately below. */
+@media (max-width: 760px) {
+  .academy-panel .sensory-experience {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding-inline: 14px;
+  }
+
+  .sensory-wheel-column {
+    position: static;
+    scroll-margin-top: calc(var(--header-height) + 12px);
+  }
+
+  .sensory-wheel-shell {
+    width: 210px;
+    margin: 4px auto 8px;
+  }
+
+  .sensory-quiz-column {
+    width: 100%;
+    max-width: 520px;
+    margin-inline: auto;
+  }
+
+  .sensory-quiz-column h2 {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .sensory-wheel-shell {
+    width: 186px;
+  }
+}
+
+/* Journal row hierarchy: title first, publication date second. */
+.journal-card-date {
+  display: block;
+  margin: 5px 0 0;
+  overflow: visible;
+  color: var(--burnt-clay);
+  font: 600 0.68rem/1.25 var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.journal-card-excerpt {
+  margin-top: 7px;
+}
+
+@media (max-width: 760px) {
+  .journal-card > div:last-child {
+    justify-content: center;
+  }
+
+  .academy-journal-panel .journal-card h3,
+  .journal-card h2 {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1rem;
+    line-height: 1.15;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .journal-card-date {
+    margin-top: 6px;
+    font-size: 0.58rem;
+  }
+
+  .journal-card-excerpt,
+  .journal-card > div:last-child > span {
+    display: none;
+  }
+
+  .journal-card,
+  .journal-card-featured {
+    grid-template-columns: 104px minmax(0, 1fr);
+    height: 104px;
+  }
+
+  .journal-card img,
+  .journal-card-placeholder {
+    width: 104px;
+    height: 104px;
+  }
+
+  .journal-card > div:last-child {
+    padding: 10px 14px;
+  }
+
+  .academy-journal-panel .journal-card h3,
+  .journal-card h2 {
+    line-height: 1.25;
+  }
+
+  .journal-card > div:last-child > .journal-card-date {
+    display: block;
+    margin: 7px 0 0;
+    overflow: visible;
+    font-size: 0.58rem;
+    line-height: 1.25;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+}
+
+.journal-article-hero .journal-back-button {
+  margin-bottom: 16px;
+}
+
+.journal-article-hero h1 {
+  margin: 0;
+}
+
+.journal-article-title-block {
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
+.journal-article-date {
+  display: block;
+  width: auto;
+  max-width: none;
+  margin-top: 10px;
+  color: var(--burnt-clay);
+  font: 600 0.7rem/1.3 var(--sans);
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.journal-article-title-block + p {
+  max-width: 660px;
+  margin: 14px auto 0;
+  color: var(--quiet-ink);
+  font-size: var(--type-body-large);
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .journal-article-hero .journal-back-button {
+    margin-bottom: 12px;
+  }
+
+  .journal-article-date {
+    margin-top: 8px;
+    font-size: 0.6rem;
+  }
+
+  .journal-article-title-block + p {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+}

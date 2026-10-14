@@ -35,11 +35,11 @@ export function Footer() {
         </section>
       </div>
       <nav className="footer-menu" aria-label="Store policies">
-        <NavLink prefetch="intent" to="/policies">
+        <NavLink prefetch="none" to="/policies">
           All policies
         </NavLink>
         {POLICY_PAGES.map(({handle, title}) => (
-          <NavLink key={handle} prefetch="intent" to={`/policies/${handle}`}>
+          <NavLink key={handle} prefetch="none" to={`/policies/${handle}`}>
             {title}
           </NavLink>
         ))}
@@ -65,11 +65,7 @@ function FooterColumn({
       {links.map((link) => (
         <NavLink
           key={link.to}
-          prefetch={
-            link.to === '/reserve-list' || link.to === '/pages/about-us'
-              ? 'none'
-              : 'intent'
-          }
+          prefetch="none"
           to={link.to}
         >
           {link.label}

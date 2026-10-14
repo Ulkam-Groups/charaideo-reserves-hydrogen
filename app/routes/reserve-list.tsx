@@ -9,6 +9,7 @@ import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
+import {WishlistButton} from '~/components/WishlistButton';
 
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
 
@@ -323,8 +324,8 @@ export default function ReserveList() {
     transitionDocument.startViewTransition(() => flushSync(() => setTab(nextTab)));
   };
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    const nextTab = event.key === 'ArrowLeft' || event.key === 'Home' ? 'collections'
-      : event.key === 'ArrowRight' || event.key === 'End' ? 'chapters' : null;
+    const nextTab = event.key === 'ArrowLeft' || event.key === 'Home' ? 'chapters'
+      : event.key === 'ArrowRight' || event.key === 'End' ? 'collections' : null;
     if (!nextTab) return;
     event.preventDefault();
     selectTab(nextTab);
@@ -338,11 +339,11 @@ export default function ReserveList() {
           <h1>The Reserve List</h1>
           <p className="reserve-list-intro">Rare Assam teas, selected by estate, season, and character.</p>
           <div className="reserve-list-tabs" data-active={tab} role="tablist" aria-label="Browse the Reserve List">
-            <button type="button" role="tab" id="reserve-collections-tab" aria-selected={tab === 'collections'} aria-controls="reserve-collections-panel" tabIndex={tab === 'collections' ? 0 : -1} onKeyDown={handleTabKeyDown} onClick={() => selectTab('collections')}>
-              <span className="reserve-tab-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M16.8 3.2C10.7 3.4 6.2 5.6 4.5 9.1c-1.1 2.2-.5 4.8 1.5 6.1 2 1.3 4.7.7 6.2-1.2 2.2-2.8 3.5-6.4 4.6-10.8Z" /><path d="M3.2 16.8c2.4-3.8 5.5-6.7 9.4-8.8" /></svg></span><strong>Shop by Collection</strong><small>{tab === 'collections' ? 'Viewing now ✓' : 'Shop collections'}</small>
-            </button>
             <button type="button" role="tab" id="reserve-chapters-tab" aria-selected={tab === 'chapters'} aria-controls="reserve-chapters-panel" tabIndex={tab === 'chapters' ? 0 : -1} onKeyDown={handleTabKeyDown} onClick={() => selectTab('chapters')}>
               <span className="reserve-tab-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M10 17s5-4.4 5-9a5 5 0 1 0-10 0c0 4.6 5 9 5 9Z" /><circle cx="10" cy="8" r="1.8" /></svg></span><strong>Explore by Chapter</strong><small>{tab === 'chapters' ? 'Viewing now ✓' : 'Explore chapters'}</small>
+            </button>
+            <button type="button" role="tab" id="reserve-collections-tab" aria-selected={tab === 'collections'} aria-controls="reserve-collections-panel" tabIndex={tab === 'collections' ? 0 : -1} onKeyDown={handleTabKeyDown} onClick={() => selectTab('collections')}>
+              <span className="reserve-tab-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M16.8 3.2C10.7 3.4 6.2 5.6 4.5 9.1c-1.1 2.2-.5 4.8 1.5 6.1 2 1.3 4.7.7 6.2-1.2 2.2-2.8 3.5-6.4 4.6-10.8Z" /><path d="M3.2 16.8c2.4-3.8 5.5-6.7 9.4-8.8" /></svg></span><strong>Shop by Collection</strong><small>{tab === 'collections' ? 'Viewing now ✓' : 'Shop collections'}</small>
             </button>
           </div>
         </header>
@@ -354,7 +355,7 @@ export default function ReserveList() {
         >
           <label className="reserve-search" htmlFor="reserve-search">
             <span aria-hidden="true">⌕</span>
-            <input id="reserve-search" type="search" value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
+            <input id="reserve-search" name="reserve-catalog-search" type="search" autoComplete="off" spellCheck={false} value={queryInput} onChange={(event) => setQueryInput(event.target.value)} placeholder="Search teas, estates, or tasting notes…" />
             <kbd>/</kbd>
           </label>
           <div className="reserve-filters" ref={filtersRef}>
@@ -500,7 +501,21 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
   }
 
   return <article className="reserve-tea-card reserve-shop-card">
-    <Link to={`/products/${product.handle}`} className="reserve-tea-link" prefetch="intent">
+    {product.id && (
+      <WishlistButton
+        className="wishlist-button--card"
+        product={{
+          id: product.id,
+          handle: product.handle,
+          title: product.title,
+          image: product.featuredImage
+            ? {url: product.featuredImage.url, altText: product.featuredImage.altText}
+            : null,
+          price: product.priceRange?.minVariantPrice ?? null,
+        }}
+      />
+    )}
+    <Link to={`/products/${product.handle}`} className="reserve-tea-link" prefetch="none">
       <div className="reserve-tea-image">
         {originLabel && <span className="reserve-image-badge">{originLabel}</span>}
         {product.featuredImage
@@ -559,11 +574,11 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
           <ReserveBuyNowButton variant={selectedVariant} />
         </div>
       ) : (
-        <Link to={`/products/${product.handle}`} prefetch="intent" className="reserve-unavailable-action">
+        <Link to={`/products/${product.handle}`} prefetch="none" className="reserve-unavailable-action">
           View tea details
         </Link>
       )}
-      <Link to={`/products/${product.handle}`} prefetch="intent" className="reserve-card-details">
+      <Link to={`/products/${product.handle}`} prefetch="none" className="reserve-card-details">
         Details & tasting notes
       </Link>
     </div>

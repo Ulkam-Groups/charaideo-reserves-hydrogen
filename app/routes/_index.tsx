@@ -16,7 +16,7 @@ export const meta: Route.MetaFunction = () => [
   {
     name: 'description',
     content:
-      'Discover teas sourced directly from historic gardens in Assam, reserved in order—chapter by chapter.',
+      'Discover teas sourced directly from historic gardens in Assam, reserved in order-chapter by chapter.',
   },
 ];
 
@@ -537,19 +537,19 @@ export default function Homepage() {
                     className:
                       "hero-display-title serif text-[42px] md:text-[64px] leading-[0.93] tracking-[-0.025em] max-w-[560px]",
                     children: [
-                      "The Reserve List of ",
+                      "The Reserve Collections of ",
                       f("span", {
                         className: "hero-title-accent",
                         children: "Assam's",
                       }),
-                      " Finest Tea Estates.",
+                      " Finest Teas.",
                     ],
                   }),
                   f("p", {
                     className:
                       "hero-intro mt-5 text-[16px] md:text-[17px] leading-[1.5] text-[#132A1F]/70 max-w-[500px]",
                     children:
-                      "Single-estate, single-harvest teas sourced directly from historic gardens in Assam, reserved in order—chapter by chapter.",
+                      "Single-estate, single-harvest teas sourced directly from historic gardens in Assam, reserved in order-chapter by chapter.",
                   }),
                   y("div", {
                     className: "hero-actions mt-8",
@@ -774,7 +774,7 @@ export default function Homepage() {
                 f("p", {
                   className: "mt-5 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
                     children:
-                      "Each tea names its garden and records its harvest—the soil, the season and the hands that picked it.",
+                      "Each tea names its garden and records its harvest-the soil, the season and the hands that picked it.",
                 }),
                 f("p", {
                   className: "mt-3 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",

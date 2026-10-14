@@ -519,7 +519,8 @@
   border-top: 0 !important;
   padding: 8px 0 !important;
 }
-.cart-recommendation > form button {
+.cart-recommendation > form button,
+.cart-recommendation-choose {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -528,7 +529,8 @@
   background: #244936 !important;
   color: #fff !important;
 }
-.cart-recommendation > form button:hover:not(:disabled) {
+.cart-recommendation > form button:hover:not(:disabled),
+.cart-recommendation-choose:hover {
   background: #132a1f !important;
 }
 

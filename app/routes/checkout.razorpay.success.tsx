@@ -95,13 +95,13 @@ export default function RazorpayCheckoutSuccess({
           the contact details provided at checkout.
         </p>
         <nav className="checkout-success-actions" aria-label="Order confirmation actions">
-          <Link className="button primary" prefetch="intent" to="/collections/all">
+          <Link className="button primary" prefetch="none" to="/collections/all">
             Browse teas <span aria-hidden="true">&rarr;</span>
           </Link>
-          <Link className="button secondary" prefetch="intent" to="/">
+          <Link className="button secondary" prefetch="none" to="/">
             Return home
           </Link>
-          <Link className="text-link" prefetch="intent" to="/pages/contact">
+          <Link className="text-link" prefetch="none" to="/pages/contact">
             Contact support
           </Link>
         </nav>
