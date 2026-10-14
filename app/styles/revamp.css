@@ -5695,7 +5695,7 @@ main.main--offset .search {
   padding: 0;
   box-shadow: 0 4px 14px rgba(19,42,31,.12);
 }
-.header-wishlist {position: relative; color: #B12B2D !important}
+.header-wishlist {position: relative; color: #132a1f !important}
 .header-wishlist svg {width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8}
 .header-wishlist.active svg {fill: currentColor}
 .header-wishlist-count {
