@@ -3,8 +3,8 @@ import type {Route} from './+types/collections.$handle';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import type {ProductItemFragment} from 'storefrontapi.generated';
 import {measureStorefront} from '~/lib/monitoring.server';
+import type {ReserveCollection} from '~/lib/reserve-list';
 import {ReserveTeaCard} from './reserve-list';
 
 export const meta: Route.MetaFunction = ({data}) => {
@@ -92,7 +92,7 @@ export default function Collection() {
           </Link>
         </div>
       </header>
-      <PaginatedResourceSection<ProductItemFragment>
+      <PaginatedResourceSection<ReserveCollection['products'][number]>
         connection={collection.products}
         resourcesClassName="reserve-products-grid reserve-products-grid--collections collection-reserve-products"
       >
@@ -121,7 +121,7 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
     amount
     currencyCode
   }
-  fragment ProductItem on Product {
+  fragment CollectionReserveProductItem on Product {
     id
     handle
     title
@@ -179,7 +179,7 @@ const COLLECTION_QUERY = `#graphql
         after: $endCursor
       ) {
         nodes {
-          ...ProductItem
+          ...CollectionReserveProductItem
         }
         pageInfo {
           hasPreviousPage
