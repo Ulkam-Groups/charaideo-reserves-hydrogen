@@ -211,7 +211,12 @@ function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
     <Aside
       type="cart"
       heading={
-        <Link className="cart-aside-heading-link" to="/cart" onClick={close}>
+        <Link
+          className="cart-aside-heading-link"
+          prefetch="none"
+          to="/cart"
+          onClick={close}
+        >
           <span className="cart-aside-heading-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path
