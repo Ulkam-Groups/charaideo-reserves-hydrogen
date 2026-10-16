@@ -627,6 +627,36 @@ a:focus-visible {
   margin: 0;
 }
 
+.cart-aside-heading-link {
+  align-items: center;
+  color: inherit;
+  display: inline-flex;
+  gap: 9px;
+  text-decoration: none;
+}
+
+.cart-aside-heading-icon {
+  align-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.cart-aside-heading-icon svg {
+  fill: none;
+  height: 17px;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  width: 17px;
+}
+
+.cart-aside-heading-link:hover {
+  opacity: 0.75;
+}
+
 .overlay aside header .close {
   font-weight: bold;
   opacity: 0.8;
@@ -2031,6 +2061,42 @@ h4 {
   margin: 0;
 }
 
+.footer-secure {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.footer-secure strong {
+  color: rgba(253, 248, 240, 0.82);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.footer-secure .payment-logos {
+  display: flex;
+  margin: 0;
+}
+
+.footer-secure .payment-logos img {
+  width: 19px;
+  height: 19px;
+  padding: 2px;
+  border: 1px solid rgba(19, 42, 31, 0.08);
+  border-radius: 5px;
+  background: #fff;
+  object-fit: contain;
+}
+
+.footer-secure .payment-logos img + img {
+  margin-left: 3px;
+}
+
+.footer .footer-bottom {
+  padding-block: 0.65rem;
+}
+
 @keyframes float-leaf {
   0%, 100% { transform: translateY(0) rotate(42deg); }
   50% { transform: translateY(-24px) rotate(48deg); }
@@ -2061,9 +2127,41 @@ h4 {
   .footer-bottom {
     flex-direction: column;
   }
+
+  .footer-secure {
+    order: -1;
+  }
 }
 
 @media (max-width: 640px) {
+  .footer .footer-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 14px;
+  }
+
+  .footer .footer-secure {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .footer .footer-bottom > p:first-child {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .footer .footer-bottom > p:last-child {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .footer .footer-secure .payment-logos {
+    flex-shrink: 0;
+  }
+
   .home-hero,
   .catalog-hero,
   .content-hero {

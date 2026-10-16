@@ -748,6 +748,78 @@
     linear-gradient(145deg, #fffef8 0%, #edf2ee 100%) !important;
 }
 
+.chapter-media-carousel {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #edf2ee;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.chapter-media-carousel:active {
+  cursor: grabbing;
+}
+
+.chapter-media-item {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chapter-media-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(8%);
+  transition:
+    opacity 560ms cubic-bezier(.22, .72, .24, 1),
+    transform 560ms cubic-bezier(.22, .72, .24, 1);
+  pointer-events: none;
+}
+
+.chapter-media-slide.is-active {
+  z-index: 1;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.chapter-media-dots {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.chapter-media-dots button {
+  width: 7px;
+  height: 7px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 50%;
+  background: rgb(19 42 31 / 42%);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+}
+
+.chapter-media-dots button.is-active {
+  width: 18px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter-media-slide {transition: none}
+}
+
 .chapter-card-status--teaser {
   background: #5c171c !important;
   color: #fffef8 !important;
