@@ -426,6 +426,53 @@ npm run build
 Use the repository's actual targeted test commands if `npm test` is split into unit and
 integration suites.
 
+## PR 67 review decision (testing phase)
+
+The application is not live yet and is still running in testing mode. There are no
+production orders or in-flight legacy Razorpay payments to migrate or preserve.
+Therefore, legacy-order compatibility is not a merge requirement when this work is
+resumed. The supported launch path is the Shopify Draft Order anchored flow.
+
+### Required checkout sequence
+
+`RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED` must be set to `true` in every environment used
+to test or launch international checkout. With the flag enabled, the expected sequence
+is:
+
+1. Resolve the Shopify Market and retrieve Shopify's contextual price and currency.
+2. Create the Shopify Draft Order first.
+3. Create the Razorpay order using the Draft Order's recalculated total and currency.
+4. Store the Shopify Draft Order ID in the server-authored Razorpay order notes.
+5. Verify the Razorpay signature and fetch the authoritative order and payment.
+6. Require the Razorpay amount and currency to match the Shopify Draft Order.
+7. Complete the Draft Order exactly once after the payment is captured and reconciled.
+
+For a new non-INR checkout, the application should fail closed if Draft Order anchoring
+is disabled or unavailable. It must not silently use the legacy direct-order fallback.
+The fallback may be removed in a later cleanup because the application has not launched,
+but removing it is outside the scope of the current international-payment changes.
+
+### Work required before this PR is resumed for merge
+
+- Correct or reject three-decimal amounts that Razorpay cannot represent. In particular,
+  do not send an arbitrary third decimal digit: where Razorpay requires the last subunit
+  digit to be zero, an amount such as `KWD 295.991` must not be sent as `295991`.
+- Add a complete USD automated integration test covering Shopify Draft Order creation,
+  Razorpay order creation, captured-payment verification, amount/currency reconciliation,
+  and Draft Order completion. Existing INR-only Draft Order mocks are not sufficient
+  evidence for the international path.
+- Keep `RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED=true` in staging and production configuration
+  for international checkout.
+- Run an end-to-end Razorpay Test Mode transaction from a Shopify Market priced in USD
+  or EUR, then verify the Draft Order, Razorpay order/payment, and final Shopify order all
+  have the same amount and currency.
+- Re-run the browser E2E suite with the project's supported Node version. The review run
+  did not execute browser tests because the Miniflare Workers runtime failed to start on
+  Node `24.20.0`; this was an environment/runtime failure, not a passing E2E result.
+
+Until these items are complete, the multi-currency architecture is suitable for further
+testing, but this PR should not be treated as regression-safe for launch or merge.
+
 ## Rollout plan
 
 1. Complete Shopify Markets configuration and record expected sample prices.
