@@ -12,8 +12,8 @@
   --leaf-ink: #132a1f;
   --quiet-ink: #5a6b62;
   --thread: #e7ede0;
-  --serif: 'Fraunces', Georgia, serif;
-  --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif: 'Libre Baskerville', Georgia, serif;
+  --sans: 'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --header-height: 60px;
   --color-dark: #132a1f;
   --color-light: #ffffff;
@@ -1025,7 +1025,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
   margin: 0;
   color: #132a1f;
   font:
-    600 12px/1.2 'General Sans',
+    600 12px/1.2 'Instrument Sans',
     system-ui,
     sans-serif;
   letter-spacing: 0.02em;
@@ -1051,7 +1051,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
   background: #ffffff;
   color: #132a1f;
   font:
-    500 12px/1 'General Sans',
+    500 12px/1 'Instrument Sans',
     system-ui,
     sans-serif;
 }
@@ -4365,7 +4365,7 @@ main.main--offset:has(> .contact-page) {
    change an inline <style> node before React hydration. */
 .revamp-home * {
   font-family:
-    'General Sans',
+    'Instrument Sans',
     system-ui,
     -apple-system,
     sans-serif;
@@ -4389,7 +4389,7 @@ body {
 .revamp-home h2,
 .revamp-home h3,
 .revamp-home .serif {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -5748,4 +5748,97 @@ main.main--offset .search {
 }
 main.main--offset .catalog-page {
   padding-top: 24px;
+}
+/* Use the same compact navigation at tablet and mobile widths. */
+@media (max-width: 960px) {
+  :root {
+    --header-height: 60px;
+  }
+
+  .header.header-solid .header-inner,
+  .header.header-solid.header-scrolled .header-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 24px);
+    padding-inline: 10px;
+  }
+
+  .header.header-solid .header-inner > .wordmark {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    z-index: 2;
+    flex: none;
+    width: clamp(112px, 18vw, 142px);
+    margin: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .header.header-solid .header-inner > .wordmark img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .header.header-solid .header-ctas {
+    position: absolute;
+    inset: 0 8px;
+    display: block;
+    width: auto;
+    height: auto;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  .header.header-solid .header-ctas > * {
+    position: absolute;
+    top: 50%;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    pointer-events: auto;
+    transform: translateY(-50%);
+  }
+
+  .header.header-solid .header-ctas > .header-menu-mobile-toggle {
+    left: 0;
+    display: inline-flex !important;
+    flex-basis: 38px;
+  }
+
+  .header.header-solid .header-ctas > .header-search-trigger {
+    position: absolute !important;
+    top: 50% !important;
+    left: 52px !important;
+    display: inline-flex !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px;
+    transform: translateY(-50%) !important;
+  }
+
+  .header.header-solid .header-ctas > .header-wishlist {
+    display: none !important;
+  }
+
+  .header.header-solid .header-ctas > .header-account {
+    right: 46px;
+    display: inline-flex !important;
+  }
+
+  .header.header-solid .header-ctas > .header-cart {
+    right: 0;
+  }
+
+  .header.header-solid .header-menu-mobile-toggle:hover,
+  .header.header-solid .header-menu-mobile-toggle:active,
+  .header.header-solid .header-search-trigger:hover,
+  .header.header-solid .header-search-trigger:active {
+    transform: translateY(-50%);
+  }
 }

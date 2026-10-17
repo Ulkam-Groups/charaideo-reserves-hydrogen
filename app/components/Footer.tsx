@@ -1,6 +1,7 @@
 import {Brand} from './Brand';
 import {NavLink} from 'react-router';
 import {POLICY_PAGES} from '~/lib/policies';
+import {PaymentLogos} from './PaymentLogos';
 
 export function Footer() {
   return (
@@ -46,6 +47,10 @@ export function Footer() {
       </nav>
       <div className="footer-bottom">
         <p>© 2026 Ulkam Group. All rights reserved.</p>
+        <div className="footer-secure">
+          <strong>Secure checkout</strong>
+          <PaymentLogos />
+        </div>
         <p>Made with love in Assam.</p>
       </div>
     </footer>

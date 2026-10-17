@@ -13,8 +13,8 @@
   --quiet-ink: #5a6b62;
   --steeped-brown: #132a1f;
   --thread: rgba(49,72,74,.32);
-  --serif: 'Fraunces', Baskerville, Georgia, serif;
-  --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif: 'Libre Baskerville', Baskerville, Georgia, serif;
+  --sans: 'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --gutter: clamp(20px, 5vw, 80px);
   --header-height: 70px;
   --type-label: .6875rem;

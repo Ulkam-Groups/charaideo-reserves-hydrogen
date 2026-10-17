@@ -3,9 +3,9 @@ import type {Route} from './+types/collections.$handle';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
-import {ProductItem} from '~/components/ProductItem';
-import type {ProductItemFragment} from 'storefrontapi.generated';
 import {measureStorefront} from '~/lib/monitoring.server';
+import type {ReserveCollection} from '~/lib/reserve-list';
+import {ReserveTeaCard} from './reserve-list';
 
 export const meta: Route.MetaFunction = ({data}) => {
   return [{title: `${data?.collection.title ?? 'Collection'} | Charaideo Reserves™`}];
@@ -92,15 +92,15 @@ export default function Collection() {
           </Link>
         </div>
       </header>
-      <PaginatedResourceSection<ProductItemFragment>
+      <PaginatedResourceSection<ReserveCollection['products'][number]>
         connection={collection.products}
-        resourcesClassName="products-grid"
+        resourcesClassName="reserve-products-grid reserve-products-grid--collections collection-reserve-products"
       >
         {({node: product, index}) => (
-          <ProductItem
+          <ReserveTeaCard
             key={product.id}
             product={product}
-            loading={index < 8 ? 'eager' : undefined}
+            collectionTitle={collection.title}
           />
         )}
       </PaginatedResourceSection>
@@ -121,11 +121,13 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
     amount
     currencyCode
   }
-  fragment ProductItem on Product {
+  fragment CollectionReserveProductItem on Product {
     id
     handle
     title
     description
+    tags
+    availableForSale
     featuredImage {
       id
       altText
@@ -139,6 +141,15 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       }
       maxVariantPrice {
         ...MoneyProductItem
+      }
+    }
+    variants(first: 25) {
+      nodes {
+        id
+        title
+        availableForSale
+        selectedOptions { name value }
+        price { ...MoneyProductItem }
       }
     }
   }
@@ -168,7 +179,7 @@ const COLLECTION_QUERY = `#graphql
         after: $endCursor
       ) {
         nodes {
-          ...ProductItem
+          ...CollectionReserveProductItem
         }
         pageInfo {
           hasPreviousPage

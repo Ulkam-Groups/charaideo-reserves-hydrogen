@@ -221,10 +221,12 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           {layout === 'page' && (
             <ul className="cart-trust" aria-label="Our promise">
               <li>
+                <span className="trust-color-icon" aria-hidden="true">🚚</span>
                 <strong>Free delivery</strong>
                 <span>On orders above ₹399</span>
               </li>
               <li>
+                <span className="trust-color-icon" aria-hidden="true">🍃</span>
                 <strong>Fresh from Assam</strong>
                 <span>Packed in small batches</span>
               </li>

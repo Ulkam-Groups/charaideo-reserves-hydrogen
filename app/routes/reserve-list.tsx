@@ -31,7 +31,6 @@ type ProductPage = {
 type ViewTransitionDocument = Document & {
   startViewTransition?: (update: () => void) => void;
 };
-
 export const meta: Route.MetaFunction = () => [
   {title: 'The Reserve List | Charaideo Reserves™'},
   {name: 'description', content: 'Explore the chapters and collections of Charaideo Reserves™.'},
@@ -430,11 +429,6 @@ export default function ReserveList() {
           </div>}
         </section>
 
-        <aside className="reserve-trust" aria-label="Our reserve promise">
-          <div><strong>Fresh from Assam</strong><span>Packed in small batches</span></div>
-          <div><strong>Free delivery</strong><span>On orders above ₹399</span></div>
-          <div><strong>Secure checkout</strong><span>Protected payments</span></div>
-        </aside>
       </div>
     </div>
   );
@@ -460,7 +454,7 @@ function ReserveChapterSection({chapter, productCollectionLabels}: {
   </section>;
 }
 
-function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}: {
+export function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}: {
   product: ReserveCollection['products'][number];
   collectionTitle: string;
   lockWhenUnavailable?: boolean;
@@ -489,7 +483,7 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
           ? <Image data={product.featuredImage} alt="" loading="lazy" sizes="(min-width: 900px) 300px, (min-width: 600px) 45vw, 92vw" />
           : <span>Charaideo Reserves</span>}</div>
         <span className="reserve-tea-collection">{collectionTitle}</span>
-        <h3>{reserveDisplayTitle(product.title)}</h3>
+        <h3>{product.title}</h3>
       </div>
       <div className="reserve-tea-lock-overlay">
         <span className="reserve-mystery-mark" aria-hidden="true">✶</span>
@@ -523,7 +517,7 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
           : <span aria-hidden="true">Charaideo Reserves</span>}
       </div>
       <span className="reserve-tea-collection">{collectionTitle}</span>
-      <h3>{reserveDisplayTitle(product.title)}</h3>
+      <h3>{product.title}</h3>
       {tastingNotes && <p className="reserve-tasting-notes">{tastingNotes}</p>}
     </Link>
 
@@ -546,7 +540,11 @@ function ReserveTeaCard({product, collectionTitle, lockWhenUnavailable = false}:
           <legend>Select pack</legend>
           <div>
             {product.variants.nodes.map((variant) => (
-              <label key={variant.id} data-available={variant.availableForSale}>
+              <label
+                key={variant.id}
+                data-available={variant.availableForSale}
+                data-selected={selectedVariantId === variant.id}
+              >
                 <input
                   type="radio"
                   name={`card-variant-${product.handle}`}
@@ -636,11 +634,3 @@ function ReserveBuyNowButton({
   </>;
 }
 
-function reserveDisplayTitle(title: string) {
-  const simplified = title
-    .replace(/^.+?\bReserve\s*[-–—:]\s*/i, '')
-    .replace(/\s*\|\s*Single Estate Reserve\s*$/i, '')
-    .trim();
-
-  return simplified || title;
-}

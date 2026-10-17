@@ -1,6 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {Link} from 'react-router';
 import {rankSensoryTeas, type SensoryAnswers, type SensoryTea} from '~/lib/tea-sensory';
+import charaideoLogo from '~/assets/charaideo-reserves-logo.svg?url';
 
 const QUESTIONS = [
   {key: 'mood', title: 'How would you like to feel?', sub: 'Choose the feeling closest to your moment.', options: [
@@ -133,7 +134,9 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
               </button>
             ))}
           </div>
-          <div className="sensory-wheel-centre" aria-hidden="true">CR</div>
+          <div className="sensory-wheel-centre" aria-hidden="true">
+            <img src={charaideoLogo} alt="" />
+          </div>
         </div>
         <p className="sensory-wheel-note">Each answer turns the wheel closer to your cup.</p>
       </div>

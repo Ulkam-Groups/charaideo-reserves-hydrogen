@@ -1,4 +1,5 @@
 import type {CartApiQueryFragment} from 'storefrontapi.generated';
+import {PaymentLogos} from './PaymentLogos';
 import type {CartLayout} from '~/components/CartMain';
 import {
   CartForm,
@@ -259,32 +260,12 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
   );
 }
 
-const PAYMENT_LOGOS = [
-  ['Visa', 'card-networks/visa.svg'],
-  ['Mastercard', 'card-networks/mastercard.svg'],
-  ['Google Pay', 'app/googlepay.svg'],
-  ['Amazon Pay', 'app/amazonpay.svg'],
-  ['PayTm', 'app/paytm.svg']
-];
-
 export function SecurePayments() {
   return (
     <div className="cart-secure">
       <strong>Secure checkout</strong>
       <span>Cards, UPI, Netbanking &amp; Wallets</span>
-      <div className="cart-secure-logos">
-        {PAYMENT_LOGOS.map(([name, path]) => (
-          <img
-            key={path}
-            src={`https://cdn.razorpay.com/${path}`}
-            alt={name}
-            title={name}
-            width={18}
-            height={18}
-            loading="lazy"
-          />
-        ))}
-      </div>
+      <PaymentLogos />
     </div>
   );
 }
