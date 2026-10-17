@@ -1,12 +1,13 @@
 import {
   Image,
   Money,
-  useOptimisticCart,
 } from '@shopify/hydrogen';
-import {useEffect, useState} from 'react';
-import {Link, useFetcher, useFetchers, useRouteLoaderData} from 'react-router';
-import type {CartApiQueryFragment} from 'storefrontapi.generated';
-import type {loader as cartRecommendationsLoader} from '~/routes/api.cart-recommendations';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {Link, useFetchers, useRouteLoaderData} from 'react-router';
+import type {
+  CartApiQueryFragment,
+  CartRecommendationsQuery,
+} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
 import {DiscountProgress} from '~/components/DiscountProgress';
 import {useAside} from '~/components/Aside';
@@ -18,6 +19,7 @@ import {
   readRecentProducts,
   type RecentProduct,
 } from '~/lib/recent-products';
+import {publishCart} from '~/lib/cart-sync';
 import {cartDiscountProgressItems} from '~/lib/discount-progress';
 
 export type CartLayout = 'page' | 'aside';
@@ -28,6 +30,24 @@ export type CartMainProps = {
 };
 
 export type LineItemChildrenMap = {[parentId: string]: CartLine[]};
+
+type GeneratedCartRecommendation = NonNullable<
+  CartRecommendationsQuery['productRecommendations']
+>[number];
+
+type CartRecommendationProduct = Omit<
+  GeneratedCartRecommendation,
+  'selectedOrFirstAvailableVariant'
+> & {
+  selectedOrFirstAvailableVariant:
+    | (NonNullable<
+        GeneratedCartRecommendation['selectedOrFirstAvailableVariant']
+      > & {
+        title: string;
+        price: GeneratedCartRecommendation['priceRange']['minVariantPrice'];
+      })
+    | null;
+};
 /** Returns a map of all line items and their children. */
 function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
   const children: LineItemChildrenMap = {};
@@ -52,9 +72,12 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
  * It is used by both the /cart route and the cart aside dialog.
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
-  // The useOptimisticCart hook applies pending actions to the cart
-  // so the user immediately sees feedback when they modify the cart.
-  const cart = useOptimisticCart(originalCart);
+  const {type: asideType} = useAside();
+  const cartVisible = layout === 'page' || asideType === 'cart';
+  const [cart, setCart] = useState(originalCart);
+  const [refreshingCart, setRefreshingCart] = useState(false);
+  const refreshSequence = useRef(0);
+  const mutationWasPending = useRef(false);
   const fetchers = useFetchers();
   const cartMutationPending = fetchers.some(
     (fetcher) =>
@@ -64,6 +87,53 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           new URL(fetcher.formAction, 'https://storefront.invalid').pathname === '/cart',
       ),
   );
+  const refreshCart = useCallback(async () => {
+    const sequence = ++refreshSequence.current;
+    setRefreshingCart(true);
+    try {
+      const response = await fetch('/api/cart-state', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {Accept: 'application/json'},
+      });
+      if (!response.ok) throw new Error(`Cart refresh failed: ${response.status}`);
+      const result = (await response.json()) as {cart: CartApiQueryFragment | null};
+      if (sequence === refreshSequence.current) {
+        setCart(result.cart);
+        publishCart(result.cart);
+      }
+    } catch {
+      // Keep the last confirmed cart visible after the loading state.
+    } finally {
+      if (sequence === refreshSequence.current) setRefreshingCart(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (cartVisible) void refreshCart();
+  }, [cartVisible, refreshCart]);
+
+  useEffect(() => {
+    if (cartMutationPending) {
+      mutationWasPending.current = true;
+      setRefreshingCart(true);
+      return;
+    }
+    if (!mutationWasPending.current) return;
+    mutationWasPending.current = false;
+    void refreshCart();
+  }, [cartMutationPending, refreshCart]);
+
+  useEffect(() => {
+    if (!originalCart) return;
+    setCart((current) =>
+      !current || Date.parse(originalCart.updatedAt) > Date.parse(current.updatedAt)
+        ? originalCart
+        : current,
+    );
+  }, [originalCart]);
+
+  const cartBusy = cartMutationPending || refreshingCart;
 
   const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
   const withDiscount =
@@ -75,8 +145,8 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
 
   return (
-    <div className={className} aria-busy={cartMutationPending}>
-      {cartMutationPending && (
+    <div className={className} aria-busy={cartBusy}>
+      {cartBusy && (
         <div className="cart-update-overlay" role="status" aria-live="polite">
           <span className="cart-update-spinner" aria-hidden="true" />
           <strong>Updating your cart…</strong>
@@ -86,7 +156,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
         <header className="cart-page-head">
           <div>
             <nav className="cart-page-crumbs" aria-label="Breadcrumb">
-              <Link to="/" prefetch="intent">
+              <Link to="/" prefetch="none">
                 Home
               </Link>
               <span aria-hidden="true">/</span>
@@ -102,22 +172,32 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
             </h1>
           </div>
           {cartHasItems && (
-            <Link className="cart-page-continue" to="/reserve-list" prefetch="viewport">
+            <Link className="cart-page-continue" to="/reserve-list" prefetch="none">
               <span aria-hidden="true">←</span> Continue shopping
             </Link>
           )}
         </header>
       )}
-      <CartEmpty hidden={linesCount} layout={layout} />
-      <div className="cart-details" hidden={!linesCount}>
+      {linesCount && (
         <DiscountProgress
           surface="cart"
-          paused={cartMutationPending}
+          paused={cartBusy}
           items={discountItems}
           milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
         />
-        <div className="cart-lines-wrap">
+      )}
+      <div
+        aria-hidden={cartBusy || undefined}
+        style={{display: 'contents', ...(cartBusy ? {visibility: 'hidden'} : {})}}
+      >
+        <CartEmpty hidden={linesCount} layout={layout} />
+      </div>
+      <div
+        className="cart-details"
+        hidden={!linesCount}
+      >
+        <div className="cart-lines-wrap" aria-busy={cartBusy}>
           <h2 id="cart-lines" className="cart-section-label">
             <span>In your cart</span>
             <b>{cart?.totalQuantity ?? 0}</b>
@@ -141,10 +221,12 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           {layout === 'page' && (
             <ul className="cart-trust" aria-label="Our promise">
               <li>
+                <span className="trust-color-icon" aria-hidden="true">🚚</span>
                 <strong>Free delivery</strong>
                 <span>On orders above ₹399</span>
               </li>
               <li>
+                <span className="trust-color-icon" aria-hidden="true">🍃</span>
                 <strong>Fresh from Assam</strong>
                 <span>Packed in small batches</span>
               </li>
@@ -160,7 +242,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
             )}
           />
         </div>
-        {cartHasItems && <CartSummary cart={cart} layout={layout} />}
+        {cartHasItems && cart && <CartSummary cart={cart} layout={layout} />}
       </div>
     </div>
   );
@@ -175,23 +257,53 @@ function CartRecommendations({
 }) {
   const {type} = useAside();
   const active = layout === 'page' || type === 'cart';
-  const fetcher = useFetcher<typeof cartRecommendationsLoader>();
-  const productKey = [...new Set(productIds)].slice(0, 3).join('|');
-  const [requestedKey, setRequestedKey] = useState('');
+  const cartProductIds = [...new Set(productIds)];
+  const productKey = cartProductIds.join('|');
+  const [response, setResponse] = useState<{
+    key: string;
+    recommendations: CartRecommendationProduct[];
+    unavailable: boolean;
+  } | null>(null);
+  const [loadingKey, setLoadingKey] = useState('');
 
   useEffect(() => {
-    if (!active || !productKey || requestedKey === productKey) return;
+    if (!active || !productKey || response?.key === productKey) return;
+
+    const controller = new AbortController();
     const params = new URLSearchParams();
-    productKey.split('|').forEach((id) => params.append('productId', id));
-    setRequestedKey(productKey);
-    fetcher.load(`/api/cart-recommendations?${params.toString()}`);
-  }, [fetcher, productKey, requestedKey, active]);
+    cartProductIds.slice(0, 3).forEach((id) => params.append('productId', id));
+    cartProductIds.forEach((id) => params.append('excludeProductId', id));
+    setLoadingKey(productKey);
+
+    void fetch(`/api/cart-recommendations?${params.toString()}`, {
+      signal: controller.signal,
+      headers: {Accept: 'application/json'},
+    })
+      .then(async (request) => {
+        if (!request.ok) throw new Error(`Recommendations failed: ${request.status}`);
+        return request.json() as Promise<{
+          recommendations: CartRecommendationProduct[];
+          unavailable: boolean;
+        }>;
+      })
+      .then((result) => {
+        setResponse({key: productKey, ...result});
+        setLoadingKey('');
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+        setResponse({key: productKey, recommendations: [], unavailable: true});
+        setLoadingKey('');
+      });
+
+    return () => controller.abort();
+  }, [productKey, active, response?.key]);
 
   if (!active || !productKey) return null;
-  const isCurrentResponse = requestedKey === productKey;
-  const loading = !isCurrentResponse || fetcher.state !== 'idle';
-  const recommendations = isCurrentResponse ? (fetcher.data?.recommendations ?? []) : [];
-  const unavailable = isCurrentResponse && Boolean(fetcher.data?.unavailable);
+  const isCurrentResponse = response?.key === productKey;
+  const loading = loadingKey === productKey || !isCurrentResponse;
+  const recommendations = isCurrentResponse ? response.recommendations : [];
+  const unavailable = isCurrentResponse && response.unavailable;
   if (!loading && !unavailable && recommendations.length === 0) return null;
 
   return (
@@ -220,7 +332,7 @@ function CartRecommendations({
                 <Link
                   className="cart-recommendation-image"
                   to={`/products/${encodeURIComponent(product.handle)}`}
-                  prefetch="intent"
+                  prefetch="none"
                   aria-label={`View ${product.title}`}
                 >
                   {product.featuredImage ? (
@@ -237,14 +349,21 @@ function CartRecommendations({
                 <div className="cart-recommendation-copy">
                   <Link
                     to={`/products/${encodeURIComponent(product.handle)}`}
-                    prefetch="intent"
+                    prefetch="none"
                   >
                     {product.title}
                   </Link>
-                  <Money data={product.priceRange.minVariantPrice} />
+                  {variant && variant.title !== 'Default Title' && (
+                    <small>{variant.title}</small>
+                  )}
+                  {variant ? (
+                    <Money data={variant.price} />
+                  ) : (
+                    <Money data={product.priceRange.minVariantPrice} />
+                  )}
                 </div>
                 <AddToCartButton
-                  lines={variant ? [{merchandiseId: variant.id, quantity: 1}] : []}
+                  lines={variant ? [{merchandiseId: variant.id, quantity: 1, selectedVariant: variant}] : []}
                   disabled={!variant?.availableForSale}
                 >
                   <span aria-hidden="true">+</span> Add
@@ -315,7 +434,7 @@ function CartEmpty({
         }
         to="/reserve-list"
         onClick={close}
-        prefetch="viewport"
+        prefetch="none"
       >
         {recentProduct ? 'View the reserve list' : 'Explore reserves'}{' '}
         <span aria-hidden="true">→</span>
@@ -334,7 +453,7 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
       <Link
         aria-label={`View ${product.title}`}
         className="cart-empty-suggestion-image"
-        prefetch="intent"
+        prefetch="none"
         to={productUrl}
       >
         {product.image ? (
@@ -346,7 +465,7 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
       <div className="cart-empty-suggestion-details">
         <span>Recently viewed</span>
         <h3>
-          <Link prefetch="intent" to={productUrl}>
+          <Link prefetch="none" to={productUrl}>
             {product.title}
           </Link>
         </h3>
@@ -355,7 +474,21 @@ function RecentProductSuggestion({product}: {product: RecentProduct}) {
           <strong>{formatRecentProductPrice(product)}</strong>
         </div>
       </div>
-      <AddToCartButton lines={[{merchandiseId: product.variantId, quantity: 1}]}>
+      <AddToCartButton
+        lines={[{
+          merchandiseId: product.variantId,
+          quantity: 1,
+          selectedVariant: {
+            id: product.variantId,
+            title: product.variantTitle,
+            availableForSale: true,
+            price: product.price,
+            image: product.image,
+            selectedOptions: [{name: 'Title', value: product.variantTitle}],
+            product: {handle: product.handle, title: product.title},
+          },
+        }]}
+      >
         Add
       </AddToCartButton>
     </article>

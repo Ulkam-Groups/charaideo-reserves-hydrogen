@@ -3,24 +3,29 @@
 // Recovered from the supplied approved React artifact. Keep its render tree intact.
 import React from 'react';
 import {jsx, jsxs} from 'react/jsx-runtime';
-import {Image} from '@shopify/hydrogen';
-import {useLoaderData, useNavigate, useRevalidator, useSearchParams} from 'react-router';
+import {Image, Money} from '@shopify/hydrogen';
+import {Link, useLoaderData, useNavigate, useRevalidator, useSearchParams} from 'react-router';
 import heroImage from '~/assets/Misty Sunrise Tea Harvest.webp?url';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
 import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
+import {AddToCartButton} from '~/components/AddToCartButton';
+import {useAside} from '~/components/Aside';
+import {WishlistButton} from '~/components/WishlistButton';
+import {reserveVariantLabel} from '~/lib/reserve-list';
 
 export const meta: Route.MetaFunction = () => [
   {title: "Charaideo Reserves™ | The Reserve List of Assam's Finest Tea Estates"},
   {
     name: 'description',
     content:
-      'Discover teas sourced directly from historic gardens in Assam, reserved in order—chapter by chapter.',
+      'Discover teas sourced directly from historic gardens in Assam, reserved in order-chapter by chapter.',
   },
 ];
 
 export const links = () => [
+  {rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap'},
   {rel: 'stylesheet', href: artifactStylesheet},
   {rel: 'stylesheet', href: brandStoryStylesheet},
 ];
@@ -28,11 +33,20 @@ export const links = () => [
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
 
 type ChapterProduct = {
+  id: string;
   title: string;
   handle: string;
   availableForSale: boolean;
   featuredImage: {url: string; altText: string | null; width: number; height: number} | null;
-  variants: {nodes: {availableForSale: boolean; currentlyNotInStock: boolean}[]};
+  priceRange: {minVariantPrice: {amount: string; currencyCode: string}};
+  variants: {nodes: {
+    id: string;
+    title: string;
+    availableForSale: boolean;
+    currentlyNotInStock: boolean;
+    price: {amount: string; currencyCode: string};
+    selectedOptions: {name: string; value: string}[];
+  }[]};
   estate?: {value: string} | null;
   flush?: {value: string} | null;
   grade?: {value: string} | null;
@@ -44,6 +58,8 @@ type ChapterCollection = {
   handle: string;
   description: string;
   image: {url: string; altText: string | null; width: number; height: number} | null;
+  chapterImages: {references: {nodes: Array<{id: string; image: {url: string; altText: string | null; width: number; height: number} | null}>}} | null;
+  chapterVideos: {references: {nodes: Array<{id: string; previewImage?: {url: string; altText: string | null; width: number; height: number} | null; sources?: Array<{url: string; mimeType: string}>; url?: string; mimeType?: string}>}} | null;
   products: {nodes: ChapterProduct[]};
 };
 
@@ -134,19 +150,51 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
       handle
       description
       image { url altText width height }
+      chapterImages: metafield(namespace: "custom", key: "chapter_images") {
+        references(first: 20) {
+          nodes {
+            ... on MediaImage { id image { url altText width height } }
+          }
+        }
+      }
+      chapterVideos: metafield(namespace: "custom", key: "chapter_videos") {
+        references(first: 20) {
+          nodes {
+            ... on Video {
+              id
+              previewImage { url altText width height }
+              sources { url mimeType }
+            }
+            ... on GenericFile {
+              id
+              url
+              mimeType
+            }
+          }
+        }
+      }
       products(first: 100) {
         nodes {
+          id
           title
           handle
           availableForSale
           featuredImage { url altText width height }
+          priceRange { minVariantPrice { amount currencyCode } }
           estate: metafield(namespace: "custom", key: "estate") { value }
           flush: metafield(namespace: "custom", key: "flush") { value }
           grade: metafield(namespace: "custom", key: "grade") { value }
           pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }
           leaf: metafield(namespace: "custom", key: "leaf") { value }
           variants(first: 50) {
-            nodes { availableForSale currentlyNotInStock }
+            nodes {
+              id
+              title
+              availableForSale
+              currentlyNotInStock
+              price { amount currencyCode }
+              selectedOptions { name value }
+            }
           }
         }
       }
@@ -242,13 +290,8 @@ function ChapterCollectionCard({
             collectionImage={collection.image}
             collectionTitle={collection.title}
           />
-        ) : isOpen ? (
-          <ChapterProductArtwork
-            products={products}
-            collectionImage={collection.image}
-          />
         ) : (
-          <ChapterComingSoonArtwork collectionTitle={collection.title} />
+          <ChapterMediaCarousel collection={collection} products={products} />
         )}
         <span className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card-status--teaser' : ''}`}>
           {collection.title} · {status}
@@ -287,6 +330,161 @@ function ChapterCollectionCard({
   );
 }
 
+type ChapterCarouselItem =
+  | {id: string; kind: 'image'; image: {url: string; altText: string | null; width: number; height: number}}
+  | {id: string; kind: 'video'; sources: Array<{url: string; mimeType: string}>};
+
+function ChapterMediaCarousel({
+  collection,
+  products,
+}: {
+  collection: ChapterCollection;
+  products: ChapterProduct[];
+}) {
+  const imageReferences = collection.chapterImages?.references.nodes ?? [];
+  const videoReferences = collection.chapterVideos?.references.nodes ?? [];
+  const customImages: ChapterCarouselItem[] = imageReferences
+    .filter((item) => item.image)
+    .map((item) => ({id: item.id, kind: 'image', image: item.image!}));
+  const customVideos: ChapterCarouselItem[] = videoReferences
+    .map((item) => {
+      const sources = item.sources?.length
+        ? [...item.sources].sort((a, b) =>
+            a.mimeType === 'video/mp4' ? -1 : b.mimeType === 'video/mp4' ? 1 : 0,
+          )
+        : item.url && item.mimeType?.startsWith('video/')
+          ? [{url: item.url, mimeType: item.mimeType}]
+          : [];
+      return sources.length
+        ? {id: item.id, kind: 'video' as const, sources}
+        : null;
+    })
+    .filter((item): item is Extract<ChapterCarouselItem, {kind: 'video'}> => item !== null);
+  const customMedia = [...customImages, ...customVideos];
+  const fallbackProductImage = products.find((product) => product.featuredImage)?.featuredImage;
+  const fallbackMedia: ChapterCarouselItem[] = collection.image
+    ? [{id: `collection-${collection.handle}`, kind: 'image', image: collection.image}]
+    : fallbackProductImage
+      ? [{id: `product-${collection.handle}`, kind: 'image', image: fallbackProductImage}]
+      : [];
+  const media = customMedia.length ? customMedia : fallbackMedia;
+  const [activeIndex, setActiveIndex] = React.useState(0);
+  const pointerStart = React.useRef<number | null>(null);
+  const didSwipe = React.useRef(false);
+  const videoRefs = React.useRef<Array<HTMLVideoElement | null>>([]);
+
+  React.useEffect(() => {
+    setActiveIndex(0);
+  }, [collection.handle, media.length]);
+
+  const active = media[activeIndex] ?? media[0];
+
+  React.useEffect(() => {
+    if (media.length < 2 || !active) return;
+    const timer = window.setTimeout(
+      () => setActiveIndex((index) => (index + 1) % media.length),
+      active.kind === 'video' ? 5000 : 2000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [active?.id, active?.kind, activeIndex, media.length]);
+
+  React.useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+      if (index === activeIndex && media[index]?.kind === 'video') {
+        video.load();
+        void video.play().catch(() => undefined);
+      } else {
+        video.pause();
+      }
+    });
+  }, [activeIndex, collection.handle, media.length]);
+
+  if (!media.length) return <ChapterComingSoonArtwork collectionTitle={collection.title} />;
+
+  return (
+    <div
+      className="chapter-media-carousel"
+      onPointerDown={(event) => {
+        pointerStart.current = event.clientX;
+        didSwipe.current = false;
+      }}
+      onPointerUp={(event) => {
+        if (pointerStart.current === null || media.length < 2) return;
+        const distance = event.clientX - pointerStart.current;
+        pointerStart.current = null;
+        if (Math.abs(distance) < 28) return;
+        didSwipe.current = true;
+        setActiveIndex((index) =>
+          distance < 0
+            ? (index + 1) % media.length
+            : (index - 1 + media.length) % media.length,
+        );
+      }}
+      onClick={(event) => {
+        if (!didSwipe.current) return;
+        event.preventDefault();
+        event.stopPropagation();
+        didSwipe.current = false;
+      }}
+    >
+      {media.map((item, index) => (
+        <div
+          key={item.id}
+          className={`chapter-media-slide ${index === activeIndex ? 'is-active' : ''}`}
+          aria-hidden={index !== activeIndex}
+        >
+          {item.kind === 'image' ? (
+            <Image
+              data={item.image}
+              alt={item.image.altText || collection.title}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              sizes="(min-width: 1100px) 390px, (min-width: 768px) 45vw, 92vw"
+              className="chapter-media-item"
+            />
+          ) : (
+            <video
+              ref={(node) => {
+                videoRefs.current[index] = node;
+              }}
+              className="chapter-media-item"
+              src={item.sources[0].url}
+              muted
+              playsInline
+              preload="none"
+              onCanPlay={(event) => {
+                if (index === activeIndex) {
+                  void event.currentTarget.play().catch(() => undefined);
+                }
+              }}
+              onEnded={() =>
+                setActiveIndex((current) => (current + 1) % media.length)
+              }
+            />
+          )}
+        </div>
+      ))}
+      {media.length > 1 && (
+        <div className="chapter-media-dots" aria-label="Chapter media">
+          {media.map((item, index) => (
+            <button
+              type="button"
+              key={item.id}
+              className={index === activeIndex ? 'is-active' : ''}
+              aria-label={`Show media ${index + 1} of ${media.length}`}
+              aria-current={index === activeIndex ? 'true' : undefined}
+              onClick={(event) => {
+                event.stopPropagation();
+                setActiveIndex(index);
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ChapterWaitlistArtwork({
   product,
   collectionImage,
@@ -296,7 +494,7 @@ function ChapterWaitlistArtwork({
   collectionImage: ChapterCollection['image'];
   collectionTitle: string;
 }) {
-  const image = product.featuredImage || collectionImage;
+  const image = collectionImage || product.featuredImage;
   const estate = product.estate?.value || product.title;
 
   return (
@@ -334,6 +532,20 @@ function ChapterProductArtwork({
   products: ChapterProduct[];
   collectionImage: ChapterCollection['image'];
 }) {
+  if (collectionImage) {
+    return (
+      <div className="absolute inset-0">
+        <Image
+          data={collectionImage}
+          alt={collectionImage.altText || 'Reserve collection'}
+          loading="lazy"
+          sizes="(min-width: 768px) 480px, 92vw"
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+
   const displayProducts = products.slice(0, 2);
 
   return (
@@ -344,7 +556,7 @@ function ChapterProductArtwork({
       />
       <div className="relative z-10 flex items-center justify-center w-[78%] h-[82%] select-none">
         {displayProducts.map((product, index) => {
-          const image = product.featuredImage || collectionImage;
+          const image = product.featuredImage;
           return (
             <div
               key={product.handle}
@@ -398,15 +610,121 @@ function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) 
   );
 }
 
+function HomepageProductCard({product, collectionTitle}: {product: ChapterProduct; collectionTitle: string}) {
+  const {open: openAside} = useAside();
+  const availableVariants = product.variants.nodes.filter((variant) => variant.availableForSale);
+  const [selectedVariantId, setSelectedVariantId] = React.useState(
+    availableVariants[0]?.id ?? product.variants.nodes[0]?.id ?? '',
+  );
+  const selectedVariant = product.variants.nodes.find((variant) => variant.id === selectedVariantId)
+    ?? availableVariants[0]
+    ?? product.variants.nodes[0];
+  const tastingNotes = [product.estate?.value, product.flush?.value, product.grade?.value]
+    .filter(Boolean)
+    .join(' · ');
+
+  return (
+    <article className="home-product-card">
+      <WishlistButton
+        className="wishlist-button--card"
+        product={{
+          id: product.id,
+          handle: product.handle,
+          title: product.title,
+          image: product.featuredImage
+            ? {url: product.featuredImage.url, altText: product.featuredImage.altText}
+            : null,
+          price: product.priceRange.minVariantPrice,
+        }}
+      />
+      <Link className="home-product-card-link" to={`/products/${product.handle}`} prefetch="none">
+        <div className="home-product-card-image">
+          {product.featuredImage
+            ? <Image data={product.featuredImage} alt={product.featuredImage.altText || product.title} loading="lazy" sizes="(min-width: 900px) 360px, 78vw" />
+            : <span>Charaideo Reserves</span>}
+        </div>
+        <span className="home-product-card-collection">{collectionTitle}</span>
+        <h3>{product.title}</h3>
+        {tastingNotes && <p>{tastingNotes}</p>}
+      </Link>
+      <div className="home-product-card-commerce">
+        <div className="home-product-card-meta">
+          <strong>{selectedVariant?.price
+            ? <Money data={selectedVariant.price} />
+            : <Money data={product.priceRange.minVariantPrice} />}
+          </strong>
+          <span>{product.availableForSale ? 'In stock' : 'Unavailable'}</span>
+        </div>
+        {product.variants.nodes.length > 0 && (
+          <fieldset className="home-product-card-variants">
+            <legend>Select pack</legend>
+            <div>
+              {product.variants.nodes.map((variant) => (
+                <label key={variant.id} data-selected={selectedVariantId === variant.id} data-available={variant.availableForSale}>
+                  <input
+                    type="radio"
+                    name={`home-card-variant-${product.handle}`}
+                    value={variant.id}
+                    checked={selectedVariantId === variant.id}
+                    onChange={() => setSelectedVariantId(variant.id)}
+                    disabled={!variant.availableForSale}
+                  />
+                  <span>{reserveVariantLabel(variant)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        <div className="home-product-card-actions">
+          <AddToCartButton
+            disabled={!selectedVariant?.availableForSale}
+            lines={selectedVariant ? [{merchandiseId: selectedVariant.id, quantity: 1, selectedVariant}] : []}
+            onClick={() => openAside('cart')}
+          >
+            Add to bag
+          </AddToCartButton>
+          <Link to={`/products/${product.handle}`} prefetch="none">View tea</Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function HomepageProductRail({items}: {items: {product: ChapterProduct; collectionTitle: string}[]}) {
+  if (!items.length) return null;
+  return (
+    <section id="home-product-list" className="home-product-list" aria-labelledby="home-product-list-title">
+      <header>
+        <div>
+          <h2 id="home-product-list-title">Explore the tea collection.</h2>
+        </div>
+        <Link to="/reserve-list" prefetch="intent">View the Reserve List</Link>
+      </header>
+      <div className="home-product-rail" role="list">
+        {items.map(({product, collectionTitle}) => (
+          <div role="listitem" key={product.handle}>
+            <HomepageProductCard product={product} collectionTitle={collectionTitle} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Homepage() {
-  const {chapterProduct, chapterCollections} = useLoaderData<typeof loader>();
+  const {chapterCollections} = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const revalidator = useRevalidator();
-  const firstChapter = chapterCollections[0] ?? null;
-  const firstChapterProduct = firstChapter?.products.nodes[0] ?? null;
-  const chapterOneHasProducts = Boolean(firstChapter?.products.nodes.length);
-  const isRevealed = Boolean(chapterProduct);
-  const estateName = chapterProduct?.estate?.value || firstChapterProduct?.estate?.value || firstChapterProduct?.title || 'Revealed soon';
+  const homepageProducts = Array.from(
+    chapterCollections.reduce((products, collection) => {
+      collection.products.nodes.forEach((product) => {
+        if (!products.has(product.handle)) {
+          products.set(product.handle, {product, collectionTitle: collection.title});
+        }
+      });
+      return products;
+    }, new Map<string, {product: ChapterProduct; collectionTitle: string}>()).values(),
+  );
 
   React.useEffect(() => {
     const checkInventory = () => {
@@ -419,6 +737,29 @@ export default function Homepage() {
       window.removeEventListener('focus', checkInventory);
     };
   }, [revalidator]);
+
+  React.useEffect(() => {
+    const divider = document.querySelector<HTMLElement>('.home-section-river');
+    if (!divider || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let frame = 0;
+    const updateSealPosition = () => {
+      frame = 0;
+      const rect = divider.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height)));
+      divider.style.setProperty('--home-seal-shift', `${28 - progress * 56}px`);
+    };
+    const handleScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateSealPosition);
+    };
+    updateSealPosition();
+    window.addEventListener('scroll', handleScroll, {passive: true});
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
   const [waitlistChapter, setWaitlistChapter] = xe.useState<ChapterCollection | null>(null);
   const A = waitlistChapter !== null;
   const waitlistProduct = waitlistChapter?.products.nodes[0] ?? null;
@@ -542,19 +883,19 @@ export default function Homepage() {
                     className:
                       "hero-display-title serif text-[42px] md:text-[64px] leading-[0.93] tracking-[-0.025em] max-w-[560px]",
                     children: [
-                      "The Reserve List of ",
+                      "The Reserve Collections of ",
                       f("span", {
                         className: "hero-title-accent",
                         children: "Assam's",
                       }),
-                      " Finest Tea Estates.",
+                      " Finest Teas.",
                     ],
                   }),
                   f("p", {
                     className:
                       "hero-intro mt-5 text-[16px] md:text-[17px] leading-[1.5] text-[#132A1F]/70 max-w-[500px]",
                     children:
-                      "Single-estate, single-harvest teas sourced directly from historic gardens in Assam, reserved in order—chapter by chapter.",
+                      "We go to one estate at a time and bring what they do best to you. Straight from the source, released chapter by chapter.",
                   }),
                   y("div", {
                     className: "hero-actions mt-8",
@@ -585,7 +926,7 @@ export default function Homepage() {
                     className: "hero-proof mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]",
                     children: f("p", {
                       className: "text-[12px] tracking-[0.12em] uppercase text-[#5A6B62] font-[600]",
-                      children: "From the garden, with its name intact.",
+                      children: "Grown in Assam, reserved as it is.",
                     }),
                   }),
                 ],
@@ -731,7 +1072,7 @@ export default function Homepage() {
                       children: "Our Reserves",
                     }),
                     f("h2", {
-                      className: "serif text-[36px] md:text-[48px] leading-[0.98]",
+                      className: "chapter-collection-heading serif",
                       children: "The Reserve, chapter by chapter.",
                     }),
                     f("p", {
@@ -760,77 +1101,27 @@ export default function Homepage() {
           ],
         }),
       }),
-      f("section", {
-        id: "about",
-        className: "bg-white py-16 md:py-28 max-w-[100vw] overflow-hidden scroll-mt-[96px]",
-        children: y("div", {
-          className: `mx-auto max-w-[1280px] px-6 md:px-8 grid ${chapterOneHasProducts ? 'md:grid-cols-2' : ''} gap-12 md:gap-20 items-start`,
-          children: [
-            y("div", {
-              children: [
-                f("div", {
-                  className: "text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-4",
-                  children: "Where it began",
-                }),
-                f("h2", {
-                  className: "serif text-[36px] md:text-[48px] leading-[0.98] max-w-[480px]",
-                  children: "Because every tea deserves to carry the name of where it began.",
-                }),
-                f("p", {
-                  className: "mt-5 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
-                    children:
-                      "Each tea names its garden and records its harvest—the soil, the season and the hands that picked it.",
-                }),
-                f("p", {
-                  className: "mt-3 text-[15px] leading-[1.55] text-[#132A1F]/75 max-w-[500px]",
-                    children:
-                      "Estates remain in the Reserve List, so you can return to a place and follow it through time.",
-                }),
-              ],
+      y("div", {
+        className: "home-section-river home-section-river--mirrored",
+        "aria-hidden": "true",
+        children: [
+          f("svg", {
+            className: "home-river-seal-mark",
+            viewBox: "100 104 130 150",
+            fill: "none",
+            focusable: "false",
+            children: f("path", {
+              d: "M106.5 110.5H216.498L223.482 121.849H143.166C142.293 124.468 142.293 127.087 144.912 130.579C150.15 137.563 156.261 141.055 164.118 145.42C172.848 149.785 180.705 152.404 188.562 155.023C195.546 155.896 200.784 159.388 205.149 165.499C207.768 168.991 208.641 174.229 208.641 179.467C208.641 190.816 204.276 203.038 199.038 212.641C192.927 222.244 182.451 231.847 170.229 235.339C163.245 237.958 152.769 236.212 145.785 233.593C136.182 230.101 131.817 224.863 130.071 217.879C129.198 215.26 129.198 213.514 129.198 210.022V122.722L114.357 121.849L106.5 110.5ZM142.293 142.801C145.785 148.039 151.023 154.15 156.261 159.388C164.118 165.499 172.848 169.864 180.705 171.61C184.197 172.483 185.943 172.483 187.689 174.229C188.562 177.721 187.689 182.086 186.816 185.578C185.07 195.181 180.705 203.038 174.594 210.022C169.356 215.26 163.245 219.625 158.88 220.498C154.515 221.371 150.15 219.625 146.658 217.006C144.039 215.26 142.293 213.514 142.293 210.895V142.801Z",
+              fill: "currentColor",
+              fillRule: "evenodd",
+              clipRule: "evenodd",
             }),
-            chapterOneHasProducts && y("div", {
-              className: "rounded-[24px] border border-[#E7EDE0] bg-[#F5F1E6]/60 p-6 md:p-8",
-              children: [
-                f("div", {
-                  className: "text-[11px] tracking-[0.18em] uppercase text-[#5A6B62] font-[600] mb-6",
-                  children: `Traceability- ${firstChapter?.title}`,
-                }),
-                f("div", {
-                  className: "space-y-4",
-                  children: [
-                    { label: "Estate", value: estateName },
-                    { label: "Flush", value: chapterProduct?.flush?.value || "Revealed soon" },
-                    { label: "Grade", value: chapterProduct?.grade?.value || "Revealed soon" },
-                    { label: "Pluck Date", value: chapterProduct?.pluckDate?.value || "Revealed soon" },
-                    { label: "Leaf", value: chapterProduct?.leaf?.value || "Revealed soon" },
-                  ].map((a) =>
-                    y(
-                      "div",
-                      {
-                        className:
-                          "flex items-center justify-between py-3 border-b border-[#132A1F]/[0.06] last:border-0",
-                        children: [
-                          f("span", {
-                            className: "text-[13px] tracking-[0.04em] uppercase text-[#5A6B62]",
-                            children: a.label,
-                          }),
-                          f("span", { className: `${isRevealed ? '' : 'blur-mystery'} text-[13px]`, children: a.value }),
-                        ],
-                      },
-                      a.label,
-                    ),
-                  ),
-                }),
-                f("div", {
-                  className: "mt-6 text-[11px] text-[#5A6B62]/70 leading-[1.6]",
-                  children:
-                    "Full details revealed to the Reserve List on opening. Every tea includes its own trace card.",
-                }),
-              ],
-            }),
-          ],
-        }),
+          }),
+          f("span", {className: "home-river-seal-place", children: "ASSAM"}),
+          y("span", {className: "home-river-seal-coordinate", children: ["26.98", f("sup", {children: "\u00b0"})]}),
+        ],
       }),
+      f(HomepageProductRail, {items: homepageProducts}),
       y("section", {
         className: "heritage-note",
         children: [

@@ -1,6 +1,7 @@
 import {Brand} from './Brand';
 import {NavLink} from 'react-router';
 import {POLICY_PAGES} from '~/lib/policies';
+import {PaymentLogos} from './PaymentLogos';
 
 export function Footer() {
   return (
@@ -35,17 +36,21 @@ export function Footer() {
         </section>
       </div>
       <nav className="footer-menu" aria-label="Store policies">
-        <NavLink prefetch="intent" to="/policies">
+        <NavLink prefetch="none" to="/policies">
           All policies
         </NavLink>
         {POLICY_PAGES.map(({handle, title}) => (
-          <NavLink key={handle} prefetch="intent" to={`/policies/${handle}`}>
+          <NavLink key={handle} prefetch="none" to={`/policies/${handle}`}>
             {title}
           </NavLink>
         ))}
       </nav>
       <div className="footer-bottom">
         <p>© 2026 Ulkam Group. All rights reserved.</p>
+        <div className="footer-secure">
+          <strong>Secure checkout</strong>
+          <PaymentLogos />
+        </div>
         <p>Made with love in Assam.</p>
       </div>
     </footer>
@@ -65,11 +70,7 @@ function FooterColumn({
       {links.map((link) => (
         <NavLink
           key={link.to}
-          prefetch={
-            link.to === '/reserve-list' || link.to === '/pages/about-us'
-              ? 'none'
-              : 'intent'
-          }
+          prefetch="none"
           to={link.to}
         >
           {link.label}

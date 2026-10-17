@@ -12,6 +12,7 @@ import {
 import {ProductPrice} from '~/components/ProductPrice';
 import {ProductImage} from '~/components/ProductImage';
 import {ProductForm} from '~/components/ProductForm';
+import {WishlistButton} from '~/components/WishlistButton';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {AsyncProductReviews} from '~/components/AsyncProductReviews';
@@ -352,7 +353,27 @@ export default function Product() {
       <section className="product product-purchase" id="product-buy-box">
         <div className="product-gallery">
           <div className="product-origin-tab">{productOriginLabel}</div>
-          <ProductImage image={selectedVariant?.image} images={product.images.nodes} />
+          <ProductImage
+            image={selectedVariant?.image}
+            images={product.images.nodes}
+            overlay={
+              <WishlistButton
+                className="wishlist-button--pdp-image"
+                product={{
+                  id: product.id,
+                  handle: product.handle,
+                  title: product.title,
+                  image: recentProductImage
+                    ? {
+                        url: recentProductImage.url,
+                        altText: recentProductImage.altText || product.title,
+                      }
+                    : null,
+                  price: selectedVariant?.price ?? product.priceRange.minVariantPrice,
+                }}
+              />
+            }
+          />
           <p className="product-image-caption">
             Selected from the tea cabinet · packed with care
           </p>
@@ -493,7 +514,7 @@ export default function Product() {
                 This reserve is waiting for its first verified review. Already tasted it?
                 You can share private feedback directly with our tea room.
               </p>
-              <Link className="text-link" prefetch="intent" to="/pages/contact">
+              <Link className="text-link" prefetch="none" to="/pages/contact">
                 Share feedback →
               </Link>
             </div>
@@ -516,7 +537,7 @@ export default function Product() {
                     <h2 id="related-products-title">You may also enjoy.</h2>
                     <p>Selected by shared tea tags and collections.</p>
                   </div>
-                  <Link className="text-link" prefetch="intent" to="/collections/all">
+                  <Link className="text-link" prefetch="none" to="/collections/all">
                     Shop all teas →
                   </Link>
                 </div>

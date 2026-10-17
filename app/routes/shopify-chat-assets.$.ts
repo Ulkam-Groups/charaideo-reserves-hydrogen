@@ -1,6 +1,7 @@
 import type {Route} from './+types/shopify-chat-assets.$';
 import {
   ALLOWED_SHOPIFY_CHAT_ASSET,
+  createShopifyClaimsBootstrap,
   rewriteShopifyChatAssetSource,
   SHOPIFY_CHAT_ASSET_ORIGIN,
   SHOPIFY_CHAT_LOCAL_PREFIX,
@@ -16,15 +17,8 @@ export async function loader({request, context}: Route.LoaderArgs) {
   }
 
   if (assetPath === 'claims-bootstrap.js') {
-    const buyerStoreDomain = context.env.PUBLIC_STORE_DOMAIN?.trim() ?? '';
-    const buyerStoreHandle = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i.test(
-      buyerStoreDomain,
-    )
-      ? buyerStoreDomain.slice(0, -'.myshopify.com'.length)
-      : '';
-
     return new Response(
-      `const buyerStoreHandle=${JSON.stringify(buyerStoreHandle)};const meta=document.querySelector('meta[name="shopify-buyer-claims"]');if(meta?.content){window.location.hash=meta.content;meta.remove();}const originalFetch=globalThis.fetch.bind(globalThis);globalThis.fetch=(input,init)=>{const inputWasRequest=input instanceof Request;const url=new URL(inputWasRequest?input.url:String(input),window.location.href);const isAgentApiPath=url.pathname.startsWith('/api/store/')||url.pathname.startsWith('/api/buyer_context/');if(buyerStoreHandle&&url.pathname.startsWith('/api/store/')){url.pathname=url.pathname.replace(/^\\/api\\/store\\/[^/]+\\//,'/api/store/'+buyerStoreHandle+'/');}if(url.origin==='https://storefront-agent-server.shopify.ai'||(url.origin===window.location.origin&&isAgentApiPath)){url.pathname='/shopify-agent-api'+url.pathname;url.protocol=window.location.protocol;url.host=window.location.host;input=inputWasRequest?new Request(url.toString(),input):url.toString();}else if(buyerStoreHandle&&url.origin==='https://messaging-api.shopifyapps.com'&&url.pathname.startsWith('/shopify_chat/api/storefront/storefront_agent/')&&url.searchParams.has('store_handle')){url.searchParams.set('store_handle',buyerStoreHandle);input=inputWasRequest?new Request(url.toString(),input):url.toString();}return originalFetch(input,init);};`,
+      createShopifyClaimsBootstrap(context.env.PUBLIC_STORE_DOMAIN),
       {
         headers: {
           'Cache-Control': 'no-store',

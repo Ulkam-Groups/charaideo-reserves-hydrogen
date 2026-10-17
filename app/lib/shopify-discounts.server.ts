@@ -80,9 +80,7 @@ type AdminGraphQLResponse<T> = {
 
 let cachedToken: AdminToken | null = null;
 let cachedTokenKey: string | null = null;
-let tokenRequest: Promise<AdminToken> | null = null;
 let cachedProgress: {expiresAt: number; value: DiscountProgressData} | null = null;
-let progressRequest: Promise<DiscountProgressData> | null = null;
 
 export async function loadShopifyDiscountProgress(
   env: Env,
@@ -100,9 +98,8 @@ export async function loadShopifyDiscountProgress(
   if (cachedProgress && Date.now() < cachedProgress.expiresAt) {
     return cachedProgress.value;
   }
-  if (progressRequest) return progressRequest;
 
-  const request = queryActiveDiscounts(credentials)
+  return queryActiveDiscounts(credentials)
     .then((value) => {
       cachedProgress = {expiresAt: Date.now() + CACHE_TTL_MS, value};
       return value;
@@ -120,13 +117,7 @@ export async function loadShopifyDiscountProgress(
         status,
         milestones: [],
       };
-    })
-    .finally(() => {
-      progressRequest = null;
     });
-
-  progressRequest = request;
-  return request;
 }
 
 function adminCredentials(env: Env) {
@@ -387,16 +378,10 @@ async function getAdminToken(credentials: AdminCredentials) {
   ) {
     return cachedToken.value;
   }
-  const request = tokenRequest ?? requestAdminToken(credentials);
-  tokenRequest = request;
-  try {
-    const token = await request;
-    cachedToken = token;
-    cachedTokenKey = cacheKey;
-    return token.value;
-  } finally {
-    if (tokenRequest === request) tokenRequest = null;
-  }
+  const token = await requestAdminToken(credentials);
+  cachedToken = token;
+  cachedTokenKey = cacheKey;
+  return token.value;
 }
 
 async function requestAdminToken(

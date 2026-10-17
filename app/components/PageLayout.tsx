@@ -1,7 +1,7 @@
 import {Await, Link, useLocation} from 'react-router';
 import {Suspense, useEffect, useState} from 'react';
 import type {CartApiQueryFragment, HeaderQuery} from 'storefrontapi.generated';
-import {Aside} from '~/components/Aside';
+import {Aside, useAside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
@@ -12,6 +12,7 @@ import type {DiscountProgressData, DiscountProgressMilestone} from '~/lib/discou
 import {LocaleSelector} from '~/components/LocaleSelector';
 import type {LocaleKey} from '~/lib/i18n';
 import {LOCALES} from '~/lib/i18n';
+import {WishlistProvider} from '~/components/WishlistProvider';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -47,6 +48,7 @@ export function PageLayout({
       : undefined;
 
   return (
+    <WishlistProvider>
     <Aside.Provider>
       <CartAside cart={cart} />
       <SearchAside />
@@ -71,6 +73,7 @@ export function PageLayout({
       <main id="main-content" className={pathname === '/' ? undefined : 'main--offset'}>{children}</main>
       <Footer />
     </Aside.Provider>
+    </WishlistProvider>
   );
 }
 
@@ -202,7 +205,7 @@ function NoticeLink({
   if (!notice.buttonLink) return <div {...sharedProps}>{content}</div>;
   if (notice.buttonLink.startsWith('/') && !notice.buttonLink.startsWith('//')) {
     return (
-      <Link {...sharedProps} prefetch="intent" to={notice.buttonLink}>
+      <Link {...sharedProps} prefetch="none" to={notice.buttonLink}>
         {content}
       </Link>
     );
@@ -231,8 +234,33 @@ function replaceShippingThreshold(
 }
 
 function CartAside({cart}: {cart: PageLayoutProps['cart']}) {
+  const {close} = useAside();
+
   return (
-    <Aside type="cart" heading="Cart">
+    <Aside
+      type="cart"
+      heading={
+        <Link
+          className="cart-aside-heading-link"
+          prefetch="none"
+          to="/cart"
+          onClick={close}
+        >
+          <span className="cart-aside-heading-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M2.75 4.75h2.1l2.15 9.1h10.7l2.15-6.6H5.55"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="9" cy="18.25" r="1.25" />
+              <circle cx="17" cy="18.25" r="1.25" />
+            </svg>
+          </span>
+          <span>Cart</span>
+        </Link>
+      }
+    >
       <Suspense fallback={<p>Loading cart ...</p>}>
         <Await
           resolve={cart}

@@ -13,8 +13,8 @@
   --quiet-ink: #5a6b62;
   --steeped-brown: #132a1f;
   --thread: rgba(49,72,74,.32);
-  --serif: 'Fraunces', Baskerville, Georgia, serif;
-  --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif: 'Libre Baskerville', Baskerville, Georgia, serif;
+  --sans: 'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --gutter: clamp(20px, 5vw, 80px);
   --header-height: 70px;
   --type-label: .6875rem;
@@ -506,7 +506,8 @@ button {cursor: pointer}
 .cart-quantity-stepper form {margin: 0}
 .cart-quantity-value {min-width: 30px; text-align: center; font-size: var(--type-small)}
 .cart-quantity-stepper button {border: 0}
-.cart-update-overlay {position: fixed; inset: 0; z-index: 10000; display: grid; place-content: center; justify-items: center; gap: 12px; background: rgb(247 244 235 / .72); color: var(--deep-green); cursor: wait; backdrop-filter: blur(2px)}
+.cart-main {position: relative}
+.cart-update-overlay {position: absolute; inset: 0; z-index: 10; display: grid; place-content: center; justify-items: center; gap: 12px; background: rgb(247 244 235 / .5); color: var(--deep-green); cursor: wait; backdrop-filter: blur(.5px)}
 .cart-update-spinner {width: 34px; height: 34px; border: 3px solid rgb(0 128 128 / .22); border-top-color: var(--teal); border-radius: 50%; animation: cart-update-spin .7s linear infinite}
 @keyframes cart-update-spin {to {transform: rotate(360deg)}}
 @media (prefers-reduced-motion: reduce) {.cart-update-spinner {animation-duration: 1.5s}}
@@ -521,7 +522,7 @@ button {cursor: pointer}
 .cart-main--aside {display: flex; flex: 1; flex-direction: column; min-height: 0; height: auto; max-height: none; margin: 0; overflow: hidden}
 .cart-main--aside.with-discount {max-height: none}
 .cart-main--aside .cart-details {display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; gap: 0}
-.cart-main--aside .cart-lines-wrap {flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 10px 24px 22px}
+.cart-main--aside .cart-lines-wrap {position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 10px 24px 22px}
 .cart-main--aside .cart-line {margin: 0; padding: 22px 0; border-bottom: 1px solid var(--thread)}
 .cart-main--aside .cart-line-inner {grid-template-columns: 96px minmax(0,1fr); gap: 18px}
 .cart-main--aside .cart-line-inner > div {min-width: 0}
@@ -565,7 +566,6 @@ button {cursor: pointer}
 /* Sign in */
 .signin-page {display: grid; grid-template-columns: 1.15fr .85fr; min-height: calc(100vh - var(--header-height)); padding: 0}
 .signin-story {position: relative; display: flex; flex-direction: column; justify-content: center; padding: 70px var(--gutter); overflow: hidden; background: var(--aged-indigo); color: var(--gamosa-cream)}
-.signin-story::after {content: ''; position: absolute; width: 110%; height: 160px; left: -5%; bottom: 10%; border-top: 2px solid var(--river-mist); border-radius: 50%; transform: rotate(-5deg)}
 .signin-story .eyebrow {color: var(--tea-liquor)}
 .signin-cha {position: absolute; right: 7%; top: 8%; color: rgba(120,144,140,.24); font-size: clamp(180px,28vw,480px); font-family: serif; line-height: 1}
 .signin-story h1 {position: relative; z-index: 2; margin: 0; color: var(--gamosa-cream); font-size: clamp(60px,8vw,118px); line-height: .82}

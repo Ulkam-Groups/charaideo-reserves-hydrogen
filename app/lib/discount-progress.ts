@@ -56,16 +56,19 @@ export function discountProgressAmount(
 export function cartDiscountProgressItems(
   cart: Pick<CartApiQueryFragment, 'lines'> | null | undefined,
 ): DiscountProgressItem[] {
-  return (cart?.lines?.nodes ?? []).map((line) => {
+  return (cart?.lines?.nodes ?? []).flatMap((line) => {
     const product = line.merchandise.product;
-    return {
+    const price = line.merchandise.price;
+    if (!product?.id || !price?.amount || !price.currencyCode) return [];
+
+    return [{
       productId: product.id,
       variantId: line.merchandise.id,
       collectionIds:
         'collections' in product ? product.collections.nodes.map(({id}) => id) : [],
-      amount: Number(line.merchandise.price.amount) * line.quantity,
-      currencyCode: line.merchandise.price.currencyCode,
-    };
+      amount: Number(price.amount) * line.quantity,
+      currencyCode: price.currencyCode,
+    }];
   });
 }
 

@@ -4,12 +4,13 @@ import {Await, Link, NavLink, useAsyncValue} from 'react-router';
 import {
   type CartViewPayload,
   useAnalytics,
-  useOptimisticCart,
 } from '@shopify/hydrogen';
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
 import {LocaleSelector} from '~/components/LocaleSelector';
 import type {LocaleKey} from '~/lib/i18n';
+import {useSyncedCart} from '~/hooks/useSyncedCart';
+import {useWishlist} from '~/components/WishlistProvider';
 
 interface HeaderProps {
   header: HeaderQuery | null;
@@ -98,39 +99,52 @@ export function HeaderMenu({
   if (menu?.items.length) {
     return (
       <nav className={className} aria-label="Main navigation">
-        {viewport === 'mobile' && (
-          <NavLink className="header-menu-item" end onClick={close} prefetch="intent" to="/">
-            Home
-          </NavLink>
-        )}
-        {menu.items.map((item) => {
-          const to = localizeMenuUrl(item.url ?? '/');
-          if (viewport === 'mobile' && item.items.length) {
-            return (
-              <div className="mobile-library-menu" key={item.id}>
-                <span className="header-menu-item">{item.title}</span>
-                <div className="mobile-library-sections">
-                  {item.items.map((child) => (
-                    <Link key={child.id} onClick={close} prefetch="intent" to={localizeMenuUrl(child.url ?? '/')}>
-                      <span>{child.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          }
-          return (
-            <NavLink
-              className="header-menu-item"
-              key={item.id}
-              onClick={close}
-              prefetch="intent"
-              to={to}
-            >
-              {item.title}
-            </NavLink>
-          );
-        })}
+        <NavLink className="header-menu-item" end onClick={close} prefetch="none" to="/">
+          Home
+        </NavLink>
+        <div className="mobile-library-menu" data-open={libraryOpen}>
+          <button
+            aria-controls="mobile-tea-library-sections"
+            aria-expanded={libraryOpen}
+            className="header-menu-item mobile-library-toggle reset"
+            onClick={() => setLibraryOpen((current) => !current)}
+            type="button"
+          >
+            <span>Tea Library</span>
+            <ChevronIcon />
+          </button>
+          <div
+            className="mobile-library-sections"
+            id="mobile-tea-library-sections"
+            hidden={!libraryOpen}
+          >
+            <Link onClick={close} prefetch="none" to="/reserve-list?tab=chapters">
+              <span>Chapters</span>
+              <small>Browse releases by estate chapter</small>
+            </Link>
+            <Link onClick={close} prefetch="none" to="/reserve-list?tab=collections">
+              <span>Collections</span>
+              <small>Explore curated groups of reserve teas</small>
+            </Link>
+          </div>
+        </div>
+        <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
+          Tea Academy <span className="header-menu-new">New</span>
+        </NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/wishlist">Saved teas</NavLink>
+        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/sign-in">Account</NavLink>
+        <button
+          className="header-menu-item reset"
+          onClick={(event) => {
+            close();
+            openShopifyChat(event.currentTarget);
+          }}
+          type="button"
+        >
+          Search
+        </button>
       </nav>
     );
   }
@@ -138,8 +152,11 @@ export function HeaderMenu({
   return (
     <nav className={className} aria-label="Main navigation">
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/reserve-list">Tea Library</NavLink>
+      <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
+        Tea Academy <span className="header-menu-new">New</span>
+      </NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
-      <NavLink className="header-menu-item" onClick={close} prefetch="intent" to="/pages/contact">Contact</NavLink>
+      <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
     </nav>
   );
 }
@@ -162,6 +179,7 @@ function HeaderCtas({
       <LocaleSelector activeLocale={activeLocale} />
       <HeaderMenuMobileToggle />
       <SearchToggle />
+      <WishlistLink />
       <Suspense fallback={<AccountLink loggedIn={false} />}>
         <Await
           resolve={isLoggedIn}
@@ -175,6 +193,29 @@ function HeaderCtas({
   );
 }
 
+function WishlistLink() {
+  const {products} = useWishlist();
+
+  return (
+    <NavLink
+      aria-label="View saved teas"
+      className="header-icon-button header-wishlist header-menu-desktop"
+      data-tooltip="Saved teas"
+      prefetch="none"
+      to="/wishlist"
+    >
+      <svg aria-hidden="true" viewBox="0 0 24 24">
+        <path d="M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.5a5.5 5.5 0 0 0 0-7.8Z" />
+      </svg>
+      {products.length > 0 && (
+        <span className="header-wishlist-count" aria-hidden="true">
+          {products.length}
+        </span>
+      )}
+    </NavLink>
+  );
+}
+
 function AccountLink({loggedIn}: {loggedIn: boolean}) {
   const label = loggedIn ? 'View account' : 'Sign in';
   return (
@@ -182,7 +223,7 @@ function AccountLink({loggedIn}: {loggedIn: boolean}) {
       aria-label={label}
       className="header-icon-button header-account"
       data-tooltip={label}
-      prefetch="intent"
+      prefetch="none"
       to={loggedIn ? '/account' : '/sign-in'}
     >
       <AccountIcon />
@@ -433,7 +474,7 @@ function CartToggle({cart}: Pick<HeaderProps, 'cart'>) {
 
 function CartBanner() {
   const originalCart = useAsyncValue() as CartApiQueryFragment | null;
-  const cart = useOptimisticCart(originalCart);
+  const cart = useSyncedCart(originalCart);
   return <CartBadge count={cart?.totalQuantity ?? 0} />;
 }
 
@@ -453,8 +494,13 @@ function AccountIcon() {
 function CartIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24">
-      <path d="M4.5 7.5h15l-1.15 10.25H5.65L4.5 7.5Z" />
-      <path d="M8.5 8V6a3.5 3.5 0 0 1 7 0v2" />
+      <path
+        d="M2.75 4.75h2.1l2.15 9.1h10.7l2.15-6.6H5.55"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="18.25" r="1.25" />
+      <circle cx="17" cy="18.25" r="1.25" />
     </svg>
   );
 }

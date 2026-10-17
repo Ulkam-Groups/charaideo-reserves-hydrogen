@@ -1,4 +1,5 @@
 import type {Route} from './+types/agent.buyer-claims';
+import {createShopifyClaimsBootstrap} from '../lib/shopify-chat-assets.ts';
 
 const noStore = {'Cache-Control': 'private, no-store'};
 
@@ -107,7 +108,7 @@ export async function loader({request, context}: Route.LoaderArgs) {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     const restoreClaimsMarkup = buyerClaimsFragment
-      ? `<meta name="shopify-buyer-claims" content="${escapedClaimsFragment}"><script src="${requestUrl.origin}/shopify-chat-assets/claims-bootstrap.js"></script>`
+      ? `<meta name="shopify-buyer-claims" content="${escapedClaimsFragment}"><script>${createShopifyClaimsBootstrap(storeDomain)}</script>`
       : '';
     const withClaimsBootstrap = html.replace(
       /<head(\s[^>]*)?>/i,

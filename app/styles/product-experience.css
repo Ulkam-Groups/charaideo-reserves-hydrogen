@@ -438,7 +438,11 @@ button[data-state='busy'] {
   font-size: 13px;
   font-weight: 600;
 }
-.cart-recommendation > form button {
+.cart-recommendation > form button,
+.cart-recommendation-choose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 56px;
   min-height: 38px;
   padding: 0 13px;
@@ -448,9 +452,13 @@ button[data-state='busy'] {
   color: #1e402e;
   font-size: 12px;
   font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
   transition: background-color 160ms ease, color 160ms ease;
 }
-.cart-recommendation > form button:hover:not(:disabled) {
+.cart-recommendation > form button:hover:not(:disabled),
+.cart-recommendation-choose:hover {
   background: #132a1f;
   color: #ffffff;
 }

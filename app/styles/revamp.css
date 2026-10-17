@@ -12,8 +12,8 @@
   --leaf-ink: #132a1f;
   --quiet-ink: #5a6b62;
   --thread: #e7ede0;
-  --serif: 'Fraunces', Georgia, serif;
-  --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif: 'Libre Baskerville', Georgia, serif;
+  --sans: 'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --header-height: 60px;
   --color-dark: #132a1f;
   --color-light: #ffffff;
@@ -285,12 +285,12 @@ textarea {
   gap: 6px;
 }
 .header-menu-item {
-  height: 46px;
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 11px;
   border: 1px solid transparent;
   border-radius: 100px;
   color: #42594c;
-  font: 600 15px/1.2 var(--sans);
+  font: 400 13px/1.2 var(--sans);
   letter-spacing: 0.01em;
   text-transform: none;
   transition:
@@ -1025,7 +1025,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
   margin: 0;
   color: #132a1f;
   font:
-    600 12px/1.2 'General Sans',
+    600 12px/1.2 'Instrument Sans',
     system-ui,
     sans-serif;
   letter-spacing: 0.02em;
@@ -1051,7 +1051,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
   background: #ffffff;
   color: #132a1f;
   font:
-    500 12px/1 'General Sans',
+    500 12px/1 'Instrument Sans',
     system-ui,
     sans-serif;
 }
@@ -2101,6 +2101,10 @@ button.header-search-trigger:hover .header-search-ai-icon {
   background: #ffffff;
   border-color: #e7ede0;
   border-radius: 24px;
+}
+
+.signin-page {
+  margin-top: -20px;
 }
 
 .signin-panel {
@@ -3777,7 +3781,7 @@ html {
 .contact-page {
   margin-top: -20px;
   background: #f4ebdd;
-  color: #17392f;
+  color: #B12B2D;
 }
 main.main--offset:has(> .contact-page) {
   background: #17392f;
@@ -4361,7 +4365,7 @@ main.main--offset:has(> .contact-page) {
    change an inline <style> node before React hydration. */
 .revamp-home * {
   font-family:
-    'General Sans',
+    'Instrument Sans',
     system-ui,
     -apple-system,
     sans-serif;
@@ -4373,14 +4377,19 @@ body {
 }
 .revamp-home .home-hero-layout {
   padding-block: clamp(32px, 3.2vw, 48px);
-  /* Lower hero copy and artwork without moving the header or changing the hero's flow height. */
-  transform: translateY(30px);
+  transform: none;
+}
+@media (min-width: 768px) {
+  .revamp-home .hero-copy-reveal {
+    align-self: start;
+    margin-top: clamp(65px, 500vw, 80px);
+  }
 }
 .revamp-home h1,
 .revamp-home h2,
 .revamp-home h3,
 .revamp-home .serif {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Libre Baskerville', Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -5495,11 +5504,138 @@ body {
   background: #ffffff;
   box-shadow: 0 6px 16px rgba(19, 42, 31, 0.08);
 }
+
 .header.header-solid.header-scrolled {
   border-bottom: 1px solid #d5ded8;
   background: #ffffff;
   box-shadow: 0 1px 0 rgba(19, 42, 31, 0.04);
   backdrop-filter: none;
+}
+
+/* Keep the navigation optically crisp on every route and scroll state. */
+.header,
+.header.header-solid,
+.header.header-scrolled,
+.header.header-solid.header-scrolled {
+  background: #ffffff;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.header.header-solid .header-inner,
+.header.header-solid.header-scrolled .header-inner {
+  background: #ffffff;
+  border-color: #cfd9d2;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.header.header-solid:not(.header-scrolled) {
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+/* Preserve a tappable outside-close gutter for the cart on narrow screens. */
+@media (max-width: 520px) {
+  .overlay--cart {
+    --aside-width: calc(100vw - 28px);
+  }
+  .overlay--cart aside {
+    right: calc(28px - 100vw);
+    width: calc(100vw - 28px);
+    max-width: calc(100vw - 28px);
+  }
+  .overlay--cart.expanded aside {
+    transform: translateX(calc(28px - 100vw));
+  }
+  .overlay--cart .close-outside {
+    width: 28px;
+  }
+  .overlay--cart aside header {
+    padding-inline: 14px;
+  }
+  .overlay--cart .cart-lines-wrap {
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .overlay--cart .cart-line-inner {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 9px;
+  }
+  .overlay--cart .cart-line-inner img {
+    width: 60px;
+    height: 72px;
+  }
+  .overlay--cart .cart-line-inner strong {
+    font-size: 12.5px;
+  }
+  .overlay--cart .cart-line-quantity {
+    gap: 6px;
+  }
+  .overlay--cart .discount-progress {
+    padding-inline: 12px;
+  }
+}
+
+/* Cart drawer: keep the close action visible at the far-right of the header. */
+.overlay--cart aside > header .close {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid #d8e0d5;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #17392f;
+  cursor: pointer;
+  line-height: 0;
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(19, 42, 31, 0.08);
+  transition: background-color 180ms ease, color 180ms ease,
+    border-color 180ms ease, transform 180ms ease;
+}
+
+.overlay--cart aside > header .close svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.overlay--cart aside > header .close:hover {
+  border-color: #17392f;
+  background: #17392f;
+  color: #ffffff;
+}
+
+.overlay--cart aside > header .close:focus-visible {
+  outline: 2px solid #c99861;
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .overlay--cart aside > header .close {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .overlay--cart aside > header .close svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 /* Keep page content clear of the floating header on every non-home route. */
 main.main--offset {
@@ -5514,6 +5650,195 @@ main.main--offset .blog {
 main.main--offset .search {
   padding-top: 84px;
 }
+
+/* Customer wishlist */
+.wishlist-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #d8e0d5;
+  border-radius: 999px;
+  background: #fff;
+  color: #17392f;
+  font: 700 12px/1 var(--sans);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+.wishlist-button svg {width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8}
+.wishlist-button:hover {border-color: #B12B2D; background: #fff7f7}
+.wishlist-button.is-saved {border-color: #B12B2D; background: #B12B2D; color: #fff}
+.wishlist-button.is-saved svg {fill: currentColor}
+.wishlist-button:focus-visible {outline: 2px solid #c99861; outline-offset: 2px}
+.wishlist-button:disabled {opacity: .45; cursor: wait}
+
+.reserve-shop-card {position: relative}
+.wishlist-button--card {
+  position: absolute;
+  z-index: 3;
+  top: 9px;
+  right: 9px;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  box-shadow: 0 4px 14px rgba(19,42,31,.12);
+}
+.wishlist-button--pdp-image {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  left: 12px;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  box-shadow: 0 4px 14px rgba(19,42,31,.12);
+}
+.header-wishlist {position: relative; color: #132a1f !important}
+.header-wishlist svg {width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8}
+.header-wishlist.active svg {fill: currentColor}
+.header-wishlist-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #17392f;
+  color: #fff;
+  font: 700 9px/1 var(--sans);
+  place-items: center;
+}
+
+@media (max-width: 900px) {
+  .header .header-ctas > .header-wishlist.header-menu-desktop {display: none !important}
+  .header .header-menu-mobile-toggle {display: inline-flex !important}
+}
+
+.wishlist-page {max-width: 1180px; margin: 0 auto; padding: 72px var(--gutter) 90px}
+.wishlist-hero {max-width: 680px; margin-bottom: 34px}
+.wishlist-hero h1 {margin: 8px 0 10px; color: #17392f; font: 500 clamp(2.5rem,5vw,4.5rem)/.95 var(--serif)}
+.wishlist-hero p {margin: 0; color: #64736a}
+.wishlist-grid {display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px}
+.wishlist-card {position: relative; overflow: hidden; border: 1px solid #dce3da; border-radius: 14px; background: #fff}
+.wishlist-card > a {display: block; padding-bottom: 16px; color: inherit; text-decoration: none}
+.wishlist-card-image {display: grid; aspect-ratio: 4/3; overflow: hidden; background: #f3f1eb; place-items: center}
+.wishlist-card-image img {width: 100%; height: 100%; object-fit: cover}
+.wishlist-card h2 {margin: 15px 16px 5px; color: #17392f; font: 500 1.35rem/1.05 var(--serif)}
+.wishlist-card p {margin: 0 16px; color: #53685c; font-weight: 700}
+.wishlist-card > .wishlist-button {margin: 0 16px 16px}
+.wishlist-empty {display: grid; min-height: 300px; padding: 34px; border: 1px solid #dce3da; border-radius: 16px; background: #faf9f5; text-align: center; place-items: center}
+.wishlist-empty > span {color: #9e6943; font-size: 3rem}
+.wishlist-empty h2 {margin: 4px 0; color: #17392f; font: 500 2rem/1 var(--serif)}
+.wishlist-empty p {margin: 4px 0 18px; color: #64736a}
+.wishlist-empty a {padding: 12px 18px; border-radius: 999px; background: #17392f; color: #fff; text-decoration: none}
+.wishlist-status {padding: 40px 0; color: #64736a}
+
+@media (max-width: 760px) {
+  .wishlist-page {padding: 52px 14px 64px}
+  .wishlist-grid {grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px}
+  .wishlist-card h2 {margin-inline: 11px; font-size: 1.05rem}
+  .wishlist-card p {margin-inline: 11px; font-size: 12px}
+  .wishlist-card > .wishlist-button {margin: 0 11px 11px; min-height: 34px; padding-inline: 10px; font-size: 10px}
+  .wishlist-button--card {top: 6px; right: 6px; width: 30px; min-height: 30px}
+  .wishlist-button--pdp-image {top: 8px; left: 8px; width: 32px; min-height: 32px}
+}
 main.main--offset .catalog-page {
   padding-top: 24px;
+}
+/* Use the same compact navigation at tablet and mobile widths. */
+@media (max-width: 960px) {
+  :root {
+    --header-height: 60px;
+  }
+
+  .header.header-solid .header-inner,
+  .header.header-solid.header-scrolled .header-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 24px);
+    padding-inline: 10px;
+  }
+
+  .header.header-solid .header-inner > .wordmark {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    z-index: 2;
+    flex: none;
+    width: clamp(112px, 18vw, 142px);
+    margin: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  .header.header-solid .header-inner > .wordmark img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .header.header-solid .header-ctas {
+    position: absolute;
+    inset: 0 8px;
+    display: block;
+    width: auto;
+    height: auto;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  .header.header-solid .header-ctas > * {
+    position: absolute;
+    top: 50%;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0;
+    box-sizing: border-box;
+    margin: 0;
+    pointer-events: auto;
+    transform: translateY(-50%);
+  }
+
+  .header.header-solid .header-ctas > .header-menu-mobile-toggle {
+    left: 0;
+    display: inline-flex !important;
+    flex-basis: 38px;
+  }
+
+  .header.header-solid .header-ctas > .header-search-trigger {
+    position: absolute !important;
+    top: 50% !important;
+    left: 52px !important;
+    display: inline-flex !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px;
+    transform: translateY(-50%) !important;
+  }
+
+  .header.header-solid .header-ctas > .header-wishlist {
+    display: none !important;
+  }
+
+  .header.header-solid .header-ctas > .header-account {
+    right: 46px;
+    display: inline-flex !important;
+  }
+
+  .header.header-solid .header-ctas > .header-cart {
+    right: 0;
+  }
+
+  .header.header-solid .header-menu-mobile-toggle:hover,
+  .header.header-solid .header-menu-mobile-toggle:active,
+  .header.header-solid .header-search-trigger:hover,
+  .header.header-solid .header-search-trigger:active {
+    transform: translateY(-50%);
+  }
 }

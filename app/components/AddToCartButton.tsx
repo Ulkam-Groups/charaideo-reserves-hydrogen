@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {type FetcherWithComponents} from 'react-router';
 import {CartForm, type OptimisticCartLineInput} from '@shopify/hydrogen';
+import {publishCart} from '~/lib/cart-sync';
 
 export function AddToCartButton({
   analytics,
@@ -61,19 +62,22 @@ function AddToCartSubmit({
     if (!wasBusy.current) return;
     wasBusy.current = false;
     if (fetcher.data?.errors?.length > 0) return;
+    publishCart(fetcher.data?.cart);
     setAdded(true);
     const timer = window.setTimeout(() => setAdded(false), 1800);
     return () => window.clearTimeout(timer);
   }, [busy, fetcher.data]);
 
   return (
-    <button
-      type="submit"
-      onClick={onClick}
-      disabled={disabled || busy}
-      data-state={busy ? 'busy' : added ? 'added' : 'idle'}
-    >
-      {busy ? 'Adding...' : added ? 'Added ?' : children}
-    </button>
+    <>
+      <button
+        type="submit"
+        onClick={onClick}
+        disabled={disabled || busy}
+        data-state={busy ? 'busy' : added ? 'added' : 'idle'}
+      >
+        {busy ? 'Adding...' : added ? 'Added ✓' : children}
+      </button>
+    </>
   );
 }

@@ -170,7 +170,7 @@ function StaticPage({page}: {page: StaticPageContent}) {
           <h1>{page.title}</h1>
           <p>{page.excerpt}</p>
           {page.cta && (
-            <Link className="button primary" prefetch="intent" to={page.cta.to}>
+            <Link className="button primary" prefetch="none" to={page.cta.to}>
               {page.cta.label}
             </Link>
           )}
@@ -441,7 +441,7 @@ function AboutStoryPage() {
             <em>Inspired by heritage.</em>
           </h1>
           <p className="about-page-hero-intro">
-            Charaideo was born from a deep emotional connection to Assam—its land, its
+            Charaideo was born from a deep emotional connection to Assam-its land, its
             culture, and its timeless tea legacy.
           </p>
         </div>
@@ -488,7 +488,7 @@ function AboutStoryPage() {
             <p className="about-page-kicker">Family roots in Rupai</p>
             <h3>Where it all began</h3>
             <p>
-              Our family&apos;s relationship with tea began in garden cultivation —
+              Our family&apos;s relationship with tea began in garden cultivation -
               learning to hand-pluck at dawn, to respect the land, its people, and the
               bold, unmistakable character of Assam.
             </p>
@@ -497,7 +497,7 @@ function AboutStoryPage() {
             <p className="about-page-kicker">Charaideo Reserves today</p>
             <h3>A vault, not just a brand</h3>
             <p>
-              Today, Charaideo is a tea vault preserving single-origin, small-batch teas —
+              Today, Charaideo is a tea vault preserving single-origin, small-batch teas -
               where every lot is traceable to its garden and estate, and deeply connected
               to its origin.
             </p>
@@ -520,11 +520,11 @@ function AboutStoryPage() {
           <div className="about-page-founder-copy">
             <p className="about-page-kicker">The people</p>
             <h2 id="founder-title">Meet the Founder</h2>
-            <h3>Kamalika Biswas — Founder &amp; CEO</h3>
+            <h3>Kamalika Biswas - Founder &amp; CEO</h3>
             <p>
               Founder of Ulkam Group and a daughter of Assam&apos;s tea soil, Kamalika left
               her corporate career to return to her family&apos;s legacy in Rupai. Through
-              Charaideo Reserves, she carries forward three generations of tea heritage —
+              Charaideo Reserves, she carries forward three generations of tea heritage -
               with a woman&apos;s perspective, a founder&apos;s grit, and a deep respect for
               the land that raised her.
             </p>
@@ -593,7 +593,7 @@ function AboutStoryPage() {
             </p>
             <p>
               Our mission is to reverse that. To bring single-garden, whole-leaf,
-              traceable teas back to Indian tables — teas where you know the garden and
+              traceable teas back to Indian tables - teas where you know the garden and
               estate, the pluck date, and the people behind it. Directly sourced,
               small-batch processed, and sold without disguising it in anonymous blends.
             </p>
@@ -606,14 +606,14 @@ function AboutStoryPage() {
             <span>Vision</span>
             <h3>A tea vault that holds culture, not just leaves.</h3>
             <p>
-              Our vision is to build India&apos;s first heritage tea vault — where tea is
+              Our vision is to build India&apos;s first heritage tea vault - where tea is
               treated like wine, with terroir, vintage and story. A vault named after
               Charaideo, where Ahom kings were laid to rest with reverence, because we
               believe Assam&apos;s tea heritage deserves the same reverence.
             </p>
             <p>
               We want to make consumers ask: Which garden is this from? Not just &quot;is
-              it strong?&quot; To make North East heritage a daily ritual again — not an
+              it strong?&quot; To make North East heritage a daily ritual again - not an
               exotic footnote. And to ensure that the future of Assam tea is not decided
               in auction houses and export containers alone, but at Indian tables that
               finally get to taste what was always theirs.
@@ -665,7 +665,7 @@ function AboutStoryPage() {
           <div>
             <h2>One Estate. One Harvest.</h2>
             <p>
-              Each reserve comes from a single garden and harvest — never blended,
+              Each reserve comes from a single garden and harvest - never blended,
               so its character stays true to its origin
             </p>
           </div>
@@ -778,7 +778,7 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
     cta: {label: 'Browse catalog', to: '/collections/all'},
     seo: {
       description:
-        'Discover the Charaideo Reserves story—three generations of Assam tea heritage, a founder’s homecoming, and a mission to preserve traceable single-garden tea.',
+        'Discover the Charaideo Reserves story-three generations of Assam tea heritage, a founder’s homecoming, and a mission to preserve traceable single-garden tea.',
     },
   },
 };

@@ -1,8 +1,12 @@
 import type {ProductItemFragment} from 'storefrontapi.generated';
 
 export type ReserveProduct = {
+  id?: string;
   title: string;
   handle: string;
+  description?: string;
+  vendor?: string;
+  tags?: string[];
   availableForSale: boolean;
   featuredImage?: {url: string; altText: string | null; width: number; height: number} | null;
   priceRange?: {minVariantPrice: ProductItemFragment['priceRange']['minVariantPrice']};
@@ -16,6 +20,7 @@ export type ReserveVariant = {
   title: string;
   availableForSale: boolean;
   selectedOptions: Array<{name: string; value: string}>;
+  price?: ProductItemFragment['priceRange']['minVariantPrice'];
 };
 
 export type ReserveCollection = {

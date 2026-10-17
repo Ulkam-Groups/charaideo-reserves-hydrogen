@@ -64,7 +64,12 @@ export default async function handleRequest(
       ...(razorpayEnabled ? RAZORPAY_CSP.frameSrc : []),
       'https://storefront-agent-server.shopify.ai',
     ],
-    mediaSrc: ["'self'", 'https://cdn.shopify.com', 'data:'],
+    mediaSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://charaideoreserves.myshopify.com',
+      'data:',
+    ],
     fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     imgSrc: [
       "'self'",

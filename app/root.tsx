@@ -19,6 +19,7 @@ import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
 import productExperience from '~/styles/product-experience.css?url';
 import cartPage from '~/styles/cart-page.css?url';
+import teaAcademy from '~/styles/tea-academy.css?url';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
@@ -124,7 +125,7 @@ const SHOPIFY_CHAT_TOP_COMPOSER_CSS = `
   }
 `;
 const GOOGLE_FONTS_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap';
+  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400..700;1,400..700&display=swap';
 type ChapterAnnouncementResult = {
   collections: {
     nodes: Array<{
@@ -354,6 +355,7 @@ export default function App() {
         <link rel="stylesheet" href={productExperience} />
         <link rel="stylesheet" href={reserveListStylesheet} />
         <link rel="stylesheet" href={cartPage} />
+              <link rel="stylesheet" href={teaAcademy} />
       </head>
       <body>
         {data.fastrrSellerDomain && (
