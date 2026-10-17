@@ -112,7 +112,11 @@ export async function loader({request, context}: Route.LoaderArgs) {
 }
 
 const CART_RECOMMENDATIONS_QUERY = `#graphql
-  query CartRecommendations($productId: ID!) {
+  query CartRecommendations(
+    $productId: ID!
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
     product(id: $productId) {
       collections(first: 2) {
         nodes {

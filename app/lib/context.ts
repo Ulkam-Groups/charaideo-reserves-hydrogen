@@ -2,11 +2,13 @@ import {createHydrogenContext} from '@shopify/hydrogen';
 import {AppSession} from '~/lib/session';
 import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
 import type {Monitor} from '~/lib/monitoring.server';
+import {localeFromRequest, storefrontI18n, type StorefrontLocale} from '~/lib/i18n';
 
 type AdditionalContextType = {
   reviewsCache: Cache;
   monitor: Monitor | null;
   requestId: string;
+  locale: StorefrontLocale;
 };
 
 declare global {
@@ -37,6 +39,16 @@ export async function createHydrogenRouterContext(
     AppSession.init(request, [env.SESSION_SECRET]),
   ]);
 
+  const locale = localeFromRequest(request, session.get('localePreference'));
+  const firstPathSegment = new URL(request.url).pathname.split('/').filter(Boolean)[0];
+
+  // A locale in the URL is an explicit choice. Remember it so subsequent
+  // unprefixed navigation in this browser session keeps the same market.
+  if (locale.prefix && firstPathSegment?.toLowerCase() === locale.prefix) {
+    if (session.get('localePreference') !== locale.key) {
+      session.set('localePreference', locale.key);
+    }
+  }
   const hydrogenContext = createHydrogenContext(
     {
       env,
@@ -44,13 +56,12 @@ export async function createHydrogenRouterContext(
       cache,
       waitUntil,
       session,
-      // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      i18n: storefrontI18n(locale),
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },
     },
-    {reviewsCache: cache, monitor, requestId},
+    {reviewsCache: cache, monitor, requestId, locale},
   );
 
   return hydrogenContext;

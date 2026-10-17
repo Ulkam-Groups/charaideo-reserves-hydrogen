@@ -46,21 +46,62 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
   }
 
   const staticPage = STATIC_PAGES[params.handle];
-  if (staticPage) {
+  // Preserve the bespoke India pages at their existing unprefixed URLs. For
+  // international routes, use Shopify as the translation source of truth so
+  // published Markets translations can be returned by @inContext.
+  if (staticPage && context.locale.key === 'en-in') {
     return {
       page: staticPage,
       isStaticPage: true,
     };
   }
 
-  const [{page}] = await Promise.all([
-    context.storefront.query(PAGE_QUERY, {
+  let {page} = await context.storefront.query(PAGE_QUERY, {
+    variables: {handle: params.handle},
+  });
+
+  // Translated page handles are allowed to differ. If the localized handle
+  // lookup misses, resolve the canonical page in the default market and then
+  // request that stable resource ID again in the visitor's current context.
+  if (!page && context.locale.key !== 'en-in') {
+    const canonicalResult = await context.storefront.query(PAGE_QUERY, {
       variables: {
         handle: params.handle,
+        language: 'EN',
+        country: 'IN',
       },
-    }),
-    // Add other queries here, so that they are loaded in parallel
-  ]);
+    });
+
+    let canonicalPage = canonicalResult.page;
+
+    // The Hydrogen route and the Online Store page do not always share the
+    // same handle (for example `contact` versus `contact-us`). Discover the
+    // canonical Shopify Page before resolving its translated resource by ID.
+    if (!canonicalPage) {
+      const canonicalPages = await context.storefront.query(PAGES_INDEX_QUERY, {
+        variables: {language: 'EN', country: 'IN'},
+      });
+      const aliases = PAGE_HANDLE_ALIASES[params.handle] ?? [params.handle];
+      canonicalPage =
+        canonicalPages.pages.nodes.find((candidate: {handle: string}) =>
+          aliases.includes(candidate.handle.toLowerCase()),
+        ) ?? null;
+    }
+
+    if (canonicalPage?.id) {
+      const localizedResult = await context.storefront.query(PAGE_QUERY, {
+        variables: {id: canonicalPage.id},
+      });
+      page = localizedResult.page;
+    }
+  }
+
+  // Shopify content wins whenever the Storefront API exposes it. If this
+  // route is implemented only in React (or is unavailable to Headless), keep
+  // the component's existing source content instead of breaking navigation.
+  if (!page && staticPage) {
+    return {page: staticPage, isStaticPage: true};
+  }
 
   if (!page) {
     throw new Response('Not Found', {status: 404});
@@ -746,10 +787,11 @@ const PAGE_QUERY = `#graphql
   query Page(
     $language: LanguageCode,
     $country: CountryCode,
-    $handle: String!
+    $handle: String
+    $id: ID
   )
   @inContext(language: $language, country: $country) {
-    page(handle: $handle) {
+    page(handle: $handle, id: $id) {
       handle
       id
       title
@@ -757,6 +799,31 @@ const PAGE_QUERY = `#graphql
       seo {
         description
         title
+      }
+    }
+  }
+` as const;
+
+const PAGE_HANDLE_ALIASES: Record<string, string[]> = {
+  'about-us': ['about-us', 'about', 'our-story', 'our-story-about-us'],
+  contact: ['contact', 'contact-us', 'contact-us-page'],
+};
+
+const PAGES_INDEX_QUERY = `#graphql
+  query PagesIndex(
+    $language: LanguageCode
+    $country: CountryCode
+  ) @inContext(language: $language, country: $country) {
+    pages(first: 100) {
+      nodes {
+        handle
+        id
+        title
+        body
+        seo {
+          description
+          title
+        }
       }
     }
   }

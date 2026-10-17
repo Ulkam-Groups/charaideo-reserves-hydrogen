@@ -2189,3 +2189,89 @@ h4 {
     flex-direction: column;
   }
 }
+.locale-selector {
+  position: relative;
+}
+
+.locale-selector > summary {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #cfd9d2;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  list-style: none;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.locale-selector > summary::-webkit-details-marker {display: none;}
+
+.locale-selector[open] > summary,
+.locale-selector > summary:hover,
+.locale-selector > summary:focus-visible {
+  border-color: #6e241f;
+  outline: none;
+}
+
+.locale-selector-menu {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 10px);
+  right: 0;
+  width: max-content;
+  min-width: 230px;
+  padding: 6px;
+  border: 1px solid #cfd9d2;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(19, 42, 31, 0.16);
+}
+
+.locale-selector-menu button {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #132a1f !important;
+  text-align: left;
+}
+
+.locale-selector-menu button:hover,
+.locale-selector-menu button[aria-current='true'] {
+  background: #f3f5ef !important;
+}
+
+.locale-selector--mobile {
+  margin: 16px 0 0;
+}
+
+.locale-selector--mobile .locale-selector-menu {
+  position: static;
+  width: 100%;
+  margin-top: 8px;
+  box-shadow: none;
+}
+
+@media (max-width: 900px) {
+  .header-locale {display: none;}
+}
+
+.market-suggestion {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+  background: #f3ead8;
+  color: #17251c;
+}
+
+.market-suggestion form {display: inline-flex;}
+.market-suggestion button {font: inherit;}

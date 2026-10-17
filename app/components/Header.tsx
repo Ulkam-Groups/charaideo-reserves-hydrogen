@@ -7,6 +7,8 @@ import {
 } from '@shopify/hydrogen';
 import type {HeaderQuery, CartApiQueryFragment} from 'storefrontapi.generated';
 import {useAside} from '~/components/Aside';
+import {LocaleSelector} from '~/components/LocaleSelector';
+import type {LocaleKey} from '~/lib/i18n';
 import {useSyncedCart} from '~/hooks/useSyncedCart';
 import {useWishlist} from '~/components/WishlistProvider';
 
@@ -15,6 +17,7 @@ interface HeaderProps {
   cart: Promise<CartApiQueryFragment | null>;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
+  activeLocale: LocaleKey;
 }
 
 type Viewport = 'desktop' | 'mobile';
@@ -24,6 +27,7 @@ export function Header({
   isLoggedIn,
   cart,
   publicStoreDomain,
+  activeLocale,
 }: HeaderProps) {
   const menu = header?.menu ?? null;
   const primaryDomainUrl =
@@ -57,14 +61,17 @@ export function Header({
           primaryDomainUrl={primaryDomainUrl}
           publicStoreDomain={publicStoreDomain}
         />
-        <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+        <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} activeLocale={activeLocale} />
       </div>
     </header>
   );
 }
 
 export function HeaderMenu({
+  menu,
+  primaryDomainUrl,
   viewport,
+  publicStoreDomain,
 }: {
   menu: HeaderQuery['menu'];
   primaryDomainUrl: string;
@@ -73,9 +80,23 @@ export function HeaderMenu({
 }) {
   const className = `header-menu-${viewport}`;
   const {close} = useAside();
-  const [libraryOpen, setLibraryOpen] = useState(false);
 
-  if (viewport === 'mobile') {
+  const localizeMenuUrl = (menuUrl: string) => {
+    try {
+      const url = new URL(menuUrl);
+      if (
+        url.origin === new URL(primaryDomainUrl).origin ||
+        url.hostname === publicStoreDomain
+      ) {
+        return `${url.pathname}${url.search}${url.hash}`;
+      }
+    } catch {
+      // Relative Shopify menu URLs are already valid Hydrogen routes.
+    }
+    return menuUrl;
+  };
+
+  if (menu?.items.length) {
     return (
       <nav className={className} aria-label="Main navigation">
         <NavLink className="header-menu-item" end onClick={close} prefetch="none" to="/">
@@ -151,9 +172,11 @@ function ChevronIcon() {
 function HeaderCtas({
   isLoggedIn,
   cart,
-}: Pick<HeaderProps, 'isLoggedIn' | 'cart'>) {
+  activeLocale,
+}: Pick<HeaderProps, 'isLoggedIn' | 'cart' | 'activeLocale'>) {
   return (
     <nav className="header-ctas" aria-label="Store tools">
+      <LocaleSelector activeLocale={activeLocale} />
       <HeaderMenuMobileToggle />
       <SearchToggle />
       <WishlistLink />

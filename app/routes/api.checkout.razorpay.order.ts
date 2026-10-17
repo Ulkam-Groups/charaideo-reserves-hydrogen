@@ -139,6 +139,13 @@ export async function action({request, context}: ActionFunctionArgs) {
     return form;
   }
 
+  if (context.locale.country !== 'IN') {
+    return json(
+      {error: 'International checkout is not available for this market', code: 'UNSUPPORTED_MARKET'},
+      409,
+    );
+  }
+
   if (resolveCheckoutProvider(context.env.CHECKOUT_PROVIDER) !== 'razorpay') {
     return json({error: 'Checkout provider is unavailable'}, 404);
   }

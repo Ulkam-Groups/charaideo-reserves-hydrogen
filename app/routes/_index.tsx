@@ -133,13 +133,18 @@ export async function loader({context}: Route.LoaderArgs) {
 }
 
 const CHAPTER_COLLECTIONS_QUERY = `#graphql
-  query ChapterCollectionList {
+  query ChapterCollectionList($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
     collections(first: 50, sortKey: TITLE) { nodes { title handle } }
   }
 ` as const;
 
 const CHAPTER_COLLECTION_QUERY = `#graphql
-  query ChapterCollectionInventory($handle: String!) {
+  query ChapterCollectionInventory(
+    $handle: String!
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
     collection(handle: $handle) {
       title
       handle
