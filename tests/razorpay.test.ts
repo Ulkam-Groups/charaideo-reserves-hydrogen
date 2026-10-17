@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
 import {
+  amountToSubunits,
   buildRazorpayMagicOrder,
   canStartRazorpayCheckout,
   decodeRazorpayCheckoutSnapshot,
@@ -12,6 +13,7 @@ import {
   parseRazorpayCheckoutProducts,
   razorpayPaidWebhookTarget,
   razorpayWebhookTarget,
+  subunitsToAmount,
   type RazorpayOrderLine,
 } from '../app/lib/checkout/providers/razorpay/razorpay.ts';
 import {startRazorpayCheckout} from '../app/lib/checkout/providers/razorpay/razorpay.client.ts';
@@ -54,6 +56,51 @@ test('Razorpay validates Shopify variants and converts INR to paise', () => {
   const form = new FormData();
   form.set('products', JSON.stringify(products));
   assert.deepEqual(parseRazorpayCheckoutProducts(form.get('products')), products);
+});
+
+test('Razorpay converts international currencies using documented subunit rules', () => {
+  for (const currency of ['USD', 'EUR', 'GBP', 'AED', 'AUD', 'CAD', 'SGD']) {
+    assert.equal(amountToSubunits('19.95', currency), 1995);
+    assert.equal(subunitsToAmount(1995, currency), '19.95');
+  }
+  assert.equal(subunitsToAmount(1995, 'USD'), '19.95');
+  assert.equal(amountToSubunits('295', 'JPY'), 295);
+  assert.equal(subunitsToAmount(295, 'JPY'), '295');
+  assert.equal(amountToSubunits('295.991', 'KWD'), 295991);
+  assert.equal(subunitsToAmount(295991, 'KWD'), '295.991');
+  assert.throws(() => amountToSubunits('295.1', 'JPY'));
+  assert.throws(() => amountToSubunits('10.00', 'ZZZ'));
+});
+
+test('Razorpay builds an international order without changing the INR contract', () => {
+  assert.deepEqual(
+    buildRazorpayMagicOrder([
+      {
+        variantId: 'gid://shopify/ProductVariant/12345',
+        productId: 'gid://shopify/Product/987',
+        quantity: 2,
+        unitPrice: '19.95',
+        currencyCode: 'USD',
+        name: 'Tea - 100g',
+        description: 'Assam tea',
+      },
+    ]),
+    {
+      amount: 3990,
+      currency: 'USD',
+      lineItems: [
+        {
+          sku: '987',
+          variant_id: '12345',
+          price: 1995,
+          offer_price: 1995,
+          quantity: 2,
+          name: 'Tea - 100g',
+          description: 'Assam tea',
+        },
+      ],
+    },
+  );
 });
 
 test('Razorpay CSP permits checkout risk detection without broad script access', () => {
@@ -222,6 +269,7 @@ test('Razorpay Magic order contains authoritative line totals', () => {
     ]),
     {
       amount: 99800,
+      currency: 'INR',
       lineItems: [
         {
           sku: 'MATCHA-30',

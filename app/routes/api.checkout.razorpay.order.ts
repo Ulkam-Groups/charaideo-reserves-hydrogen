@@ -3,7 +3,8 @@ import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {resolveCheckoutProvider} from '~/lib/checkout/provider';
 import {readProtectedForm} from '~/lib/protected-write.server';
 import {
-  inrToPaise,
+  amountToSubunits,
+  currencyFractionDigits,
   parseRazorpayCheckoutProducts,
   type RazorpayOrderLine,
 } from '~/lib/checkout/providers/razorpay/razorpay';
@@ -47,7 +48,11 @@ type RazorpayOrderStage =
   | 'session_persist';
 
 const RAZORPAY_VARIANTS_QUERY = `#graphql
-  query RazorpayCheckoutVariants($ids: [ID!]!) {
+  query RazorpayCheckoutVariants(
+    $ids: [ID!]!
+    $country: CountryCode
+    $language: LanguageCode
+  ) @inContext(country: $country, language: $language) {
     nodes(ids: $ids) {
       ... on ProductVariant {
         id
@@ -68,10 +73,12 @@ function cartLines(
   origin: string,
   expectedAmount: number,
 ): RazorpayOrderLine[] {
+  const currency = cart.cost.totalAmount.currencyCode;
+  const fractionDigits = currencyFractionDigits(currency);
   const pricedLines = cart.lines.nodes.map((line, index) => ({
     index,
     line,
-    total: inrToPaise(line.cost.totalAmount.amount),
+    total: amountToSubunits(line.cost.totalAmount.amount, currency),
   }));
   const merchandiseTotal = pricedLines.reduce((sum, item) => sum + item.total, 0);
   if (expectedAmount <= 0 || expectedAmount > merchandiseTotal) {
@@ -112,7 +119,7 @@ function cartLines(
       variantId: merchandise.id,
       productId: merchandise.product.id,
       quantity,
-      unitPrice: (unitPrice / 100).toFixed(2),
+      unitPrice: (unitPrice / 10 ** fractionDigits).toFixed(fractionDigits),
       compareAtPrice: merchandise.compareAtPrice?.amount,
       currencyCode: line.cost.totalAmount.currencyCode,
       name: `${merchandise.product.title} - ${merchandise.title}`,
@@ -184,7 +191,10 @@ export async function action({request, context}: ActionFunctionArgs) {
         return json({error: 'Cart changed before checkout'}, 409);
       }
       stage = 'checkout_payload';
-      expectedAmount = inrToPaise(cart.cost.totalAmount.amount);
+      expectedAmount = amountToSubunits(
+        cart.cost.totalAmount.amount,
+        cart.cost.totalAmount.currencyCode,
+      );
       lines = cartLines(cart, new URL(request.url).origin, expectedAmount);
     } else {
       const result = (await context.storefront.query(RAZORPAY_VARIANTS_QUERY, {
@@ -219,7 +229,8 @@ export async function action({request, context}: ActionFunctionArgs) {
         };
       });
       expectedAmount = lines.reduce(
-        (total, line) => total + inrToPaise(line.unitPrice) * line.quantity,
+        (total, line) =>
+          total + amountToSubunits(line.unitPrice, line.currencyCode) * line.quantity,
         0,
       );
     }
