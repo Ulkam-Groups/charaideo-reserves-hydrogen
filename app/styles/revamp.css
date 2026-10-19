@@ -5535,6 +5535,20 @@ body {
   border-bottom-color: transparent;
 }
 
+@media (min-width: 901px) {
+  .header,
+  .header-inner,
+  .header-menu-desktop {
+    -webkit-font-smoothing: auto;
+    text-rendering: optimizeLegibility;
+  }
+
+  .header-menu-desktop .header-menu-item {
+    color: #132a1f;
+    font-weight: 500;
+  }
+}
+
 /* Preserve a tappable outside-close gutter for the cart on narrow screens. */
 @media (max-width: 520px) {
   .overlay--cart {

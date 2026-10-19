@@ -783,6 +783,57 @@
   }
 }
 
+/* Homepage vertical rhythm: natural page scrolling with predictable section
+   spacing. Horizontal commerce rails retain their independent touch snapping. */
+.revamp-home {
+  --home-section-space: clamp(64px, 7.5vw, 120px);
+  --home-section-space-compact: clamp(44px, 5vw, 80px);
+}
+
+.revamp-home :is(
+  #chapter-collection,
+  .home-product-list,
+  .heritage-note,
+  .home-ritual-section
+) {
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+
+.revamp-home .chapter-collection-inner {
+  margin-block: var(--home-section-space-compact);
+}
+
+.revamp-home .home-product-list {
+  padding-bottom: var(--home-section-space);
+}
+
+.revamp-home .heritage-note,
+.revamp-home .home-ritual-section {
+  padding-block: var(--home-section-space);
+}
+
+@media (max-width: 767px) {
+  .revamp-home {
+    --home-section-space: clamp(52px, 15vw, 76px);
+    --home-section-space-compact: clamp(36px, 11vw, 56px);
+  }
+
+  .revamp-home :is(
+    #chapter-collection,
+    .home-product-list,
+    .heritage-note,
+    .home-ritual-section
+  ) {
+    scroll-margin-top: calc(var(--header-height) + 16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 /* 2026 homepage journey: misty Assam -> reserve -> estate -> cup. */
 .revamp-home {
   --reserve-green: #132a1f;

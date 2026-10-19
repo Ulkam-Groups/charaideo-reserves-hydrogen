@@ -3,6 +3,7 @@ import {Link, useLoaderData, useSearchParams} from 'react-router';
 import type {Route} from './+types/tea-academy._index';
 import {TeaSensoryExperience} from '~/components/TeaSensoryExperience';
 import {parseSensoryTea, type StorefrontSensoryProduct} from '~/lib/tea-sensory';
+import charaideoLogo from '~/assets/charaideo-reserves-logo.svg?url';
 
 export const meta: Route.MetaFunction = () => [
   {title: 'Tea Academy | Charaideo Reserves™'},
@@ -40,11 +41,11 @@ export default function TeaAcademy() {
             <path d="M 44 120 A 76 76 0 0 1 196 120" id="academy-stamp-top" />
             <path d="M 44 128 A 76 76 0 0 0 196 128" id="academy-stamp-bottom" />
           </defs>
-          <circle cx="120" cy="120" r="105" />
-          <circle cx="120" cy="120" r="91" />
+          <circle cx="120" cy="120" r="94" />
+          <circle cx="120" cy="120" r="86" />
           <text className="academy-stamp-copy"><textPath href="#academy-stamp-top" startOffset="50%" textAnchor="middle">CHARAIDEO RESERVES™</textPath></text>
           <text className="academy-stamp-copy"><textPath href="#academy-stamp-bottom" startOffset="50%" textAnchor="middle">TEA ACADEMY</textPath></text>
-          <text className="academy-stamp-kanji" x="120" y="143">學</text>
+          <image aria-hidden="true" className="academy-stamp-logo" href={charaideoLogo} x="50" y="67" width="140" height="106" preserveAspectRatio="xMidYMid meet" />
         </svg>
       </div>
     </header>

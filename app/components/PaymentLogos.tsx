@@ -1,11 +1,11 @@
-import applePayLogo from '~/assets/payment-methods/apple-pay.svg?url';
+import paypalLogo from '~/assets/payment-methods/paypal.svg?url';
 import upiLogo from '~/assets/payment-methods/upi.svg?url';
 
 const PAYMENT_LOGOS = [
   ['Visa', 'https://cdn.razorpay.com/card-networks/visa.svg'],
   ['Mastercard', 'https://cdn.razorpay.com/card-networks/mastercard.svg'],
   ['UPI', upiLogo],
-  ['Apple Pay', applePayLogo],
+  ['PayPal', paypalLogo],
 ];
 
 export function PaymentLogos() {

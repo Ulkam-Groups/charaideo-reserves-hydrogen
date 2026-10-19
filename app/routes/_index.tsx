@@ -1178,7 +1178,7 @@ export default function Homepage() {
       }),
       f("section", {
         className:
-          "bg-white border-t border-[#132A1F]/[0.06] py-16 md:py-24 max-w-[100vw] overflow-hidden",
+          "home-ritual-section bg-white border-t border-[#132A1F]/[0.06] max-w-[100vw] overflow-hidden",
         children: y("div", {
           className: "mx-auto max-w-[1280px] px-6 md:px-8",
           children: [

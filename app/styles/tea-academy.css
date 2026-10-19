@@ -162,12 +162,8 @@ body:has(.academy-page) .header.header-solid:not(.header-scrolled){background:#1
   letter-spacing: 0.18em;
 }
 
-.academy-stamp-kanji {
-  fill: #e7b474;
-  font-family: var(--serif);
-  font-size: 72px;
-  font-weight: 500;
-  text-anchor: middle;
+.academy-stamp-logo {
+  filter: brightness(0) saturate(100%) invert(79%) sepia(34%) saturate(718%) hue-rotate(350deg) brightness(94%) contrast(91%);
 }
 
 /* Keep the complete stamp below the floating navigation. */
