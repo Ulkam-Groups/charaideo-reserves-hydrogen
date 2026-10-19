@@ -5770,7 +5770,7 @@ main.main--offset .catalog-page {
     inset: 50% auto auto 50%;
     z-index: 2;
     flex: none;
-    width: clamp(112px, 18vw, 142px);
+    width: clamp(132px, 26vw, 176px);
     margin: 0;
     transform: translate(-50%, -50%);
   }
@@ -5779,6 +5779,8 @@ main.main--offset .catalog-page {
     display: block;
     width: 100%;
     height: auto;
+    opacity: 1;
+    filter: contrast(1.2) saturate(1.15);
   }
 
   .header.header-solid .header-ctas {

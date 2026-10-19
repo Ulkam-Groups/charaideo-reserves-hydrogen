@@ -947,7 +947,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -959,7 +959,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -971,7 +971,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -983,7 +983,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -1001,7 +1001,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -1013,7 +1013,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -1025,7 +1025,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
@@ -1037,7 +1037,7 @@ export default function Homepage() {
                     className:
                       "flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]",
                     children: [
-                      f("span", { children: "Rooted in Assam" }),
+                      f("span", { children: "Curated from Origin" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
                       f("span", { children: "Reserved with Purpose" }),
                       f("span", { className: "w-1 h-1 rounded-full bg-[#FFFEF8]/60" }),
