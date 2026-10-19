@@ -1122,25 +1122,32 @@ export default function Homepage() {
         children: [
           f("span", {
             className: "eyebrow",
-            children: "Why the estate name matters",
+            children: "Where it all began",
           }),
           y("div", {
             children: [
               y("h2", {
                 children: [
-                  "We bring exceptional tea to the world.",
-                  f("br", {}),
-                  f("em", {children: "And preserve the estate's heritage at your table."}),
+                  "There’s so much more to Tea.",
+                  f("br", {})
                 ],
               }),
-              f("p", {
-                  children:
-                    "Too often, an estate's name disappears before its tea reaches the cup. We keep it visible, documenting the garden, flush and grade in every Chapter.",
+              y("div", {
+                children: [
+                  f("p", {
+                    children: "Tea has a world of its own, and most of us have only scratched the surface.",
+                  }),
+                  f("p", {
+                    children: "From delicate white teas to distinctive green teas and carefully crafted black teas, the same tea plant can offer so many different experiences. We want to bring these teas closer to you, starting with the gardens of Assam.",
+                  }),
+                  f("p", {children: "Come, discover tea beyond the familiar."}),
+                ],
               }),
-              f("a", {
+              f(Link, {
+                to: "/reserve-list",
+                prefetch: "intent",
                 className: "text-link",
-                href: "/pages/about-us",
-                  children: "Our story \u2197",
+                children: "Explore our collection \u2197",
               }),
             ],
           }),
