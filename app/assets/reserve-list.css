@@ -778,6 +778,53 @@
   .reserve-filter-panel {top: calc(100% + 8px); right: auto; bottom: auto; left: 0; width: min(310px, calc(100vw - 32px)); max-height: min(400px, calc(100dvh - 130px)); border-radius: 12px}
 }
 
+/* Contrast pass: preserve the original compact storefront sizing. */
+.reserve-list-eyebrow {
+  color: #87572f;
+}
+.reserve-list-total {
+  color: #59675f;
+}
+.reserve-active-collection span,
+.reserve-chapter-kicker {
+  color: #87572f;
+}
+.reserve-image-badge {
+  color: #24543c;
+}
+.reserve-filter-label,
+.reserve-filter-panel header span,
+.reserve-price-inputs label span,
+.reserve-range-values span,
+.reserve-range-limits,
+.reserve-filter-panel footer > span,
+.reserve-filter-panel footer .reserve-clear {
+  color: #59675f;
+}
+.reserve-tasting-notes {
+  color: #655c54;
+}
+.reserve-card-variants legend {
+  color: #59675f;
+}
+.reserve-card-details {
+  color: #41594c;
+}
+
+@media (max-width: 480px) {
+  .reserve-list-tabs button small {
+    color: #41594c;
+  }
+  .reserve-tea-collection,
+  .reserve-availability,
+  .reserve-card-variants legend {
+    color: #4e6256;
+  }
+  .reserve-tasting-notes {
+    color: #655c54;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reserve-availability.is-available i {animation: none}
   .reserve-list-tabs button,

@@ -742,7 +742,15 @@ button {cursor: pointer}
   .about-story {grid-template-columns: 1fr; gap: 55px}
   .about-story-visual {position: relative; top: auto; width: min(100%,680px)}
   .catalog-hero img,.content-hero img,.cart-header img {max-width: 720px}
-  .heritage-note {grid-template-columns: 1fr; padding-bottom: 180px}
+  .heritage-note {grid-template-columns: 1fr; gap: 18px; padding-top: 64px; padding-bottom: 180px}
+  .heritage-note .eyebrow {margin-bottom: 0}
+  .heritage-note::after {bottom: -35px}
+  .heritage-seal {
+    left: auto;
+    right: var(--gutter);
+    padding: 8px 10px;
+    background: var(--aged-indigo);
+  }
   .product {grid-template-columns: 1fr; padding-top: 35px}
   .product-gallery {justify-self: center; max-width: 500px}
   .product-main {position: static; max-width: 620px; margin-inline: auto}
@@ -787,7 +795,7 @@ button {cursor: pointer}
   .recommended-products-grid {grid-template-columns: minmax(0,340px)}
   .catalog-page .products-grid {grid-template-columns: minmax(0,340px)}
   .ritual-grid {grid-template-columns: 1fr; gap: 35px}
-  .heritage-note {padding-block: 70px 170px}
+  .heritage-note {padding-block: 54px 154px}
   .heritage-note h2 {font-size: 48px}
   .catalog-hero {min-height: 520px; padding-block: 65px 35px}
   .catalog-hero h1,.content-hero h1,.cart-header h1 {font-size: 60px}

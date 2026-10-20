@@ -17,7 +17,7 @@ import {DeliveryEstimate} from './DeliveryEstimate';
 import {DiscountProgress} from './DiscountProgress';
 import {META_ANALYTICS_EVENTS, metaContentId} from '~/lib/ads/meta/meta-pixel';
 import {cartDiscountProgressItems} from '~/lib/discount-progress';
-import {RazorpayBrand} from './RazorpayBrand';
+import {PaymentLogos} from './PaymentLogos';
 
 export function ProductForm({
   productOptions,
@@ -340,7 +340,9 @@ export function ProductForm({
             }}
           >
             <span>Buy now</span>
-            {rootData?.checkoutProvider === 'razorpay' && <RazorpayBrand />}
+            {rootData?.checkoutProvider === 'razorpay' && (
+              <PaymentLogos methods={['Visa', 'Mastercard', 'UPI']} />
+            )}
           </button>
         )}
       </div>
@@ -367,7 +369,10 @@ export function ProductForm({
         )}
       <DeliveryEstimate />
       {showMobileBar && selectedVariant && !selectedVariant.availableForSale && (
-        <aside className="product-mobile-purchase-bar" aria-label="Quick purchase">
+        <aside
+          className="product-mobile-purchase-bar"
+          aria-label={`Quick purchase for ${selectedVariant.product.title}`}
+        >
           <div>
             <span>{selectedVariant.product.title}</span>
             <strong>Currently sold out</strong>
@@ -385,7 +390,10 @@ export function ProductForm({
         </aside>
       )}
       {showMobileBar && selectedVariant?.availableForSale && (
-        <aside className="product-mobile-purchase-bar" aria-label="Quick purchase">
+        <aside
+          className="product-mobile-purchase-bar"
+          aria-label={`Quick purchase for ${selectedVariant.product.title}`}
+        >
           <div>
             <span>{selectedVariant.product.title}</span>
             <strong>

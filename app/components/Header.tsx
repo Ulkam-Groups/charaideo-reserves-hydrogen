@@ -89,7 +89,7 @@ export function HeaderMenu({
             onClick={() => setLibraryOpen((current) => !current)}
             type="button"
           >
-            <span>Tea Library</span>
+            <span>Tea Shop</span>
             <ChevronIcon />
           </button>
           <div
@@ -130,7 +130,7 @@ export function HeaderMenu({
 
   return (
     <nav className={className} aria-label="Main navigation">
-      <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/reserve-list">Tea Library</NavLink>
+      <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/reserve-list">Tea Shop</NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
       <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
         Tea Academy <span className="header-menu-new">New</span>
