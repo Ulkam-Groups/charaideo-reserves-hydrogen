@@ -396,12 +396,11 @@ function AboutStoryPage() {
         <div className="about-page-hero-copy">
           <p className="about-page-kicker">Our story</p>
           <h1 id="about-page-title">
-            Rooted in Assam.
-            <em>Inspired by heritage.</em>
+            Every Tea Has a Place.
+            <em>Every Place Has a Story.</em>
           </h1>
           <p className="about-page-hero-intro">
-            Charaideo was born from a deep emotional connection to Assam-its land, its
-            culture, and its timeless tea legacy.
+            Charaideo Reserves began with my personal connection to Assam, a lifelong familiarity with tea, and a desire to share its many distinctive expressions with the world.
           </p>
         </div>
 
@@ -419,46 +418,45 @@ function AboutStoryPage() {
       <section className="about-page-story" aria-labelledby="story-title">
         <div className="about-page-story-copy">
           <p className="about-page-kicker">Our story</p>
-          <h2 id="story-title">Rooted in Assam. Inspired by heritage.</h2>
+          <h2 id="story-title">A Story That Was Always There.</h2>
+          <p>
+              <b><i>What Is Charaideo Reserves?</i></b>
+              <br />
+              CHARAIDEO RESERVES is a tea brand dedicated to curating distinctive teas from Assam, bringing together selections that express the character of their origins and the craft behind their making. Our approach goes beyond offering tea as a product. We seek to create a collection in which each tea has its own identity, chosen with care and presented with an appreciation for the place and people behind it.
+          </p>
           <div className="about-page-story-prose">
-            <p>
-              Growing up in a family of tea planters, tea was never simply a profession
-              for my family; it was a way of life. Some of my earliest memories are woven
-              into the tea gardens of Assam-walking through endless green estates,
-              visiting tea factories with my father, and witnessing the journey from leaf
-              to cup. Those experiences created a bond with the land that only grew
-              stronger with time.
+            {/* <p>
+              <i><b>Why Charaideo? -"চৰাইদেউ"</b></i>
+              <br />
+                Charaideo holds a special place in Assam’s history as the first capital of the Ahom kingdom and the site of its historic royal maidams. The name is also associated with the meaning “a dazzling city above the mountain.” We chose Charaideo to honour a significant part of Assam’s cultural heritage and to give our brand a name that carries a sense of history, identity and place.
+                <br />
             </p>
             <p>
-              No matter where life led me, Assam always remained home. While building a
-              corporate career, I carried a quiet dream within me: to return to my roots
-              and create something that would honour the heritage I was raised with. That
-              dream eventually became Charaideo.
-            </p>
+              <b><i>Why Reserves?</i></b>
+              <br />
+                  For us, Reserves represents a thoughtfully curated collection rather than a catalogue of interchangeable teas. Each selection earns its place through its distinct character, origin or craftsmanship. The word reflects our intention to bring together teas with a clear reason for being chosen, allowing each one to be appreciated on its own merits while forming part of a considered collection.
+              <br />
+            </p> */}
           </div>
           <p className="about-page-story-quote">
-            Leaving the corporate world was more than a career change; it was a
-            homecoming. A conscious decision to return to the soil, stories, and
-            traditions that shaped my identity.
+             Charaideo (চৰাইদেউ) is pronounced as in Assamese "so-rai-deo" or "xo-rai-deo".
           </p>
         </div>
         <div className="about-page-roots">
           <article>
-            <p className="about-page-kicker">Family roots in Rupai</p>
-            <h3>Where it all began</h3>
+            <p className="about-page-kicker">Where it all began</p>
+            <h3>Why Charaideo? -"চৰাইদেউ"</h3>
             <p>
-              Our family&apos;s relationship with tea began in garden cultivation -
-              learning to hand-pluck at dawn, to respect the land, its people, and the
-              bold, unmistakable character of Assam.
+                Charaideo holds a special place in Assam’s history as the first capital of the Ahom kingdom and the site of its historic royal maidams. The name is also associated with the meaning “a dazzling city above the mountain.” We chose Charaideo to honour a significant part of Assam’s cultural heritage and to give our brand a name that carries a sense of history, identity and place.
+                <br />
             </p>
           </article>
           <article>
-            <p className="about-page-kicker">Charaideo Reserves today</p>
-            <h3>A vault, not just a brand</h3>
+            <p className="about-page-kicker">A Tea vault, not just a brand</p>
+            <h3>Why Reserves?</h3>
             <p>
-              Today, Charaideo is a tea vault preserving single-origin, small-batch teas -
-              where every lot is traceable to its garden and estate, and deeply connected
-              to its origin.
+                  For us, Reserves represents a thoughtfully curated collection rather than a catalogue of interchangeable teas. Each selection earns its place through its distinct character, origin or craftsmanship. The word reflects our intention to bring together teas with a clear reason for being chosen, allowing each one to be appreciated on its own merits while forming part of a considered collection.
+              <br />
             </p>
           </article>
         </div>
