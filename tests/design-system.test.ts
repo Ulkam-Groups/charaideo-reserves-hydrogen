@@ -66,9 +66,18 @@ test('global shell follows the readable type and target-size contract', async ()
   assert.match(css, /font-size: var\(--type-label\)/);
   assert.match(css, /font-size: var\(--type-metadata\)/);
   assert.match(css, /min-height: var\(--control-height-standard\)/);
-  assert.match(css, /\.site-header\.header \.wordmark img \{[\s\S]*filter: contrast\(1\.2\) saturate\(1\.15\)/);
-  assert.match(css, /button\.header-search-trigger \{[\s\S]*width: clamp\(13rem, 20vw, 20rem\)[\s\S]*border: 1px solid var\(--border-strong\)/);
-  assert.match(css, /@media \(max-width: 75rem\) \{[\s\S]*\.header-search-label,[\s\S]*display: none/);
+  assert.match(
+    css,
+    /\.site-header\.header \.wordmark img \{[\s\S]*filter: contrast\(1\.2\) saturate\(1\.15\)/,
+  );
+  assert.match(
+    css,
+    /button\.header-search-trigger \{[\s\S]*width: clamp\(13rem, 20vw, 20rem\)[\s\S]*border: 1px solid var\(--border-strong\)/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 75rem\) \{[\s\S]*\.header-search-label,[\s\S]*display: none/,
+  );
   assert.match(css, /border-radius: var\(--radius-button\)/);
   assert.match(css, /box-shadow: var\(--shadow-overlay\)/);
   assert.match(css, /prefers-reduced-motion: reduce/);
@@ -212,10 +221,7 @@ test('P3 reviews and editorial guidance use readable commerce typography', async
   ]);
 
   assert.match(css, /P3 reviews, editorial guidance and related discovery/);
-  assert.match(
-    css,
-    /\.product-page \.product-review-card > p,[\s\S]*font-size: 14px/,
-  );
+  assert.match(css, /\.product-page \.product-review-card > p,[\s\S]*font-size: 14px/);
   assert.match(
     css,
     /\.product-page \.product-review-card-topline,[\s\S]*font-size: 12px/,
@@ -248,7 +254,10 @@ test('P5 Tea Academy uses compact ecommerce navigation and a continuous surface'
     'utf8',
   );
 
-  assert.match(css, /P5 Academy navigation: compact ecommerce-style secondary navigation/);
+  assert.match(
+    css,
+    /P5 Academy navigation: compact ecommerce-style secondary navigation/,
+  );
   assert.match(css, /\.academy-section-menu \{[\s\S]*min-height: 50px/);
   assert.match(css, /\.academy-section-menu-label \{[\s\S]*text-transform: uppercase/);
   assert.match(css, /\.academy-section-menu small \{[\s\S]*display: none/);

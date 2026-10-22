@@ -26,9 +26,7 @@ test('footer reopens Shopify privacy preferences', async ({page, context}) => {
   await privacyChoices.click();
 
   await expect
-    .poll(() =>
-      page.evaluate(() => (window as any).__privacyPreferenceCalls),
-    )
+    .poll(() => page.evaluate(() => (window as any).__privacyPreferenceCalls))
     .toBe(1);
 });
 

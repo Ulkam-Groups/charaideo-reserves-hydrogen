@@ -31,10 +31,7 @@ test('storefront resolves the buyer market and passes it to consent', async () =
     new URL('../app/lib/context.ts', import.meta.url),
     'utf8',
   );
-  const rootSource = await readFile(
-    new URL('../app/root.tsx', import.meta.url),
-    'utf8',
-  );
+  const rootSource = await readFile(new URL('../app/root.tsx', import.meta.url), 'utf8');
 
   assert.match(contextSource, /i18n: resolveStorefrontI18n\(request\)/);
   assert.doesNotMatch(contextSource, /country: 'US'/);
