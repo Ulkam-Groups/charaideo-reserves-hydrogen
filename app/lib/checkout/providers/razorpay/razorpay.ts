@@ -32,6 +32,63 @@ export type RazorpayCheckoutSnapshotLine = {
   unitPricePaise: number;
 };
 
+const RAZORPAY_SUPPORTED_CURRENCIES = new Set(
+  `AED ALL AMD AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BRL BSD BTN
+   BWP BZD CAD CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ETB EUR
+   FJD GBP GHS GIP GMD GNF GTQ GYD HKD HNL HRK HTG HUF IDR ILS INR IQD ISK
+   JMD JOD JPY KES KGS KHR KMF KRW KWD KYD KZT LAK LKR LRD LSL MAD MDL MGA
+   MKD MMK MNT MOP MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PEN
+   PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SCR SEK SGD SLL SOS SVC SZL
+   THB TND TRY TTD TWD TZS UAH UGX USD UYU UZS VND VUV XAF XCD XOF XPF YER
+   ZAR ZMW`
+    .split(/\s+/)
+    .filter(Boolean),
+);
+
+const RAZORPAY_ZERO_DECIMAL_CURRENCIES = new Set(
+  'BIF CLP DJF GNF ISK JPY KMF KRW PYG RWF UGX VND VUV XAF XOF XPF'.split(' '),
+);
+
+const RAZORPAY_THREE_DECIMAL_CURRENCIES = new Set(
+  'BHD IQD JOD KWD OMR TND'.split(' '),
+);
+
+export function razorpayCurrencyCode(value: string): string {
+  const currency = value.trim().toUpperCase();
+  if (!RAZORPAY_SUPPORTED_CURRENCIES.has(currency)) {
+    throw new Error('Unsupported Razorpay currency code');
+  }
+  return currency;
+}
+
+export function currencyFractionDigits(currencyCode: string): number {
+  const currency = razorpayCurrencyCode(currencyCode);
+  if (RAZORPAY_ZERO_DECIMAL_CURRENCIES.has(currency)) return 0;
+  if (RAZORPAY_THREE_DECIMAL_CURRENCIES.has(currency)) return 3;
+  return 2;
+}
+
+export function amountToSubunits(amount: string, currencyCode: string): number {
+  const currency = razorpayCurrencyCode(currencyCode);
+  const digits = currencyFractionDigits(currency);
+  const match = new RegExp(`^(\\d+)(?:\\.(\\d{1,${Math.max(digits, 1)}}))?$`).exec(
+    amount,
+  );
+  if (!match || (digits === 0 && match[2])) throw new Error(`Invalid ${currency} amount`);
+  const fraction = digits ? (match[2] ?? '').padEnd(digits, '0') : '';
+  let subunits = Number(match[1]) * 10 ** digits + Number(fraction || 0);
+  if (!Number.isSafeInteger(subunits) || subunits < 0) {
+    throw new Error(`Invalid ${currency} amount`);
+  }
+  return subunits;
+}
+
+export function subunitsToAmount(value: number, currencyCode: string): string {
+  if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid currency amount');
+  const digits = currencyFractionDigits(currencyCode);
+  return (value / 10 ** digits).toFixed(digits);
+}
+
 const RAZORPAY_RECONCILIATION_EVENTS = new Set(['order.placed']);
 
 export function isRazorpayPrepaidShadowEvent(value: unknown): boolean {
@@ -145,22 +202,18 @@ export function parseRazorpayCheckoutProducts(
 }
 
 export function inrToPaise(amount: string): number {
-  const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(amount);
-  if (!match) throw new Error('Invalid INR amount');
-
-  const paise = Number(match[1]) * 100 + Number((match[2] ?? '').padEnd(2, '0'));
-  if (!Number.isSafeInteger(paise) || paise < 0) {
-    throw new Error('Invalid INR amount');
-  }
-  return paise;
+  return amountToSubunits(amount, 'INR');
 }
 
 export function buildRazorpayMagicOrder(lines: RazorpayOrderLine[]) {
   if (!lines.length) throw new Error('Checkout has no products');
 
+  const currency = razorpayCurrencyCode(lines[0].currencyCode);
   let amount = 0;
   const lineItems: RazorpayMagicLineItem[] = lines.map((line) => {
-    if (line.currencyCode !== 'INR') throw new Error('Razorpay requires INR');
+    if (razorpayCurrencyCode(line.currencyCode) !== currency) {
+      throw new Error('Checkout currencies do not match');
+    }
     if (!Number.isSafeInteger(line.quantity) || line.quantity < 1) {
       throw new Error('Invalid product quantity');
     }
@@ -169,10 +222,10 @@ export function buildRazorpayMagicOrder(lines: RazorpayOrderLine[]) {
     const productId = razorpayProductId(line.productId);
     if (!variantId || !productId) throw new Error('Invalid Shopify product ID');
 
-    const offerPrice = inrToPaise(line.unitPrice);
+    const offerPrice = amountToSubunits(line.unitPrice, currency);
     const price = Math.max(
       offerPrice,
-      line.compareAtPrice ? inrToPaise(line.compareAtPrice) : offerPrice,
+      line.compareAtPrice ? amountToSubunits(line.compareAtPrice, currency) : offerPrice,
     );
     amount += offerPrice * line.quantity;
     if (!Number.isSafeInteger(amount) || amount <= 0) {
@@ -192,7 +245,7 @@ export function buildRazorpayMagicOrder(lines: RazorpayOrderLine[]) {
     };
   });
 
-  return {amount, lineItems};
+  return {amount, currency, lineItems};
 }
 
 export function encodeRazorpayCheckoutSnapshot(
@@ -201,7 +254,7 @@ export function encodeRazorpayCheckoutSnapshot(
   const records = lines.map((line) => {
     const variantId = razorpayVariantId(line.variantId);
     if (!variantId) throw new Error('Invalid Shopify variant ID');
-    return `${variantId}:${line.quantity}:${inrToPaise(line.unitPrice)}`;
+    return `${variantId}:${line.quantity}:${amountToSubunits(line.unitPrice, line.currencyCode)}`;
   });
   const chunks: string[] = [];
   for (const record of records) {

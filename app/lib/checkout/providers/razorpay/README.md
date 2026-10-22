@@ -18,6 +18,34 @@ webhook behavior.
 
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to enable this provider. Set `SHOPIFY_ADMIN_STORE_DOMAIN` to the shop's canonical `*.myshopify.com` domain when `PUBLIC_STORE_DOMAIN` points elsewhere; otherwise the public domain is used. The Shopify app installation needs `read_orders,write_orders,read_draft_orders,write_draft_orders`. The storefront also uses the read-only `read_discounts` scope to show active Shopify discount thresholds in the cart and product page. `RAZORPAY_BUSINESS_NAME` is optional and defaults to `Charaideo Reserves`.
 
+International presentment currencies are preserved end-to-end. The order route uses
+Shopify's active market context, converts MoneyV2 amounts to Razorpay's currency
+subunits (including zero- and three-decimal currencies), creates the Razorpay order in that
+currency, and requires the fetched order, captured payment, Shopify draft, and final
+Shopify order totals to match in the same currency. Currency codes and exponents are
+restricted to Razorpay's published international-payment table, so unsupported codes
+fail before any provider order is created. INR continues through the same validation
+and reconciliation path without changed values.
+
+On Oxygen, `app/lib/markets.ts` resolves the Storefront API country from the trusted
+`oxygen-buyer-country` request header and defaults to India when geolocation is absent
+or invalid. Queries that declare `$country` and use `@inContext` therefore receive the
+Shopify Market's localized price and currency. Shopify Markets remains authoritative:
+if a country or currency is not enabled there, Shopify returns the configured fallback
+market currency rather than inventing a conversion in this application.
+
+Apple Pay availability is an operational entitlement, not something repository code
+can enable. Before advertising it as live, enable International Payments and Apple Pay
+for the live Razorpay account, serve the storefront over HTTPS, and enable the same
+currencies in Shopify Markets/payment settings. This storefront currently launches
+Razorpay Magic Checkout; do not copy the linked S2S-only `payments/create/json` flow
+into it or expose the API secret in the browser. If Razorpay requires a dedicated S2S
+Apple Pay flow for this account, obtain its web merchant identifier from Razorpay
+Support and implement it as a separately gated checkout provider with Shield JS,
+capability detection, customer-contact collection, callback verification, and the
+existing reconciliation command. Dashboard enablement and a real eligible-device
+payment remain mandatory release gates.
+
 PR 1 operational hardening keeps the checkout ownership and success contract unchanged.
 Razorpay SDK calls and Shopify authentication/GraphQL calls have 10-second upstream
 timeouts. Shopify client-credentials tokens are reused inside an Oxygen worker until

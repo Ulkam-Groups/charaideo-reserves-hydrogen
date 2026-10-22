@@ -1,7 +1,9 @@
 import RazorpayOxygen from './razorpay-oxygen.server.ts';
 import {
+  amountToSubunits,
   decodeRazorpayCheckoutSnapshot,
-  inrToPaise,
+  razorpayCurrencyCode,
+  subunitsToAmount,
   type RazorpayCheckoutSnapshotLine,
   type RazorpayOrderLine,
 } from './razorpay.ts';
@@ -144,10 +146,6 @@ function integer(value: unknown, name: string): number {
   return value as number;
 }
 
-function paiseToRupees(value: number) {
-  return (value / 100).toFixed(2);
-}
-
 function stringValue(value: unknown, maximum = 255): string | undefined {
   return typeof value === 'string' && value.trim()
     ? value.trim().slice(0, maximum)
@@ -183,7 +181,13 @@ export function validateRazorpayOrderForShopify(
     throw new RazorpayReconciliationError('Invalid Razorpay order');
   }
   const order = value as RazorpayMagicOrderDetails;
-  if (order.id !== expectedOrderId || order.currency !== 'INR') {
+  let currency: string;
+  try {
+    currency = razorpayCurrencyCode(order.currency);
+  } catch {
+    throw new RazorpayReconciliationError('Razorpay order identity mismatch');
+  }
+  if (order.id !== expectedOrderId || order.currency !== currency) {
     throw new RazorpayReconciliationError('Razorpay order identity mismatch');
   }
   const notes = order.notes && typeof order.notes === 'object' ? order.notes : {};
@@ -216,7 +220,7 @@ export function validateCapturedRazorpayPayment(
   if (
     !/^pay_[A-Za-z0-9]+$/.test(payment.id) ||
     payment.order_id !== order.id ||
-    payment.currency !== 'INR' ||
+    payment.currency !== order.currency ||
     payment.status !== 'captured' ||
     payment.captured !== true ||
     integer(payment.amount, 'payment amount') !== order.amount ||
@@ -250,8 +254,9 @@ export function buildShopifyOrderInput({
   const billingAddress = mailingAddress(customer?.billing_address);
   const email = stringValue(customer?.email, 254);
   const phone = stringValue(customer?.contact, 30);
-  const money = (paise: number) => ({
-    shopMoney: {amount: paiseToRupees(paise), currencyCode: 'INR'},
+  const currency = razorpayCurrencyCode(order.currency);
+  const money = (subunits: number) => ({
+    shopMoney: {amount: subunitsToAmount(subunits, currency), currencyCode: currency},
   });
 
   return {
@@ -277,8 +282,8 @@ export function buildShopifyOrderInput({
     ...(billingAddress ? {billingAddress} : {}),
     ...(email ? {email} : {}),
     ...(phone ? {phone} : {}),
-    currency: 'INR',
-    presentmentCurrency: 'INR',
+    currency,
+    presentmentCurrency: currency,
     sourceIdentifier: order.id,
     tags: ['razorpay', 'magic-checkout', payment ? 'prepaid' : 'cod'],
     note: `Razorpay Magic Checkout order ${order.id}`,
@@ -611,7 +616,8 @@ export async function createRazorpayDraftOrderAnchor({
       !/^gid:\/\/shopify\/ProductVariant\/\d+$/.test(line.variantId) ||
       !Number.isSafeInteger(line.quantity) ||
       line.quantity < 1 ||
-      line.currencyCode !== 'INR'
+      razorpayCurrencyCode(line.currencyCode) !==
+        razorpayCurrencyCode(lines[0].currencyCode)
     ) {
       throw new RazorpayReconciliationError('Shopify draft order line is invalid');
     }
@@ -619,8 +625,8 @@ export async function createRazorpayDraftOrderAnchor({
       variantId: line.variantId,
       quantity: line.quantity,
       priceOverride: {
-        amount: (inrToPaise(line.unitPrice) / 100).toFixed(2),
-        currencyCode: 'INR',
+        amount: line.unitPrice,
+        currencyCode: razorpayCurrencyCode(line.currencyCode),
       },
     };
   });
@@ -643,7 +649,7 @@ export async function createRazorpayDraftOrderAnchor({
     variables: {
       input: {
         lineItems,
-        presentmentCurrencyCode: 'INR',
+        presentmentCurrencyCode: razorpayCurrencyCode(lines[0].currencyCode),
         visibleToCustomer: false,
         allowDiscountCodesInCheckout: false,
         tags: ['razorpay', 'magic-checkout', 'checkout-draft'],
@@ -755,6 +761,7 @@ export function buildRazorpayDraftOrderFinalInput({
   const source = stringValue(order.notes.source, 20);
   const shippingFee = integer(order.shipping_fee ?? 0, 'shipping fee');
   const codFee = integer(order.cod_fee ?? 0, 'COD fee');
+  const currency = razorpayCurrencyCode(order.currency);
 
   return {
     shippingAddress,
@@ -766,8 +773,8 @@ export function buildRazorpayDraftOrderFinalInput({
           shippingLine: {
             title: codFee ? 'Standard delivery and COD fee' : 'Standard delivery',
             priceWithCurrency: {
-              amount: paiseToRupees(shippingFee + codFee),
-              currencyCode: 'INR',
+              amount: subunitsToAmount(shippingFee + codFee, currency),
+              currencyCode: currency,
             },
           },
         }
@@ -878,8 +885,8 @@ export async function completeRazorpayDraftOrder({
     updatedDraft.id !== draftOrderId ||
     updatedDraft.status !== 'OPEN' ||
     !total ||
-    total.currencyCode !== 'INR' ||
-    inrToPaise(total.amount) !== order.amount
+    total.currencyCode !== order.currency ||
+    amountToSubunits(total.amount, order.currency) !== order.amount
   ) {
     console.error('Shopify rejected Razorpay draft order finalization', {
       userErrorCount: updated.draftOrderUpdate.userErrors.length,

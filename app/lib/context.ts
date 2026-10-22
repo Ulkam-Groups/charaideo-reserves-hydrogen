@@ -2,6 +2,7 @@ import {createHydrogenContext} from '@shopify/hydrogen';
 import {AppSession} from '~/lib/session';
 import {CART_QUERY_FRAGMENT} from '~/lib/fragments';
 import type {Monitor} from '~/lib/monitoring.server';
+import {resolveStorefrontI18n} from '~/lib/markets';
 
 type AdditionalContextType = {
   reviewsCache: Cache;
@@ -44,8 +45,7 @@ export async function createHydrogenRouterContext(
       cache,
       waitUntil,
       session,
-      // Or detect from URL path based on locale subpath, cookies, or any other strategy
-      i18n: {language: 'EN', country: 'US'},
+      i18n: resolveStorefrontI18n(request),
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
       },

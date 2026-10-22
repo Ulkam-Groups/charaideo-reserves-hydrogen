@@ -133,7 +133,7 @@ export async function createRazorpayMagicOrder({
   notes?: Record<string, string>;
   expectedAmount?: number;
 }) {
-  const {amount, lineItems} = buildRazorpayMagicOrder(lines);
+  const {amount, currency, lineItems} = buildRazorpayMagicOrder(lines);
   if (expectedAmount !== undefined && amount !== expectedAmount) {
     throw new Error('Razorpay order total does not match Shopify');
   }
@@ -141,7 +141,7 @@ export async function createRazorpayMagicOrder({
   const receipt = `cr_${Date.now().toString(36)}_${crypto.randomUUID().slice(0, 8)}`;
   const order = await razorpay.orders.create({
     amount,
-    currency: 'INR',
+    currency,
     receipt,
     line_items_total: amount,
     line_items: lineItems,
@@ -152,7 +152,7 @@ export async function createRazorpayMagicOrder({
     },
   } as unknown as Parameters<typeof razorpay.orders.create>[0]);
 
-  return {id: order.id, amount};
+  return {id: order.id, amount, currency};
 }
 
 export async function verifyRazorpayWebhook(
