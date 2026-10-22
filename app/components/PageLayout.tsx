@@ -104,7 +104,7 @@ function NoticeBoard({
 
   return (
     <div
-      className="notice-board"
+      className="notice-board site-notice-board"
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
       }}

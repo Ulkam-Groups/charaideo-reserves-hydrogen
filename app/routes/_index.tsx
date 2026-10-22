@@ -735,9 +735,12 @@ function HomepageProductCard({product, collectionTitle}: {product: ChapterProduc
       </Link>
       <div className="home-product-card-commerce">
         <div className="home-product-card-meta">
-          <strong>{selectedVariant?.price
-            ? <Money data={selectedVariant.price} />
-            : <Money data={product.priceRange.minVariantPrice} />}
+          <strong aria-live="polite">
+            {selectedVariant?.price ? (
+              <Money data={selectedVariant.price} />
+            ) : (
+              <Money data={product.priceRange.minVariantPrice} />
+            )}
           </strong>
           <span>{product.availableForSale ? 'In stock' : 'Unavailable'}</span>
         </div>

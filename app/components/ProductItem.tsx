@@ -13,9 +13,7 @@ import {useAside} from './Aside';
 type CardVariant = CollectionItemFragment['variants']['nodes'][number];
 
 type TeaProduct = (
-  | CollectionItemFragment
-  | ProductItemFragment
-  | RelatedProductCardFragment
+  CollectionItemFragment | ProductItemFragment | RelatedProductCardFragment
 ) & {
   productType?: string;
   tastingNotes?: {value: string} | null;
@@ -57,16 +55,9 @@ export function ProductItem({
     product.description?.trim().replace(/\s+/g, ' ') ||
     product.tastingNotes?.value?.trim().replace(/\s+/g, ' ') ||
     '';
-  const descriptionCharacters = Array.from(fullDescription);
-  const cardDescription =
-    descriptionCharacters.length > 40
-      ? `${descriptionCharacters.slice(0, 40).join('').trimEnd()}...`
-      : fullDescription;
 
   return (
-    <article
-      className={`catalog-card${showVariants ? ' catalog-card--commerce' : ''}`}
-    >
+    <article className={`catalog-card${showVariants ? ' catalog-card--commerce' : ''}`}>
       <Link className="catalog-card-image" prefetch="none" to={url}>
         {product.featuredImage ? (
           <Image
@@ -83,11 +74,13 @@ export function ProductItem({
       <div className="catalog-card-body">
         <div className="catalog-card-heading">
           <p>{product.productType || 'The tea cabinet'}</p>
-          <h2><Link prefetch="none" to={url}>{product.title}</Link></h2>
+          <h2>
+            <Link prefetch="none" to={url}>
+              {product.title}
+            </Link>
+          </h2>
         </div>
-        <p className="catalog-card-description">
-          {cardDescription}
-        </p>
+        <p className="catalog-card-description">{fullDescription}</p>
 
         {showVariantChoices ? (
           <fieldset className="catalog-variant-picker">
@@ -103,9 +96,7 @@ export function ProductItem({
                     disabled={!item.availableForSale}
                     aria-pressed={item.id === selectedVariant?.id}
                     aria-label={
-                      item.availableForSale
-                        ? `Select ${label}`
-                        : `${label}, out of stock`
+                      item.availableForSale ? `Select ${label}` : `${label}, out of stock`
                     }
                     onClick={() => setSelectedVariantId(item.id)}
                   >
@@ -125,14 +116,14 @@ export function ProductItem({
         <div className="catalog-card-footer">
           {showVariants ? (
             <div className="catalog-card-price">
-              <span>{showVariantChoices && selectedVariant
-                ? getPacketLabel(selectedVariant)
-                : 'Price'}</span>
+              <span>
+                {showVariantChoices && selectedVariant
+                  ? getPacketLabel(selectedVariant)
+                  : 'Price'}
+              </span>
               <strong>
                 <Money
-                  data={
-                    selectedVariant?.price || product.priceRange.minVariantPrice
-                  }
+                  data={selectedVariant?.price || product.priceRange.minVariantPrice}
                 />
               </strong>
             </div>
@@ -145,7 +136,13 @@ export function ProductItem({
               disabled={!canAddToCart}
               lines={
                 canAddToCart
-                  ? [{merchandiseId: cartVariant.id, quantity: 1, selectedVariant: cartVariant}]
+                  ? [
+                      {
+                        merchandiseId: cartVariant.id,
+                        quantity: 1,
+                        selectedVariant: cartVariant,
+                      },
+                    ]
                   : []
               }
               onClick={() => open('cart')}
@@ -153,7 +150,9 @@ export function ProductItem({
               {canAddToCart ? 'Add to cart' : 'Unavailable'}
             </AddToCartButton>
           ) : (
-            <Link className="text-link" prefetch="none" to={url}>Choose tea →</Link>
+            <Link className="text-link" prefetch="none" to={url}>
+              Choose tea →
+            </Link>
           )}
         </div>
       </div>

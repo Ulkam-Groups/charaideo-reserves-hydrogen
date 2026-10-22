@@ -46,7 +46,7 @@ export function Header({
 
   return (
     <header
-      className={`header header-solid${isDocked ? ' header-scrolled' : ''}`}
+      className={`header header-solid site-header${isDocked ? ' header-scrolled' : ''}`}
       ref={headerRef}
     >
       <div className="header-inner">
@@ -251,13 +251,13 @@ function SearchToggle() {
 
   return (
     <button
-      aria-label="Ask about our teas"
+      aria-label="Ask our tea guide"
       className="header-search-trigger reset"
       onClick={(event) => openShopifyChat(event.currentTarget)}
-      title="Ask about our teas (/)"
+      title="Ask our tea guide (/)"
       type="button"
     >
-      <span className="header-search-label">Ask about our teas</span>
+      <span className="header-search-label">Ask our tea guide</span>
       <kbd aria-hidden="true">/</kbd>
       <SearchIcon />
     </button>

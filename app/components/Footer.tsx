@@ -5,7 +5,7 @@ import {PaymentLogos} from './PaymentLogos';
 
 export function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer site-footer">
       <div className="footer-accent" aria-hidden="true" />
       <div className="footer-inner">
         <section className="footer-brand">
