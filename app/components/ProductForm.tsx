@@ -123,6 +123,7 @@ export function ProductForm({
                   return (
                     <Link
                       className="product-options-item"
+                      data-available={available}
                       key={option.name + name}
                       prefetch="none"
                       preventScrollReset
@@ -148,6 +149,7 @@ export function ProductForm({
                       className={`product-options-item${
                         exists && !selected ? ' link' : ''
                       }`}
+                      data-available={available}
                       key={option.name + name}
                       style={{
                         border: selected ? '1px solid black' : '1px solid transparent',
@@ -240,17 +242,17 @@ export function ProductForm({
                 >
                   +
                 </button>
-                {quantityLimitMessage && (
-                  <span
-                    className="product-quantity-tooltip"
-                    id={quantityLimitTooltipId}
-                    role="tooltip"
-                  >
-                    {quantityLimitMessage}
-                  </span>
-                )}
               </span>
             </div>
+            {quantityLimitMessage && (
+              <span
+                className="product-quantity-tooltip"
+                id={quantityLimitTooltipId}
+                role="tooltip"
+              >
+                {quantityLimitMessage}
+              </span>
+            )}
           </div>
         )}
         {(!selectedVariant || selectedVariant.availableForSale) && (

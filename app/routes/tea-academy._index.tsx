@@ -50,8 +50,9 @@ export default function TeaAcademy() {
       </div>
     </header>
     <nav className="academy-section-menu" aria-label="Tea Academy sections" role="tablist">
-      <button aria-controls="academy-content" aria-selected={section === 'sensory'} className={section === 'sensory' ? 'active' : ''} onClick={() => selectSection('sensory')} role="tab" type="button"><span>01</span><strong>Tea Sensory</strong><small>Find your tea through flavour</small></button>
-      <button aria-controls="academy-content" aria-selected={section === 'journal'} className={section === 'journal' ? 'active' : ''} onClick={() => selectSection('journal')} role="tab" type="button"><span>02</span><strong>Tea Journal</strong><small>Stories from origin</small></button>
+      <span className="academy-section-menu-label" aria-hidden="true">Learn about tea</span>
+      <button aria-controls="academy-content" aria-selected={section === 'sensory'} className={section === 'sensory' ? 'active' : ''} onClick={() => selectSection('sensory')} role="tab" type="button"><strong>Tea Sensory</strong></button>
+      <button aria-controls="academy-content" aria-selected={section === 'journal'} className={section === 'journal' ? 'active' : ''} onClick={() => selectSection('journal')} role="tab" type="button"><strong>Tea Journal</strong></button>
     </nav>
     <div className="academy-inline-content" id="academy-content" role="tabpanel" tabIndex={-1}>
       {section === 'sensory' ? <section className={`academy-panel${sensoryMatched ? ' sensory-matched' : ''}`} key="sensory">{!sensoryMatched ? <header className="academy-panel-heading"><p className="eyebrow">A guided tasting compass</p><h2>Let the wheel guide <em>your cup.</em></h2><p>There is no wrong answer. Choose what feels inviting and we will find the closest sensory match from the teas currently in our reserve.</p></header> : null}<TeaSensoryExperience key={sensorySession} teas={teas} onRevealChange={setSensoryMatched} /></section> : <AcademyJournal journal={journal} key="journal" />}

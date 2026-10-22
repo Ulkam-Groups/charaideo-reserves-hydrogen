@@ -430,7 +430,7 @@ function ContactPage({
             Product questions, order support, wholesale enquiries, or simply a
             shared love of Assam tea&mdash;our team is here to help.
           </p>
-          <small>We usually reply within one business day.</small>
+          <small>We usually reply within two business days.</small>
         </aside>
       </section>
 

@@ -4,7 +4,7 @@
  */
 
 :root {
-  --header-height: 4.5rem;
+  --header-height: 4rem;
   --notice-height: 1.25rem;
 }
 
@@ -106,10 +106,11 @@
   width: min(calc(100% - 2.5rem), var(--content-max));
   padding-inline: var(--space-5);
   transform: translateY(var(--space-3));
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-card);
-  background: rgb(255 255 255 / 97%);
-  box-shadow: var(--shadow-subtle);
+  border: 1px solid #cfd9d2;
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgb(19 42 31 / 8%);
+  backdrop-filter: none;
 }
 
 .site-header.header.header-solid.header-scrolled .header-inner {
@@ -122,21 +123,21 @@
 
 .site-header.header .wordmark {
   width: min(100%, 12rem);
-  height: 3.5rem;
+  height: 3rem;
   animation: none;
 }
 
 .site-header.header .wordmark img {
   width: auto;
-  height: 3.5rem;
-  filter: none;
+  height: 3rem;
+  filter: contrast(1.2) saturate(1.15);
   transition: opacity var(--motion-standard) var(--ease-standard);
 }
 
 .site-header.header .wordmark:hover img,
 .site-header.header .wordmark:focus-visible img {
   opacity: 0.78;
-  filter: none;
+  filter: contrast(1.2) saturate(1.15);
   transform: none;
 }
 
@@ -198,17 +199,19 @@
 }
 
 .site-header button.header-search-trigger {
-  width: clamp(10.5rem, 16vw, 13rem);
+  width: clamp(13rem, 20vw, 20rem);
+  flex: 0 0 auto;
   min-height: var(--control-height-standard);
   height: var(--control-height-standard);
   padding-inline: var(--space-4) var(--space-3);
   gap: var(--space-2);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-button);
   background: var(--surface-page);
   color: var(--text-secondary);
   box-shadow: none;
   font: 600 var(--type-label) / 1.2 var(--font-interface);
+  white-space: nowrap;
   transition:
     border-color var(--motion-standard) var(--ease-standard),
     background-color var(--motion-standard) var(--ease-standard);
@@ -216,7 +219,7 @@
 
 .site-header button.header-search-trigger:hover,
 .site-header button.header-search-trigger:focus-visible {
-  border-color: var(--border-strong);
+  border-color: var(--text-primary);
   background: var(--surface-subtle);
   box-shadow: none;
   transform: none;
@@ -482,6 +485,20 @@
   letter-spacing: 0.06em;
 }
 
+/* Collapse before the label can be squeezed by the main commerce navigation. */
+@media (max-width: 75rem) {
+  .site-header button.header-search-trigger {
+    width: var(--control-height-standard);
+    padding: 0;
+    justify-content: center;
+  }
+
+  .site-header .header-search-label,
+  .site-header .header-search-trigger kbd {
+    display: none;
+  }
+}
+
 @media (max-width: 64rem) {
   .site-header.header .header-inner,
   .site-header.header.header-solid .header-inner,
@@ -493,17 +510,6 @@
   .site-header.header.header-solid:not(.header-scrolled) .header-inner {
     width: calc(100% - 2rem);
     padding-inline: var(--space-4);
-  }
-
-  .site-header button.header-search-trigger {
-    width: var(--control-height-standard);
-    padding: 0;
-    justify-content: center;
-  }
-
-  .site-header .header-search-label,
-  .site-header .header-search-trigger kbd {
-    display: none;
   }
 
   .site-footer .footer-inner {
