@@ -24,7 +24,7 @@ test('homepage and catalog hydrate without recoverable React errors', async ({
   });
   page.on('pageerror', (error) => browserErrors.push(error.message));
 
-  for (const path of ['/', '/collections/all']) {
+  for (const path of ['/', '/reserve-list']) {
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.getByRole('heading', {level: 1})).toBeVisible();
@@ -75,7 +75,7 @@ test('disabled Sentry flag omits browser SDK and ingest requests', async ({
   page.on('request', (request) => {
     if (request.url().includes('monitoring.client-')) sentryRequests.push(request.url());
   });
-  const response = await page.goto('/collections/all');
+  const response = await page.goto('/reserve-list');
   expect(response?.status()).toBe(200);
   await expect(page.locator('meta[name="sentry-dsn"]')).toHaveCount(0);
   expect(response?.headers()['content-security-policy']).not.toContain(
@@ -89,7 +89,7 @@ test('storefront CSP permits configured checkout and third-party assets', async 
   context,
 }) => {
   await isolateCheckout(context);
-  const response = await page.goto('/collections/all');
+  const response = await page.goto('/reserve-list');
   const csp = response?.headers()['content-security-policy'] ?? '';
   for (const origin of [
     'https://fastrr-boost-ui.pickrr.com',
@@ -114,7 +114,7 @@ test('catalog to product to cart launches Fastrr with Shopify variant IDs', asyn
   context,
 }) => {
   await isolateCheckout(context);
-  await page.goto('/collections/all');
+  await page.goto('/reserve-list');
   await expect(page.getByRole('heading', {level: 1})).toBeVisible();
   const product = page.locator('a[href^="/products/"]').first();
   await expect(product).toBeVisible();
@@ -151,7 +151,7 @@ test('catalog to product to cart launches Fastrr with Shopify variant IDs', asyn
 
 test('cart cookie keeps the cart after a new page load', async ({page, context}) => {
   await isolateCheckout(context);
-  await page.goto('/collections/all');
+  await page.goto('/reserve-list');
   await page.locator('a[href^="/products/"]').first().click();
   await expect(page).toHaveURL(/\/products\//);
   await page.waitForLoadState('networkidle');
@@ -182,7 +182,7 @@ test('product checkout reports a mocked vendor launch failure', async ({
   context,
 }) => {
   await isolateCheckout(context, '127.0.0.1', 'throw');
-  await page.goto('/collections/all');
+  await page.goto('/reserve-list');
   await page.locator('a[href^="/products/"]').first().click();
   await expect(page.getByRole('button', {name: 'Buy now'})).toBeEnabled();
   await page.waitForLoadState('networkidle');
@@ -195,7 +195,7 @@ test('product checkout reports a mocked vendor launch failure', async ({
 
 test('product checkout reports a missing vendor script', async ({page, context}) => {
   await isolateCheckout(context, '127.0.0.1', 'missing');
-  await page.goto('/collections/all');
+  await page.goto('/reserve-list');
   await page.locator('a[href^="/products/"]').first().click();
   await expect(page.getByRole('button', {name: 'Buy now'})).toBeEnabled();
   await page.waitForLoadState('networkidle');
@@ -211,7 +211,7 @@ test('cart quantity and UTM parameters are passed to the mocked Fastrr launch', 
   context,
 }) => {
   await isolateCheckout(context);
-  await page.goto('/collections/all');
+  await page.goto('/reserve-list');
   await page.locator('a[href^="/products/"]').first().click();
   await expect(page.getByRole('button', {name: 'Buy now'})).toBeEnabled();
   await page.waitForLoadState('networkidle');

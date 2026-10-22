@@ -14,7 +14,7 @@ test('Razorpay toggle isolates assets and launches product and cart checkout', a
   const requests: Array<{path: string; fields: Record<string, string>}> = [];
   await isolateRazorpayCheckout(context, requests, {verificationDelayMs: 250});
 
-  const response = await page.goto('/collections/all');
+  const response = await page.goto('/reserve-list');
   const csp = response?.headers()['content-security-policy'] ?? '';
   expect(csp).toContain('https://checkout.razorpay.com');
   expect(csp).toContain('https://checkout-static-next.razorpay.com');
