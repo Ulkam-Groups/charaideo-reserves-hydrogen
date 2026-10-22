@@ -914,6 +914,25 @@ button[data-state='busy'] {
   isolation: isolate;
   overflow: hidden;
 }
+.product-purchase .product-buy-now .payment-logos {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin: 0;
+}
+.product-purchase .product-buy-now .payment-logos img {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 50%;
+  background: #ffffff;
+  object-fit: contain;
+  box-shadow: 0 1px 2px rgba(5, 18, 12, 0.24);
+}
+.product-purchase .product-buy-now .payment-logos img + img {
+  margin-left: -5px;
+}
 .product-purchase .product-actions .product-buy-now > * {
   position: relative;
   z-index: 1;
@@ -1266,3 +1285,63 @@ button[data-state='busy'] {
 /* Cart savings row */
 .cart-savings{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;padding:6px 10px;border-radius:6px;background:#e8f3ec;color:#132a1f;font-size:13px;font-weight:700}
 .cart-savings dt,.cart-savings dd{margin:0}
+
+/* PDP contrast pass: colour and rendering only; preserve the compact sizing. */
+.product-page,
+.product-page button,
+.product-page input,
+.product-page summary {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.product-page .product-index,
+.product-page .product-review-summary,
+.product-page .product-options h5,
+.product-page .product-unit-price,
+.product-page .product-stock,
+.product-page .product-quantity,
+.product-page .product-assurances,
+.product-page .product-assurances li,
+.product-page .product-quick-facts dt,
+.product-page .product-shipping-note,
+.product-page .delivery-estimate-disclosure summary,
+.product-page .delivery-estimate-body,
+.product-page .delivery-estimate-note,
+.product-page .product-story div,
+.product-page .product-information-sections details p,
+.product-page .product-reviews-heading > p,
+.product-page .product-reviews-empty p,
+.product-page .product-rating-panel p,
+.product-page .product-review-card-topline,
+.product-page .product-review-card footer,
+.product-page .tea-record-highlights dt,
+.product-page .tea-record-summary-copy small,
+.product-page .tea-record-grid dt,
+.product-page .tea-record-shop-cta span {
+  color: #334b3f !important;
+}
+
+.product-page .product-section-nav a {
+  color: #334b3f;
+}
+
+.product-page .product-section-nav a:hover {
+  color: #132a1f;
+}
+
+.product-page .product-section-nav a[aria-current='true'] {
+  color: #ffffff;
+}
+
+.product-page .product-taste-line {
+  color: #80571b !important;
+}
+
+.product-page .product-information-sections summary,
+.product-page .tea-record-highlights dd,
+.product-page .tea-record-summary-copy strong,
+.product-page .tea-record-grid dd,
+.product-page .product-quick-facts dd {
+  color: #132a1f !important;
+}

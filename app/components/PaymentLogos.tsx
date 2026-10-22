@@ -1,17 +1,25 @@
-import applePayLogo from '~/assets/payment-methods/apple-pay.svg?url';
+import paypalLogo from '~/assets/payment-methods/paypal.svg?url';
 import upiLogo from '~/assets/payment-methods/upi.svg?url';
 
 const PAYMENT_LOGOS = [
   ['Visa', 'https://cdn.razorpay.com/card-networks/visa.svg'],
   ['Mastercard', 'https://cdn.razorpay.com/card-networks/mastercard.svg'],
   ['UPI', upiLogo],
-  ['Apple Pay', applePayLogo],
-];
+  ['PayPal', paypalLogo],
+] as const;
 
-export function PaymentLogos() {
+type PaymentMethod = (typeof PAYMENT_LOGOS)[number][0];
+
+export function PaymentLogos({methods}: {methods?: PaymentMethod[]}) {
+  const logos = methods
+    ? methods.flatMap((method) =>
+        PAYMENT_LOGOS.filter(([name]) => name === method),
+      )
+    : PAYMENT_LOGOS;
+
   return (
     <div className="payment-logos cart-secure-logos" aria-label="Accepted payment methods">
-      {PAYMENT_LOGOS.map(([name, source]) => (
+      {logos.map(([name, source]) => (
         <img
           key={name}
           src={source}

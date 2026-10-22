@@ -13,6 +13,12 @@ export const API_RATE_LIMITS = {
       {max: 6, windowMs: 86_400_000},
     ],
   },
+  '/api/contact': {
+    limits: [
+      {max: 3, windowMs: 60_000},
+      {max: 12, windowMs: 86_400_000},
+    ],
+  },
   '/api/blend-checkout': null, // Retired: always 410.
   '/api/admin/teas': null, // Disabled: always 404.
   '/api/shipping-estimate': {

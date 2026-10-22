@@ -12,6 +12,10 @@ export const meta: Route.MetaFunction = ({data}) => {
 };
 
 export async function loader(args: Route.LoaderArgs) {
+  // Collection pages are intentionally disabled. Remove this redirect to restore the preserved implementation below.
+  const collectionPagesEnabled = false;
+  if (!collectionPagesEnabled) return redirect('/reserve-list', 301);
+
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 
@@ -191,3 +195,4 @@ const COLLECTION_QUERY = `#graphql
     }
   }
 ` as const;
+

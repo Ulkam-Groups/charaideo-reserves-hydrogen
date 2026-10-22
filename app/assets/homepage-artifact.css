@@ -193,13 +193,17 @@
 .home-product-card-actions > a {background: #17382a; color: #fff}
 .home-product-card > .wishlist-button {position: absolute; top: 9px; right: 9px; z-index: 3}
 
+@media (max-width: 960px) {
+  .home-product-list {padding-bottom: 36px}
+}
+
 @media (max-width: 640px) {
   .home-section-river {height: 78px}
   .home-section-river::before {top: 43px; height: 50px}
   .home-river-seal-mark {top: 2px; right: 8%; width: 27px}
   .home-river-seal-place {top: 33px; right: calc(8% - 11px); width: 48px; font-size: 6.5px}
   .home-river-seal-coordinate {top: 41px; right: calc(8% - 15px); font-size: 32px}
-  .home-product-list {padding: 12px 12px 58px}
+  .home-product-list {padding: 12px 12px 32px}
   .home-product-list > header {align-items: start; flex-direction: column; gap: 10px; margin-bottom: 20px}
   .home-product-list > header h2 {font-size: 28px}
   .home-product-rail {grid-auto-columns: min(272px, 82vw); gap: 10px}

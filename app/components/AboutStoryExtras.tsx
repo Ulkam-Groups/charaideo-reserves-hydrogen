@@ -33,7 +33,7 @@ function useInView<T extends HTMLElement>() {
 const JOURNEY = [
   {
     id: 'garden',
-    place: 'Rupai',
+    place: 'The garden',
     title: 'The garden',
     body: 'Leaf is hand-plucked at the estate, and the pluck date is recorded against the lot.',
     x: 90,
@@ -49,9 +49,9 @@ const JOURNEY = [
   },
   {
     id: 'vault',
-    place: 'Charaideo',
+    place: 'Charaideo Reserves',
     title: 'The vault',
-    body: 'Each lot is sealed and given a QR code that points back to its garden.',
+    body: 'Each lot is curated and sealed and given a QR code that points back to its garden.',
     x: 560,
     y: 200,
   },

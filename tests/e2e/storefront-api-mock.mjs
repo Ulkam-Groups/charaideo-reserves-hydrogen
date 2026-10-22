@@ -146,9 +146,7 @@ function execute(operation, variables) {
                 nodes: [
                   {
                     variants: {
-                      nodes: [
-                        {availableForSale: false, currentlyNotInStock: false},
-                      ],
+                      nodes: [{availableForSale: false, currentlyNotInStock: false}],
                     },
                   },
                 ],
@@ -171,6 +169,37 @@ function execute(operation, variables) {
             endCursor: 'e2e-end',
           },
         },
+      };
+    case 'ReserveListCollections':
+      return {
+        collections: {
+          nodes: [
+            {
+              title: 'Chapter I',
+              handle: 'chapter-i',
+              description: 'The active E2E reserve chapter.',
+            },
+          ],
+          pageInfo: {hasNextPage: false, endCursor: 'e2e-collections-end'},
+        },
+      };
+    case 'ReserveListProducts':
+      return {
+        collection:
+          variables.handle === 'chapter-i'
+            ? {
+                products: {
+                  nodes: [
+                    {
+                      ...catalogProduct,
+                      tags: ['e2e-assam-tea'],
+                      availableForSale: true,
+                    },
+                  ],
+                  pageInfo: {hasNextPage: false, endCursor: 'e2e-products-end'},
+                },
+              }
+            : null,
       };
     case 'Product':
       return {product: variables.handle === product.handle ? product : null};

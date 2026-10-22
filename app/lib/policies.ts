@@ -38,7 +38,7 @@ export const POLICY_PAGES = [
       <h2>After your order</h2>
       <p>We prepare orders for dispatch and share delivery or tracking information when it is available. Delivery estimates can change because of location, carrier operations, holidays, or other circumstances outside our control.</p>
       <h2>Shipping questions</h2>
-      <p>For an update or help with a delivery, contact <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a> with your order number. Charaideo Reserves™ is based in Ownguri Gaon, Rupai Siding, Assam 786153, India.</p>
+      <p>For an update or help with a delivery, contact <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a> with your order number. Charaideo Reserves™ is based in Ouguri Gaon, Rupai Siding, Assam 786153, India.</p>
     `,
   },
   {
