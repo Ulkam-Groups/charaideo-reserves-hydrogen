@@ -1,5 +1,5 @@
 import type {Route} from './+types/collections.all';
-import {Form, useLoaderData} from 'react-router';
+import {Form, redirect, useLoaderData} from 'react-router';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
@@ -27,6 +27,10 @@ export const meta: Route.MetaFunction = () => {
 };
 
 export async function loader(args: Route.LoaderArgs) {
+  // Collection pages are intentionally disabled. Remove this redirect to restore the preserved implementation below.
+  const collectionPagesEnabled = false;
+  if (!collectionPagesEnabled) return redirect('/reserve-list', 301);
+
   // Start fetching non-critical data without blocking time to first byte
   const deferredData = loadDeferredData(args);
 
@@ -203,3 +207,4 @@ const CATALOG_QUERY = `#graphql
   }
   ${COLLECTION_ITEM_FRAGMENT}
 ` as const;
+

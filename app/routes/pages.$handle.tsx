@@ -1,4 +1,5 @@
-import {Link, useLoaderData} from 'react-router';
+import {useEffect, useRef, useState} from 'react';
+import {Link, useFetcher, useLoaderData} from 'react-router';
 import type {Route} from './+types/pages.$handle';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
@@ -50,6 +51,7 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
     return {
       page: staticPage,
       isStaticPage: true,
+      turnstileSiteKey: context.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '',
     };
   }
 
@@ -71,6 +73,7 @@ async function loadCriticalData({context, request, params}: Route.LoaderArgs) {
   return {
     page: {...page, body: sanitizeStorefrontHtml(page.body)},
     isStaticPage: false,
+    turnstileSiteKey: '',
   };
 }
 
@@ -84,10 +87,10 @@ function loadDeferredData({context}: Route.LoaderArgs) {
 }
 
 export default function Page() {
-  const {page, isStaticPage} = useLoaderData<typeof loader>();
+  const {page, isStaticPage, turnstileSiteKey = ''} = useLoaderData<typeof loader>();
 
   if (isStaticPage) {
-    return <StaticPage page={page as StaticPageContent} />;
+    return <StaticPage page={page as StaticPageContent} turnstileSiteKey={turnstileSiteKey} />;
   }
 
   return (
@@ -112,13 +115,19 @@ type StaticPageContent = {
   seo?: {description?: string; title?: string};
 };
 
-function StaticPage({page}: {page: StaticPageContent}) {
+function StaticPage({
+  page,
+  turnstileSiteKey,
+}: {
+  page: StaticPageContent;
+  turnstileSiteKey: string;
+}) {
   if (page.handle === 'about-us') {
     return <AboutStoryPage />;
   }
 
   if (page.handle === 'contact') {
-    return <ContactPage page={page} />;
+    return <ContactPage page={page} turnstileSiteKey={turnstileSiteKey} />;
   }
 
   return (
@@ -178,45 +187,232 @@ function StaticPage({page}: {page: StaticPageContent}) {
   );
 }
 
-function ContactPage({page}: {page: StaticPageContent}) {
-  const socialLinks = [
-    {
-      label: 'Instagram',
-      handle: '@charaideo.reserves',
-      href: 'https://www.instagram.com/charaideo.reserves/',
-    },
-    {
-      label: 'Facebook',
-      handle: 'Charaideo Reserves',
-      href: 'https://www.facebook.com/profile.php?id=61595061842649',
-    },
-    {
-      label: 'LinkedIn',
-      handle: 'Charaideo Reserves',
-      href: 'https://www.linkedin.com/showcase/charaideo-reserves',
-    },
-  ];
+function ContactForm({
+  turnstileSiteKey,
+  onClose,
+  onSuccess,
+}: {
+  turnstileSiteKey: string;
+  onClose?: () => void;
+  onSuccess?: (message: string) => void;
+}) {
+  const fetcher = useFetcher<{ok?: boolean; message?: string; error?: string}>();
+  const formRef = useRef<HTMLFormElement>(null);
+  const captchaRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string>();
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [enquiryType, setEnquiryType] = useState('');
+  const pending = fetcher.state !== 'idle';
+
+  useEffect(() => {
+    if (!turnstileSiteKey || !captchaRef.current) return;
+
+    type TurnstileApi = {
+      render: (
+        element: HTMLElement,
+        options: {
+          sitekey: string;
+          theme: string;
+          size: 'flexible';
+          callback: (token: string) => void;
+          'expired-callback': () => void;
+          'error-callback': () => void;
+        },
+      ) => string;
+      remove: (widgetId: string) => void;
+      reset: (widgetId: string) => void;
+    };
+    const turnstileWindow = window as Window & {turnstile?: TurnstileApi};
+    const renderWidget = () => {
+      if (!captchaRef.current || !turnstileWindow.turnstile || widgetIdRef.current) return;
+      widgetIdRef.current = turnstileWindow.turnstile.render(captchaRef.current, {
+        sitekey: turnstileSiteKey,
+        theme: 'light',
+        size: 'flexible',
+        callback: setCaptchaToken,
+        'expired-callback': () => setCaptchaToken(''),
+        'error-callback': () => setCaptchaToken(''),
+      });
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-contact-turnstile]',
+    );
+    if (turnstileWindow.turnstile) {
+      renderWidget();
+    } else if (existingScript) {
+      existingScript.addEventListener('load', renderWidget, {once: true});
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.dataset.contactTurnstile = 'true';
+      script.addEventListener('load', renderWidget, {once: true});
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      existingScript?.removeEventListener('load', renderWidget);
+      if (widgetIdRef.current && turnstileWindow.turnstile) {
+        turnstileWindow.turnstile.remove(widgetIdRef.current);
+        widgetIdRef.current = undefined;
+      }
+    };
+  }, [turnstileSiteKey]);
+
+  useEffect(() => {
+    if (!fetcher.data?.ok) return;
+    formRef.current?.reset();
+    setEnquiryType('');
+    const turnstile = (
+      window as Window & {turnstile?: {reset: (widgetId: string) => void}}
+    ).turnstile;
+    if (widgetIdRef.current) turnstile?.reset(widgetIdRef.current);
+    setCaptchaToken('');
+    onSuccess?.(fetcher.data.message ?? 'Thank you. Your enquiry has been received.');
+  }, [fetcher.data, onSuccess]);
+
+  return (
+    <section
+      className={`contact-form-section${onClose ? ' contact-form-section--modal' : ''}`}
+      aria-labelledby="contact-form-title"
+    >
+      {onClose && (
+        <button className="contact-form-close" type="button" onClick={onClose} aria-label="Close contact form">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      )}
+      <div className="contact-form-heading">
+        <span className="eyebrow">Send us a note</span>
+        <h2 id="contact-form-title">How can we help?</h2>
+        <p>
+          Tell us what you need and we&rsquo;ll route your message to the right person.
+        </p>
+        <ul className="contact-form-assurances" aria-label="Support information">
+          <li>Reply within two business days</li>
+        </ul>
+      </div>
+      <fetcher.Form ref={formRef} className="contact-form" method="post" action="/api/contact">
+        <div className="contact-form-fields">
+          <label>
+            <span>Name</span>
+            <input name="name" type="text" autoComplete="name" maxLength={100} required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autoComplete="email" maxLength={254} required />
+          </label>
+          <label>
+            <span>Phone <small>Optional</small></span>
+            <input name="phone" type="tel" autoComplete="tel" maxLength={30} />
+          </label>
+          <label>
+            <span>Enquiry type</span>
+            <select
+              name="enquiryType"
+              value={enquiryType}
+              onChange={(event) => setEnquiryType(event.currentTarget.value)}
+              required
+            >
+              <option value="" disabled>Select a topic</option>
+              <option>Order support</option>
+              <option>Product question</option>
+              <option>Wholesale or gifting</option>
+              <option>Visit the estate</option>
+              <option>Other</option>
+            </select>
+          </label>
+          {enquiryType === 'Order support' && (
+            <label>
+              <span>Order number <small>Optional</small></span>
+              <input name="orderNumber" type="text" autoComplete="off" maxLength={40} />
+            </label>
+          )}
+          <label className="contact-form-message">
+            <span>Message <small>Maximum 400 characters</small></span>
+            <textarea name="message" rows={4} minLength={10} maxLength={400} required />
+          </label>
+        </div>
+        <label className="contact-form-honeypot" aria-hidden="true">
+          Website
+          <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+        </label>
+        {turnstileSiteKey ? (
+          <>
+            <div ref={captchaRef} className="contact-turnstile" />
+            <input type="hidden" name="cf-turnstile-response" value={captchaToken} />
+          </>
+        ) : (
+          <p className="contact-form-config">Contact form security is being configured.</p>
+        )}
+        <div className="contact-form-submit">
+          <button
+            className="button primary"
+            type="submit"
+            disabled={pending || !turnstileSiteKey || !captchaToken}
+          >
+            {pending ? 'Sending…' : 'Submit enquiry'}
+          </button>
+          <p>By submitting, you agree that we may use these details to respond to your enquiry.</p>
+        </div>
+        {fetcher.data?.message && !onSuccess && (
+          <p className="contact-form-status success" role="status">{fetcher.data.message}</p>
+        )}
+        {fetcher.data?.error && (
+          <p className="contact-form-status error" role="alert">{fetcher.data.error}</p>
+        )}
+      </fetcher.Form>
+    </section>
+  );
+}
+
+function ContactPage({
+  page,
+  turnstileSiteKey,
+}: {
+  page: StaticPageContent;
+  turnstileSiteKey: string;
+}) {
+  const [contactFormOpen, setContactFormOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const contactDialogRef = useRef<HTMLDialogElement>(null);
+  const successDialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = contactDialogRef.current;
+    if (!dialog) return;
+    if (contactFormOpen && !dialog.open) dialog.showModal();
+    if (!contactFormOpen && dialog.open) dialog.close();
+  }, [contactFormOpen]);
+
+  useEffect(() => {
+    const dialog = successDialogRef.current;
+    if (!dialog) return;
+    if (successMessage && !dialog.open) dialog.showModal();
+    if (!successMessage && dialog.open) dialog.close();
+  }, [successMessage]);
 
   const faqs = [
     {
       question: 'Where is my order?',
       answer:
-        'Email contact@ulkamgroup.com with your order number and we will share the latest tracking update.',
+        'Check the tracking link in your dispatch confirmation first. If tracking is unavailable or your delivery is overdue, submit an order-support enquiry with your order number so we can check it with the carrier.',
     },
     {
       question: 'Do you take wholesale or gifting enquiries?',
       answer:
-        'Yes. Write to us with your quantities and timeline, and our team will reply within one business day.',
+        'Yes. Send an enquiry with the tea, approximate quantity, delivery location, required date, and any packaging needs. Our team will reply within two business days.',
     },
     {
-      question: 'Can I visit the estate?',
+      question: 'How are shipping charges and delivery estimates calculated?',
       answer:
-        'We are based in Rupai Siding, Assam. Call ahead so we can plan your visit.',
+        'Available shipping methods, charges, and delivery estimates are shown at checkout for the address you enter. Estimates may change because of the destination, carrier operations, holidays, or circumstances outside our control.',
     },
     {
       question: 'How do I return or exchange a tea?',
       answer:
-        'Our Refund Policy covers the details; for help with a specific order, contact us.',
+        'Submit an enquiry with your order number and the reason for your request before sending anything back. We will review the product condition and order details, then share return instructions if the request is approved.',
     },
   ];
 
@@ -227,14 +423,6 @@ function ContactPage({page}: {page: StaticPageContent}) {
           <span className="eyebrow">{page.hero}</span>
           <h1>Let&rsquo;s start a conversation.</h1>
           <p>{page.excerpt}</p>
-          <div className="contact-intro-actions">
-            <a className="button primary" href="mailto:contact@ulkamgroup.com">
-              Email our team
-            </a>
-            <a className="contact-text-link" href="tel:+918431988910">
-              +91 84319 88910 <span aria-hidden="true">&#8599;</span>
-            </a>
-          </div>
         </div>
         <aside className="contact-intro-note" aria-label="Our promise">
           <span>From the tea country</span>
@@ -253,28 +441,97 @@ function ContactPage({page}: {page: StaticPageContent}) {
         </div>
         <div className="contact-card-grid">
           <article>
-            <span className="contact-card-number">01</span>
-            <h3>Email</h3>
+            <div className="contact-card-heading">
+              <span className="contact-card-number">01</span>
+              <h3>Send an enquiry</h3>
+            </div>
             <p>For orders, products, partnerships, and general enquiries.</p>
-            <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a>
-            <a href="mailto:kamalika@ulkamgroup.com">kamalika@ulkamgroup.com</a>
+            <button className="contact-card-action" type="button" onClick={() => setContactFormOpen(true)}>
+              Send us a message
+            </button>
           </article>
           <article>
-            <span className="contact-card-number">02</span>
-            <h3>Call</h3>
-            <p>Monday&ndash;Friday, 10:00 AM&ndash;4:00 PM IST.</p>
-            <a href="tel:+918431988910">+91 84319 88910</a>
+            <div className="contact-card-heading">
+              <span className="contact-card-number">02</span>
+              <h3>Connect with us</h3>
+            </div>
+            <p>Call Monday&ndash;Friday, 10:00 AM&ndash;4:00 PM IST, or message us online.</p>
+            <div className="contact-channel-links">
+              <a href="tel:+918431988910" aria-label="Call us" title="Call">
+                <ContactChannelIcon platform="call" />
+              </a>
+              <a href="https://wa.me/918431988910" target="_blank" rel="noreferrer" aria-label="Chat with us on WhatsApp" title="WhatsApp">
+                <ContactChannelIcon platform="whatsapp" />
+              </a>
+              <a href="https://www.instagram.com/charaideo.reserves/" target="_blank" rel="noreferrer" aria-label="Follow us on Instagram" title="Instagram">
+                <ContactChannelIcon platform="instagram" />
+              </a>
+              <a href="https://www.facebook.com/profile.php?id=61595061842649" target="_blank" rel="noreferrer" aria-label="Follow us on Facebook" title="Facebook">
+                <ContactChannelIcon platform="facebook" />
+              </a>
+              <a href="https://www.linkedin.com/showcase/charaideo-reserves" target="_blank" rel="noreferrer" aria-label="Follow us on LinkedIn" title="LinkedIn">
+                <ContactChannelIcon platform="linkedin" />
+              </a>
+            </div>
           </article>
           <article>
-            <span className="contact-card-number">03</span>
-            <h3>Visit</h3>
-            <p>Ownguri Gaon, Rupai Siding, Assam 786153, India.</p>
-            <a href="https://maps.app.goo.gl/ZTk13bPuNgmt1kBy5" target="_blank" rel="noreferrer">
+            <div className="contact-card-heading">
+              <span className="contact-card-number">03</span>
+              <h3>Visit us</h3>
+            </div>
+            <p>Ouguri Gaon, Rupai Siding, Assam 786153, India.</p>
+            <a className="contact-directions-link" href="https://maps.app.goo.gl/ZTk13bPuNgmt1kBy5" target="_blank" rel="noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
+                <circle cx="12" cy="9" r="2.4" />
+              </svg>
               Get directions <span aria-hidden="true">&#8599;</span>
             </a>
           </article>
         </div>
       </section>
+
+      <dialog
+        ref={contactDialogRef}
+        className="contact-form-dialog"
+        aria-labelledby="contact-form-title"
+        onCancel={() => setContactFormOpen(false)}
+        onClose={() => setContactFormOpen(false)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setContactFormOpen(false);
+        }}
+      >
+        {contactFormOpen && (
+          <ContactForm
+            turnstileSiteKey={turnstileSiteKey}
+            onClose={() => setContactFormOpen(false)}
+            onSuccess={(message) => {
+              setContactFormOpen(false);
+              setSuccessMessage(message);
+            }}
+          />
+        )}
+      </dialog>
+
+      <dialog
+        ref={successDialogRef}
+        className="contact-success-dialog"
+        aria-labelledby="contact-success-title"
+        onCancel={() => setSuccessMessage('')}
+        onClose={() => setSuccessMessage('')}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setSuccessMessage('');
+        }}
+      >
+        <div className="contact-success-content">
+          <span className="contact-success-check" aria-hidden="true">&#10003;</span>
+          <div>
+            <h2 id="contact-success-title">Message received</h2>
+            <p>{successMessage}</p>
+          </div>
+          <button type="button" onClick={() => setSuccessMessage('')}>Close</button>
+        </div>
+      </dialog>
 
       <section className="contact-location" aria-labelledby="contact-location-title">
         <div className="contact-location-content">
@@ -327,64 +584,56 @@ function ContactPage({page}: {page: StaticPageContent}) {
         </div>
       </section>
 
-      <section className="contact-social" aria-labelledby="contact-social-title">
-        <div>
-          <span className="eyebrow">Follow the journey</span>
-          <h2 id="contact-social-title">Stories from the reserve.</h2>
-        </div>
-        <div className="contact-social-links">
-          {socialLinks.map((social) => (
-            <a
-              key={social.label}
-              className={`social-link-${social.label.toLowerCase()}`}
-              href={social.href}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`Follow Charaideo Reserves on ${social.label}`}
-              title={social.label}
-            >
-              <SocialIcon platform={social.label} />
-            </a>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }
 
-function SocialIcon({platform}: {platform: string}) {
-  if (platform === 'Instagram') {
+function ContactChannelIcon({platform}: {platform: string}) {
+  if (platform === 'call') {
     return (
-      <svg className="social-icon-instagram" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="contact-channel-icon contact-channel-icon--call" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6.6 3.8 9.2 8l-2 2.1c1.1 2.4 3.1 4.4 5.6 5.6l2.1-2 4.2 2.6-.7 3.3c-.2.9-1 1.5-1.9 1.4C9.4 20.2 3.8 14.6 3 7.5c-.1-.9.5-1.7 1.4-1.9l2.2-.5Z" />
+      </svg>
+    );
+  }
+  if (platform === 'whatsapp') {
+    return (
+      <svg className="contact-channel-icon contact-channel-icon--whatsapp" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20.2 11.7a8.2 8.2 0 0 1-12.1 7.2L4 20l1.1-4a8.2 8.2 0 1 1 15.1-4.3Z" />
+        <path d="M9.1 8.1c.3-.4.6-.4.9 0l1 1.8c.2.4.1.7-.2 1l-.6.6c.8 1.6 1.8 2.6 3.4 3.3l.6-.7c.3-.3.6-.4 1-.2l1.8.9c.4.2.5.6.2.9-.6 1-1.4 1.4-2.5 1.3-3.3-.4-6.9-3.8-7.4-7.1-.2-.8.4-1.4 1.8-1.8Z" />
+      </svg>
+    );
+  }
+  if (platform === 'instagram') {
+    return (
+      <svg className="contact-channel-icon contact-channel-icon--instagram" viewBox="0 0 24 24" aria-hidden="true">
         <defs>
-          <linearGradient id="instagram-gradient" x1="2" y1="22" x2="22" y2="2">
-            <stop offset="0" stopColor="#feda75" />
-            <stop offset="0.35" stopColor="#fa7e1e" />
-            <stop offset="0.62" stopColor="#d62976" />
-            <stop offset="0.82" stopColor="#962fbf" />
-            <stop offset="1" stopColor="#4f5bd5" />
+          <linearGradient id="contact-instagram-gradient" x1="2" y1="22" x2="22" y2="2" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#ffdc80" />
+            <stop offset="0.28" stopColor="#fcaf45" />
+            <stop offset="0.5" stopColor="#f77737" />
+            <stop offset="0.72" stopColor="#e1306c" />
+            <stop offset="1" stopColor="#833ab4" />
           </linearGradient>
         </defs>
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="1" />
+        <rect className="contact-instagram-stroke" x="3.5" y="3.5" width="17" height="17" rx="5" />
+        <circle className="contact-instagram-stroke" cx="12" cy="12" r="4" />
+        <circle className="contact-icon-dot contact-instagram-dot" cx="17.4" cy="6.7" r="1" />
       </svg>
     );
   }
-
-  if (platform === 'Facebook') {
+  if (platform === 'facebook') {
     return (
-      <svg className="social-icon-solid social-icon-facebook" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M14.5 8H17V4.4c-.43-.06-1.9-.18-3.64-.18-3.6 0-6.07 2.2-6.07 6.25V14H3.2v4.03h4.09V24h5.02v-5.97h4.18L17.15 14h-4.84v-3.13C12.31 9.7 12.63 8 14.5 8Z" />
+      <svg className="contact-channel-icon contact-channel-icon--facebook" viewBox="0 0 24 24" aria-hidden="true">
+        <path className="contact-icon-solid" d="M14.4 8H17V4.4c-.5-.1-1.8-.2-3.5-.2-3.6 0-6 2.2-6 6.2V14H3.5v4h4v3h4.9v-3h4.1l.6-4h-4.7v-3.1c0-1.2.3-2.9 2-2.9Z" />
       </svg>
     );
   }
-
   return (
-    <svg className="social-icon-solid social-icon-linkedin" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3" y="9" width="4" height="12" />
-      <circle cx="5" cy="5" r="2" />
-      <path d="M10 9h4v1.7c.8-1.2 2-2.1 4.1-2.1 3.5 0 3.9 2.5 3.9 5.7V21h-4v-6c0-1.45-.03-3.3-2-3.3-2 0-2.3 1.56-2.3 3.2V21H10V9Z" />
+    <svg className="contact-channel-icon contact-channel-icon--linkedin" viewBox="0 0 24 24" aria-hidden="true">
+      <rect className="contact-icon-solid" x="3" y="9" width="4" height="12" />
+      <circle className="contact-icon-solid" cx="5" cy="5" r="2" />
+      <path className="contact-icon-solid" d="M10 9h4v1.8c.9-1.4 2.2-2.2 4.1-2.2 3.4 0 3.9 2.5 3.9 5.7V21h-4v-6c0-1.5 0-3.3-2-3.3s-2.3 1.6-2.3 3.2V21H10V9Z" />
     </svg>
   );
 }
@@ -678,7 +927,7 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
       {
         eyebrow: 'Address',
         title: 'Rupai Siding, Assam',
-        body: 'Ownguri Gaon, Rupai Siding, Assam 786153, India.',
+        body: 'Ouguri Gaon, Rupai Siding, Assam 786153, India.',
       },
       {
         eyebrow: 'Email',
@@ -693,7 +942,7 @@ const STATIC_PAGES: Record<string, StaticPageContent> = {
       {
         eyebrow: 'Hours',
         title: 'Business hours',
-        body: 'Monday to Saturday, 9:00 AM to 6:00 PM IST. Sunday closed.',
+        body: 'Monday–Friday, 10:00 AM–4:00 PM IST.',
       },
     ],
     cta: {label: 'Explore the Reserve List', to: '/reserve-list'},

@@ -202,10 +202,101 @@ const f = jsx;
 const y = jsxs;
 
 function HeroBrandArtwork() {
+  const artworkRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const artwork = artworkRef.current;
+    const river = artwork?.querySelector<SVGPathElement>('.hero-brand-river-bed');
+    if (!artwork || !river) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const restingPath = river.getAttribute('d') ?? '';
+    let lastScrollY = window.scrollY;
+    let scrollingUp = false;
+    let hasVisited = window.sessionStorage.getItem('charaideo-home-hero-seen') === 'true';
+    let waveFrame = 0;
+
+    const updateDirection = () => {
+      scrollingUp = window.scrollY < lastScrollY;
+      lastScrollY = window.scrollY;
+    };
+    const playWave = () => {
+      if (waveFrame) window.cancelAnimationFrame(waveFrame);
+      river.setAttribute('d', restingPath);
+      const length = river.getTotalLength();
+      const startedAt = performance.now();
+      const duration = 3200;
+      const samples = 84;
+      const baseSamples = Array.from({length: samples + 1}, (_, index) => {
+        const position = index / samples;
+        const distance = position * length;
+        return {
+          position,
+          point: river.getPointAtLength(distance),
+          before: river.getPointAtLength(Math.max(0, distance - 1)),
+          after: river.getPointAtLength(Math.min(length, distance + 1)),
+        };
+      });
+
+      const renderWave = (now: number) => {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = progress * progress * (3 - 2 * progress);
+        const centre = -0.2 + eased * 1.4;
+        const points: string[] = [];
+
+        for (let index = 0; index <= samples; index += 1) {
+          const {position, point, before, after} = baseSamples[index];
+          const tangentX = after.x - before.x;
+          const tangentY = after.y - before.y;
+          const tangentLength = Math.hypot(tangentX, tangentY) || 1;
+          const normalX = -tangentY / tangentLength;
+          const normalY = tangentX / tangentLength;
+          const delta = position - centre;
+          const envelope = Math.exp(-Math.pow(delta / 0.19, 2));
+          const displacement = Math.sin(delta * Math.PI * 3.4) * envelope * 4.25;
+          const x = point.x + normalX * displacement;
+          const y = point.y + normalY * displacement;
+          points.push(`${index === 0 ? 'M' : 'L'}${x.toFixed(2)} ${y.toFixed(2)}`);
+        }
+
+        river.setAttribute('d', points.join(' '));
+        if (progress < 1) {
+          waveFrame = window.requestAnimationFrame(renderWave);
+        } else {
+          river.setAttribute('d', restingPath);
+          waveFrame = 0;
+        }
+      };
+
+      waveFrame = window.requestAnimationFrame(renderWave);
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+
+        if (hasVisited && (scrollingUp || window.scrollY < 24) && !reducedMotion.matches) {
+          playWave();
+        }
+        hasVisited = true;
+        window.sessionStorage.setItem('charaideo-home-hero-seen', 'true');
+      },
+      {threshold: 0.35},
+    );
+
+    window.addEventListener('scroll', updateDirection, {passive: true});
+    observer.observe(artwork);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', updateDirection);
+      if (waveFrame) window.cancelAnimationFrame(waveFrame);
+      river.setAttribute('d', restingPath);
+    };
+  }, []);
+
   return (
-    <div className="hero-brand-art order-1 md:order-2" role="img" aria-label="The Assamese Cha beside a cup of Assam tea">
+    <div ref={artworkRef} className="hero-brand-art order-1 md:order-2" role="img" aria-label="The Assamese Cha beside a cup of Assam tea">
       <svg className="hero-brand-river" viewBox="0 0 600 430" preserveAspectRatio="none" aria-hidden="true">
-        <path pathLength="1" d="M12 285 C95 195 149 327 242 284 S386 157 453 206 S539 322 593 226" />
+        <path className="hero-brand-river-bed" pathLength="1" d="M12 285 C95 195 149 327 242 284 S386 157 453 206 S539 322 593 226" />
       </svg>
       <div className="hero-brand-symbols" aria-hidden="true">
         <svg className="hero-brand-cha" viewBox="100 104 130 150" fill="none">

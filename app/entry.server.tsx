@@ -41,6 +41,7 @@ export default async function handleRequest(
     scriptSrc: [
       "'self'",
       'https://cdn.shopify.com',
+      'https://challenges.cloudflare.com',
       ...(metaPixelEnabled ? META_PIXEL_CSP.scriptSrc : []),
       ...(fastrrEnabled ? FASTRR_CSP.scriptSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.scriptSrc : []),
@@ -50,12 +51,14 @@ export default async function handleRequest(
       'https://cdn.shopify.com',
       'https://messaging-api.shopifyapps.com',
       'https://otlp-http-production.shopifysvc.com',
+      'https://challenges.cloudflare.com',
       ...(metaPixelEnabled ? META_PIXEL_CSP.connectSrc : []),
       ...(fastrrEnabled ? FASTRR_CSP.connectSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.connectSrc : []),
     ],
     frameSrc: [
       "'self'",
+      'https://challenges.cloudflare.com',
       'https://www.google.com',
       'https://www.instagram.com',
       'https://www.youtube-nocookie.com',

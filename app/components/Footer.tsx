@@ -30,7 +30,7 @@ export function Footer() {
         />
         <section className="footer-contact">
           <h3>Contact</h3>
-          <p>Ownguri Gaon, Rupai Siding, Assam 786153, India</p>
+          <p>Ouguri Gaon, Rupai Siding, Assam 786153, India</p>
           <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a>
           <a href="tel:+918431988910">+91 84319 88910</a>
         </section>

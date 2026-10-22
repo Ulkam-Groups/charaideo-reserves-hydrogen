@@ -211,7 +211,7 @@
   pointer-events: none;
 }
 
-.hero-brand-river path {
+.hero-brand-river-bed {
   fill: none;
   stroke: #78908c;
   stroke-width: 2.5;
@@ -221,6 +221,7 @@
   stroke-dashoffset: 1;
   animation: hero-river-draw 2.6s 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
 
 .hero-brand-symbols {
   position: relative;
@@ -410,14 +411,16 @@
 .hero-brand-ripple {
   position: absolute;
   inset: 30%;
-  border: 1px solid rgb(255 248 234 / 56%);
+  border: 1px solid rgb(240 200 142 / 68%);
   border-radius: 50%;
+  box-shadow: 0 0.7px 0.45px rgb(105 58 28 / 24%);
   opacity: 0;
-  animation: hero-tea-ripple 3.8s ease-out infinite;
+  pointer-events: none;
+  animation: hero-tea-ripple 4.6s ease-out infinite;
 }
 
 .hero-brand-ripple--trail {
-  animation-delay: -1.9s;
+  animation-delay: -2.3s;
 }
 
 @keyframes hero-river-draw {
@@ -425,6 +428,7 @@
     stroke-dashoffset: 0;
   }
 }
+
 
 @keyframes hero-art-arrive {
   from {
@@ -490,12 +494,12 @@
   }
 
   12% {
-    opacity: 0.48;
+    opacity: 0.62;
     transform: scale(0.6);
   }
 
   65% {
-    opacity: 0.32;
+    opacity: 0.34;
     transform: scale(1.6);
   }
 
@@ -762,10 +766,11 @@
     animation: none;
   }
 
-  .hero-brand-river path {
+  .hero-brand-river-bed {
     stroke-dashoffset: 0;
     animation: none;
   }
+
 
   .hero-brand-cup,
   .hero-brand-surface-glint,
