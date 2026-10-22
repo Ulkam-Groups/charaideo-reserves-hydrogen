@@ -596,6 +596,7 @@ function ReserveBuyNowButton({
   const enabled = Boolean(
     variant?.availableForSale &&
       rootData?.checkoutReady &&
+      rootData.checkoutCountrySupported &&
       canStartCheckout(rootData.checkoutProvider, products),
   );
 
@@ -630,6 +631,9 @@ function ReserveBuyNowButton({
     >
       <span>{pending ? 'Opening checkout…' : 'Buy now'}</span>
     </button>
+    {rootData && !rootData.checkoutCountrySupported && (
+      <p role="status">Currently shipping within India only.</p>
+    )}
     {error && <p role="alert">{error}</p>}
   </>;
 }

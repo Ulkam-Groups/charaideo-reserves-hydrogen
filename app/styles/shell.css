@@ -255,6 +255,251 @@
     background-color var(--motion-standard) var(--ease-standard);
 }
 
+.header-country-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.125rem;
+  flex: 0 0 1.625rem;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: var(--surface-page);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.header-country-indicator img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-menu-location {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: auto var(--space-2) 0;
+  padding: var(--space-4) var(--space-2) 0;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: var(--type-label);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobile-menu-location select {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.site-footer .footer-location {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  width: auto;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  border: 0;
+  color: rgb(255 255 255 / 78%);
+  font-family: var(--font-interface);
+  font-size: var(--type-metadata);
+}
+
+.market-selector-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.site-footer .footer-location label,
+.mobile-menu-location label {
+  color: inherit;
+}
+
+.site-footer .footer-location select,
+.mobile-menu-location select {
+  min-height: 2.25rem;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: var(--radius-button);
+  color: var(--text-inverse);
+  background: transparent;
+  font: 600 var(--type-label) / 1 var(--font-interface);
+}
+
+.site-footer .footer-location select,
+.mobile-menu-location select {
+  min-width: 0;
+  max-width: 13rem;
+  padding-inline: var(--space-3) 2rem;
+}
+
+.site-footer .footer-location select option,
+.mobile-menu-location select option {
+  color: var(--text-primary);
+  background: var(--surface-base);
+}
+
+.mobile-menu-location select {
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  background: var(--surface-base);
+}
+
+.site-overlay.overlay--mobile aside main {
+  display: flex;
+  flex-direction: column;
+}
+
+.market-picker {
+  position: relative;
+  text-transform: none;
+}
+
+.footer-location .market-picker-eyebrow,
+.mobile-menu-location .market-picker-eyebrow {
+  margin-bottom: 0;
+}
+
+.site-footer .footer-location .market-picker-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.market-picker summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.25rem;
+  max-width: 15rem;
+  padding: 0 var(--space-3);
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: var(--radius-button);
+  color: inherit;
+  cursor: pointer;
+  list-style: none;
+}
+
+.market-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.market-picker summary > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-picker summary small {
+  opacity: 0.72;
+  white-space: nowrap;
+}
+
+.market-picker summary > svg {
+  width: 1rem;
+  height: 1rem;
+  margin-left: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.market-picker[open] summary > svg {
+  transform: rotate(180deg);
+}
+
+.market-picker-popover {
+  position: absolute;
+  z-index: 30;
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+  width: min(20rem, calc(100vw - 2rem));
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-page);
+  box-shadow: var(--shadow-overlay);
+  color: var(--text-primary);
+  isolation: isolate;
+}
+
+.market-picker-popover > label,
+.market-picker-eyebrow {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--type-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.market-picker-popover > input {
+  width: 100%;
+  min-height: 2.25rem;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-button);
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.market-picker-options {
+  display: grid;
+  max-height: 16rem;
+  margin-top: var(--space-2);
+  overflow-y: auto;
+}
+
+.market-picker-options button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 2.375rem;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-transform: none;
+}
+
+.site-footer .market-picker-popover,
+.site-overlay .market-picker-popover {
+  background-color: #fff;
+  color: #132a1f;
+}
+
+.site-footer .market-picker-options button,
+.site-overlay .market-picker-options button {
+  color: #132a1f;
+}
+
+.market-picker-options button:hover,
+.market-picker-options button:focus-visible,
+.market-picker-options button[aria-current='true'] {
+  background: var(--surface-subtle);
+}
+
+.market-picker-options button small {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .site-header .header-icon-button:hover,
 .site-header .header-icon-button.active,
 .site-header .header-icon-button[aria-current='page'],
@@ -400,8 +645,8 @@
 }
 
 .site-footer .footer-accent {
-  height: 1px;
-  background: var(--color-tea-500);
+  height: 3px;
+  background: #b87936;
 }
 
 .site-footer .footer-inner {
@@ -412,7 +657,7 @@
   width: min(calc(100% - (2 * var(--page-gutter))), var(--content-wide));
   max-width: none;
   gap: var(--space-7);
-  padding: var(--space-9) 0 var(--space-8);
+  padding: var(--space-7) 0 var(--space-6);
 }
 
 .site-footer .footer-brand p,
@@ -420,6 +665,7 @@
 .site-footer .footer-contact a,
 .site-footer .footer-column a,
 .site-footer .footer-menu a,
+.site-footer .footer-privacy-choices,
 .site-footer .footer-bottom {
   color: rgb(255 255 255 / 78%);
   font-family: var(--font-interface);
@@ -429,7 +675,7 @@
 
 .site-footer .footer-brand p {
   max-width: 30ch;
-  margin-top: var(--space-4);
+  margin: var(--space-4) 0 0;
   font-size: var(--type-body);
 }
 
@@ -451,9 +697,19 @@
 }
 
 .site-footer a:hover,
-.site-footer a:focus-visible {
+.site-footer a:focus-visible,
+.site-footer .footer-privacy-choices:hover,
+.site-footer .footer-privacy-choices:focus-visible {
   color: var(--text-inverse);
   text-decoration: underline;
+}
+
+.site-footer .footer-privacy-choices {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-underline-offset: 0.22em;
 }
 
 .site-footer .footer-menu,
@@ -517,7 +773,33 @@
   }
 }
 
+/* Mobile header actions are absolutely centred with translateY(-50%).
+   Preserve that positioning through sticky touch-hover and active route states. */
+@media (max-width: 60rem) {
+  .site-header.header.header-solid
+    .header-ctas
+    > .header-icon-button:hover,
+  .site-header.header.header-solid
+    .header-ctas
+    > .header-icon-button:active,
+  .site-header.header.header-solid
+    .header-ctas
+    > .header-icon-button:focus-visible,
+  .site-header.header.header-solid
+    .header-ctas
+    > .header-icon-button.active,
+  .site-header.header.header-solid
+    .header-ctas
+    > .header-icon-button[aria-current='page'] {
+    transform: translateY(-50%);
+  }
+}
+
 @media (max-width: 56.25rem) {
+  .site-header .header-country-indicator {
+    display: none;
+  }
+
   .site-header.header .header-inner,
   .site-header.header.header-solid .header-inner,
   .site-header.header.header-solid.header-scrolled .header-inner {
@@ -574,7 +856,7 @@
   .site-footer .footer-inner {
     grid-template-columns: 1fr;
     gap: var(--space-6);
-    padding-block: var(--space-8);
+    padding-block: var(--space-6);
   }
 
   .site-footer .footer-menu,

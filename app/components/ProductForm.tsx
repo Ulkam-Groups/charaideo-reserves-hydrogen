@@ -40,6 +40,7 @@ export function ProductForm({
   const [quantity, setQuantity] = useState(1);
   const [showMobileBar, setShowMobileBar] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const mobileBarRef = useRef<HTMLElement>(null);
   const quantityLimitTooltipId = useId();
   useCheckoutError(setCheckoutError);
 
@@ -69,6 +70,35 @@ export function ProductForm({
     observer.observe(actions);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const bar = mobileBarRef.current;
+    const footer = document.querySelector<HTMLElement>('.site-footer');
+    if (!showMobileBar || !bar || !footer) return;
+
+    let frame = 0;
+    const updateFooterOffset = () => {
+      frame = 0;
+      const overlap = Math.max(
+        0,
+        window.innerHeight - footer.getBoundingClientRect().top,
+      );
+      bar.style.setProperty('--footer-overlap', `${overlap}px`);
+    };
+    const scheduleUpdate = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateFooterOffset);
+    };
+
+    updateFooterOffset();
+    window.addEventListener('scroll', scheduleUpdate, {passive: true});
+    window.addEventListener('resize', scheduleUpdate);
+
+    return () => {
+      window.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [showMobileBar]);
 
   const stockLabel = !selectedVariant?.availableForSale
     ? 'Out of stock'
@@ -290,6 +320,7 @@ export function ProductForm({
             className="button secondary product-buy-now"
             disabled={
               !rootData?.checkoutReady ||
+              !rootData.checkoutCountrySupported ||
               checkoutPending ||
               !canStartCheckout(rootData.checkoutProvider, [
                 {variantId: buyNowVariantId, quantity},
@@ -351,6 +382,11 @@ export function ProductForm({
       {selectedVariant?.availableForSale && !rootData?.checkoutReady && (
         <p role="status">Checkout is being configured.</p>
       )}
+      {selectedVariant?.availableForSale &&
+        rootData &&
+        !rootData.checkoutCountrySupported && (
+          <p role="status">Currently shipping within India only.</p>
+        )}
       {checkoutError && <p role="alert">{checkoutError}</p>}
       {selectedVariant?.availableForSale &&
         selectedDiscountItem &&
@@ -372,6 +408,7 @@ export function ProductForm({
       <DeliveryEstimate />
       {showMobileBar && selectedVariant && !selectedVariant.availableForSale && (
         <aside
+          ref={mobileBarRef}
           className="product-mobile-purchase-bar"
           aria-label={`Quick purchase for ${selectedVariant.product.title}`}
         >
@@ -393,6 +430,7 @@ export function ProductForm({
       )}
       {showMobileBar && selectedVariant?.availableForSale && (
         <aside
+          ref={mobileBarRef}
           className="product-mobile-purchase-bar"
           aria-label={`Quick purchase for ${selectedVariant.product.title}`}
         >

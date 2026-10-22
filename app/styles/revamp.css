@@ -1150,7 +1150,9 @@ button.header-search-trigger:hover .header-search-ai-icon {
     position: fixed;
     z-index: 45;
     right: 10px;
-    bottom: 10px;
+    bottom: calc(
+      10px + env(safe-area-inset-bottom, 0px) + var(--footer-overlap, 0px)
+    );
     left: 10px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

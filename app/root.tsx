@@ -27,6 +27,10 @@ import reserveListStylesheet from '~/assets/reserve-list.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
 import {
+  isCheckoutCountrySupported,
+  type StorefrontMarket,
+} from '~/lib/markets';
+import {
   measureOptionalStorefront,
   monitoringEnabled,
   sentryIngestOrigin,
@@ -43,6 +47,57 @@ import {warmFastrrCheckout} from '~/lib/checkout/providers/fastrr/fastrr.client'
 import {loadShopifyDiscountProgress} from '~/lib/shopify-discounts.server';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
+const LOCALIZATION_QUERY = `#graphql
+  query StorefrontMarkets($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    countryCodes: __type(name: "CountryCode") {
+      enumValues { name }
+    }
+    localization {
+      country {
+        isoCode
+        name
+        currency { isoCode symbol }
+      }
+      availableCountries {
+        isoCode
+        name
+        currency { isoCode symbol }
+      }
+    }
+  }
+` as const;
+
+type LocalizationResult = {
+  countryCodes: {enumValues: {name: string}[]} | null;
+  localization: {
+    country: StorefrontMarket;
+    availableCountries: StorefrontMarket[];
+  };
+};
+
+function buildCountryOptions(result: LocalizationResult | null): StorefrontMarket[] {
+  if (!result) return [];
+  const configured = new Map(
+    result.localization.availableCountries.map((country) => [country.isoCode, country]),
+  );
+  const names = new Intl.DisplayNames(['en'], {type: 'region'});
+  const codes = result.countryCodes?.enumValues.map(({name}) => name) ?? [
+    ...configured.keys(),
+  ];
+
+  return codes
+    .filter((code) => /^[A-Z]{2}$/.test(code) && !['XX', 'ZZ'].includes(code))
+    .map(
+      (code): StorefrontMarket =>
+        configured.get(code) ?? {
+          isoCode: code,
+          name: names.of(code) ?? code,
+          currency: {isoCode: '', symbol: ''},
+        },
+    )
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
 const SHOPIFY_CHAT_WARMUP_MS = 120;
 const SHOPIFY_CHAT_REVEAL_FALLBACK_MS = 7_000;
 const SHOPIFY_CHAT_CLOSE_ANIMATION_MS = 380;
@@ -196,7 +251,8 @@ export async function loader({context}: Route.LoaderArgs) {
       ),
     );
 
-  const [header, chapterAnnouncementResult, cartDiscountProgress] = await Promise.all([
+  const [header, chapterAnnouncementResult, cartDiscountProgress, localizationResult] =
+    await Promise.all([
     measureOptionalStorefront(context.monitor, 'header', () =>
       storefront.query(HEADER_QUERY, {
         variables: {headerMenuHandle: 'main-menu'},
@@ -212,6 +268,11 @@ export async function loader({context}: Route.LoaderArgs) {
         }) as Promise<ChapterAnnouncementResult>,
     ),
     loadShopifyDiscountProgress(env, context.monitor),
+    measureOptionalStorefront(context.monitor, 'localization', () =>
+      storefront.query(LOCALIZATION_QUERY, {
+        cache: storefront.CacheLong(),
+      }) as Promise<LocalizationResult>,
+    ),
   ]);
   const chapter =
     chapterAnnouncementResult?.collections.nodes.find(
@@ -271,13 +332,16 @@ export async function loader({context}: Route.LoaderArgs) {
   return {
     cart: measureOptionalStorefront(context.monitor, 'cart', () => cart.get()),
     cartDiscountProgress,
-    consent: buildAnalyticsConsent(env),
+    consent: buildAnalyticsConsent(env, storefront.i18n),
     notices,
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
     metaPixelId,
     chatShopDomain,
+    buyerCountry: storefront.i18n.country,
+    availableMarkets: buildCountryOptions(localizationResult),
+    checkoutCountrySupported: isCheckoutCountrySupported(storefront.i18n.country),
     checkoutProvider,
     checkoutReady:
       checkoutProvider === 'fastrr' ? Boolean(fastrrSellerDomain) : razorpayReady,

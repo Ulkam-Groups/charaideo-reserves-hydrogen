@@ -7,6 +7,31 @@ async function addCurrentProductToCart(page: Page) {
   await expect(page.getByRole('link', {name: /Cart 1 item/})).toBeVisible();
 }
 
+test('footer reopens Shopify privacy preferences', async ({page, context}) => {
+  await isolateCheckout(context);
+  await page.addInitScript(() => {
+    (window as any).__privacyPreferenceCalls = 0;
+    (window as any).privacyBanner = {
+      loadBanner() {},
+      showPreferences() {
+        (window as any).__privacyPreferenceCalls += 1;
+      },
+    };
+  });
+
+  await page.goto('/');
+  const privacyChoices = page.getByRole('button', {name: 'Privacy choices'});
+  await privacyChoices.scrollIntoViewIfNeeded();
+  await expect(privacyChoices).toBeVisible();
+  await privacyChoices.click();
+
+  await expect
+    .poll(() =>
+      page.evaluate(() => (window as any).__privacyPreferenceCalls),
+    )
+    .toBe(1);
+});
+
 test('homepage and catalog hydrate without recoverable React errors', async ({
   page,
   context,
