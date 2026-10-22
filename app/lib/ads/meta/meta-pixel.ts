@@ -250,7 +250,8 @@ export const META_PIXEL_CSP = {
     'https://mpc2-prod-23-is5qnl632q-ue.a.run.app',
     'https://5z-2b6b7616f94640c2840d1841e1ac24c3.ecs.us-east-1.on.aws',
   ],
-  imgSrc: ['https://www.facebook.com'],
+  // Meta uses both hosts for pixel delivery and Smart Setup diagnostics.
+  imgSrc: ['https://www.facebook.com', 'https://connect.facebook.net'],
   // fbevents.js opens a hidden facebook.com iframe for click tracking.
   frameSrc: ['https://www.facebook.com'],
 } as const;

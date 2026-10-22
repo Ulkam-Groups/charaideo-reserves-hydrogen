@@ -101,8 +101,10 @@ export function ProductImage({
         aria-label="Open product image in full screen"
         onMouseMove={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
-          event.currentTarget.style.setProperty('--zoom-x', `%`);
-          event.currentTarget.style.setProperty('--zoom-y', `%`);
+          const zoomX = ((event.clientX - rect.left) / rect.width) * 100;
+          const zoomY = ((event.clientY - rect.top) / rect.height) * 100;
+          event.currentTarget.style.setProperty('--zoom-x', `${zoomX}%`);
+          event.currentTarget.style.setProperty('--zoom-y', `${zoomY}%`);
         }}
         onClick={() => {
           publish('custom_product_image_zoomed', {imageIndex: activeIndex + 1});

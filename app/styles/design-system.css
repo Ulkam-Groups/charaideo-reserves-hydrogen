@@ -1,0 +1,452 @@
+/*
+ * Charaideo Reserves design-system foundation.
+ *
+ * This file owns canonical tokens and opt-in primitives. It is intentionally
+ * loaded before legacy styles so routes can migrate one component at a time
+ * without changing Shopify-owned content or commerce behavior.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Core colour palette */
+  --color-assam-green-900: #132a1f;
+  --color-assam-green-700: #2f4d3e;
+  --color-leaf-600: #5a6b62;
+  --color-river-200: #e7ede0;
+  --color-gamosa-100: #f5f1e6;
+  --color-paper: #ffffff;
+  --color-tea-500: #c4a484;
+  --color-tea-800: #76552f;
+  --color-ink: var(--color-assam-green-900);
+
+  /* Semantic colour roles */
+  --surface-page: var(--color-paper);
+  --surface-subtle: var(--color-gamosa-100);
+  --surface-inverse: var(--color-assam-green-900);
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-leaf-600);
+  --text-accent: var(--color-tea-800);
+  --text-inverse: var(--color-paper);
+  --border-subtle: var(--color-river-200);
+  --border-strong: rgb(19 42 31 / 32%);
+  --action-primary: var(--color-assam-green-900);
+  --action-primary-hover: #0b1d15;
+  --focus-ring: var(--color-assam-green-900);
+  --status-success: #246b45;
+  --status-warning: #8a5a16;
+  --status-critical: #a52a2a;
+  --status-info: #315d70;
+
+  /* Typography */
+  --font-editorial: 'Libre Baskerville', Baskerville, Georgia, serif;
+  --font-interface:
+    'Instrument Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --type-label: 0.75rem;
+  --type-metadata: 0.875rem;
+  --type-body: 1rem;
+  --type-body-large: 1.125rem;
+  --type-button: 0.875rem;
+  --type-card-title: clamp(1.375rem, 1.8vw, 1.75rem);
+  --type-section-title: clamp(2.25rem, 3.5vw, 3.25rem);
+  --type-page-title: clamp(3rem, 5vw, 4.5rem);
+  --type-display: clamp(3.5rem, 6vw, 5.5rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  /* Content geometry */
+  --content-narrow: 45rem;
+  --content-standard: 70rem;
+  --content-wide: 80rem;
+  --content-max: 90rem;
+  --page-gutter: clamp(1.25rem, 5vw, 5rem);
+  --grid-gap: 1rem;
+
+  /* Shape and depth */
+  --radius-card: 1rem;
+  --radius-control: 0.5rem;
+  --radius-button: 999px;
+  --control-height-compact: 2rem;
+  --control-height-standard: 2.375rem;
+  --field-height: 2.75rem;
+  --shadow-subtle: 0 8px 24px rgb(19 42 31 / 7%);
+  --shadow-overlay: 0 24px 64px rgb(8 24 16 / 22%);
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-standard: 200ms;
+  --motion-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layering */
+  --layer-base: 0;
+  --layer-raised: 10;
+  --layer-header: 30;
+  --layer-drawer: 50;
+  --layer-modal: 70;
+  --layer-toast: 90;
+
+  /* Temporary legacy bridge. Do not add new aliases here. */
+  --paper: var(--color-paper);
+  --pure-white: var(--color-paper);
+  --gamosa-cream: var(--color-gamosa-100);
+  --assam-red: var(--color-assam-green-900);
+  --heritage-red: var(--color-assam-green-900);
+  --river-mist: var(--color-river-200);
+  --aged-indigo: var(--color-assam-green-900);
+  --tea-liquor: var(--color-tea-500);
+  --burnt-clay: var(--color-tea-500);
+  --leaf-ink: var(--color-ink);
+  --quiet-ink: var(--color-leaf-600);
+  --steeped-brown: var(--color-assam-green-900);
+  --thread: var(--border-strong);
+  --serif: var(--font-editorial);
+  --sans: var(--font-interface);
+  --gutter: var(--page-gutter);
+}
+
+@media (min-width: 30rem) {
+  :root {
+    --page-gutter: 2rem;
+    --grid-gap: 1.25rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --page-gutter: clamp(2.5rem, 5vw, 5rem);
+    --grid-gap: 1.5rem;
+  }
+}
+
+/* Opt-in layout primitives */
+.ds-container {
+  width: min(100% - (2 * var(--page-gutter)), var(--content-standard));
+  margin-inline: auto;
+}
+
+.ds-container--narrow {
+  max-width: var(--content-narrow);
+}
+
+.ds-container--wide {
+  max-width: var(--content-wide);
+}
+
+.ds-container--max {
+  max-width: var(--content-max);
+}
+
+.ds-section {
+  padding-block: var(--space-8);
+}
+
+.ds-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap, var(--space-4));
+}
+
+.ds-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cluster-gap, var(--space-3));
+}
+
+/* Opt-in typography primitives */
+.ds-display,
+.ds-page-title,
+.ds-section-title,
+.ds-card-title {
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--font-editorial);
+  font-weight: 500;
+}
+
+.ds-display {
+  font-size: var(--type-display);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+
+.ds-page-title {
+  font-size: var(--type-page-title);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+}
+
+.ds-section-title {
+  font-size: var(--type-section-title);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.ds-card-title {
+  font-size: var(--type-card-title);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.ds-body,
+.ds-body-large,
+.ds-metadata,
+.ds-label {
+  margin: 0;
+  font-family: var(--font-interface);
+}
+
+.ds-body {
+  font-size: var(--type-body);
+  line-height: 1.65;
+}
+
+.ds-body-large {
+  font-size: var(--type-body-large);
+  line-height: 1.65;
+}
+
+.ds-metadata {
+  color: var(--text-secondary);
+  font-size: var(--type-metadata);
+  line-height: 1.5;
+}
+
+.ds-label {
+  color: var(--text-accent);
+  font-size: var(--type-label);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Opt-in surfaces */
+.ds-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-page);
+}
+
+.ds-card--interactive {
+  transition:
+    border-color var(--motion-standard) var(--ease-standard),
+    box-shadow var(--motion-standard) var(--ease-standard),
+    transform var(--motion-standard) var(--ease-standard);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ds-card--interactive:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-subtle);
+    transform: translateY(-2px);
+  }
+}
+
+.ds-image-frame {
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: var(--surface-subtle);
+}
+
+.ds-image-frame > img,
+.ds-image-frame > picture,
+.ds-image-frame picture > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ds-image-frame--product {
+  aspect-ratio: 4 / 5;
+}
+
+.ds-image-frame--editorial {
+  aspect-ratio: 3 / 2;
+}
+
+.ds-image-frame--square {
+  aspect-ratio: 1;
+}
+
+/* Three approved button variants */
+.ds-button {
+  display: inline-flex;
+  min-height: var(--control-height-standard);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.75rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
+  font-family: var(--font-interface);
+  font-size: var(--type-button);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-standard) var(--ease-standard),
+    border-color var(--motion-standard) var(--ease-standard),
+    color var(--motion-standard) var(--ease-standard);
+}
+
+.ds-button--primary {
+  border-color: var(--action-primary);
+  background: var(--action-primary);
+  color: var(--text-inverse);
+}
+
+.ds-button--primary:hover {
+  border-color: var(--action-primary-hover);
+  background: var(--action-primary-hover);
+}
+
+.ds-button--secondary {
+  border-color: var(--action-primary);
+  background: transparent;
+  color: var(--action-primary);
+}
+
+.ds-button--secondary:hover {
+  background: var(--surface-subtle);
+}
+
+.ds-button--tertiary {
+  padding-inline: var(--space-2);
+  background: transparent;
+  color: var(--action-primary);
+}
+
+.ds-button--tertiary:hover {
+  background: var(--surface-subtle);
+}
+
+.ds-button:disabled,
+.ds-button[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ds-button:focus-visible,
+.ds-link:focus-visible,
+.ds-control:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.ds-link {
+  color: var(--action-primary);
+  font-weight: 600;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+/* Form and feedback primitives */
+.ds-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ds-control {
+  width: 100%;
+  min-height: var(--field-height);
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font: 400 var(--type-body) / 1.5 var(--font-interface);
+}
+
+textarea.ds-control {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.ds-field-message {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-metadata);
+  line-height: 1.5;
+}
+
+.ds-field-message--error {
+  color: var(--status-critical);
+}
+
+.ds-status {
+  padding: var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-subtle);
+  color: var(--text-primary);
+  font-size: var(--type-body);
+  line-height: 1.55;
+}
+
+.ds-status--success {
+  border-color: var(--status-success);
+}
+
+.ds-status--warning {
+  border-color: var(--status-warning);
+}
+
+.ds-status--critical {
+  border-color: var(--status-critical);
+}
+
+.ds-status--info {
+  border-color: var(--status-info);
+}
+
+@media (max-width: 29.9375rem) {
+  .ds-button {
+    min-height: var(--control-height-standard);
+  }
+
+  .ds-section {
+    padding-block: var(--space-8);
+  }
+}
+
+@media (min-width: 64rem) {
+  .ds-section {
+    padding-block: var(--space-9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-card--interactive,
+  .ds-button {
+    transition-duration: 0.01ms;
+  }
+
+  .ds-card--interactive:hover {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .ds-card,
+  .ds-button,
+  .ds-control,
+  .ds-status {
+    border-color: CanvasText;
+  }
+}

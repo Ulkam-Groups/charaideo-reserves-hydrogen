@@ -243,6 +243,77 @@ button[data-state='busy'] {
   }
 }
 
+/* P3 gallery interaction: preserve media geometry and clarify control states. */
+.product-purchase .product-image-count,
+.product-purchase .product-image-zoom {
+  color: #29483a;
+  font-family: var(--font-interface);
+  font-size: 11px;
+}
+
+.product-purchase .product-thumbnail[aria-pressed='true'] {
+  border-color: #17382a;
+  box-shadow:
+    inset 0 0 0 2px rgb(23 56 42 / 18%),
+    inset 0 -2px 0 #d9aa45;
+  transform: none;
+}
+
+.product-purchase .product-thumbnail:hover {
+  transform: none;
+}
+
+.product-purchase .product-thumbnail img {
+  object-fit: contain;
+}
+
+.product-purchase .product-thumbnail:focus-visible,
+.product-purchase .product-stage-arrow:focus-visible,
+.product-image-lightbox-close:focus-visible {
+  outline: 2px solid #b68035;
+  outline-offset: 3px;
+}
+
+.product-purchase .product-stage-arrow {
+  color: #17382a;
+}
+
+.product-image-lightbox-close {
+  font-family: var(--font-interface);
+}
+
+/* P3 provenance: Shopify/metafield values stay untouched; improve reading hierarchy. */
+.tea-record-section .tea-record-highlights,
+.tea-record-section .tea-record-summary,
+.tea-record-section .tea-record-grid,
+.tea-record-section .tea-record-shop-cta {
+  font-family: var(--font-interface);
+}
+
+.tea-record-section .tea-record-highlights dt {
+  color: #4e6257;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.tea-record-section .tea-record-highlights dd,
+.tea-record-section .tea-record-summary-copy strong,
+.tea-record-section .tea-record-grid dd,
+.tea-record-section .tea-record-shop-cta strong {
+  color: #17382a !important;
+}
+
+.tea-record-section .tea-record-summary-copy small,
+.tea-record-section .tea-record-grid dt,
+.tea-record-section .tea-record-shop-cta span {
+  color: #52675b !important;
+}
+
+.tea-record-section .tea-record-shop-cta a:focus-visible {
+  outline: 2px solid #b68035;
+  outline-offset: 3px;
+}
+
 /* Sticky section nav */
 .product-section-nav {
   position: sticky;
@@ -871,7 +942,15 @@ button[data-state='busy'] {
   -webkit-font-smoothing: antialiased;
 }
 .product-purchase .product-quantity button:disabled {
+  border-radius: inherit;
+  background: transparent;
   color: #68776f;
+}
+
+.product-purchase .product-quantity-increase > button,
+.product-purchase .product-quantity-increase > button:hover,
+.product-purchase .product-quantity-increase > button:focus-visible {
+  border-radius: 0 999px 999px 0 !important;
 }
 .product-purchase .product-quantity > div {
   grid-template-columns: 30px 32px 30px;
@@ -1344,4 +1423,264 @@ button[data-state='busy'] {
 .product-page .tea-record-grid dd,
 .product-page .product-quick-facts dd {
   color: #132a1f !important;
+}
+
+/* P3 purchase typography: preserve established buy-box and control geometry. */
+.product-page {
+  --sans: var(--font-interface);
+  --serif: var(--font-editorial);
+}
+
+.product-purchase .product-index {
+  font-size: 11px;
+}
+
+.product-purchase .product-subtitle {
+  font-family: var(--font-interface) !important;
+  font-size: 11px !important;
+}
+
+.product-purchase .product-options h5 {
+  font-family: var(--font-interface);
+  font-size: 10.5px;
+}
+
+.product-purchase .product-price > small,
+.product-purchase .product-unit-price,
+.product-purchase .product-stock {
+  font-size: 11px !important;
+}
+
+.product-purchase .product-quantity {
+  font-size: 10.5px;
+}
+
+.product-purchase .product-form > [role='status'],
+.product-purchase .product-form > [role='alert'],
+.product-purchase .product-shipping-note {
+  font-family: var(--font-interface);
+  font-size: 11px;
+}
+
+/* P3 purchase states: visual meaning only; Shopify remains authoritative. */
+.product-purchase .product-stock--available {
+  color: #245c3f !important;
+}
+
+.product-purchase .product-stock--sold-out {
+  color: #8f302f !important;
+}
+
+.product-purchase .product-stock--sold-out > span {
+  background: #a74743;
+  box-shadow: 0 0 0 2px #f3dedb;
+}
+
+.product-purchase .product-options-item[data-available='false'] {
+  border-color: #d8d2c9 !important;
+  background: #f5f2ed;
+  color: #706a63 !important;
+  opacity: 0.62 !important;
+}
+
+.product-purchase
+  .product-options-item[data-available='false'][aria-pressed='true'] {
+  border-color: #8f302f !important;
+  background: #fff7f5 !important;
+  color: #8f302f !important;
+  opacity: 1 !important;
+}
+
+.product-purchase
+  .product-options-item[data-available='false'][aria-pressed='true']::before {
+  color: #b68035;
+}
+
+.product-purchase .product-savings {
+  background: #f3ead7;
+  color: #624414;
+  font-family: var(--font-interface);
+  font-size: 11px;
+}
+
+.product-purchase .product-quantity-tooltip {
+  font-family: var(--font-interface);
+  font-size: 11px;
+}
+
+.product-purchase .product-form > [role='status'] {
+  color: #365f49;
+}
+
+.product-purchase .product-form > [role='alert'] {
+  color: #8f302f;
+}
+
+/* P3 delivery and reassurance typography; dimensions remain unchanged. */
+.product-purchase .delivery-estimate-disclosure summary,
+.product-purchase .delivery-estimate-form input,
+.product-purchase .delivery-estimate-form button,
+.product-purchase .delivery-estimate-result,
+.product-purchase .delivery-estimate-note,
+.product-purchase .discount-progress-message,
+.product-purchase .product-assurances,
+.product-purchase .product-quick-facts {
+  font-family: var(--font-interface);
+}
+
+.product-purchase .delivery-estimate-disclosure summary small,
+.product-purchase .delivery-estimate-form button,
+.product-purchase .delivery-estimate-result p,
+.product-purchase .delivery-estimate-note {
+  font-size: 11px !important;
+}
+
+.product-purchase .delivery-estimate-success {
+  color: #245c3f !important;
+}
+
+.product-purchase .delivery-estimate-success > span {
+  color: #b68035;
+}
+
+.product-purchase .delivery-estimate-error {
+  color: #8f302f !important;
+}
+
+@media (max-width: 420px) {
+  .product-purchase .product-mobile-purchase-bar > div span,
+  .product-purchase .product-mobile-purchase-bar > div small {
+    font-family: var(--font-interface);
+    font-size: 10px;
+  }
+}
+
+/*
+ * Keep the two-column purchase layout inside the viewport on compact desktops.
+ * The earlier fixed track minimums could make the complete grid wider than its
+ * container, clipping the thumbnail rail on the left and purchase controls on
+ * the right. Component dimensions are intentionally unchanged here.
+ */
+.product-purchase .product-gallery,
+.product-purchase .product-media-gallery,
+.product-purchase .product-image,
+.product-purchase .product-main,
+.product-purchase .product-form,
+.product-purchase .product-actions,
+.product-purchase .product-actions > form {
+  min-width: 0;
+}
+
+.product-purchase .product-gallery,
+.product-purchase .product-main,
+.product-purchase .product-form,
+.product-purchase .product-actions {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 961px) {
+  .product.product-purchase {
+    grid-template-columns: minmax(0, 630px) minmax(0, 550px);
+    gap: clamp(32px, 4vw, 64px);
+    width: min(calc(100% - (2 * var(--page-gutter))), 1280px);
+    box-sizing: border-box;
+  }
+}
+
+/* The compact desktop buy box cannot safely fit quantity and CTA side by side. */
+@media (min-width: 961px) and (max-width: 1200px) {
+  .product-purchase .product-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product-purchase .product-actions .product-quantity,
+  .product-purchase .product-actions > form,
+  .product-purchase .product-actions .product-buy-now {
+    grid-column: 1;
+  }
+
+  .product-purchase .product-actions .product-quantity {
+    grid-row: 1;
+  }
+
+  .product-purchase .product-actions > form {
+    grid-row: 2;
+  }
+
+  .product-purchase .product-actions .product-buy-now {
+    grid-row: 3;
+  }
+}
+
+/* P3 reviews, editorial guidance and related discovery. */
+.product-page .product-reviews-heading > p,
+.product-page .product-reviews-empty p,
+.product-page .product-rating-panel p,
+.product-page .product-review-provider-note,
+.product-page .product-review-card > p,
+.product-page .product-related .editorial-heading p,
+.tea-editorial .tea-section-heading > p,
+.tea-editorial .tea-recipe-panel p,
+.tea-editorial .tea-fit-card li {
+  font-family: var(--font-interface);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.product-page .product-review-card-topline,
+.product-page .product-review-card footer,
+.product-page .product-reviews-empty-rating,
+.tea-editorial .tea-meter-label,
+.tea-editorial .tea-character-facts span,
+.tea-editorial .tea-recipe-panel dt,
+.tea-editorial .tea-recipe-panel dd,
+.tea-editorial .tea-founder-note footer {
+  font-family: var(--font-interface);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.product-page .product-review-card footer span {
+  font-size: 11px;
+}
+
+.product-page .product-reviews-empty,
+.product-page .product-rating-panel,
+.product-page .product-review-card,
+.product-page .product-reviews-loading {
+  border-color: var(--pdp-mint-line);
+  background: #ffffff;
+}
+
+.product-page .product-review-card h3,
+.tea-editorial .tea-recipe-panel h3,
+.tea-editorial .tea-fit-card h3 {
+  color: var(--pdp-ink);
+}
+
+.product-page .product-review-card:focus-within {
+  outline: 2px solid #b68035;
+  outline-offset: 3px;
+}
+
+.product-page .product-reviews-loading,
+.product-page .recommended-products-grid {
+  min-width: 0;
+}
+
+.product-page .product-reviews-loading span {
+  border-radius: 999px;
+}
+
+.tea-editorial .tea-recipe-tabs button,
+.tea-editorial .tea-recipe-video-label {
+  font-family: var(--font-interface);
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-page .product-reviews-loading span {
+    animation: none;
+  }
 }

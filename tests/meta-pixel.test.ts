@@ -28,6 +28,17 @@ test('Meta CSP permits only the configured OpenBridge collectors', () => {
   );
 });
 
+test('Meta CSP permits its exact pixel image and diagnostic origins', () => {
+  assert.deepEqual(META_PIXEL_CSP.imgSrc, [
+    'https://www.facebook.com',
+    'https://connect.facebook.net',
+  ]);
+  assert.equal(
+    META_PIXEL_CSP.imgSrc.some((origin) => origin.includes('*')),
+    false,
+  );
+});
+
 test('uses the Charaideo Reserves Meta Pixel by default', () => {
   assert.equal(resolveMetaPixelId(), DEFAULT_META_PIXEL_ID);
 });

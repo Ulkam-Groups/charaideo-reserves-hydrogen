@@ -144,6 +144,7 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
   }));
   const canUseCheckout = Boolean(
     rootData?.checkoutReady &&
+      rootData.checkoutCountrySupported &&
       canStartCheckout(rootData.checkoutProvider, products) &&
       !cart.isOptimistic &&
       !checkoutPending &&
@@ -236,6 +237,9 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
       {layout === 'aside' ? (
         <div className="cart-drawer-notes">
           {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
+          {rootData && !rootData.checkoutCountrySupported && (
+            <p role="status">Currently shipping within India only.</p>
+          )}
           {!!cart.appliedGiftCards?.length && (
             <p role="status">Remove gift cards to use this checkout.</p>
           )}
@@ -245,6 +249,9 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
       ) : (
         <>
           {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
+          {rootData && !rootData.checkoutCountrySupported && (
+            <p role="status">Currently shipping within India only.</p>
+          )}
           {!!cart.appliedGiftCards?.length && (
             <p role="status">Remove gift cards to use this checkout.</p>
           )}

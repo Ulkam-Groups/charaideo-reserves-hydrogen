@@ -2,14 +2,18 @@ import {Await, Link, useLocation} from 'react-router';
 import {Suspense, useEffect, useState} from 'react';
 import type {CartApiQueryFragment, HeaderQuery} from 'storefrontapi.generated';
 import {Aside, useAside} from '~/components/Aside';
-import {Footer} from '~/components/Footer';
-import {Header, HeaderMenu} from '~/components/Header';
+import {Footer, MarketSelector} from '~/components/Footer';
+import {
+  Header,
+  HeaderMenu,
+} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
 import {SEARCH_ENDPOINT, SearchFormPredictive} from '~/components/SearchFormPredictive';
 import {SearchResultsPredictive} from '~/components/SearchResultsPredictive';
 import type {StorefrontNotice} from '~/lib/storefront-notices';
 import type {DiscountProgressData, DiscountProgressMilestone} from '~/lib/discount-progress';
 import {WishlistProvider} from '~/components/WishlistProvider';
+import type {StorefrontMarket} from '~/lib/markets';
 
 interface PageLayoutProps {
   cart: Promise<CartApiQueryFragment | null>;
@@ -17,6 +21,8 @@ interface PageLayoutProps {
   header: HeaderQuery | null;
   isLoggedIn: Promise<boolean>;
   publicStoreDomain: string;
+  buyerCountry: string;
+  availableMarkets: StorefrontMarket[];
   cartDiscountProgress: DiscountProgressData;
   children?: React.ReactNode;
 }
@@ -28,6 +34,8 @@ export function PageLayout({
   header,
   isLoggedIn,
   publicStoreDomain,
+  buyerCountry,
+  availableMarkets,
   cartDiscountProgress,
 }: PageLayoutProps) {
   const {pathname} = useLocation();
@@ -45,7 +53,12 @@ export function PageLayout({
     <Aside.Provider>
       <CartAside cart={cart} />
       <SearchAside />
-      <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
+      <MobileMenuAside
+        header={header}
+        publicStoreDomain={publicStoreDomain}
+        buyerCountry={buyerCountry}
+        availableMarkets={availableMarkets}
+      />
       <NoticeBoard
         notices={notices}
         freeShippingMilestone={freeShippingMilestone}
@@ -60,7 +73,7 @@ export function PageLayout({
         Skip to content
       </a>
       <main id="main-content" className={pathname === '/' ? undefined : 'main--offset'}>{children}</main>
-      <Footer />
+      <Footer buyerCountry={buyerCountry} availableMarkets={availableMarkets} />
     </Aside.Provider>
     </WishlistProvider>
   );
@@ -104,7 +117,7 @@ function NoticeBoard({
 
   return (
     <div
-      className="notice-board"
+      className="notice-board site-notice-board"
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
       }}
@@ -326,9 +339,13 @@ function SearchAside() {
 function MobileMenuAside({
   header,
   publicStoreDomain,
+  buyerCountry,
+  availableMarkets,
 }: {
   header: PageLayoutProps['header'];
   publicStoreDomain: PageLayoutProps['publicStoreDomain'];
+  buyerCountry: PageLayoutProps['buyerCountry'];
+  availableMarkets: PageLayoutProps['availableMarkets'];
 }) {
   const primaryDomainUrl =
     header?.shop.primaryDomain.url ?? `https://${publicStoreDomain}`;
@@ -340,6 +357,12 @@ function MobileMenuAside({
         viewport="mobile"
         primaryDomainUrl={primaryDomainUrl}
         publicStoreDomain={publicStoreDomain}
+      />
+      <MarketSelector
+        availableMarkets={availableMarkets}
+        buyerCountry={buyerCountry}
+        className="mobile-menu-location"
+        id="mobile-market"
       />
     </Aside>
   );

@@ -46,7 +46,7 @@ export function Header({
 
   return (
     <header
-      className={`header header-solid${isDocked ? ' header-scrolled' : ''}`}
+      className={`header header-solid site-header${isDocked ? ' header-scrolled' : ''}`}
       ref={headerRef}
     >
       <div className="header-inner">
@@ -170,6 +170,43 @@ function HeaderCtas({
   );
 }
 
+export function CountryIndicator({countryCode}: {countryCode: string}) {
+  const normalized = countryCode.trim().toUpperCase();
+
+  return (
+    <span
+      className="header-country-indicator"
+      aria-label={`Detected location: ${normalized || 'unknown'}`}
+      title={`Detected location: ${normalized || 'unknown'}`}
+    >
+      <CountryFlag countryCode={normalized} />
+    </span>
+  );
+}
+
+export function countryDisplayName(countryCode: string) {
+  const normalized = countryCode.trim().toUpperCase();
+  try {
+    return new Intl.DisplayNames(['en'], {type: 'region'}).of(normalized) ?? normalized;
+  } catch {
+    return normalized;
+  }
+}
+
+function CountryFlag({countryCode}: {countryCode: string}) {
+  const normalized = countryCode.toLowerCase();
+
+  return (
+    <img
+      alt=""
+      aria-hidden="true"
+      height="30"
+      src={`https://cdn.shopify.com/static/images/flags/${normalized}.svg?width=60`}
+      width="30"
+    />
+  );
+}
+
 function WishlistLink() {
   const {products} = useWishlist();
 
@@ -251,13 +288,13 @@ function SearchToggle() {
 
   return (
     <button
-      aria-label="Ask about our teas"
+      aria-label="Ask our tea guide"
       className="header-search-trigger reset"
       onClick={(event) => openShopifyChat(event.currentTarget)}
-      title="Ask about our teas (/)"
+      title="Ask our tea guide (/)"
       type="button"
     >
-      <span className="header-search-label">Ask about our teas</span>
+      <span className="header-search-label">Ask our tea guide</span>
       <kbd aria-hidden="true">/</kbd>
       <SearchIcon />
     </button>

@@ -20,8 +20,33 @@ test('analytics consent uses the Shopify checkout domain and public token', () =
       checkoutDomain: 'checkout.example.com',
       storefrontAccessToken: 'public-token',
       withPrivacyBanner: true,
+      country: 'IN',
+      language: 'EN',
     },
   );
+});
+
+test('storefront resolves the buyer market and passes it to consent', async () => {
+  const contextSource = await readFile(
+    new URL('../app/lib/context.ts', import.meta.url),
+    'utf8',
+  );
+  const rootSource = await readFile(new URL('../app/root.tsx', import.meta.url), 'utf8');
+
+  assert.match(contextSource, /i18n: resolveStorefrontI18n\(request\)/);
+  assert.doesNotMatch(contextSource, /country: 'US'/);
+  assert.match(rootSource, /buildAnalyticsConsent\(env, storefront\.i18n\)/);
+});
+
+test('footer can reopen Shopify privacy preferences', async () => {
+  const source = await readFile(
+    new URL('../app/components/Footer.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /const \{privacyBanner\} = useAnalytics\(\)/);
+  assert.match(source, /privacyBanner\?\.showPreferences\(\)/);
+  assert.match(source, />\s*Privacy choices\s*<\/button>/);
 });
 
 test('cart permalink accepts valid Shopify variant lines and discount codes', () => {

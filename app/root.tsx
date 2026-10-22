@@ -14,15 +14,22 @@ import {PageLayout} from '~/components/PageLayout';
 import {CheckoutConfirmationProgress} from '~/components/CheckoutConfirmationProgress';
 import {MetaPixel} from '~/components/MetaPixel';
 import {HEADER_QUERY} from '~/lib/fragments';
+import designSystem from '~/styles/design-system.css?url';
 import stylesheet from '~/styles/app.css?url';
 import identity from '~/styles/identity.css?url';
 import revamp from '~/styles/revamp.css?url';
 import productExperience from '~/styles/product-experience.css?url';
 import cartPage from '~/styles/cart-page.css?url';
 import teaAcademy from '~/styles/tea-academy.css?url';
+import shell from '~/styles/shell.css?url';
+import merchandising from '~/styles/merchandising.css?url';
 import reserveListStylesheet from '~/assets/reserve-list.css?url';
 import favicon from '~/assets/favicon.svg?url';
 import {buildAnalyticsConsent} from '~/lib/analytics';
+import {
+  isCheckoutCountrySupported,
+  type StorefrontMarket,
+} from '~/lib/markets';
 import {
   measureOptionalStorefront,
   monitoringEnabled,
@@ -40,6 +47,57 @@ import {warmFastrrCheckout} from '~/lib/checkout/providers/fastrr/fastrr.client'
 import {loadShopifyDiscountProgress} from '~/lib/shopify-discounts.server';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
+const LOCALIZATION_QUERY = `#graphql
+  query StorefrontMarkets($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    countryCodes: __type(name: "CountryCode") {
+      enumValues { name }
+    }
+    localization {
+      country {
+        isoCode
+        name
+        currency { isoCode symbol }
+      }
+      availableCountries {
+        isoCode
+        name
+        currency { isoCode symbol }
+      }
+    }
+  }
+` as const;
+
+type LocalizationResult = {
+  countryCodes: {enumValues: {name: string}[]} | null;
+  localization: {
+    country: StorefrontMarket;
+    availableCountries: StorefrontMarket[];
+  };
+};
+
+function buildCountryOptions(result: LocalizationResult | null): StorefrontMarket[] {
+  if (!result) return [];
+  const configured = new Map(
+    result.localization.availableCountries.map((country) => [country.isoCode, country]),
+  );
+  const names = new Intl.DisplayNames(['en'], {type: 'region'});
+  const codes = result.countryCodes?.enumValues.map(({name}) => name) ?? [
+    ...configured.keys(),
+  ];
+
+  return codes
+    .filter((code) => /^[A-Z]{2}$/.test(code) && !['XX', 'ZZ'].includes(code))
+    .map(
+      (code): StorefrontMarket =>
+        configured.get(code) ?? {
+          isoCode: code,
+          name: names.of(code) ?? code,
+          currency: {isoCode: '', symbol: ''},
+        },
+    )
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
 const SHOPIFY_CHAT_WARMUP_MS = 120;
 const SHOPIFY_CHAT_REVEAL_FALLBACK_MS = 7_000;
 const SHOPIFY_CHAT_CLOSE_ANIMATION_MS = 380;
@@ -193,7 +251,8 @@ export async function loader({context}: Route.LoaderArgs) {
       ),
     );
 
-  const [header, chapterAnnouncementResult, cartDiscountProgress] = await Promise.all([
+  const [header, chapterAnnouncementResult, cartDiscountProgress, localizationResult] =
+    await Promise.all([
     measureOptionalStorefront(context.monitor, 'header', () =>
       storefront.query(HEADER_QUERY, {
         variables: {headerMenuHandle: 'main-menu'},
@@ -209,6 +268,11 @@ export async function loader({context}: Route.LoaderArgs) {
         }) as Promise<ChapterAnnouncementResult>,
     ),
     loadShopifyDiscountProgress(env, context.monitor),
+    measureOptionalStorefront(context.monitor, 'localization', () =>
+      storefront.query(LOCALIZATION_QUERY, {
+        cache: storefront.CacheLong(),
+      }) as Promise<LocalizationResult>,
+    ),
   ]);
   const chapter =
     chapterAnnouncementResult?.collections.nodes.find(
@@ -268,13 +332,16 @@ export async function loader({context}: Route.LoaderArgs) {
   return {
     cart: measureOptionalStorefront(context.monitor, 'cart', () => cart.get()),
     cartDiscountProgress,
-    consent: buildAnalyticsConsent(env),
+    consent: buildAnalyticsConsent(env, storefront.i18n),
     notices,
     header,
     isLoggedIn: customerAccount.isLoggedIn(),
     publicStoreDomain,
     metaPixelId,
     chatShopDomain,
+    buyerCountry: storefront.i18n.country,
+    availableMarkets: buildCountryOptions(localizationResult),
+    checkoutCountrySupported: isCheckoutCountrySupported(storefront.i18n.country),
     checkoutProvider,
     checkoutReady:
       checkoutProvider === 'fastrr' ? Boolean(fastrrSellerDomain) : razorpayReady,
@@ -339,13 +406,16 @@ export default function App() {
         )}
         <Meta />
         <Links />
+        <link rel="stylesheet" href={designSystem} />
         <link rel="stylesheet" href={stylesheet} />
         <link rel="stylesheet" href={identity} />
         <link rel="stylesheet" href={revamp} />
         <link rel="stylesheet" href={productExperience} />
         <link rel="stylesheet" href={reserveListStylesheet} />
         <link rel="stylesheet" href={cartPage} />
-              <link rel="stylesheet" href={teaAcademy} />
+        <link rel="stylesheet" href={teaAcademy} />
+        <link rel="stylesheet" href={shell} />
+        <link rel="stylesheet" href={merchandising} />
       </head>
       <body>
         {data.fastrrSellerDomain && (
@@ -380,10 +450,7 @@ function FastrrWarmup({enabled}: {enabled: boolean}) {
   const {pathname} = useLocation();
 
   useEffect(() => {
-    if (
-      !enabled ||
-      (pathname !== '/cart' && !pathname.startsWith('/products/'))
-    ) {
+    if (!enabled || (pathname !== '/cart' && !pathname.startsWith('/products/'))) {
       return;
     }
 
@@ -477,8 +544,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
         if (pageScrollPosition !== null) return;
 
         pageScrollPosition = window.scrollY;
-        const scrollbarWidth =
-          window.innerWidth - document.documentElement.clientWidth;
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
         document.documentElement.style.setProperty('overflow', 'hidden');
         if (scrollbarWidth > 0) {
           const currentPaddingRight = Number.parseFloat(
@@ -520,9 +586,9 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
     const closeChatOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
 
-      const chat = document.querySelector<
-        HTMLElement & {close?: () => void}
-      >('shopify-chat');
+      const chat = document.querySelector<HTMLElement & {close?: () => void}>(
+        'shopify-chat',
+      );
       if (!chat?.hasAttribute('open')) return;
 
       event.preventDefault();
@@ -531,7 +597,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       else chat.removeAttribute('open');
     };
 
-    const findInOpenShadowRoots = <T extends Element,>(
+    const findInOpenShadowRoots = <T extends Element>(
       root: Document | ShadowRoot,
       selector: string,
     ): T | null => {
@@ -552,16 +618,13 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
         .composedPath()
         .some(
           (target) =>
-            target instanceof Element &&
-            target.matches('button[part="activator"]'),
+            target instanceof Element && target.matches('button[part="activator"]'),
         );
       if (!clickedActivator) return;
 
       event.preventDefault();
       event.stopImmediatePropagation();
-      document
-        .querySelector<HTMLButtonElement>('button.header-search-trigger')
-        ?.click();
+      document.querySelector<HTMLButtonElement>('button.header-search-trigger')?.click();
     };
 
     const installActivatorRedirect = (chatRoot: ShadowRoot) => {
@@ -591,10 +654,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
         try {
           const panelSheet = new CSSStyleSheet();
           panelSheet.replaceSync(SHOPIFY_CHAT_TOP_PANEL_CSS);
-          panelRoot.adoptedStyleSheets = [
-            ...panelRoot.adoptedStyleSheets,
-            panelSheet,
-          ];
+          panelRoot.adoptedStyleSheets = [...panelRoot.adoptedStyleSheets, panelSheet];
         } catch {
           if (!panelRoot.getElementById(SHOPIFY_CHAT_TOP_PANEL_STYLE_ID)) {
             const style = document.createElement('style');
@@ -813,11 +873,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       });
       watchedFrames.forEach((iframe) => {
         iframe.removeEventListener('load', startLayoutProbe);
-        iframe.contentDocument?.removeEventListener(
-          'keydown',
-          closeChatOnEscape,
-          true,
-        );
+        iframe.contentDocument?.removeEventListener('keydown', closeChatOnEscape, true);
       });
     };
   }, [mounted]);
