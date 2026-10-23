@@ -439,6 +439,7 @@ export default function App() {
         <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
         <Script
           waitForHydration
+          {...{'preferred-sources-control': 'manual'}}
           src="https://news.google.com/swg/js/v1/publisher.js"
         />
         {data.checkoutProvider === 'razorpay' && data.checkoutReady && (

@@ -56,7 +56,7 @@ export function Footer({
           id="footer-market"
         />
         <div className="footer-preferred-source">
-          <PreferredSourceButton theme="light" />
+          <PreferredSourceButton />
         </div>
       </div>
       <nav className="footer-menu footer-menu-desktop" aria-label="Store policies">
