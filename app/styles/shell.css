@@ -36,10 +36,10 @@
   background: var(--surface-inverse);
   color: var(--text-inverse);
   font-family: var(--font-interface);
-  font-size: 0.625rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.015em;
 }
 
 .site-notice-board .notice-board-slide,
@@ -61,10 +61,10 @@
   height: var(--header-height);
   margin: 0 0 calc(-1 * var(--header-height));
   border: 0;
-  border-bottom: 1px solid var(--border-subtle);
-  background: rgb(255 255 255 / 96%);
+  border-bottom: 1px solid #bdc9c0;
+  background: #ffffff;
   box-shadow: none;
-  backdrop-filter: blur(12px);
+  backdrop-filter: none;
 }
 
 .site-header.header.header-solid:not(.header-scrolled) {
@@ -106,10 +106,10 @@
   width: min(calc(100% - 2.5rem), var(--content-max));
   padding-inline: var(--space-5);
   transform: translateY(var(--space-3));
-  border: 1px solid #cfd9d2;
+  border: 1px solid #b9c7bd;
   border-radius: 26px;
   background: #ffffff;
-  box-shadow: 0 6px 16px rgb(19 42 31 / 8%);
+  box-shadow: 0 4px 10px rgb(19 42 31 / 6%);
   backdrop-filter: none;
 }
 
@@ -130,14 +130,15 @@
 .site-header.header .wordmark img {
   width: auto;
   height: 3rem;
-  filter: contrast(1.2) saturate(1.15);
+  opacity: 1;
+  filter: brightness(0.88) contrast(1.32) saturate(1.22);
   transition: opacity var(--motion-standard) var(--ease-standard);
 }
 
 .site-header.header .wordmark:hover img,
 .site-header.header .wordmark:focus-visible img {
-  opacity: 0.78;
-  filter: contrast(1.2) saturate(1.15);
+  opacity: 1;
+  filter: brightness(0.88) contrast(1.32) saturate(1.22);
   transform: none;
 }
 
@@ -154,13 +155,13 @@
   border: 0;
   border-radius: var(--radius-button);
   background: transparent;
-  color: var(--text-primary);
+  color: #0c2419;
   box-shadow: none;
   font-family: var(--font-interface);
-  font-size: var(--type-metadata);
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 700;
   line-height: 1.2;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
   transition:
     color var(--motion-standard) var(--ease-standard),
     background-color var(--motion-standard) var(--ease-standard);
@@ -188,8 +189,9 @@
   padding: 0.15rem 0.35rem;
   border-radius: var(--radius-control);
   background: var(--surface-subtle);
-  color: var(--text-accent);
+  color: #5f411f;
   font-size: var(--type-label);
+  font-weight: 700;
   letter-spacing: 0.04em;
 }
 
@@ -208,9 +210,9 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-button);
   background: var(--surface-page);
-  color: var(--text-secondary);
+  color: #153226;
   box-shadow: none;
-  font: 600 var(--type-label) / 1.2 var(--font-interface);
+  font: 700 0.8125rem / 1.2 var(--font-interface);
   white-space: nowrap;
   transition:
     border-color var(--motion-standard) var(--ease-standard),
@@ -233,8 +235,8 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-control);
   background: var(--surface-subtle);
-  color: var(--text-secondary);
-  font: 600 var(--type-label) / 1 var(--font-interface);
+  color: #153226;
+  font: 700 var(--type-label) / 1 var(--font-interface);
 }
 
 .site-header .header-icon-button,
@@ -679,6 +681,21 @@
   font-size: var(--type-body);
 }
 
+.site-footer .footer-preferred-source {
+  min-height: 2.5rem;
+  margin-left: auto;
+}
+
+.site-footer .footer-preferences {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: min(calc(100% - (2 * var(--page-gutter))), var(--content-wide));
+  margin-inline: auto;
+  padding: 0 0 var(--space-5);
+  gap: var(--space-5);
+}
+
 .site-footer.footer h3 {
   margin: 0 0 var(--space-4);
   color: var(--color-tea-500);
@@ -866,6 +883,16 @@
   .site-footer .footer-brand,
   .site-footer .footer-contact {
     grid-column: 1 / -1;
+  }
+
+  .site-footer .footer-preferences {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .site-footer .footer-preferred-source {
+    align-self: flex-end;
   }
 
   .site-footer .footer-menu-desktop {

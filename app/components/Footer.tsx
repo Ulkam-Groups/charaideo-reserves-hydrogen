@@ -6,6 +6,7 @@ import {PaymentLogos} from './PaymentLogos';
 import {CountryIndicator, countryDisplayName} from './Header';
 import type {StorefrontMarket} from '~/lib/markets';
 import {useState} from 'react';
+import {PreferredSourceButton} from './PreferredSourceButton';
 
 export function Footer({
   buyerCountry,
@@ -23,12 +24,6 @@ export function Footer({
         <section className="footer-brand">
           <Brand />
           <p>A place. A people. A pot of tea. Bringing Assam back to the table.</p>
-          <MarketSelector
-            availableMarkets={availableMarkets}
-            buyerCountry={buyerCountry}
-            className="footer-location"
-            id="footer-market"
-          />
         </section>
         <FooterColumn
           title="Explore"
@@ -52,6 +47,17 @@ export function Footer({
           <a href="mailto:contact@ulkamgroup.com">contact@ulkamgroup.com</a>
           <a href="tel:+918431988910">+91 84319 88910</a>
         </section>
+      </div>
+      <div className="footer-preferences">
+        <MarketSelector
+          availableMarkets={availableMarkets}
+          buyerCountry={buyerCountry}
+          className="footer-location"
+          id="footer-market"
+        />
+        <div className="footer-preferred-source">
+          <PreferredSourceButton theme="light" />
+        </div>
       </div>
       <nav className="footer-menu footer-menu-desktop" aria-label="Store policies">
         <NavLink prefetch="none" to="/policies">
