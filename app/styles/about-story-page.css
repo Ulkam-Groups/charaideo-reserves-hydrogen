@@ -853,9 +853,13 @@ main.main--offset:has(> .about-page) {
 }
 
 .about-page-signature {
-  color: #132a1f;
-  font: italic 400 34px/1 'Segoe Script', 'Snell Roundhand', 'Brush Script MT', cursive;
-  transform: rotate(-3deg);
+  display: block;
+  width: clamp(150px, 20vw, 220px);
+  min-width: 150px;
+  max-width: 220px;
+  height: auto;
+  border-radius: 0;
+  object-fit: contain;
 }
 
 .about-page-founder-quote cite {
