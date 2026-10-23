@@ -216,7 +216,7 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
         type="button"
         aria-label={
           rootData?.checkoutProvider === 'razorpay'
-            ? 'Checkout securely'
+            ? 'Checkout with Razorpay'
             : 'Checkout with Shiprocket'
         }
         onClick={handleCheckout}

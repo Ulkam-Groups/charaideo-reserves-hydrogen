@@ -105,13 +105,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
 
     const completedCart = [...fetchers]
       .reverse()
-      .filter(
-        (fetcher) =>
-          pendingCartFetcherKeys.current.includes(fetcher.key) &&
-          fetcher.formAction &&
-          new URL(fetcher.formAction, 'https://storefront.invalid').pathname ===
-            '/cart',
-      )
+      .filter((fetcher) => pendingCartFetcherKeys.current.includes(fetcher.key))
       .map(
         (fetcher) =>
           (fetcher.data as {cart?: CartApiQueryFragment | null} | undefined)
