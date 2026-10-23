@@ -53,7 +53,7 @@ export function Footer({
           <a href="tel:+918431988910">+91 84319 88910</a>
         </section>
       </div>
-      <nav className="footer-menu" aria-label="Store policies">
+      <nav className="footer-menu footer-menu-desktop" aria-label="Store policies">
         <NavLink prefetch="none" to="/policies">
           All policies
         </NavLink>
@@ -70,6 +70,26 @@ export function Footer({
           Privacy choices
         </button>
       </nav>
+      <details className="footer-policies-mobile">
+        <summary>Store policies</summary>
+        <nav aria-label="Store policies">
+          <NavLink prefetch="none" to="/policies">
+            All policies
+          </NavLink>
+          {POLICY_PAGES.map(({handle, title}) => (
+            <NavLink key={handle} prefetch="none" to={`/policies/${handle}`}>
+              {title}
+            </NavLink>
+          ))}
+          <button
+            className="footer-privacy-choices reset"
+            onClick={() => privacyBanner?.showPreferences()}
+            type="button"
+          >
+            Privacy choices
+          </button>
+        </nav>
+      </details>
       <div className="footer-bottom">
         <p>© 2026 Ulkam Group. All rights reserved.</p>
         <div className="footer-secure">
