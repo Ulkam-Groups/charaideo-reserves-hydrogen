@@ -120,6 +120,24 @@ function execute(operation, variables) {
           language: {isoCode: 'EN'},
         },
       };
+    case 'StorefrontMarkets':
+      return {
+        countryCodes: {enumValues: [{name: 'IN'}, {name: 'US'}]},
+        localization: {
+          country: {
+            isoCode: 'IN',
+            name: 'India',
+            currency: {isoCode: 'INR', symbol: '₹'},
+          },
+          availableCountries: [
+            {
+              isoCode: 'IN',
+              name: 'India',
+              currency: {isoCode: 'INR', symbol: '₹'},
+            },
+          ],
+        },
+      };
     case 'ensureCookies':
       // Hydrogen issues this internal bootstrap query independently of page data.
       return {shop: {id: 'gid://shopify/Shop/1'}};
@@ -224,6 +242,11 @@ function execute(operation, variables) {
     case 'ProductRecommendations':
       return {
         product: {...product, collections: {nodes: []}},
+        productRecommendations: [],
+      };
+    case 'CartRecommendations':
+      return {
+        product: {collections: {nodes: []}},
         productRecommendations: [],
       };
     case 'RelatedProductTags':

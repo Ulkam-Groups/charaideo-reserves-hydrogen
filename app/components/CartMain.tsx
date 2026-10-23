@@ -124,12 +124,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   }, [cartMutationPending, fetchers]);
 
   useEffect(() => {
-    if (!originalCart) return;
-    setCart((current) =>
-      !current || Date.parse(originalCart.updatedAt) > Date.parse(current.updatedAt)
-        ? originalCart
-        : current,
-    );
+    setCart(originalCart);
   }, [originalCart]);
 
   const cartBusy = cartMutationPending || refreshingCart;
