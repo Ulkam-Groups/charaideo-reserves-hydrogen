@@ -2,7 +2,7 @@ import {
   Image,
   Money,
 } from '@shopify/hydrogen';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {startTransition, useEffect, useRef, useState} from 'react';
 import {Link, useFetchers, useRouteLoaderData} from 'react-router';
 import type {
   CartApiQueryFragment,
@@ -72,12 +72,10 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
  * It is used by both the /cart route and the cart aside dialog.
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
-  const {type: asideType} = useAside();
-  const cartVisible = layout === 'page' || asideType === 'cart';
   const [cart, setCart] = useState(originalCart);
   const [refreshingCart, setRefreshingCart] = useState(false);
-  const refreshSequence = useRef(0);
   const mutationWasPending = useRef(false);
+  const pendingCartFetcherKeys = useRef<string[]>([]);
   const fetchers = useFetchers();
   const cartMutationPending = fetchers.some(
     (fetcher) =>
@@ -87,42 +85,49 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           new URL(fetcher.formAction, 'https://storefront.invalid').pathname === '/cart',
       ),
   );
-  const refreshCart = useCallback(async () => {
-    const sequence = ++refreshSequence.current;
-    setRefreshingCart(true);
-    try {
-      const response = await fetch('/api/cart-state', {
-        credentials: 'same-origin',
-        cache: 'no-store',
-        headers: {Accept: 'application/json'},
-      });
-      if (!response.ok) throw new Error(`Cart refresh failed: ${response.status}`);
-      const result = (await response.json()) as {cart: CartApiQueryFragment | null};
-      if (sequence === refreshSequence.current) {
-        setCart(result.cart);
-        publishCart(result.cart);
-      }
-    } catch {
-      // Keep the last confirmed cart visible after the loading state.
-    } finally {
-      if (sequence === refreshSequence.current) setRefreshingCart(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (cartVisible) void refreshCart();
-  }, [cartVisible, refreshCart]);
-
   useEffect(() => {
     if (cartMutationPending) {
       mutationWasPending.current = true;
-      setRefreshingCart(true);
+      pendingCartFetcherKeys.current = fetchers
+        .filter(
+          (fetcher) =>
+            fetcher.state !== 'idle' &&
+            fetcher.formAction &&
+            new URL(fetcher.formAction, 'https://storefront.invalid').pathname ===
+              '/cart',
+        )
+        .map((fetcher) => fetcher.key);
+      startTransition(() => setRefreshingCart(true));
       return;
     }
     if (!mutationWasPending.current) return;
     mutationWasPending.current = false;
-    void refreshCart();
-  }, [cartMutationPending, refreshCart]);
+
+    const completedCart = [...fetchers]
+      .reverse()
+      .filter(
+        (fetcher) =>
+          pendingCartFetcherKeys.current.includes(fetcher.key) &&
+          fetcher.formAction &&
+          new URL(fetcher.formAction, 'https://storefront.invalid').pathname ===
+            '/cart',
+      )
+      .map(
+        (fetcher) =>
+          (fetcher.data as {cart?: CartApiQueryFragment | null} | undefined)
+            ?.cart,
+      )
+      .find((candidate): candidate is CartApiQueryFragment => Boolean(candidate));
+    pendingCartFetcherKeys.current = [];
+
+    startTransition(() => {
+      if (completedCart) {
+        setCart(completedCart);
+        publishCart(completedCart);
+      }
+      setRefreshingCart(false);
+    });
+  }, [cartMutationPending, fetchers]);
 
   useEffect(() => {
     if (!originalCart) return;
@@ -270,33 +275,42 @@ function CartRecommendations({
     if (!active || !productKey || response?.key === productKey) return;
 
     const controller = new AbortController();
-    const params = new URLSearchParams();
-    cartProductIds.slice(0, 3).forEach((id) => params.append('productId', id));
-    cartProductIds.forEach((id) => params.append('excludeProductId', id));
-    setLoadingKey(productKey);
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      cartProductIds.slice(0, 3).forEach((id) => params.append('productId', id));
+      cartProductIds.forEach((id) => params.append('excludeProductId', id));
+      startTransition(() => setLoadingKey(productKey));
 
-    void fetch(`/api/cart-recommendations?${params.toString()}`, {
-      signal: controller.signal,
-      headers: {Accept: 'application/json'},
-    })
-      .then(async (request) => {
-        if (!request.ok) throw new Error(`Recommendations failed: ${request.status}`);
-        return request.json() as Promise<{
-          recommendations: CartRecommendationProduct[];
-          unavailable: boolean;
-        }>;
+      void fetch(`/api/cart-recommendations?${params.toString()}`, {
+        signal: controller.signal,
+        headers: {Accept: 'application/json'},
       })
-      .then((result) => {
-        setResponse({key: productKey, ...result});
-        setLoadingKey('');
-      })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
-        setResponse({key: productKey, recommendations: [], unavailable: true});
-        setLoadingKey('');
-      });
+        .then(async (request) => {
+          if (!request.ok) throw new Error(`Recommendations failed: ${request.status}`);
+          return request.json() as Promise<{
+            recommendations: CartRecommendationProduct[];
+            unavailable: boolean;
+          }>;
+        })
+        .then((result) => {
+          startTransition(() => {
+            setResponse({key: productKey, ...result});
+            setLoadingKey('');
+          });
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+          startTransition(() => {
+            setResponse({key: productKey, recommendations: [], unavailable: true});
+            setLoadingKey('');
+          });
+        });
+    }, 500);
 
-    return () => controller.abort();
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [productKey, active, response?.key]);
 
   if (!active || !productKey) return null;

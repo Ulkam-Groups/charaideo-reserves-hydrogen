@@ -7,7 +7,7 @@ import {
 
 const MAX_SOURCE_PRODUCTS = 3;
 const MAX_EXCLUDED_PRODUCTS = 50;
-const MAX_RECOMMENDATIONS = 4;
+const MAX_RECOMMENDATIONS = 2;
 
 type RecommendationVariant = {
   id: string;
@@ -72,32 +72,58 @@ export async function loader({request, context}: Route.LoaderArgs) {
     }
 
     const cartProductIds = new Set(excludedProductIds);
-    const recommendations = [
-      ...new Map(
-        recommendationResults
-          .flatMap((result) => {
-            const recommendedProducts = result?.productRecommendations ?? [];
-            const collectionProducts =
-              result?.product?.collections.nodes.flatMap(
-                (collection: {
-                  products: {nodes: typeof recommendedProducts};
-                }) => collection.products.nodes,
-              ) ?? [];
-            return [...recommendedProducts, ...collectionProducts] as RecommendationCandidate[];
-          })
-          .filter(
-            (product) =>
-              !cartProductIds.has(product.id) &&
-              product.selectedOrFirstAvailableVariant?.availableForSale,
-          )
-          .map((product) => [product.id, product]),
-      ).values(),
-    ]
+    const rankedCandidates = new Map<
+      string,
+      {product: RecommendationCandidate; relevance: number; firstSeen: number}
+    >();
+    let firstSeen = 0;
+    const rankCandidate = (
+      product: RecommendationCandidate,
+      relevance: number,
+    ) => {
+      if (cartProductIds.has(product.id)) return;
+      const existing = rankedCandidates.get(product.id);
+      if (existing) {
+        existing.relevance += relevance;
+        return;
+      }
+      rankedCandidates.set(product.id, {product, relevance, firstSeen: firstSeen++});
+    };
+
+    recommendationResults.forEach((result) => {
+      const directRecommendations = (result?.productRecommendations ?? []) as RecommendationCandidate[];
+      directRecommendations.forEach((product, index) =>
+        rankCandidate(product, 100 - index * 5),
+      );
+
+      result?.product?.collections.nodes.forEach(
+        (collection: {products: {nodes: RecommendationCandidate[]}}) => {
+          collection.products.nodes.forEach((product, index) =>
+            rankCandidate(product, 30 - index * 2),
+          );
+        },
+      );
+    });
+
+    const recommendations = [...rankedCandidates.values()]
+      .map(({product, relevance, firstSeen}) => ({
+        product: {
+          ...product,
+          selectedOrFirstAvailableVariant: cheapestAvailableVariant(product),
+        },
+        relevance,
+        firstSeen,
+      }))
+      .filter(({product}) => product.selectedOrFirstAvailableVariant?.availableForSale)
+      .sort((left, right) => {
+        if (right.relevance !== left.relevance) return right.relevance - left.relevance;
+        const priceDifference =
+          Number(left.product.selectedOrFirstAvailableVariant?.price.amount ?? Infinity) -
+          Number(right.product.selectedOrFirstAvailableVariant?.price.amount ?? Infinity);
+        return priceDifference || left.firstSeen - right.firstSeen;
+      })
       .slice(0, MAX_RECOMMENDATIONS)
-      .map((product) => ({
-        ...product,
-        selectedOrFirstAvailableVariant: cheapestAvailableVariant(product),
-      }));
+      .map(({product}) => product);
 
     return data({recommendations, unavailable: false});
   } catch (error) {

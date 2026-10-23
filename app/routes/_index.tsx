@@ -807,7 +807,10 @@ export default function Homepage() {
   const homepageProducts = Array.from(
     chapterCollections.reduce((products, collection) => {
       collection.products.nodes.forEach((product) => {
-        if (!products.has(product.handle)) {
+        const hasStockedVariant = product.variants.nodes.some(
+          (variant) => variant.availableForSale && !variant.currentlyNotInStock,
+        );
+        if (hasStockedVariant && !products.has(product.handle)) {
           products.set(product.handle, {product, collectionTitle: collection.title});
         }
       });

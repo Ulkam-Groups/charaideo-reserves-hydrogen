@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  startTransition,
   type ReactNode,
 } from 'react';
 
@@ -67,36 +68,48 @@ export function WishlistProvider({children}: {children: ReactNode}) {
 
   useEffect(() => {
     const localProducts = readLocalWishlist();
-    setProducts(localProducts);
-    setReady(true);
+    startTransition(() => {
+      setProducts(localProducts);
+      setReady(true);
+    });
 
     const controller = new AbortController();
-    void fetch('/api/wishlist', {
-      headers: {Accept: 'application/json'},
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return (await response.json()) as {
-          authenticated?: boolean;
-          products?: WishlistProduct[];
-        };
+    const timer = window.setTimeout(() => {
+      void fetch('/api/wishlist', {
+        headers: {Accept: 'application/json'},
+        signal: controller.signal,
       })
-      .then((result) => {
-        if (!result) return;
-        const signedIn = Boolean(result.authenticated);
-        authenticatedRef.current = signedIn;
-        setAuthenticated(signedIn);
-        if (!signedIn) return;
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return (await response.json()) as {
+            authenticated?: boolean;
+            products?: WishlistProduct[];
+          };
+        })
+        .then((result) => {
+          if (!result) return;
+          const signedIn = Boolean(result.authenticated);
+          authenticatedRef.current = signedIn;
+          if (!signedIn) {
+            startTransition(() => setAuthenticated(false));
+            return;
+          }
 
-        const merged = dedupe([...(result.products ?? []), ...localProducts]);
-        setProducts(merged);
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-        if (merged.length !== (result.products ?? []).length) void saveRemote(merged);
-      })
-      .catch(() => undefined);
+          const merged = dedupe([...(result.products ?? []), ...localProducts]);
+          startTransition(() => {
+            setAuthenticated(true);
+            setProducts(merged);
+          });
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+          if (merged.length !== (result.products ?? []).length) void saveRemote(merged);
+        })
+        .catch(() => undefined);
+    }, 250);
 
-    return () => controller.abort();
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [saveRemote]);
 
   const toggle = useCallback(
