@@ -475,10 +475,7 @@ export default function Product() {
         <div className="product-reviews-heading">
           <span className="eyebrow">From the tea table</span>
           <h2 id="customer-notes-title">Reviews & questions.</h2>
-          <p>
-            Verified reviews are supplied by Judge.me. Customer questions will appear here
-            when Judge.me Q&amp;A is enabled.
-          </p>
+          <p>Read verified customer reviews and questions about this reserve.</p>
         </div>
         <AsyncProductReviews
           productId={product.id}
@@ -515,7 +512,7 @@ export default function Product() {
                 You can share private feedback directly with our tea room.
               </p>
               <Link className="text-link" prefetch="none" to="/pages/contact">
-                Share feedback →
+                Share feedback
               </Link>
             </div>
           )}
@@ -538,7 +535,7 @@ export default function Product() {
                     <p>Selected by shared tea tags and collections.</p>
                   </div>
                   <Link className="text-link" prefetch="none" to="/collections/all">
-                    Shop all teas →
+                    Shop all teas
                   </Link>
                 </div>
                 <div className="recommended-products-grid">

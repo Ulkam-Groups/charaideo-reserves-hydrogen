@@ -173,7 +173,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           </div>
           {cartHasItems && (
             <Link className="cart-page-continue" to="/reserve-list" prefetch="none">
-              <span aria-hidden="true">←</span> Continue shopping
+              Continue shopping
             </Link>
           )}
         </header>
@@ -436,8 +436,7 @@ function CartEmpty({
         onClick={close}
         prefetch="none"
       >
-        {recentProduct ? 'View the reserve list' : 'Explore reserves'}{' '}
-        <span aria-hidden="true">→</span>
+        {recentProduct ? 'View the reserve list' : 'Explore reserves'}
       </Link>
     </div>
   );

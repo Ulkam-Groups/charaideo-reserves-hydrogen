@@ -87,7 +87,7 @@ function accountLinkClass({isActive, isPending}: {isActive: boolean; isPending: 
 function Logout() {
   return (
     <Form className="account-logout" method="POST" action="/account/logout">
-      <button type="submit"><span aria-hidden="true">↗</span> Sign out</button>
+      <button type="submit">Sign out</button>
     </Form>
   );
 }

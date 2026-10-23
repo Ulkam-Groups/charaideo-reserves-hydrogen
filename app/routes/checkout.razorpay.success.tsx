@@ -96,7 +96,7 @@ export default function RazorpayCheckoutSuccess({
         </p>
         <nav className="checkout-success-actions" aria-label="Order confirmation actions">
           <Link className="button primary" prefetch="none" to="/collections/all">
-            Browse teas <span aria-hidden="true">&rarr;</span>
+            Browse teas
           </Link>
           <Link className="button secondary" prefetch="none" to="/">
             Return home

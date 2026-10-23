@@ -62,7 +62,7 @@ export default function Collections() {
           <h1>Explore our collections</h1>
           <p>Discover the teas of Charaideo Reserves™, gathered by character and craft.</p>
           <Link className="listing-hero-link" prefetch="none" to="/reserve-list">
-            View the Reserve List <span aria-hidden="true">→</span>
+            View the Reserve List
           </Link>
         </div>
       </header>
@@ -108,7 +108,6 @@ function CollectionItem({
       <div className="collection-item-copy">
         <span className="eyebrow">Collection</span>
         <h2>{collection.title}</h2>
-        <span aria-hidden="true">→</span>
       </div>
     </Link>
   );

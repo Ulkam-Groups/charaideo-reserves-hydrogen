@@ -151,7 +151,7 @@ export function ProductItem({
             </AddToCartButton>
           ) : (
             <Link className="text-link" prefetch="none" to={url}>
-              Choose tea →
+              Choose tea
             </Link>
           )}
         </div>

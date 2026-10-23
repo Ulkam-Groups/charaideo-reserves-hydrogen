@@ -83,7 +83,7 @@ export default function OrderRoute() {
   } = useLoaderData<typeof loader>();
   return (
     <div className="account-order">
-      <Link className="account-back-link" prefetch="none" to="/account/orders">← Back to orders</Link>
+      <Link className="account-back-link" prefetch="none" to="/account/orders">Back to orders</Link>
       <header className="account-section-heading account-order-heading">
         <span className="eyebrow">Order record</span>
         <h2>Order {order.name}</h2>
@@ -171,7 +171,7 @@ export default function OrderRoute() {
       </div>
       <p className="account-order-external">
         <a className="account-button account-button--primary" target="_blank" href={order.statusPageUrl} rel="noreferrer">
-          View Order Status →
+          View Order Status
         </a>
       </p>
     </div>

@@ -113,7 +113,7 @@ function EmptyOrders({hasFilters = false}: {hasFilters?: boolean}) {
         <>
           <h3>No matching journeys.</h3>
           <p>Try a different order or confirmation number.</p>
-          <Link className="text-link" prefetch="none" to="/account/orders">Clear filters →</Link>
+          <Link className="text-link" prefetch="none" to="/account/orders">Clear filters</Link>
         </>
       ) : (
         <>
@@ -241,7 +241,7 @@ function OrderItem({order}: {order: OrderItemFragment}) {
         <span>Total</span>
         <Money data={order.totalPrice} />
       </div>
-      <Link className="account-order-link" prefetch="none" to={`/account/orders/${btoa(order.id)}`}>View details <span aria-hidden="true">→</span></Link>
+      <Link className="account-order-link" prefetch="none" to={`/account/orders/${btoa(order.id)}`}>View details</Link>
     </article>
   );
 }
