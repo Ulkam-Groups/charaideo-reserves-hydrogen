@@ -18,7 +18,6 @@ import {
   isDiscountProgressEligible,
 } from '~/lib/discount-progress';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
-import {RazorpayBrand} from './RazorpayBrand';
 import {
   META_ANALYTICS_EVENTS,
   metaContentId,
@@ -227,7 +226,7 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
           {rootData?.checkoutProvider === 'razorpay' ? (
             <>
               <span>Checkout with</span>
-              <RazorpayBrand wordmark />
+              <PaymentLogos methods={['Visa', 'Mastercard', 'UPI']} />
             </>
           ) : (
             <span>Checkout with Shiprocket</span>
@@ -248,19 +247,21 @@ function CartCheckoutActions({cart, layout}: {cart: CartSummaryProps['cart']; la
         </div>
       ) : (
         <>
-          {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
-          {rootData && !rootData.checkoutCountrySupported && (
-            <p role="status">Currently shipping within India only.</p>
-          )}
-          {!!cart.appliedGiftCards?.length && (
-            <p role="status">Remove gift cards to use this checkout.</p>
-          )}
+          <div className="checkout-supporting-copy">
+            {!rootData?.checkoutReady && <p role="status">Checkout is being configured.</p>}
+            {rootData && !rootData.checkoutCountrySupported && (
+              <p role="status">Currently shipping within India only.</p>
+            )}
+            {!!cart.appliedGiftCards?.length && (
+              <p role="status">Remove gift cards to use this checkout.</p>
+            )}
+            <p className="fine-print">
+              {layout === 'page'
+                ? 'Inclusive of all taxes.'
+                : 'Shipping and applicable taxes calculated at checkout.'}
+            </p>
+          </div>
           {checkoutError && <p role="alert">{checkoutError}</p>}
-          <p className="fine-print">
-            {layout === 'page'
-              ? 'Inclusive of all taxes.'
-              : 'Shipping and applicable taxes calculated at checkout.'}
-          </p>
         </>
       )}
     </div>

@@ -21,10 +21,7 @@ export function ProductReviews({
           <strong>0 reviews</strong>
         </div>
         <h3>No customer notes yet.</h3>
-        <p>
-          This reserve is waiting for its first review. Reviews published through
-          Judge.me will appear here automatically.
-        </p>
+        <p>This reserve is waiting for its first review.</p>
       </div>
     );
   }
@@ -37,7 +34,6 @@ export function ProductReviews({
           <Stars rating={average ?? 0} />
           <p>Based on {reviewCount} customer {reviewCount === 1 ? 'review' : 'reviews'}.</p>
         </div>
-        <p className="product-review-provider-note">Published and managed through Judge.me.</p>
       </div>
       <div className="product-review-list" aria-label="Customer reviews">
         {reviews.map((review) => <ReviewCard key={review.id} review={review} />)}

@@ -51,7 +51,7 @@ export function parseStorefrontNotices(
       return [{
         id: entry.id,
         message,
-        buttonLabel: configuredLabel || linkLabel || (link ? 'Learn more →' : null),
+        buttonLabel: configuredLabel || linkLabel || (link ? 'Learn more' : null),
         buttonLink: link?.url ?? null,
         displayOrder: parseDisplayOrder(entry.displayOrder?.value),
         tone: parseTone(entry.tone?.value),

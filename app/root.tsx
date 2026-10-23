@@ -306,10 +306,10 @@ export async function loader({context}: Route.LoaderArgs) {
           : `${chapterAnnouncement.title} · Coming Soon`,
     buttonLabel:
       chapterAnnouncement.state === 'open'
-        ? 'Explore Now →'
+        ? 'Explore Now'
         : chapterAnnouncement.state === 'opening-soon'
-          ? 'Join Now →'
-          : 'View Reserve List →',
+          ? 'Join Now'
+          : 'View Reserve List',
     buttonLink:
       chapterAnnouncement.state === 'open'
         ? `/collections/${chapterAnnouncement.handle}`

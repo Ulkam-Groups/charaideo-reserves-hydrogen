@@ -92,7 +92,7 @@ export default function Collection() {
             <p className="collection-description">{collection.description}</p>
           )}
           <Link className="listing-hero-link" prefetch="none" to="/reserve-list">
-            Explore the Reserve List <span aria-hidden="true">→</span>
+            Explore the Reserve List
           </Link>
         </div>
       </header>

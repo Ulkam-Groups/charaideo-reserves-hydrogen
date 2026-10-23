@@ -58,7 +58,7 @@ export default function Policy() {
           <div className="policy-help">
             <h2>Need help?</h2>
             <p>Contact us if you have a question about this policy or an order.</p>
-            <Link prefetch="none" to="/pages/contact">Contact Charaideo Reserves™ →</Link>
+            <Link prefetch="none" to="/pages/contact">Contact Charaideo Reserves™</Link>
           </div>
         </article>
       </div>

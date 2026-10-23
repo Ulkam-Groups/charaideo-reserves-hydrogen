@@ -727,6 +727,10 @@
   padding-block: var(--space-4);
 }
 
+.site-footer .footer-policies-mobile {
+  display: none;
+}
+
 .site-footer .footer-bottom {
   align-items: center;
   padding-block: var(--space-4);
@@ -854,12 +858,71 @@
   }
 
   .site-footer .footer-inner {
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-4);
     padding-block: var(--space-6);
   }
 
-  .site-footer .footer-menu,
+  .site-footer .footer-brand,
+  .site-footer .footer-contact {
+    grid-column: 1 / -1;
+  }
+
+  .site-footer .footer-menu-desktop {
+    display: none;
+  }
+
+  .site-footer .footer-policies-mobile {
+    display: block;
+    width: min(calc(100% - (2 * var(--page-gutter))), var(--content-wide));
+    margin-inline: auto;
+    border-top: 1px solid rgb(255 255 255 / 14%);
+  }
+
+  .site-footer .footer-policies-mobile summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 3.5rem;
+    color: var(--color-tea-500);
+    cursor: pointer;
+    font: 600 var(--type-label) / 1.4 var(--font-interface);
+    letter-spacing: 0.08em;
+    list-style: none;
+    text-transform: uppercase;
+  }
+
+  .site-footer .footer-policies-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .site-footer .footer-policies-mobile summary::after {
+    content: '+';
+    color: var(--text-inverse);
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .site-footer .footer-policies-mobile[open] summary::after {
+    content: '\2212';
+  }
+
+  .site-footer .footer-policies-mobile nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
+    padding: 0 0 var(--space-5);
+  }
+
+  .site-footer .footer-policies-mobile a,
+  .site-footer .footer-policies-mobile .footer-privacy-choices {
+    color: rgb(255 255 255 / 78%);
+    font-family: var(--font-interface);
+    font-size: var(--type-metadata);
+    line-height: 1.5;
+    text-align: left;
+  }
+
   .site-footer .footer-bottom {
     align-items: flex-start;
     flex-direction: column;

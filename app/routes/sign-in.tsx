@@ -23,9 +23,9 @@ export default function SignIn() {
         <span className="eyebrow">Your account</span>
         <h2>Welcome back.</h2>
         <p>Sign in to see your orders and manage your details, ready for your next tea ritual.</p>
-        <a className="button primary" href="/account/login">Continue to sign in <span aria-hidden="true">↗</span></a>
+        <a className="button primary" href="/account/login">Continue to sign in</a>
         <p className="fine-print">You’ll continue to our secure sign-in page. New here? You can create your account there too.</p>
-        <Link className="text-link" prefetch="none" to="/collections/all">Keep exploring the teas →</Link>
+        <Link className="text-link" prefetch="none" to="/collections/all">Keep exploring the teas</Link>
       </div>
     </section>
   );

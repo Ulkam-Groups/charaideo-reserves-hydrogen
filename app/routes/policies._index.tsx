@@ -35,7 +35,6 @@ export default function Policies() {
           <Link key={policy.handle} prefetch="none" to={`/policies/${policy.handle}`}>
             <span>{String(index + 1).padStart(2, '0')}</span>
             <strong>{policy.title}</strong>
-            <span aria-hidden="true">→</span>
           </Link>
         ))}
       </div>

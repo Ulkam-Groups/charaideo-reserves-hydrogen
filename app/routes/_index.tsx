@@ -408,7 +408,7 @@ function ChapterCollectionCard({
         )}
         <div className="mt-4 flex-1 flex items-end">
           <span className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#132A1F] bg-[#132A1F] text-white hover:bg-black' : isOpen ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : canJoinChapterUpdates ? 'border-[#5C171C] bg-[#5C171C] text-white hover:bg-[#3F1014]' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}>
-            {isOpen ? `Explore ${collection.title} →` : canJoinWaitlist ? 'Notify me →' : canJoinChapterUpdates ? 'Join the Reserve List →' : `${collection.title} · Coming soon`}
+            {isOpen ? `Explore ${collection.title}` : canJoinWaitlist ? 'Notify me' : canJoinChapterUpdates ? 'Join the Reserve List' : `${collection.title} · Coming soon`}
           </span>
         </div>
       </div>
@@ -807,7 +807,10 @@ export default function Homepage() {
   const homepageProducts = Array.from(
     chapterCollections.reduce((products, collection) => {
       collection.products.nodes.forEach((product) => {
-        if (!products.has(product.handle)) {
+        const hasStockedVariant = product.variants.nodes.some(
+          (variant) => variant.availableForSale && !variant.currentlyNotInStock,
+        );
+        if (hasStockedVariant && !products.has(product.handle)) {
           products.set(product.handle, {product, collectionTitle: collection.title});
         }
       });
