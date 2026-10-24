@@ -50,7 +50,7 @@ export function Header({
       ref={headerRef}
     >
       <div className="header-inner">
-        <Brand />
+        <Brand endorsement="FROM THE HOUSE OF TEA RESERVES" />
         <HeaderMenu
           menu={menu}
           viewport="desktop"

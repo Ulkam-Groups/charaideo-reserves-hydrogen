@@ -426,8 +426,7 @@ main.main--offset:has(> .about-page) {
   color: #b87936;
   font:
     500 54px/0.82 'Cormorant Garamond',
-    Baskerville,
-    Georgia,
+    'Now',
     serif;
   font-feature-settings:
     'onum' 1,

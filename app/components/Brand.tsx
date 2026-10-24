@@ -1,16 +1,33 @@
 import {Link} from 'react-router';
-import logoWordmark from '~/assets/charaideo-reserves-logo-wordmark-tm.svg';
+import logoWordmark from '~/assets/charaideo-reserves-logo-wordmark-now-medium-tm.svg';
 import wordmark from '~/assets/charaideo-reserves-wordmark-tm.svg';
 
-export function Brand({variant = 'default'}: {variant?: 'default' | 'light'}) {
+interface BrandProps {
+  variant?: 'default' | 'light' | 'footer';
+  endorsement?: string;
+}
+
+export function Brand({variant = 'default', endorsement}: BrandProps) {
   return (
     <Link
       to="/"
-      className={`wordmark wordmark--${variant}`}
-      aria-label="Charaideo Reserves home"
+      className={`wordmark wordmark--${variant}${endorsement ? ' wordmark--endorsed' : ''}`}
+      aria-label={
+        endorsement
+          ? `Charaideo Reserves, ${endorsement.toLowerCase()}, home`
+          : 'Charaideo Reserves home'
+      }
       prefetch="none"
     >
-      <img src={variant === 'light' ? wordmark : logoWordmark} alt="" />
+      <img
+        src={variant === 'light' ? wordmark : logoWordmark}
+        alt=""
+      />
+      {endorsement ? (
+        <span className="wordmark-endorsement" aria-hidden="true">
+          {endorsement}
+        </span>
+      ) : null}
     </Link>
   );
 }

@@ -6,6 +6,46 @@
  * without changing Shopify-owned content or commerce behavior.
  */
 
+@font-face {
+  font-family: 'Now';
+  src: url('../assets/fonts/Now-Thin.otf') format('opentype');
+  font-style: normal;
+  font-weight: 250;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Now';
+  src: url('../assets/fonts/Now-Light.otf') format('opentype');
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Now';
+  src: url('../assets/fonts/Now-Regular.otf') format('opentype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Now';
+  src: url('../assets/fonts/Now-Medium.otf') format('opentype');
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Now';
+  src: url('../assets/fonts/Now-Black.otf') format('opentype');
+  font-style: normal;
+  font-weight: 800 900;
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
 
@@ -39,10 +79,8 @@
   --status-info: #315d70;
 
   /* Typography */
-  --font-editorial: 'Libre Baskerville', Baskerville, Georgia, serif;
-  --font-interface:
-    'Instrument Sans', Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
+  --font-editorial: 'Now', system-ui, sans-serif;
+  --font-interface: 'Now', system-ui, sans-serif;
   --type-label: 0.75rem;
   --type-metadata: 0.875rem;
   --type-body: 1rem;
