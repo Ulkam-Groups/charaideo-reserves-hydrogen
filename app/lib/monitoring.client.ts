@@ -65,6 +65,28 @@ export function initBrowserMonitoring() {
       });
       return;
     }
+    if (signal.kind === 'razorpay') {
+      metrics.count('razorpay.checkout.count', 1, {
+        attributes: {source: signal.source, stage: signal.stage},
+      });
+      if (!['checkout_opened', 'verified'].includes(signal.stage)) {
+        Sentry.captureMessage('razorpay.checkout.failure', {
+          level: 'error',
+          fingerprint: ['razorpay.checkout.failure', signal.source, signal.stage],
+          tags: {
+            source: signal.source,
+            stage: signal.stage,
+            status: String(signal.status ?? 'none'),
+            routeGroup: signal.diagnostic?.routeGroup || 'unknown',
+            errorName: signal.diagnostic?.errorName || 'none',
+          },
+          contexts: signal.diagnostic
+            ? {diagnostic: {scriptStack: signal.diagnostic.scriptStack}}
+            : undefined,
+        });
+      }
+      return;
+    }
     metrics.count('fastrr.launch.count', 1, {attributes: {source: signal.source, result: signal.result}});
     if (signal.result !== 'requested') {
       Sentry.captureMessage('fastrr.launch.failure', {

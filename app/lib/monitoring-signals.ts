@@ -1,6 +1,16 @@
 type Signal =
   | {kind: 'fastrr'; source: 'cart' | 'product'; result: 'requested' | 'missing' | 'threw'; diagnostic?: HydrationDiagnostic}
+  | {kind: 'razorpay'; source: 'cart' | 'product'; stage: RazorpayCheckoutStage; status?: number; diagnostic?: HydrationDiagnostic}
   | {kind: 'hydration'; diagnostic: HydrationDiagnostic};
+
+export type RazorpayCheckoutStage =
+  | 'checkout_unavailable'
+  | 'order_request_failed'
+  | 'order_response_invalid'
+  | 'checkout_opened'
+  | 'payment_failed'
+  | 'verification_failed'
+  | 'verified';
 
 export type HydrationDiagnostic = {
   reactErrorCode: string;
@@ -43,6 +53,25 @@ export function recordFastrrLaunch(source: 'cart' | 'product', result: 'requeste
   const pathname = typeof window !== 'undefined' ? window.location?.pathname || '/' : '/';
   const origin = typeof window !== 'undefined' ? window.location?.origin || '' : '';
   deliver({kind: 'fastrr', source, result, ...(error === undefined ? {} : {diagnostic: hydrationDiagnostic(error, undefined, pathname, origin)})});
+}
+
+export function recordRazorpayCheckout(
+  source: 'cart' | 'product',
+  stage: RazorpayCheckoutStage,
+  options: {status?: number; error?: unknown} = {},
+) {
+  if (!pending && !recorder) return;
+  const pathname = typeof window !== 'undefined' ? window.location?.pathname || '/' : '/';
+  const origin = typeof window !== 'undefined' ? window.location?.origin || '' : '';
+  deliver({
+    kind: 'razorpay',
+    source,
+    stage,
+    ...(options.status === undefined ? {} : {status: options.status}),
+    ...(options.error === undefined
+      ? {}
+      : {diagnostic: hydrationDiagnostic(options.error, undefined, pathname, origin)}),
+  });
 }
 
 export function recordHydrationFailure(error: unknown, componentStack: string | undefined, pathname: string, origin = '') {

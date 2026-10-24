@@ -1,6 +1,7 @@
 import type {CheckoutInput} from '../../checkout.ts';
 import {dispatchCheckoutError} from '../../checkout-errors.ts';
 import {dispatchCheckoutConfirmation} from '../../checkout-progress.ts';
+import {recordRazorpayCheckout} from '../../../monitoring-signals.ts';
 import {RAZORPAY_ASSETS} from './razorpay.config.ts';
 
 type RazorpayPaymentResponse = {
@@ -79,7 +80,10 @@ async function waitForRazorpay(): Promise<RazorpayCheckoutConstructor | null> {
 
 export async function startRazorpayCheckout(input: CheckoutInput): Promise<boolean> {
   const Razorpay = await waitForRazorpay();
-  if (!Razorpay) return false;
+  if (!Razorpay) {
+    recordRazorpayCheckout(input.source, 'checkout_unavailable');
+    return false;
+  }
 
   try {
     const orderResponse = await postForm('/api/checkout/razorpay/order', {
@@ -88,7 +92,12 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       ...(input.couponCode ? {couponCode: input.couponCode} : {}),
       ...(input.utmParams ? {utmParams: input.utmParams} : {}),
     });
-    if (!orderResponse.ok) return false;
+    if (!orderResponse.ok) {
+      recordRazorpayCheckout(input.source, 'order_request_failed', {
+        status: orderResponse.status,
+      });
+      return false;
+    }
 
     const order = (await orderResponse.json()) as {
       keyId?: unknown;
@@ -100,6 +109,7 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       typeof order.orderId !== 'string' ||
       typeof order.businessName !== 'string'
     ) {
+      recordRazorpayCheckout(input.source, 'order_response_invalid');
       return false;
     }
 
@@ -117,11 +127,18 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
           razorpay_signature: response.razorpay_signature,
         })
           .then(async (verification) => {
-            if (!verification.ok) throw new Error('Payment verification failed');
+            if (!verification.ok) {
+              recordRazorpayCheckout(input.source, 'verification_failed', {
+                status: verification.status,
+              });
+              throw new Error('Payment verification failed');
+            }
             const result = (await verification.json()) as {redirectTo?: unknown};
             if (typeof result.redirectTo !== 'string') {
+              recordRazorpayCheckout(input.source, 'verification_failed');
               throw new Error('Payment verification response is invalid');
             }
+            recordRazorpayCheckout(input.source, 'verified');
             window.location.assign(result.redirectTo);
           })
           .catch(() => {
@@ -133,14 +150,17 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       },
     });
     checkout.on('payment.failed', () => {
+      recordRazorpayCheckout(input.source, 'payment_failed');
       dispatchCheckoutConfirmation(false);
       dispatchCheckoutError(
         'Payment could not be completed. Please check the details and try again.',
       );
     });
     checkout.open();
+    recordRazorpayCheckout(input.source, 'checkout_opened');
     return true;
-  } catch {
+  } catch (error) {
+    recordRazorpayCheckout(input.source, 'order_request_failed', {error});
     return false;
   }
 }
