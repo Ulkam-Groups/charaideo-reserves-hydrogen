@@ -389,6 +389,9 @@ export default function ReserveList() {
   const visibleChapters = selectedChapter
     ? catalogChapters.filter((chapter) => chapter.handle === selectedChapter)
     : catalogChapters;
+  const filteredChapters = visibleChapters
+    .map((chapter) => ({...chapter, products: filterProducts(chapter.products)}))
+    .filter((chapter) => chapter.products.length > 0);
   const activeFilterCount = [
     availability !== 'all',
     Boolean(selectedTag),
@@ -870,7 +873,7 @@ export default function ReserveList() {
               </div>
               <small>
                 {tab === 'chapters'
-                  ? `${visibleChapters.length} chapter${visibleChapters.length === 1 ? '' : 's'}`
+                  ? `${filteredChapters.length} chapter${filteredChapters.length === 1 ? '' : 's'}`
                   : `${visibleCollectionProducts.length} tea${visibleCollectionProducts.length === 1 ? '' : 's'}`}
               </small>
             </header>
@@ -880,18 +883,32 @@ export default function ReserveList() {
               aria-label="Chapter products"
               hidden={tab !== 'chapters'}
             >
-              <div className="reserve-chapter-sections">
-                {visibleChapters.map((chapter) => (
-                  <ReserveChapterSection
-                    key={chapter.handle}
-                    chapter={{...chapter, products: filterProducts(chapter.products)}}
-                    productCollectionLabels={productCollectionLabels}
-                  />
-                ))}
-                {!visibleChapters.length && (
-                  <p className="reserve-empty">No chapters are listed yet.</p>
-                )}
-              </div>
+              {filteredChapters.length ? (
+                <div className="reserve-chapter-sections">
+                  {filteredChapters.map((chapter) => (
+                    <ReserveChapterSection
+                      key={chapter.handle}
+                      chapter={chapter}
+                      productCollectionLabels={productCollectionLabels}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="reserve-empty" role="status">
+                  <span className="reserve-empty-icon" aria-hidden="true">
+                    ⌕
+                  </span>
+                  <div>
+                    <strong>No teas found</strong>
+                    <p>
+                      Try another search or reset your filters to explore the tea library.
+                    </p>
+                  </div>
+                  <button type="button" onClick={clearFilters}>
+                    Clear search &amp; filters
+                  </button>
+                </div>
+              )}
             </section>
             <section
               id="reserve-collections-panel"

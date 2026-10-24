@@ -127,11 +127,11 @@ test('Reserve List selected pack uses the gold confirmation mark', async () => {
 
   assert.match(
     css,
-    /label\[data-available="true"\]\[data-selected="true"\] span::before/,
+    /label\[data-available=['"]true['"]\]\[data-selected=['"]true['"]\] span::before/,
   );
   assert.match(
     css,
-    /label\[data-available="false"\]:has\(input:checked\) span::before \{content: none\}/,
+    /label\[data-available=['"]false['"]\]:has\(input:checked\) span::before\s*\{\s*content: none/,
   );
   assert.match(css, /content: '✓'/);
   assert.match(css, /color: #d9aa45/);

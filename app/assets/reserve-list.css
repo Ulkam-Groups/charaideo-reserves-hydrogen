@@ -355,9 +355,9 @@
   margin: 5px 0 0;
   color: #40564a;
   font-size: 12px;
-  font-weight: 520;
-  line-height: 1.2;
-  letter-spacing: 0.025em;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
   text-transform: none;
 }
 .reserve-section-header > span {
@@ -706,12 +706,12 @@
   z-index: 9;
   display: grid;
   grid-template-columns: minmax(240px, 1fr) auto auto;
-  gap: 5px;
+  gap: 0;
   margin: 14px 0 10px;
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: transparent;
+  background: #fff;
   box-shadow: none;
   transition:
     padding 180ms ease,
@@ -722,17 +722,17 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
-  min-height: 36px;
+  height: 42px;
+  min-height: 42px;
   padding: 0 9px;
   border: 1px solid #d8d0c4;
-  border-radius: 7px;
+  border-radius: 8px 0 0 8px;
   background: #fff;
 }
 .reserve-search input {
   min-width: 0;
   width: 100%;
-  height: 34px;
+  height: 40px;
   min-height: 0;
   padding-block: 0;
   border: 0;
@@ -753,8 +753,8 @@
 }
 .reserve-filters {
   position: relative;
-  height: 36px;
-  min-height: 36px;
+  height: 42px;
+  min-height: 42px;
 }
 .reserve-filters summary,
 .reserve-sort {
@@ -858,11 +858,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
-  min-height: 36px;
+  height: 42px;
+  min-height: 42px;
   padding: 0 10px;
   border: 1px solid #d8d0c4;
-  border-radius: 7px;
+  border-left: 0;
+  border-radius: 0;
   background: #fff;
   color: #17382a;
   font:
@@ -1276,8 +1277,8 @@
 .reserve-sort {
   position: relative;
   display: block;
-  height: 36px;
-  min-height: 36px;
+  height: 42px;
+  min-height: 42px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -1288,11 +1289,12 @@
   align-items: center;
   gap: 7px;
   width: 100%;
-  height: 36px;
-  min-height: 36px;
+  height: 42px;
+  min-height: 42px;
   padding: 0 9px;
   border: 1px solid #d8d0c4;
-  border-radius: 7px;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
   background: #fff;
   color: #17382a;
   cursor: pointer;
@@ -1303,7 +1305,7 @@
 }
 @media (min-width: 821px) {
   .reserve-discovery--stuck {
-    gap: 4px;
+    gap: 0;
     padding: 0;
     border-radius: 0;
     background: #fff;
@@ -1312,10 +1314,10 @@
   .reserve-discovery--stuck .reserve-search,
   .reserve-discovery--stuck .reserve-filter-trigger,
   .reserve-discovery--stuck .reserve-sort-trigger {
-    min-height: 34px;
+    height: 42px;
+    min-height: 42px;
   }
   .reserve-discovery--stuck .reserve-search {
-    height: 34px;
     padding-block: 0;
   }
   .reserve-discovery--stuck .reserve-search input {
@@ -1325,8 +1327,8 @@
   }
   .reserve-discovery--stuck .reserve-filters,
   .reserve-discovery--stuck .reserve-sort {
-    height: 34px;
-    min-height: 34px;
+    height: 42px;
+    min-height: 42px;
   }
 }
 .reserve-sort-trigger:hover {
@@ -1901,6 +1903,7 @@
 .reserve-nav-card-title small {
   color: #68766e;
   font-size: 10px;
+  font-weight: 500;
   line-height: 1.3;
 }
 .reserve-nav-card-title i {
@@ -1935,7 +1938,7 @@
   border-radius: 7px;
   background: transparent;
   color: #42564b;
-  font: 400 11px/1.35 var(--font-interface);
+  font: 500 11px/1.35 var(--font-interface);
   text-align: left;
 }
 

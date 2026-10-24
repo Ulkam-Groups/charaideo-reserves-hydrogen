@@ -100,9 +100,7 @@ test('browser signals are buffered only while enabled and cannot interrupt check
     throw new Error('monitoring unavailable');
   });
   assert.doesNotThrow(() => recordFastrrLaunch('cart', 'requested'));
-  assert.doesNotThrow(() =>
-    recordRazorpayCheckout('product', 'checkout_opened'),
-  );
+  assert.doesNotThrow(() => recordRazorpayCheckout('product', 'checkout_opened'));
   installMonitoringRecorder(null);
 });
 
