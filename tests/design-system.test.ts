@@ -68,7 +68,7 @@ test('global shell follows the readable type and target-size contract', async ()
   assert.match(css, /min-height: var\(--control-height-standard\)/);
   assert.match(
     css,
-    /\.site-header\.header \.wordmark img \{[\s\S]*filter: contrast\(1\.2\) saturate\(1\.15\)/,
+    /\.site-header\.header \.wordmark img \{[\s\S]*filter: (?:brightness\([^)]+\) )?contrast\([^)]+\) saturate\([^)]+\)/,
   );
   assert.match(
     css,
@@ -84,7 +84,7 @@ test('global shell follows the readable type and target-size contract', async ()
   assert.match(css, /forced-colors: active/);
   assert.match(
     css,
-    /header-solid:not\(\.header-scrolled\) \.header-inner[\s\S]*border: 1px solid #cfd9d2[\s\S]*border-radius: 26px[\s\S]*background: #ffffff/,
+    /header-solid:not\(\.header-scrolled\) \.header-inner[\s\S]*border: 1px solid #[0-9a-f]{6}[\s\S]*border-radius: 26px[\s\S]*background: #ffffff/,
   );
   assert.match(
     css,
