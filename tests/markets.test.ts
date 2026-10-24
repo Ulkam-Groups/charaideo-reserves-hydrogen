@@ -9,7 +9,7 @@ import {
 test('storefront market follows Oxygen buyer country for localized prices', () => {
   assert.deepEqual(
     resolveStorefrontI18n(
-      new Request('https://www.charaideoreserves.com/products/tea', {
+      new Request('https://www.teareserves.com/products/tea', {
         headers: {'oxygen-buyer-country': 'gb'},
       }),
     ),
@@ -18,13 +18,13 @@ test('storefront market follows Oxygen buyer country for localized prices', () =
 });
 
 test('storefront market safely defaults to India without valid Oxygen geolocation', () => {
-  assert.deepEqual(
-    resolveStorefrontI18n(new Request('https://www.charaideoreserves.com/')),
-    {language: 'EN', country: 'IN'},
-  );
+  assert.deepEqual(resolveStorefrontI18n(new Request('https://www.teareserves.com/')), {
+    language: 'EN',
+    country: 'IN',
+  });
   assert.deepEqual(
     resolveStorefrontI18n(
-      new Request('https://www.charaideoreserves.com/', {
+      new Request('https://www.teareserves.com/', {
         headers: {'oxygen-buyer-country': 'XX'},
       }),
     ),
@@ -61,7 +61,7 @@ test('checkout UI supports India only', () => {
 test('explicit market choice overrides Oxygen geolocation', () => {
   assert.deepEqual(
     resolveStorefrontI18n(
-      new Request('https://www.charaideoreserves.com/', {
+      new Request('https://www.teareserves.com/', {
         headers: {cookie: 'cr_market=CA', 'oxygen-buyer-country': 'RO'},
       }),
     ),

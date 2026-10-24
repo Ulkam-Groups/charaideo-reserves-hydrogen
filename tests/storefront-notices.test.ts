@@ -15,7 +15,7 @@ function entry(
     buttonLink: {
       value: JSON.stringify({
         text: 'Shop now',
-        url: 'https://charaideoreserves.com/reserve-list',
+        url: 'https://www.teareserves.com/reserve-list',
       }),
     },
     enabled: {value: 'true'},
@@ -35,7 +35,7 @@ test('maps an active Shopify link field into a sorted notice', () => {
       id: 'notice-1',
       message: 'Free Delivery Above ₹499/-',
       buttonLabel: 'Shop now →',
-      buttonLink: 'https://charaideoreserves.com/reserve-list',
+      buttonLink: 'https://www.teareserves.com/reserve-list',
       displayOrder: 2,
       tone: 'warm',
     },
