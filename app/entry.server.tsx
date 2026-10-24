@@ -76,7 +76,11 @@ export default async function handleRequest(
       'https://charaideoreserves.myshopify.com',
       'data:',
     ],
-    fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+    fontSrc: [
+      "'self'",
+      'https://cdn.shopify.com',
+      'https://fonts.gstatic.com',
+    ],
     imgSrc: [
       "'self'",
       'https://cdn.shopify.com',
