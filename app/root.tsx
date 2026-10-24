@@ -437,6 +437,11 @@ export default function App() {
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
+        <Script
+          waitForHydration
+          {...{'preferred-sources-control': 'manual'}}
+          src="https://news.google.com/swg/js/v1/publisher.js"
+        />
         {data.checkoutProvider === 'razorpay' && data.checkoutReady && (
           <Script waitForHydration src={RAZORPAY_ASSETS.script} />
         )}

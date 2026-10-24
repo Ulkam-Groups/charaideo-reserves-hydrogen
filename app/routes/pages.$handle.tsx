@@ -739,9 +739,14 @@ function AboutStoryPage() {
                 Tea was never simply a profession for my family. It was a way of life.
               </p>
               <footer>
-                <span className="about-page-signature" aria-hidden="true">
-                  Kamalika Biswas
-                </span>
+                <img
+                  alt=""
+                  aria-hidden="true"
+                  className="about-page-signature"
+                  decoding="async"
+                  loading="lazy"
+                  src="https://cdn.shopify.com/s/files/1/0651/6119/9713/files/Kamalika_Sig.heic?v=1792784380"
+                />
                 <cite>Kamalika Biswas, Founder &amp; CEO</cite>
               </footer>
             </blockquote>

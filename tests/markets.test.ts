@@ -18,10 +18,10 @@ test('storefront market follows Oxygen buyer country for localized prices', () =
 });
 
 test('storefront market safely defaults to India without valid Oxygen geolocation', () => {
-  assert.deepEqual(
-    resolveStorefrontI18n(new Request('https://www.teareserves.com/')),
-    {language: 'EN', country: 'IN'},
-  );
+  assert.deepEqual(resolveStorefrontI18n(new Request('https://www.teareserves.com/')), {
+    language: 'EN',
+    country: 'IN',
+  });
   assert.deepEqual(
     resolveStorefrontI18n(
       new Request('https://www.teareserves.com/', {

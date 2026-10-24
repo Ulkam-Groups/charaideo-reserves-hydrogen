@@ -129,11 +129,11 @@ Heading line heights below `1.0` require a visual clipping check for every rende
 
 | Role             | Mobile |                    Desktop | Line height | Notes                                |
 | ---------------- | -----: | -------------------------: | ----------: | ------------------------------------ |
-| Display          | `40px` |   `clamp(56px, 6vw, 88px)` | `0.98–1.05` | One per page maximum                 |
-| Page title       | `36px` |   `clamp(48px, 5vw, 72px)` | `1.02–1.10` | H1                                   |
-| Section title    | `30px` | `clamp(36px, 3.5vw, 52px)` | `1.05–1.14` | H2                                   |
-| Card/title large | `22px` |                  `24–28px` | `1.12–1.25` | Product and chapter names            |
-| Body large       | `18px` |                     `18px` |  `1.55–1.7` | Hero or editorial introduction       |
+| Display          | `36px` |   `clamp(42px, 4vw, 56px)` | `1.00–1.08` | Campaign moments only; not routine pages |
+| Page title       | `32px` |   `clamp(36px, 4vw, 48px)` | `1.05–1.12` | H1; one per page                     |
+| Section title    | `26px` |   `clamp(28px, 3vw, 36px)` | `1.08–1.18` | H2                                   |
+| Card/title large | `20px` |                  `20–24px` | `1.15–1.28` | Product and chapter names            |
+| Body large       | `17px` |                     `17px` |  `1.55–1.7` | Hero or editorial introduction       |
 | Body             | `16px` |                     `16px` |  `1.55–1.7` | Default reading text                 |
 | Product metadata | `14px` |                     `14px` |  `1.4–1.55` | Origin, pack, stock, notes           |
 | Secondary label  | `12px` |                     `12px` |  `1.3–1.45` | Uppercase labels and eyebrows        |
@@ -604,11 +604,11 @@ The eventual implementation should expose one shared token layer. This example i
   --type-label: 0.75rem;
   --type-metadata: 0.875rem;
   --type-body: 1rem;
-  --type-body-large: 1.125rem;
-  --type-card-title: clamp(1.375rem, 1.8vw, 1.75rem);
-  --type-section-title: clamp(2.25rem, 3.5vw, 3.25rem);
-  --type-page-title: clamp(3rem, 5vw, 4.5rem);
-  --type-display: clamp(3.5rem, 6vw, 5.5rem);
+  --type-body-large: 1.0625rem;
+  --type-card-title: clamp(1.25rem, 1.5vw, 1.5rem);
+  --type-section-title: clamp(1.75rem, 3vw, 2.25rem);
+  --type-page-title: clamp(2.25rem, 4vw, 3rem);
+  --type-display: clamp(2.625rem, 4vw, 3.5rem);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
