@@ -249,9 +249,7 @@ test('cart quantity and UTM parameters are passed to the mocked Fastrr launch', 
     .toBe(true);
   await page.goto('/cart?utm_source=ci&utm_medium=e2e&ignored=1');
   await page.waitForLoadState('networkidle');
-  await page
-    .getByRole('button', {name: 'Increase quantity'})
-    .dispatchEvent('click');
+  await page.getByRole('button', {name: 'Increase quantity'}).dispatchEvent('click');
   await expect(page.locator('#main-content .cart-quantity-value')).toHaveText('2');
   await expect(
     page.getByRole('button', {name: /Checkout with Shiprocket/}),
