@@ -71,7 +71,7 @@ test('Shopify discount progress parses order and product milestones in threshold
                 items: {
                   __typename: 'DiscountProducts',
                   products: {
-                    nodes: [{id: 'gid://shopify/Product/eligible'}],
+                    nodes: [{id: 'gid://shopify/Product/eligible', title: 'Green Pearl Reserve'}],
                   },
                   productVariants: {nodes: []},
                 },
@@ -411,6 +411,10 @@ test('cart progress distinguishes a met offer from the offer Shopify actually ap
       codes: [],
       discountClasses: ['PRODUCT'],
       combinesWith: noCombinations,
+      eligibleItems: {
+        kind: 'products' as const,
+        labels: ['Assam Hojicha Reserve', 'Green Pearl Reserve'],
+      },
       productSpecific: true,
       targets: {
         allItems: false,
@@ -449,9 +453,12 @@ test('cart progress distinguishes a met offer from the offer Shopify actually ap
     }),
   );
 
-  assert.match(html, /Another offer is applied instead/);
+  assert.match(html, /A better offer has been applied/);
   assert.match(html, /20% off applied/);
   assert.doesNotMatch(html, /10% off applied/);
+  assert.match(html, /Eligible products only \(2\)/);
+  assert.match(html, /Assam Hojicha Reserve/);
+  assert.match(html, /Green Pearl Reserve/);
 });
 
 test('cart progress counts only items targeted by each Shopify discount', () => {

@@ -9,6 +9,11 @@ export type DiscountCombinationRules = {
   shippingDiscounts: boolean;
 };
 
+export type DiscountEligibleItems = {
+  kind: 'products' | 'collections';
+  labels: string[];
+};
+
 export type DiscountProgressMilestone = {
   id: string;
   threshold: number;
@@ -19,6 +24,7 @@ export type DiscountProgressMilestone = {
   codes: string[];
   discountClasses?: string[];
   combinesWith?: DiscountCombinationRules;
+  eligibleItems?: DiscountEligibleItems;
   productSpecific: boolean;
   targets: DiscountProgressTargets;
 };

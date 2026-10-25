@@ -327,7 +327,7 @@ function CartDiscountProgressGroups({
                   {appliedMilestone
                     ? `${appliedMilestone.reward} applied`
                     : !next && group.productSpecific && appliedMilestoneIds.length > 0
-                      ? 'Another offer is applied instead'
+                      ? 'A better offer has been applied'
                       : next
                     ? `${formatMoney(next.threshold - amount, next.currencyCode)} more for ${next.reward}`
                     : 'Conditions met'}
@@ -364,11 +364,24 @@ function CartDiscountProgressGroups({
                   );
                 })}
               </div>
-              <div className="discount-progress-group-labels" aria-hidden="true">
-                <span>
-                  {group.productSpecific ? 'Eligible products only' : 'Whole cart'}
-                </span>
-                <span>
+              <div className="discount-progress-group-labels">
+                {group.productSpecific && activeMilestone.eligibleItems?.labels.length ? (
+                  <details className="discount-progress-eligible-items">
+                    <summary>
+                      Eligible {activeMilestone.eligibleItems.kind} only ({activeMilestone.eligibleItems.labels.length})
+                    </summary>
+                    <ul>
+                      {activeMilestone.eligibleItems.labels.map((label) => (
+                        <li key={label}>{label}</li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : (
+                  <span>
+                    {group.productSpecific ? 'Eligible products only' : 'Whole cart'}
+                  </span>
+                )}
+                <span aria-hidden="true">
                   {formatMoney(amount, activeMilestone.currencyCode)} /{' '}
                   {formatMoney(
                     activeMilestone.threshold,

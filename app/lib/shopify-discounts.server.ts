@@ -61,9 +61,14 @@ type DiscountRecordData = {
 type DiscountItemsRecord = {
   __typename?: string | null;
   allItems?: boolean | null;
-  products?: {nodes?: Array<{id: string}> | null} | null;
-  productVariants?: {nodes?: Array<{id: string}> | null} | null;
-  collections?: {nodes?: Array<{id: string}> | null} | null;
+  products?: {nodes?: Array<{id: string; title?: string | null}> | null} | null;
+  productVariants?: {
+    nodes?: Array<{
+      id: string;
+      product?: {id: string; title?: string | null} | null;
+    }> | null;
+  } | null;
+  collections?: {nodes?: Array<{id: string; title?: string | null}> | null} | null;
 };
 
 type DiscountQueryResponse = {
@@ -272,6 +277,7 @@ async function queryActiveDiscounts(
           codes: discount.codes?.nodes?.map(({code}) => code) ?? [],
           discountClasses: discount.discountClasses ?? [],
           combinesWith: discount.combinesWith ?? undefined,
+          eligibleItems: getDiscountEligibleItems(customerGets.items),
           productSpecific: discount.discountClasses?.includes('PRODUCT') === true,
           targets,
         },
@@ -307,6 +313,24 @@ function getDiscountProgressTargets(
     variantIds,
     collectionIds,
   };
+}
+
+function getDiscountEligibleItems(items?: DiscountItemsRecord | null) {
+  const productTitles = [
+    ...(items?.products?.nodes ?? []).map(({title}) => title),
+    ...(items?.productVariants?.nodes ?? []).map(({product}) => product?.title),
+  ].filter((title): title is string => Boolean(title));
+  const uniqueProductTitles = [...new Set(productTitles)];
+  if (uniqueProductTitles.length) {
+    return {kind: 'products' as const, labels: uniqueProductTitles};
+  }
+
+  const collectionTitles = (items?.collections?.nodes ?? [])
+    .map(({title}) => title)
+    .filter((title): title is string => Boolean(title));
+  return collectionTitles.length
+    ? {kind: 'collections' as const, labels: [...new Set(collectionTitles)]}
+    : undefined;
 }
 
 async function requestDiscountTargets(
@@ -617,11 +641,16 @@ const DISCOUNT_PROGRESS_TARGETS_QUERY = `#graphql
                 products(first: 250) {
                   nodes {
                     id
+                    title
                   }
                 }
                 productVariants(first: 250) {
                   nodes {
                     id
+                    product {
+                      id
+                      title
+                    }
                   }
                 }
               }
@@ -629,6 +658,7 @@ const DISCOUNT_PROGRESS_TARGETS_QUERY = `#graphql
                 collections(first: 250) {
                   nodes {
                     id
+                    title
                   }
                 }
               }
@@ -646,11 +676,16 @@ const DISCOUNT_PROGRESS_TARGETS_QUERY = `#graphql
                 products(first: 250) {
                   nodes {
                     id
+                    title
                   }
                 }
                 productVariants(first: 250) {
                   nodes {
                     id
+                    product {
+                      id
+                      title
+                    }
                   }
                 }
               }
@@ -658,6 +693,7 @@ const DISCOUNT_PROGRESS_TARGETS_QUERY = `#graphql
                 collections(first: 250) {
                   nodes {
                     id
+                    title
                   }
                 }
               }
