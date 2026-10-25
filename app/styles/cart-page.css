@@ -290,9 +290,8 @@
   text-decoration: underline;
 }
 .cart-page .cart-line-quantity > form:last-child {
-  position: absolute;
-  right: 0;
-  bottom: 0;
+  position: static;
+  margin-left: auto;
 }
 .cart-page .cart-line-quantity > form:last-child button:hover:not(:disabled) {
   color: #a23b32;
