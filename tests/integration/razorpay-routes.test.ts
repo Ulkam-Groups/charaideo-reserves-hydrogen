@@ -256,7 +256,7 @@ test('Razorpay cart checkout reconciles Shopify discounts and preserves full-pri
   }
 });
 
-test('Razorpay mixed cart uses Shopify line discounts and authoritative final total', async () => {
+test('Razorpay does not locally stack qualified discounts and uses Shopify final total', async () => {
   const originalFetch = globalThis.fetch;
   let payload: Record<string, unknown> | undefined;
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -267,9 +267,10 @@ test('Razorpay mixed cart uses Shopify line discounts and authoritative final to
 
   try {
     const products = [
-      {variantId: 'gid://shopify/ProductVariant/101', quantity: 1},
+      {variantId: 'gid://shopify/ProductVariant/101', quantity: 3},
       {variantId: 'gid://shopify/ProductVariant/202', quantity: 2},
       {variantId: 'gid://shopify/ProductVariant/303', quantity: 1},
+      {variantId: 'gid://shopify/ProductVariant/404', quantity: 1},
     ];
     const line = (id: string, productId: string, quantity: number, total: string) => ({
       id: `gid://shopify/CartLine/${id}`,
@@ -296,7 +297,6 @@ test('Razorpay mixed cart uses Shopify line discounts and authoritative final to
     const form = new URLSearchParams({
       source: 'cart',
       products: JSON.stringify(products),
-      couponCode: 'COUPON_A',
     });
     const response = await orderAction({
       request: formRequest('/api/checkout/razorpay/order', form),
@@ -316,20 +316,20 @@ test('Razorpay mixed cart uses Shopify line discounts and authoritative final to
             id: 'gid://shopify/Cart/mixed',
             lines: {
               nodes: [
-                line('101', '1', 1, '800.00'),
-                line('202', '2', 2, '900.00'),
-                line('303', '3', 1, '300.00'),
+                // Both the 10% and 20% conditions may be met, but Shopify has
+                // applied only the winning 20% Matcha discount to these totals.
+                line('101', '1', 3, '1656.00'),
+                line('202', '2', 2, '898.00'),
+                line('303', '3', 1, '359.00'),
+                line('404', '4', 1, '299.00'),
               ],
             },
             cost: {
-              subtotalAmount: {amount: '2000.00', currencyCode: 'INR'},
-              totalAmount: {amount: '1900.00', currencyCode: 'INR'},
+              subtotalAmount: {amount: '3626.00', currencyCode: 'INR'},
+              totalAmount: {amount: '3212.00', currencyCode: 'INR'},
             },
             attributes: [],
-            discountCodes: [
-              {code: 'COUPON_A', applicable: true},
-              {code: 'COUPON_B', applicable: false},
-            ],
+            discountCodes: [],
             appliedGiftCards: [],
           }),
         },
@@ -339,17 +339,17 @@ test('Razorpay mixed cart uses Shopify line discounts and authoritative final to
 
     assert.equal(response.status, 200);
     assert.ok(payload);
-    assert.equal(payload.amount, 190_000);
-    assert.equal(payload.line_items_total, 190_000);
+    assert.equal(payload.amount, 321_200);
+    assert.equal(payload.line_items_total, 321_200);
     const lineItems = payload.line_items as Array<{
       offer_price: number;
       quantity: number;
     }>;
     assert.equal(
       lineItems.reduce((sum, item) => sum + item.offer_price * item.quantity, 0),
-      190_000,
+      321_200,
     );
-    assert.equal((payload.notes as Record<string, unknown>).coupon, 'COUPON_A');
+    assert.notEqual(payload.amount, 279_800, 'must not add a local 10% discount');
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -147,6 +147,18 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const discountMilestones = rootData?.cartDiscountProgress.milestones ?? [];
+  const appliedMilestoneIds = discountMilestones
+    .filter((milestone) =>
+      (cart?.lines?.nodes ?? []).some((line) =>
+        isMilestoneAppliedToLine(
+          milestone,
+          (line as typeof line & {
+            discountAllocations?: Array<{title?: string; code?: string}>;
+          }).discountAllocations ?? [],
+        ),
+      ),
+    )
+    .map(({id}) => id);
 
   return (
     <div className={className} aria-busy={cartBusy}>
@@ -185,10 +197,12 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
       {linesCount && (
         <DiscountProgress
           surface="cart"
+          detailsMode={layout === 'aside' ? 'popup' : 'inline'}
           paused={cartBusy}
           items={discountItems}
           milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
+          appliedMilestoneIds={appliedMilestoneIds}
         />
       )}
       <div

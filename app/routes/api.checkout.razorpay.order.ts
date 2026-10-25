@@ -184,6 +184,9 @@ export async function action({request, context}: ActionFunctionArgs) {
         return json({error: 'Cart changed before checkout'}, 409);
       }
       stage = 'checkout_payload';
+      // Shopify has already resolved discount eligibility, combination rules,
+      // caps, and allocation priority. Never reconstruct this amount from the
+      // Admin discount configuration; Razorpay must charge this final cart total.
       expectedAmount = inrToPaise(cart.cost.totalAmount.amount);
       lines = cartLines(cart, new URL(request.url).origin, expectedAmount);
     } else {

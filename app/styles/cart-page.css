@@ -312,6 +312,286 @@
 .cart-page .discount-progress--cart .discount-progress-track {
   width: 100%;
 }
+.discount-progress--grouped {
+  display: grid;
+  align-items: stretch;
+  gap: 0;
+  padding-block: 11px;
+  overflow: visible !important;
+}
+.discount-progress-details > summary,
+.discount-progress-popup-summary {
+  display: grid;
+  gap: 7px;
+  padding: 0;
+}
+.discount-progress-details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.discount-progress-details > summary::-webkit-details-marker {
+  display: none;
+}
+.discount-progress-summary-copy {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #244936;
+  font-size: var(--type-small);
+}
+.discount-progress-summary-copy strong {
+  font-weight: 600;
+}
+.discount-progress-details-label {
+  margin-left: auto;
+  color: #244936;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.discount-progress-details-label::after {
+  content: ' ▾';
+}
+.discount-progress-popup-summary {
+  position: relative;
+}
+.discount-progress-popup-summary .discount-progress-summary-copy {
+  padding-right: 92px;
+}
+.discount-progress-popover {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  z-index: 20;
+}
+.discount-progress-popover > summary {
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  background: transparent;
+  color: #244936;
+  font: 600 var(--type-small)/1.2 var(--sans);
+  cursor: pointer;
+  list-style: none;
+}
+.discount-progress-popover > summary::-webkit-details-marker {
+  display: none;
+}
+.discount-progress-popover > summary::after {
+  content: ' ▾';
+}
+.discount-progress-popover[open] > summary::after {
+  content: ' ▴';
+}
+.discount-progress-popover-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(380px, calc(100vw - 48px));
+  max-height: min(620px, calc(100dvh - 120px));
+  padding: 14px 16px 16px;
+  overflow: auto;
+  border: 1px solid #dce6dd;
+  border-radius: 12px;
+  background: #f8faf7;
+  color: #17392a;
+  box-shadow: 0 14px 36px rgb(10 35 23 / 20%);
+}
+.discount-progress-popover-panel::before {
+  position: absolute;
+  top: -6px;
+  right: 22px;
+  width: 10px;
+  height: 10px;
+  border-top: 1px solid #dce6dd;
+  border-left: 1px solid #dce6dd;
+  background: #f8faf7;
+  content: '';
+  transform: rotate(45deg);
+}
+.discount-progress-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e9e2;
+}
+.discount-progress-popover-head strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.discount-progress-popover-head button {
+  display: grid;
+  width: 26px;
+  min-width: 26px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d5dfd6;
+  border-radius: 50%;
+  background: transparent;
+  color: #17392a;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+.discount-progress-popover-panel .discount-progress-detail-panel {
+  margin-top: 0;
+  padding-top: 2px;
+  border-top: 0;
+}
+.discount-progress-popover-panel .discount-progress-group {
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+.discount-progress-popover-panel .discount-progress-group-labels {
+  grid-column: 1;
+}
+.discount-progress-summary-milestones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  color: #6f7e76;
+  font-size: 0.625rem;
+  line-height: 1.2;
+}
+.discount-progress-summary-milestones > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.discount-progress-summary-milestones i {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border: 1.5px solid #9db3a5;
+  border-radius: 50%;
+  background: #fff;
+}
+.discount-progress-summary-milestones .is-reached {
+  color: #176b3a;
+  font-weight: 600;
+}
+.discount-progress-summary-milestones .is-reached i {
+  border-color: #176b3a;
+  background: #176b3a;
+  box-shadow: inset 0 0 0 1.5px #fff;
+}
+.discount-progress-details[open] .discount-progress-details-label::after {
+  content: ' ▴';
+}
+.discount-progress-summary-track {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e1e9e3;
+}
+.discount-progress-summary-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4f7a62, #132a1f);
+  transition: width 350ms var(--pdp-ease);
+}
+.discount-progress-detail-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid #dce6dd;
+}
+.discount-progress-group-intro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #244936;
+  font-size: var(--type-small);
+  font-weight: 700;
+}
+.discount-progress-groups {
+  display: grid;
+  gap: 0;
+}
+.discount-progress-group {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.42fr) minmax(240px, 1fr);
+  gap: 3px 16px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e9e2;
+}
+.discount-progress-group:last-child {
+  border-bottom: 0;
+}
+.discount-progress-group-copy {
+  display: grid;
+  min-width: 0;
+}
+.discount-progress-group-copy strong,
+.discount-progress-group-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.discount-progress-group-copy strong {
+  color: #17392a;
+  font-size: var(--type-small);
+  font-weight: 600;
+}
+.discount-progress-group-copy span {
+  color: var(--quiet-ink);
+  font-size: var(--type-caption);
+  font-weight: 400;
+}
+.discount-progress-group-labels {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  color: var(--quiet-ink);
+  font-size: 0.6875rem;
+  line-height: 1.15;
+  font-weight: 400;
+}
+.discount-progress-group-labels span:last-child {
+  text-align: right;
+}
+@media (max-width: 760px) {
+  .discount-progress-group {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .discount-progress-group-labels {
+    grid-column: 1;
+  }
+}
+@media (max-width: 560px) {
+  .discount-progress-popover-panel {
+    right: -4px;
+    width: min(350px, calc(100vw - 28px));
+    max-height: calc(100dvh - 104px);
+    padding: 10px 12px 12px;
+  }
+  .discount-progress-popover-panel .discount-progress-group {
+    padding: 6px 0;
+  }
+  .discount-progress-popover-panel .discount-progress-group-copy strong {
+    font-size: 0.75rem;
+  }
+  .discount-progress-popover-panel .discount-progress-group-copy span,
+  .discount-progress-popover-panel .discount-progress-group-labels {
+    font-size: 0.625rem;
+  }
+}
 .discount-progress-labels {
   position: relative;
   height: 36px;

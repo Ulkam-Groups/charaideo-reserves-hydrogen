@@ -35,6 +35,11 @@ type DiscountRecordData = {
   endsAt?: string | null;
   context?: {all?: 'ALL' | null} | null;
   discountClasses?: string[] | null;
+  combinesWith?: {
+    orderDiscounts: boolean;
+    productDiscounts: boolean;
+    shippingDiscounts: boolean;
+  } | null;
   minimumRequirement?: {
     __typename: string;
     greaterThanOrEqualToSubtotal?: {
@@ -207,6 +212,8 @@ async function queryActiveDiscounts(
               ? ('code' as const)
               : ('automatic' as const),
             codes: discount.codes?.nodes?.map(({code}) => code) ?? [],
+            discountClasses: ['SHIPPING'],
+            combinesWith: discount.combinesWith ?? undefined,
             productSpecific: false,
             targets: ALL_DISCOUNT_PROGRESS_TARGETS,
           },
@@ -263,6 +270,8 @@ async function queryActiveDiscounts(
             ? ('code' as const)
             : ('automatic' as const),
           codes: discount.codes?.nodes?.map(({code}) => code) ?? [],
+          discountClasses: discount.discountClasses ?? [],
+          combinesWith: discount.combinesWith ?? undefined,
           productSpecific: discount.discountClasses?.includes('PRODUCT') === true,
           targets,
         },
@@ -446,6 +455,11 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               }
             }
             discountClasses
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
             minimumRequirement {
               __typename
               ... on DiscountMinimumSubtotal {
@@ -487,6 +501,11 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               }
             }
             discountClasses
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
             minimumRequirement {
               __typename
               ... on DiscountMinimumSubtotal {
@@ -532,6 +551,11 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
                 all
               }
             }
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
+            }
             minimumRequirement {
               __typename
               ... on DiscountMinimumSubtotal {
@@ -551,6 +575,11 @@ const DISCOUNT_PROGRESS_QUERY = `#graphql
               ... on DiscountBuyerSelectionAll {
                 all
               }
+            }
+            combinesWith {
+              orderDiscounts
+              productDiscounts
+              shippingDiscounts
             }
             minimumRequirement {
               __typename

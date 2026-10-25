@@ -3,6 +3,12 @@ import type {CartApiQueryFragment} from 'storefrontapi.generated';
 
 type CurrencyCode = MoneyV2['currencyCode'];
 
+export type DiscountCombinationRules = {
+  orderDiscounts: boolean;
+  productDiscounts: boolean;
+  shippingDiscounts: boolean;
+};
+
 export type DiscountProgressMilestone = {
   id: string;
   threshold: number;
@@ -11,6 +17,8 @@ export type DiscountProgressMilestone = {
   title: string;
   method: 'automatic' | 'code';
   codes: string[];
+  discountClasses?: string[];
+  combinesWith?: DiscountCombinationRules;
   productSpecific: boolean;
   targets: DiscountProgressTargets;
 };
