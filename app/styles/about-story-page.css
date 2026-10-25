@@ -285,7 +285,7 @@ main.main--offset:has(> .about-page) {
   padding: 18px 0 0;
   border-top: 1px solid #d8cab3;
   color: #5c171c;
-  font: italic 500 17px/1.5 var(--serif);
+  font: 500 17px/1.5 var(--serif);
 }
 
 .about-page-roots {
@@ -426,8 +426,7 @@ main.main--offset:has(> .about-page) {
   color: #b87936;
   font:
     500 54px/0.82 'Cormorant Garamond',
-    Baskerville,
-    Georgia,
+    'Now',
     serif;
   font-feature-settings:
     'onum' 1,
@@ -846,7 +845,7 @@ main.main--offset:has(> .about-page) {
 .about-page-founder-quote p {
   margin-bottom: 14px;
   color: #5c171c;
-  font: italic 500 clamp(20px, 1.8vw, 24px)/1.4 var(--serif);
+  font: 500 clamp(20px, 1.8vw, 24px)/1.4 var(--serif);
 }
 
 .about-page-founder-quote footer {

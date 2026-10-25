@@ -18,6 +18,7 @@ import {
   prepareMonitoringSignals,
   recordFastrrLaunch,
   recordHydrationFailure,
+  recordRazorpayCheckout,
   hydrationDiagnostic,
 } from '../app/lib/monitoring-signals.ts';
 
@@ -65,6 +66,7 @@ test('browser signals are buffered only while enabled and cannot interrupt check
   recordFastrrLaunch('cart', 'missing');
   prepareMonitoringSignals();
   recordFastrrLaunch('product', 'threw');
+  recordRazorpayCheckout('cart', 'order_request_failed', {status: 503});
   recordHydrationFailure(
     new Error('Minified React error #418; visit https://react.dev/errors/418'),
     '\n    at html\n    at App (https://shop.example/products/private?email=secret@example.com)',
@@ -72,7 +74,13 @@ test('browser signals are buffered only while enabled and cannot interrupt check
   );
   installMonitoringRecorder((signal) => received.push(signal));
   assert.deepEqual(received[0], {kind: 'fastrr', source: 'product', result: 'threw'});
-  const hydration = received[1] as {
+  assert.deepEqual(received[1], {
+    kind: 'razorpay',
+    source: 'cart',
+    stage: 'order_request_failed',
+    status: 503,
+  });
+  const hydration = received[2] as {
     kind: string;
     diagnostic: {
       reactErrorCode: string;
@@ -92,6 +100,7 @@ test('browser signals are buffered only while enabled and cannot interrupt check
     throw new Error('monitoring unavailable');
   });
   assert.doesNotThrow(() => recordFastrrLaunch('cart', 'requested'));
+  assert.doesNotThrow(() => recordRazorpayCheckout('product', 'checkout_opened'));
   installMonitoringRecorder(null);
 });
 

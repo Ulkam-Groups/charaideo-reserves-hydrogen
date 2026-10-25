@@ -672,6 +672,9 @@ function AboutStoryPage() {
               <b><i>What Is Charaideo Reserves?</i></b>
               <br />
               CHARAIDEO RESERVES is a tea brand dedicated to curating distinctive teas from Assam, bringing together selections that express the character of their origins and the craft behind their making. Our approach goes beyond offering tea as a product. We seek to create a collection in which each tea has its own identity, chosen with care and presented with an appreciation for the place and people behind it.
+              <br />
+              <br />
+              It is the first reserve within Tea Reserves, our overarching house and collective. While Tea Reserves provides the larger identity, CHARAIDEO RESERVES gives that vision its first expression, shaped by Assam’s tea heritage and the distinctive character of its gardens.
           </p>
           <div className="about-page-story-prose">
             {/* <p>
@@ -728,15 +731,15 @@ function AboutStoryPage() {
             <h2 id="founder-title">Meet the Founder</h2>
             <h3>Kamalika Biswas - Founder &amp; CEO</h3>
             <p>
-              Founder of Ulkam Group and a daughter of Assam&apos;s tea soil, Kamalika left
-              her corporate career to return to her family&apos;s legacy in Rupai. Through
-              Charaideo Reserves, she carries forward three generations of tea heritage -
-              with a woman&apos;s perspective, a founder&apos;s grit, and a deep respect for
-              the land that raised her.
+              I grew up in Assam, where tea was a familiar part of my surroundings. Visiting tea factories with my father and witnessing the work behind each harvest gave me an early appreciation for the people, knowledge and care that go into making tea.
+              <br />
+              After working in the corporate world for several years, I returned to my family&apos;s tea legacy with a fresh perspective and a desire to share more of Assam&apos;s tea heritage with the world.
+              <br />
+I created CHARAIDEO RESERVES to bring together distinctive teas that deserve to be discovered, each chosen for its character, origin and craftsmanship. For me, this is about more than bringing tea to people. It is about encouraging a deeper appreciation of what makes each tea different.
             </p>
             <blockquote className="about-page-founder-quote">
               <p>
-                Tea was never simply a profession for my family. It was a way of life.
+                The way of tea begins where familiarity ends, and curiosity takes its place.
               </p>
               <footer>
                 <img

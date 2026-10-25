@@ -36,8 +36,8 @@
   background: var(--surface-inverse);
   color: var(--text-inverse);
   font-family: var(--font-interface);
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-size: 0.6475rem;
+  font-weight: 400;
   line-height: 1;
   letter-spacing: 0.015em;
 }
@@ -127,12 +127,35 @@
   animation: none;
 }
 
+.site-header.header .wordmark--endorsed {
+  display: grid;
+  grid-template-rows: 2.8125rem auto;
+  align-content: center;
+  justify-items: start;
+  gap: 0.1rem;
+}
+
 .site-header.header .wordmark img {
   width: auto;
   height: 3rem;
   opacity: 1;
   filter: brightness(0.88) contrast(1.32) saturate(1.22);
   transition: opacity var(--motion-standard) var(--ease-standard);
+}
+
+.site-header.header .wordmark--endorsed img {
+  height: 2.8125rem;
+}
+
+.site-header.header .wordmark-endorsement {
+  padding-left: 3.66rem;
+  color: #496257;
+  font-family: var(--font-interface);
+  font-size: 0.375rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.115em;
+  white-space: nowrap;
 }
 
 .site-header.header .wordmark:hover img,
@@ -178,10 +201,8 @@
 
 .site-header .header-menu-item.active,
 .site-header .header-menu-item[aria-current='page'] {
-  text-decoration: underline;
-  text-decoration-color: var(--color-tea-800);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.35em;
+  color: #5c171c;
+  text-decoration: none;
 }
 
 .site-header .header-menu-new {
@@ -521,8 +542,8 @@
   border-radius: var(--radius-button);
   background: var(--action-primary);
   color: var(--text-inverse);
-  font-size: var(--type-label);
-  font-weight: 700;
+  font-size: 0.5625rem;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -679,6 +700,31 @@
   max-width: 30ch;
   margin: var(--space-4) 0 0;
   font-size: var(--type-body);
+}
+
+.site-footer .wordmark--footer {
+  position: relative;
+  width: 220px;
+  height: 66px;
+}
+
+.site-footer .wordmark--footer img {
+  width: 220px;
+  height: 66px;
+  filter: brightness(0) invert(1);
+}
+
+.site-footer .wordmark--footer::after {
+  position: absolute;
+  top: 13.3px;
+  left: 57.95px;
+  width: 4.8px;
+  height: 4.8px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #b87936;
+  content: '';
+  pointer-events: none;
 }
 
 .site-footer .footer-preferred-source {
@@ -911,9 +957,28 @@
     width: calc(100% - 2rem);
   }
 
-  .site-header.header .wordmark,
-  .site-header.header .wordmark img {
-    height: 3rem;
+  .site-header.header .wordmark {
+    width: 10.5rem;
+    height: 3.375rem;
+  }
+
+  .site-header.header .wordmark--endorsed {
+    grid-template-rows: auto auto;
+    gap: 0.125rem;
+  }
+
+  .site-header.header .wordmark img,
+  .site-header.header .wordmark--endorsed img {
+    width: 100%;
+    height: auto;
+  }
+
+  .site-header.header .wordmark-endorsement {
+    display: block;
+    padding-left: 3.2rem;
+    font-size: 0.3125rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
   }
 
   .site-header .header-account {

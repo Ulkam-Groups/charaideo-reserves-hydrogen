@@ -12,11 +12,21 @@ export const CART_QUERY_FRAGMENT = `#graphql
       value
     }
     discountAllocations {
+      __typename
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
       discountedAmount {
         ...Money
       }
     }
     cost {
+      subtotalAmount {
+        ...Money
+      }
       totalAmount {
         ...Money
       }
@@ -78,11 +88,21 @@ export const CART_QUERY_FRAGMENT = `#graphql
       value
     }
     discountAllocations {
+      __typename
+      ... on CartAutomaticDiscountAllocation {
+        title
+      }
+      ... on CartCodeDiscountAllocation {
+        code
+      }
       discountedAmount {
         ...Money
       }
     }
     cost {
+      subtotalAmount {
+        ...Money
+      }
       totalAmount {
         ...Money
       }

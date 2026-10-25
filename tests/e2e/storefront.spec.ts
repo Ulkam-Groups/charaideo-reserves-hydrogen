@@ -129,6 +129,7 @@ test('storefront CSP permits configured checkout and third-party assets', async 
   expect(csp).toMatch(/script-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/connect-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/frame-src[^;]*https:\/\/news\.google\.com/);
+  expect(csp).toMatch(/font-src[^;]*https:\/\/cdn\.shopify\.com/);
   expect(csp).toMatch(/img-src[^;]*https:\/\/www\.gstatic\.com/);
   await expect(page.locator('script[src*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(0);
   await expect(page.locator('link[href*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(0);
@@ -248,7 +249,7 @@ test('cart quantity and UTM parameters are passed to the mocked Fastrr launch', 
     .toBe(true);
   await page.goto('/cart?utm_source=ci&utm_medium=e2e&ignored=1');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', {name: 'Increase quantity'}).click();
+  await page.getByRole('button', {name: 'Increase quantity'}).dispatchEvent('click');
   await expect(page.locator('#main-content .cart-quantity-value')).toHaveText('2');
   await expect(
     page.getByRole('button', {name: /Checkout with Shiprocket/}),

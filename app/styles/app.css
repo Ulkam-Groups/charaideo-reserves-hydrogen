@@ -23,7 +23,7 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Instrument Sans', Inter, 'Segoe UI', sans-serif;
+  font-family: 'Now', system-ui, sans-serif;
   background: linear-gradient(180deg, #ffffff 0%, #f5f1e6 100%);
   color: var(--color-dark);
 }
@@ -1237,7 +1237,7 @@ html {
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: 'Instrument Sans', Inter, "Segoe UI", Arial, sans-serif;
+  font-family: 'Now', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -1251,7 +1251,7 @@ h2,
 h3,
 h4 {
   color: inherit;
-  font-family: 'Libre Baskerville', Georgia, "Times New Roman", serif;
+  font-family: 'Now', system-ui, sans-serif;
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -1381,7 +1381,7 @@ h4 {
   background: var(--gamosa-red);
   color: var(--cream);
   display: inline-flex;
-  font-family: 'Libre Baskerville', Georgia, "Times New Roman", serif;
+  font-family: 'Now', system-ui, sans-serif;
   font-size: 0;
   height: 2rem;
   justify-content: center;
@@ -1401,7 +1401,7 @@ h4 {
 
 .header-logo strong,
 .footer-logo strong {
-  font-family: 'Libre Baskerville', Georgia, "Times New Roman", serif;
+  font-family: 'Now', system-ui, sans-serif;
   font-size: 1.2rem;
   font-weight: 600;
 }
@@ -1620,7 +1620,7 @@ h4 {
 
 .floating-label strong {
   display: block;
-  font-family: 'Libre Baskerville', Georgia, "Times New Roman", serif;
+  font-family: 'Now', system-ui, sans-serif;
   font-size: 1.65rem;
 }
 
@@ -1740,7 +1740,7 @@ h4 {
 .product-item h4,
 .catalog-card h2 {
   color: var(--text-primary);
-  font-family: 'Libre Baskerville', Georgia, "Times New Roman", serif;
+  font-family: 'Now', system-ui, sans-serif;
   font-size: 1.35rem;
   font-weight: 600;
   line-height: 1.25;

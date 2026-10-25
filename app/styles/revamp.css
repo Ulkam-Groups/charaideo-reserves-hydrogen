@@ -1,4 +1,4 @@
-﻿/* Shared storefront design from the Charaideo reference artifact. */
+/* Shared storefront design from the Charaideo reference artifact. */
 :root {
   --paper: #ffffff;
   --pure-white: #ffffff;
@@ -12,8 +12,8 @@
   --leaf-ink: #132a1f;
   --quiet-ink: #5a6b62;
   --thread: #e7ede0;
-  --serif: 'Libre Baskerville', Georgia, serif;
-  --sans: 'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif: 'Now', system-ui, sans-serif;
+  --sans: 'Now', system-ui, sans-serif;
   --header-height: 60px;
   --color-dark: #132a1f;
   --color-light: #ffffff;
@@ -1029,7 +1029,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
   margin: 0;
   color: #132a1f;
   font:
-    600 12px/1.2 'Instrument Sans',
+    600 12px/1.2 'Now',
     system-ui,
     sans-serif;
   letter-spacing: 0.02em;
@@ -1055,7 +1055,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
   background: #ffffff;
   color: #132a1f;
   font:
-    500 12px/1 'Instrument Sans',
+    500 12px/1 'Now',
     system-ui,
     sans-serif;
 }
@@ -1544,7 +1544,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 .tea-empty {
   color: #849087;
-  font-style: italic;
+  font-style: normal;
 }
 .tea-recipe-tabs {
   display: flex;
@@ -1777,7 +1777,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 .tea-record-grid dd.is-missing {
   color: #849087;
-  font: italic 12px/1.5 var(--sans);
+  font: 400 12px/1.5 var(--sans);
 }
 .tea-fit-grid {
   display: grid;
@@ -1989,7 +1989,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 .product-specifications-grid dd.is-missing {
   color: #849087;
-  font-style: italic;
+  font-style: normal;
 }
 .product-related {
   max-width: 1320px;
@@ -4312,7 +4312,7 @@ main.main--offset:has(> .contact-page) {
 }
 .contact-location-content h2 em {
   color: #b9cbc2;
-  font-style: italic;
+  font-style: normal;
 }
 .contact-location-content > p {
   max-width: 480px;
@@ -4369,7 +4369,7 @@ main.main--offset:has(> .contact-page) {
 }
 .contact-location-seal strong {
   color: #b87936;
-  font: 500 54px/0.82 'Cormorant Garamond', Baskerville, Georgia, serif;
+  font: 500 54px/0.82 'Cormorant Garamond', 'Now', serif;
   font-variant-numeric: oldstyle-nums proportional-nums;
   font-feature-settings: 'onum' 1, 'pnum' 1;
   letter-spacing: -0.035em;
@@ -4793,7 +4793,7 @@ main.main--offset:has(> .contact-page) {
    change an inline <style> node before React hydration. */
 .revamp-home * {
   font-family:
-    'Instrument Sans',
+    'Now',
     system-ui,
     -apple-system,
     sans-serif;
@@ -4817,7 +4817,7 @@ body {
 .revamp-home h2,
 .revamp-home h3,
 .revamp-home .serif {
-  font-family: 'Libre Baskerville', Georgia, serif;
+  font-family: 'Now', system-ui, sans-serif;
   font-weight: 500;
   letter-spacing: -0.02em;
 }
@@ -5752,7 +5752,7 @@ body {
 }
 .notify-dialog h3 {
   margin: 8px 0 6px;
-  font-family: var(--serif, Georgia, serif);
+  font-family: var(--serif, 'Now', serif);
   font-size: 30px;
   font-weight: 500;
   line-height: 1.1;

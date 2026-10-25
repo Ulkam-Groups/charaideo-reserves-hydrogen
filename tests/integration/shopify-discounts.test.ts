@@ -71,7 +71,12 @@ test('Shopify discount progress parses order and product milestones in threshold
                 items: {
                   __typename: 'DiscountProducts',
                   products: {
-                    nodes: [{id: 'gid://shopify/Product/eligible'}],
+                    nodes: [
+                      {
+                        id: 'gid://shopify/Product/eligible',
+                        title: 'Green Pearl Reserve',
+                      },
+                    ],
                   },
                   productVariants: {nodes: []},
                 },
@@ -94,6 +99,11 @@ test('Shopify discount progress parses order and product milestones in threshold
                 status: 'ACTIVE',
                 context: {all: 'ALL'},
                 discountClasses: ['ORDER'],
+                combinesWith: {
+                  orderDiscounts: false,
+                  productDiscounts: false,
+                  shippingDiscounts: false,
+                },
                 minimumRequirement: {
                   __typename: 'DiscountMinimumSubtotal',
                   greaterThanOrEqualToSubtotal: {
@@ -194,6 +204,11 @@ test('Shopify discount progress parses order and product milestones in threshold
     );
 
     assert.equal(progress.status, 'ready');
+    assert.deepEqual(progress.milestones[0]?.combinesWith, {
+      orderDiscounts: false,
+      productDiscounts: false,
+      shippingDiscounts: false,
+    });
     assert.deepEqual(
       progress.milestones.map(({threshold, reward, method, codes}) => ({
         threshold,
@@ -352,6 +367,11 @@ test('Shopify discount progress parses order and product milestones in threshold
     assert.match(adminQueries[0], /\.\.\. on DiscountAmount\s*\{/);
     assert.match(adminQueries[0], /__typename/);
     assert.equal(
+      adminQueries[0].match(/combinesWith\s*\{/g)?.length,
+      4,
+      'combination rules are requested for every supported discount type',
+    );
+    assert.equal(
       adminQueries[0].match(/minimumRequirement\s*\{\s*__typename/g)?.length,
       4,
     );
@@ -361,6 +381,89 @@ test('Shopify discount progress parses order and product milestones in threshold
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('cart progress distinguishes a met offer from the offer Shopify actually applied', () => {
+  const items = [
+    {
+      productId: 'gid://shopify/Product/matcha',
+      variantId: 'gid://shopify/ProductVariant/matcha',
+      collectionIds: [],
+      amount: 2_070,
+      currencyCode: 'INR' as const,
+    },
+    {
+      productId: 'gid://shopify/Product/tea',
+      variantId: 'gid://shopify/ProductVariant/tea',
+      collectionIds: [],
+      amount: 1_556,
+      currencyCode: 'INR' as const,
+    },
+  ];
+  const noCombinations = {
+    orderDiscounts: false,
+    productDiscounts: false,
+    shippingDiscounts: false,
+  };
+  const milestones = [
+    {
+      id: 'ten-percent',
+      threshold: 1_499,
+      currencyCode: 'INR' as const,
+      reward: '10% off',
+      title: 'Get 10% off on order above 1499',
+      method: 'automatic' as const,
+      codes: [],
+      discountClasses: ['PRODUCT'],
+      combinesWith: noCombinations,
+      eligibleItems: {
+        kind: 'products' as const,
+        labels: ['Assam Hojicha Reserve', 'Green Pearl Reserve'],
+      },
+      productSpecific: true,
+      targets: {
+        allItems: false,
+        productIds: ['gid://shopify/Product/tea'],
+        variantIds: [],
+        collectionIds: [],
+      },
+    },
+    {
+      id: 'twenty-percent',
+      threshold: 1_999,
+      currencyCode: 'INR' as const,
+      reward: '20% off',
+      title: 'Save 20% when you buy Matcha',
+      method: 'automatic' as const,
+      codes: [],
+      discountClasses: ['PRODUCT'],
+      combinesWith: noCombinations,
+      productSpecific: true,
+      targets: {
+        allItems: false,
+        productIds: ['gid://shopify/Product/matcha'],
+        variantIds: [],
+        collectionIds: [],
+      },
+    },
+  ];
+
+  const html = renderToStaticMarkup(
+    createElement(DiscountProgress, {
+      surface: 'cart',
+      status: 'ready',
+      items,
+      milestones,
+      appliedMilestoneIds: ['twenty-percent'],
+    }),
+  );
+
+  assert.match(html, /A better offer has been applied/);
+  assert.match(html, /20% off applied/);
+  assert.doesNotMatch(html, /10% off applied/);
+  assert.match(html, /Eligible products only \(2\)/);
+  assert.match(html, /Assam Hojicha Reserve/);
+  assert.match(html, /Green Pearl Reserve/);
 });
 
 test('cart progress counts only items targeted by each Shopify discount', () => {
@@ -421,10 +524,12 @@ test('cart progress counts only items targeted by each Shopify discount', () => 
     }),
   );
 
-  assert.match(html, /Free shipping unlocked/);
+  assert.match(html, /<strong>Free shipping<\/strong><span>Conditions met<\/span>/);
+  assert.match(html, /Whole cart/);
+  assert.match(html, /Eligible products only/);
   assert.match(html, /849\.00/);
-  assert.match(html, /for <b>15% off<\/b>/);
-  assert.match(html, /role="progressbar"/);
+  assert.match(html, /for 15% off/);
+  assert.equal((html.match(/class="discount-progress-group"/g) ?? []).length, 2);
   assert.doesNotMatch(html, /15% off reached/);
 });
 
@@ -588,8 +693,8 @@ test('discount progress handles exact thresholds, invalid amounts, currencies, a
       milestones: [milestone],
     }),
   );
-  assert.match(reached, /15% off<\/b> unlocked/);
-  assert.match(reached, /aria-valuenow="100"/);
+  assert.match(reached, /<span>Conditions met<\/span>/);
+  assert.match(reached, /aria-valuenow="1499"/);
   assert.equal(
     renderToStaticMarkup(
       createElement(DiscountProgress, {

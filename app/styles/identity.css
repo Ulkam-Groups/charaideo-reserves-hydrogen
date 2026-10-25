@@ -13,8 +13,8 @@
   --quiet-ink: #5a6b62;
   --steeped-brown: #132a1f;
   --thread: rgba(49,72,74,.32);
-  --serif: 'Libre Baskerville', Baskerville, Georgia, serif;
-  --sans: 'Instrument Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --serif: 'Now', system-ui, sans-serif;
+  --sans: 'Now', system-ui, sans-serif;
   --gutter: clamp(20px, 5vw, 80px);
   --header-height: 70px;
   --type-label: .6875rem;
@@ -118,25 +118,25 @@ button {cursor: pointer}
   min-height: calc(100vh - var(--header-height));
   display: grid;
   place-items: center;
-  padding: clamp(36px,7vw,88px) var(--gutter);
+  padding: clamp(20px,3vw,36px) var(--gutter);
   background: linear-gradient(180deg,var(--paper),var(--gamosa-cream));
 }
 .checkout-success-card {
   width: min(100%,680px);
-  padding: clamp(30px,6vw,62px);
+  padding: clamp(24px,4vw,38px);
   border: 1px solid var(--thread);
   background: var(--paper);
   box-shadow: 0 22px 65px rgba(19,42,31,.1);
 }
 .checkout-success-card h1 {
   margin: 0;
-  font-size: clamp(2.7rem,8vw,4.6rem);
-  line-height: .95;
+  font-size: clamp(1.75rem,3vw,2rem);
+  line-height: 1.05;
 }
 .checkout-success-summary {
-  margin: 22px 0 28px;
+  margin: 10px 0 16px;
   color: var(--quiet-ink);
-  font-size: var(--type-body-large);
+  font-size: var(--type-body);
 }
 .checkout-success-summary strong {color: var(--assam-red)}
 .checkout-success-references {
@@ -147,7 +147,7 @@ button {cursor: pointer}
   display: grid;
   grid-template-columns: minmax(135px,.65fr) minmax(0,1fr);
   gap: 18px;
-  padding: 14px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--thread);
 }
 .checkout-success-references dt {
@@ -164,7 +164,7 @@ button {cursor: pointer}
   overflow-wrap: anywhere;
 }
 .checkout-success-help {
-  margin: 22px 0 0;
+  margin: 14px 0 0;
   color: var(--quiet-ink);
   font-size: var(--type-small);
 }
@@ -173,25 +173,27 @@ button {cursor: pointer}
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 18px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 .checkout-success-preferred-source {
-  margin-top: 36px;
-  padding-top: 28px;
+  margin-top: 22px;
+  padding-top: 18px;
   border-top: 1px solid var(--thread);
 }
 .checkout-success-preferred-source h2 {
   margin: 0;
   color: var(--leaf-ink);
-  font-size: clamp(1.65rem,4vw,2.25rem);
-  line-height: 1.05;
+  font-size: clamp(1.35rem,2.5vw,1.65rem);
+  line-height: 1.12;
 }
 .checkout-success-preferred-source > p:not(.eyebrow) {
   max-width: 52ch;
-  margin: 12px 0 18px;
+  margin: 10px 0 0;
   color: var(--quiet-ink);
   font-size: var(--type-small);
 }
+.checkout-success-preferred-source .preferred-source-button {min-height: 44px; margin-top: 12px; padding-inline: 18px; border-color: var(--leaf-ink); background: var(--leaf-ink); color: var(--paper); box-shadow: 0 3px 10px rgba(19,42,31,.12); font-size: var(--type-small)}
+.checkout-success-preferred-source .preferred-source-button:hover {border-color: #5c171c; background: #5c171c; color: #fff; box-shadow: 0 5px 14px rgba(92,23,28,.16)}
 @media (max-width: 560px) {
   .checkout-success-references > div {grid-template-columns: 1fr; gap: 5px}
   .checkout-success-actions .button {width: 100%}
@@ -281,7 +283,7 @@ button {cursor: pointer}
 .heritage-seal span {color: var(--river-mist); font: 600 7px/1 var(--sans); letter-spacing: .25em; margin: 5px 0}
 .heritage-seal-mark {display: block; width: 42px; height: auto; color: var(--tea-liquor)}
 .heritage-seal .heritage-seal-place {margin: 5px 0 7px; color: var(--river-mist); font: 600 7px/1 var(--sans); letter-spacing: .25em}
-.heritage-seal .heritage-seal-coordinate {display: inline-block; margin: 0; color: #b87936; font: 500 54px/.82 'Cormorant Garamond', Baskerville, Georgia, serif; font-variant-numeric: oldstyle-nums proportional-nums; font-feature-settings: 'onum' 1,'pnum' 1; letter-spacing: -.035em; white-space: nowrap}
+.heritage-seal .heritage-seal-coordinate {display: inline-block; margin: 0; color: #b87936; font: 500 54px/.82 'Cormorant Garamond', 'Now', serif; font-variant-numeric: oldstyle-nums proportional-nums; font-feature-settings: 'onum' 1,'pnum' 1; letter-spacing: -.035em; white-space: nowrap}
 .heritage-seal-coordinate sup {position: relative; top: -.62em; margin-left: .04em; font-size: .48em; line-height: 0; vertical-align: baseline}
 .ritual-section {background: var(--gamosa-cream)}
 .ritual-grid {display: grid; grid-template-columns: repeat(3,1fr); gap: 50px; margin-top: 54px}
@@ -369,7 +371,7 @@ button {cursor: pointer}
 .product-review-summary strong {font-weight: 600}
 .product-review-summary--empty {color: var(--quiet-ink)}
 .product-stars {color: var(--tea-liquor); letter-spacing: .08em}
-.product-taste-line {color: var(--burnt-clay)!important; font: 500 13px/1.6 var(--serif)!important; font-style: italic!important}
+.product-taste-line {color: var(--burnt-clay)!important; font: 500 13px/1.6 var(--serif)!important; font-style: normal!important}
 .product-price {display: block; margin: 18px 0; color: var(--aged-indigo)!important; font: 600 17px/1 var(--sans)!important}
 .product-price-on-sale {align-items: center}
 .product-form {padding: 18px 0; border-block: 1px solid var(--thread)}
@@ -438,7 +440,7 @@ button {cursor: pointer}
 .about-story-copy > h1 em {color: var(--assam-red)}
 .about-story-intro {margin: 0 0 24px; color: var(--burnt-clay); font-size: 12px; line-height: 1.75}
 .about-story-copy blockquote {margin: 0 0 32px; padding: 0 0 0 20px; border-left: 2px solid var(--heritage-red)}
-.about-story-copy blockquote p {margin: 0 0 17px; color: var(--leaf-ink); font-size: 12px; font-style: italic; font-weight: 500; line-height: 1.65}
+.about-story-copy blockquote p {margin: 0 0 17px; color: var(--leaf-ink); font-size: 12px; font-style: normal; font-weight: 500; line-height: 1.65}
 .about-story-copy blockquote p:last-child {margin-bottom: 0}
 .about-story-timeline {position: relative; display: grid; gap: 25px; margin: 0 0 34px; padding: 0 0 0 22px; list-style: none}
 .about-story-timeline::before {content: ''; position: absolute; inset: 4px auto 5px 0; width: 1px; background: var(--tea-liquor)}
@@ -1038,7 +1040,7 @@ body {font-size: var(--type-body); line-height: 1.65}
 .catalog-hero-art-cup {position: relative; display: block; width: 132px; height: 132px; border: 4px solid var(--paper); border-radius: 50%; background: #a45a25; box-shadow: 0 0 0 12px rgba(244,235,221,.14), inset 0 0 0 8px #c3803c}
 .catalog-hero-art-cup::after {content: ''; position: absolute; left: calc(100% + 2px); top: 35px; width: 28px; height: 49px; border: 8px solid var(--paper); border-left: 0; border-radius: 0 50% 50% 0}
 .catalog-hero-art-cup span {position: absolute; left: 30px; top: 38px; width: 65px; height: 20px; border-top: 2px solid rgba(255,255,255,.7); border-radius: 50%; transform: rotate(-20deg)}
-.catalog-hero-art-caption {font: italic 500 1.25rem/1 var(--serif)}
+.catalog-hero-art-caption {font: 500 1.25rem/1 var(--serif)}
 .catalog-page .catalog-index {grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin-bottom: 52px; background: var(--gamosa-cream); color: var(--aged-indigo)}
 .catalog-page .catalog-index span {align-items: center}
 .catalog-page .catalog-toolbar {padding: 20px 24px; border: 1px solid var(--thread); background: var(--pure-white)}

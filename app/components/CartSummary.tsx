@@ -69,6 +69,50 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
   return (
     <div aria-labelledby="cart-summary" className={className}>
       <h4 id="cart-summary">Order summary</h4>
+      <details className="cart-item-breakdown-details">
+        <summary>View item breakup ({cart.totalQuantity} items)</summary>
+        <dl className="cart-item-breakdown">
+          {(cart?.lines?.nodes ?? []).map((line) => {
+            if ('parentRelationship' in line && line.parentRelationship?.parent) return null;
+            const lineCost = line.cost as typeof line.cost & {
+              subtotalAmount?: typeof line.cost.totalAmount;
+            };
+            const lineSubtotal = lineCost.subtotalAmount ?? {
+              amount: (
+                Number(lineCost.amountPerQuantity.amount) * line.quantity
+              ).toFixed(2),
+              currencyCode: lineCost.amountPerQuantity.currencyCode,
+            };
+            const subtotal = Number(lineSubtotal.amount);
+            const total = Number(lineCost.totalAmount.amount);
+            const discount = subtotal - total;
+            const hasLineDiscount = Number.isFinite(discount) && discount > 0.001;
+
+            return (
+              <div key={line.id}>
+                <dt>{line.merchandise.product.title}</dt>
+                <dd>
+                  <Money as="span" data={line.cost.amountPerQuantity} /> × {line.quantity}
+                  {hasLineDiscount && (
+                    <>
+                      <span aria-hidden="true"> − </span>
+                      <Money
+                        as="span"
+                        data={{
+                          amount: discount.toFixed(2),
+                          currencyCode: lineSubtotal.currencyCode,
+                        }}
+                      />
+                    </>
+                  )}
+                  <span aria-hidden="true"> = </span>
+                  <strong><Money as="span" data={line.cost.totalAmount} /></strong>
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+      </details>
       <CartSavings cart={cart} />
       <dl className="cart-subtotal">
         <dt>Subtotal</dt>
@@ -92,7 +136,10 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
         <CartGiftCard giftCardCodes={cart?.appliedGiftCards} />
       </details>
       <dl className="cart-total-row">
-        <dt>Estimated total</dt>
+        <dt>
+          Estimated total
+          <small>Inclusive of all taxes</small>
+        </dt>
         <dd>
           {cart?.cost?.totalAmount?.amount ? <Money data={cart.cost.totalAmount} /> : '-'}
         </dd>

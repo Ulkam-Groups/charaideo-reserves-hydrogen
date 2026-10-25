@@ -1417,6 +1417,10 @@ button[data-state='busy'] {
   color: #80571b !important;
 }
 
+.product-page .product-main .product-price {
+  color: #10291e !important;
+}
+
 .product-page .product-information-sections summary,
 .product-page .tea-record-highlights dd,
 .product-page .tea-record-summary-copy strong,

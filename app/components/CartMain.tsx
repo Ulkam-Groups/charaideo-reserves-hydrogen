@@ -20,7 +20,12 @@ import {
   type RecentProduct,
 } from '~/lib/recent-products';
 import {publishCart} from '~/lib/cart-sync';
-import {cartDiscountProgressItems} from '~/lib/discount-progress';
+import {
+  cartDiscountProgressItems,
+  discountProgressAmount,
+  isDiscountProgressItemEligible,
+  type DiscountProgressMilestone,
+} from '~/lib/discount-progress';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -45,6 +50,10 @@ type CartRecommendationProduct = Omit<
       > & {
         title: string;
         price: GeneratedCartRecommendation['priceRange']['minVariantPrice'];
+        product: {
+          id: string;
+          collections: {nodes: Array<{id: string}>};
+        };
       })
     | null;
 };
@@ -137,6 +146,19 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const discountMilestones = rootData?.cartDiscountProgress.milestones ?? [];
+  const appliedMilestoneIds = discountMilestones
+    .filter((milestone) =>
+      (cart?.lines?.nodes ?? []).some((line) =>
+        isMilestoneAppliedToLine(
+          milestone,
+          (line as typeof line & {
+            discountAllocations?: Array<{title?: string; code?: string}>;
+          }).discountAllocations ?? [],
+        ),
+      ),
+    )
+    .map(({id}) => id);
 
   return (
     <div className={className} aria-busy={cartBusy}>
@@ -175,10 +197,12 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
       {linesCount && (
         <DiscountProgress
           surface="cart"
+          detailsMode={layout === 'aside' ? 'popup' : 'inline'}
           paused={cartBusy}
           items={discountItems}
           milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
+          appliedMilestoneIds={appliedMilestoneIds}
         />
       )}
       <div
@@ -202,12 +226,48 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               if ('parentRelationship' in line && line.parentRelationship?.parent) {
                 return null;
               }
+              const discountItem = discountItems.find(
+                (item) => item.variantId === line.merchandise.id,
+              );
+              const eligibleMilestones = discountItem
+                ? discountMilestones.filter(
+                    (milestone) =>
+                      milestone.productSpecific &&
+                      isDiscountProgressItemEligible(milestone, discountItem),
+                  )
+                : [];
+              const allocations = (
+                line as typeof line & {
+                  discountAllocations?: Array<{
+                    __typename?: string;
+                    title?: string;
+                    code?: string;
+                  }>;
+                }
+              ).discountAllocations ?? [];
+              const appliedMilestone = [...eligibleMilestones]
+                .reverse()
+                .find((milestone) =>
+                  isMilestoneAppliedToLine(milestone, allocations),
+                );
+              const nextMilestone = eligibleMilestones.find(
+                (milestone) =>
+                  discountProgressAmount(milestone, discountItems) <
+                  milestone.threshold,
+              );
+              const discountOffer = appliedMilestone
+                ? {reward: appliedMilestone.reward, status: 'applied' as const}
+                : nextMilestone
+                  ? {reward: nextMilestone.reward, status: 'eligible' as const}
+                  : undefined;
+
               return (
                 <CartLineItem
                   key={line.id}
                   line={line}
                   layout={layout}
                   childrenMap={childrenMap}
+                  discountOffer={discountOffer}
                 />
               );
             })}
@@ -231,6 +291,8 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           )}
           <CartRecommendations
             layout={layout}
+            discountItems={discountItems}
+            discountMilestones={discountMilestones}
             productIds={(cart?.lines?.nodes ?? []).map(
               (line) => line.merchandise.product.id,
             )}
@@ -242,12 +304,30 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   );
 }
 
+function isMilestoneAppliedToLine(
+  milestone: DiscountProgressMilestone,
+  allocations: ReadonlyArray<{title?: string; code?: string}>,
+) {
+  if (milestone.method === 'code') {
+    const milestoneCodes = new Set(milestone.codes.map((code) => code.toLowerCase()));
+    return allocations.some(
+      ({code}) => code && milestoneCodes.has(code.toLowerCase()),
+    );
+  }
+
+  return allocations.some(({title}) => title === milestone.title);
+}
+
 function CartRecommendations({
   productIds,
   layout,
+  discountItems,
+  discountMilestones,
 }: {
   productIds: string[];
   layout: CartLayout;
+  discountItems: ReturnType<typeof cartDiscountProgressItems>;
+  discountMilestones: DiscountProgressMilestone[];
 }) {
   const {type} = useAside();
   const active = layout === 'page' || type === 'cart';
@@ -330,6 +410,23 @@ function CartRecommendations({
         <ul>
           {recommendations.map((product) => {
             const variant = product.selectedOrFirstAvailableVariant;
+            const recommendationItem = variant
+              ? {
+                  productId: product.id,
+                  variantId: variant.id,
+                  collectionIds:
+                    variant.product?.collections.nodes.map(({id}) => id) ?? [],
+                  amount: Number(variant.price.amount),
+                  currencyCode: variant.price.currencyCode,
+                }
+              : null;
+            const eligibleReward = recommendationItem
+              ? nextEligibleDiscountReward(
+                  discountMilestones,
+                  discountItems,
+                  recommendationItem,
+                )
+              : null;
             return (
               <li key={product.id} className="cart-recommendation">
                 <Link
@@ -359,6 +456,11 @@ function CartRecommendations({
                   {variant && variant.title !== 'Default Title' && (
                     <small>{variant.title}</small>
                   )}
+                  {eligibleReward && (
+                    <span className="cart-discount-eligibility is-eligible is-compact">
+                      {eligibleReward} eligible
+                    </span>
+                  )}
                   {variant ? (
                     <Money data={variant.price} />
                   ) : (
@@ -378,6 +480,25 @@ function CartRecommendations({
       ) : null}
     </section>
   );
+}
+
+function nextEligibleDiscountReward(
+  milestones: readonly DiscountProgressMilestone[],
+  items: ReturnType<typeof cartDiscountProgressItems>,
+  item: Parameters<typeof isDiscountProgressItemEligible>[1],
+) {
+  const eligibleMilestones = milestones.filter(
+    (milestone) =>
+      milestone.productSpecific &&
+      isDiscountProgressItemEligible(milestone, item),
+  );
+
+  return (
+    eligibleMilestones.find(
+      (milestone) =>
+        discountProgressAmount(milestone, items) < milestone.threshold,
+    ) ?? eligibleMilestones.at(-1)
+  )?.reward;
 }
 
 function CartEmpty({

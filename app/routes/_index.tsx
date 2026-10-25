@@ -746,7 +746,7 @@ function HomepageProductCard({product, collectionTitle}: {product: ChapterProduc
         </div>
         {product.variants.nodes.length > 0 && (
           <fieldset className="home-product-card-variants">
-            <legend>Select pack</legend>
+            <legend className="sr-only">Choose a pack size</legend>
             <div>
               {product.variants.nodes.map((variant) => (
                 <label key={variant.id} data-selected={selectedVariantId === variant.id} data-available={variant.availableForSale}>
