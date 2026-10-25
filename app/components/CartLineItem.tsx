@@ -23,12 +23,15 @@ export function CartLineItem({
   layout,
   line,
   childrenMap,
-  discountEligible,
+  discountOffer,
 }: {
   layout: CartLayout;
   line: CartLine;
   childrenMap: LineItemChildrenMap;
-  discountEligible?: boolean;
+  discountOffer?: {
+    reward: string;
+    status: 'eligible' | 'applied';
+  };
 }) {
   const {id, merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
@@ -74,8 +77,17 @@ export function CartLineItem({
           >
             <p>
               <strong>{product.title}</strong>
-              {layout === 'page' && discountEligible && (
-                <span className="cart-discount-eligibility">10% off eligible</span>
+              {discountOffer && (
+                <span
+                  className={`cart-discount-eligibility is-${discountOffer.status}${
+                    layout === 'aside' ? ' is-compact' : ''
+                  }`}
+                >
+                  {discountOffer.reward}{' '}
+                  {discountOffer.status === 'applied' && originalLinePrice
+                    ? 'applied'
+                    : 'eligible'}
+                </span>
               )}
             </p>
           </Link>
