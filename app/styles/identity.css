@@ -118,23 +118,23 @@ button {cursor: pointer}
   min-height: calc(100vh - var(--header-height));
   display: grid;
   place-items: center;
-  padding: clamp(36px,7vw,88px) var(--gutter);
+  padding: clamp(20px,3vw,36px) var(--gutter);
   background: linear-gradient(180deg,var(--paper),var(--gamosa-cream));
 }
 .checkout-success-card {
   width: min(100%,680px);
-  padding: clamp(30px,6vw,62px);
+  padding: clamp(24px,4vw,38px);
   border: 1px solid var(--thread);
   background: var(--paper);
   box-shadow: 0 22px 65px rgba(19,42,31,.1);
 }
 .checkout-success-card h1 {
   margin: 0;
-  font-size: clamp(2.7rem,8vw,4.6rem);
+  font-size: clamp(2.5rem,6vw,3.75rem);
   line-height: .95;
 }
 .checkout-success-summary {
-  margin: 22px 0 28px;
+  margin: 14px 0 18px;
   color: var(--quiet-ink);
   font-size: var(--type-body-large);
 }
@@ -147,7 +147,7 @@ button {cursor: pointer}
   display: grid;
   grid-template-columns: minmax(135px,.65fr) minmax(0,1fr);
   gap: 18px;
-  padding: 14px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--thread);
 }
 .checkout-success-references dt {
@@ -164,7 +164,7 @@ button {cursor: pointer}
   overflow-wrap: anywhere;
 }
 .checkout-success-help {
-  margin: 22px 0 0;
+  margin: 14px 0 0;
   color: var(--quiet-ink);
   font-size: var(--type-small);
 }
@@ -173,11 +173,11 @@ button {cursor: pointer}
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 18px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 .checkout-success-preferred-source {
-  margin-top: 36px;
-  padding-top: 28px;
+  margin-top: 22px;
+  padding-top: 18px;
   border-top: 1px solid var(--thread);
 }
 .checkout-success-preferred-source h2 {
@@ -188,7 +188,7 @@ button {cursor: pointer}
 }
 .checkout-success-preferred-source > p:not(.eyebrow) {
   max-width: 52ch;
-  margin: 12px 0 18px;
+  margin: 8px 0 14px;
   color: var(--quiet-ink);
   font-size: var(--type-small);
 }

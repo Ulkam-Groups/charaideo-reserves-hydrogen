@@ -23,10 +23,12 @@ export function CartLineItem({
   layout,
   line,
   childrenMap,
+  discountEligible,
 }: {
   layout: CartLayout;
   line: CartLine;
   childrenMap: LineItemChildrenMap;
+  discountEligible?: boolean;
 }) {
   const {id, merchandise} = line;
   const {product, title, image, selectedOptions} = merchandise;
@@ -34,6 +36,17 @@ export function CartLineItem({
   const {close} = useAside();
   const lineItemChildren = childrenMap[id];
   const childrenLabelId = `cart-line-children-${id}`;
+  const lineCost = line.cost as typeof line.cost & {
+    subtotalAmount?: typeof line.cost.totalAmount;
+  };
+  const lineSubtotal = lineCost.subtotalAmount ?? {
+    amount: (Number(lineCost.amountPerQuantity.amount) * line.quantity).toFixed(2),
+    currencyCode: lineCost.amountPerQuantity.currencyCode,
+  };
+  const originalLinePrice =
+    Number(lineSubtotal.amount) > Number(lineCost.totalAmount.amount)
+    ? lineSubtotal
+    : null;
 
   return (
     <li key={id} className="cart-line">
@@ -61,9 +74,15 @@ export function CartLineItem({
           >
             <p>
               <strong>{product.title}</strong>
+              {layout === 'page' && discountEligible && (
+                <span className="cart-discount-eligibility">10% off eligible</span>
+              )}
             </p>
           </Link>
-          <ProductPrice price={line?.cost?.totalAmount} />
+          <ProductPrice
+            price={line?.cost?.totalAmount}
+            compareAtPrice={originalLinePrice}
+          />
           {layout === 'page' && line.quantity > 1 && line.cost?.amountPerQuantity && (
             <p className="cart-line-each">
               <Money as="span" data={line.cost.amountPerQuantity} /> each

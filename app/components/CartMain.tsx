@@ -20,7 +20,10 @@ import {
   type RecentProduct,
 } from '~/lib/recent-products';
 import {publishCart} from '~/lib/cart-sync';
-import {cartDiscountProgressItems} from '~/lib/discount-progress';
+import {
+  cartDiscountProgressItems,
+  isDiscountProgressItemEligible,
+} from '~/lib/discount-progress';
 
 export type CartLayout = 'page' | 'aside';
 
@@ -137,6 +140,9 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
+  const tenPercentMilestone = rootData?.cartDiscountProgress.milestones.find(
+    (milestone) => /10\s*%/.test(`${milestone.title} ${milestone.reward}`),
+  );
 
   return (
     <div className={className} aria-busy={cartBusy}>
@@ -202,12 +208,22 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               if ('parentRelationship' in line && line.parentRelationship?.parent) {
                 return null;
               }
+              const discountItem = discountItems.find(
+                (item) => item.variantId === line.merchandise.id,
+              );
+              const discountEligible = Boolean(
+                tenPercentMilestone &&
+                discountItem &&
+                isDiscountProgressItemEligible(tenPercentMilestone, discountItem),
+              );
+
               return (
                 <CartLineItem
                   key={line.id}
                   line={line}
                   layout={layout}
                   childrenMap={childrenMap}
+                  discountEligible={discountEligible}
                 />
               );
             })}

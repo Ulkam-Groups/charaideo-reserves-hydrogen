@@ -77,12 +77,6 @@ export default function RazorpayCheckoutSuccess({
             <dt>Shopify order number</dt>
             <dd>{loaderData.shopifyOrderName}</dd>
           </div>
-          {loaderData.razorpayOrderId && (
-            <div>
-              <dt>Razorpay order ID</dt>
-              <dd>{loaderData.razorpayOrderId}</dd>
-            </div>
-          )}
           {loaderData.razorpayPaymentId && (
             <div>
               <dt>Razorpay payment ID</dt>

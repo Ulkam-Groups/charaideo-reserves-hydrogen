@@ -34,7 +34,14 @@ export function isDiscountProgressEligible(
   milestone: DiscountProgressMilestone,
   items: readonly DiscountProgressItem[],
 ) {
-  return items.some((item) => isItemEligible(milestone.targets, item));
+  return items.some((item) => isDiscountProgressItemEligible(milestone, item));
+}
+
+export function isDiscountProgressItemEligible(
+  milestone: DiscountProgressMilestone,
+  item: DiscountProgressItem,
+) {
+  return isItemEligible(milestone.targets, item);
 }
 
 export function discountProgressAmount(

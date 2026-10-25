@@ -17,6 +17,9 @@ export const CART_QUERY_FRAGMENT = `#graphql
       }
     }
     cost {
+      subtotalAmount {
+        ...Money
+      }
       totalAmount {
         ...Money
       }
@@ -83,6 +86,9 @@ export const CART_QUERY_FRAGMENT = `#graphql
       }
     }
     cost {
+      subtotalAmount {
+        ...Money
+      }
       totalAmount {
         ...Money
       }
