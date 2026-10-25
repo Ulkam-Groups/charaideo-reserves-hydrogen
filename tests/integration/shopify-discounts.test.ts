@@ -71,7 +71,12 @@ test('Shopify discount progress parses order and product milestones in threshold
                 items: {
                   __typename: 'DiscountProducts',
                   products: {
-                    nodes: [{id: 'gid://shopify/Product/eligible', title: 'Green Pearl Reserve'}],
+                    nodes: [
+                      {
+                        id: 'gid://shopify/Product/eligible',
+                        title: 'Green Pearl Reserve',
+                      },
+                    ],
                   },
                   productVariants: {nodes: []},
                 },

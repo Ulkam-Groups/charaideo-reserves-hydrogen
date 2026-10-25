@@ -107,11 +107,11 @@ export default function RazorpayCheckoutSuccess({
         >
           <p className="eyebrow">Stay close to the source</p>
           <h2 id="preferred-source-title">There is more to tea than the cup</h2>
-          <p>
-            Be the first to discover rare teas, brewing secrets, and untold stories
-            from the gardens of Assam. Make Charaideo part of what you discover next.
-          </p>
           <PreferredSourceButton />
+          <p>
+            Be the first to discover rare teas, brewing secrets, and untold stories from
+            the gardens of Assam. Make Charaideo part of what you discover next.
+          </p>
         </aside>
       </section>
     </main>
