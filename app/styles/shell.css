@@ -201,10 +201,8 @@
 
 .site-header .header-menu-item.active,
 .site-header .header-menu-item[aria-current='page'] {
-  text-decoration: underline;
-  text-decoration-color: var(--color-tea-800);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.35em;
+  color: #5c171c;
+  text-decoration: none;
 }
 
 .site-header .header-menu-new {
@@ -544,8 +542,8 @@
   border-radius: var(--radius-button);
   background: var(--action-primary);
   color: var(--text-inverse);
-  font-size: var(--type-label);
-  font-weight: 700;
+  font-size: 0.5625rem;
+  font-weight: 400;
   line-height: 1;
 }
 
@@ -959,17 +957,28 @@
     width: calc(100% - 2rem);
   }
 
-  .site-header.header .wordmark,
-  .site-header.header .wordmark img {
-    height: 3rem;
+  .site-header.header .wordmark {
+    width: 10.5rem;
+    height: 3.375rem;
   }
 
+  .site-header.header .wordmark--endorsed {
+    grid-template-rows: auto auto;
+    gap: 0.125rem;
+  }
+
+  .site-header.header .wordmark img,
   .site-header.header .wordmark--endorsed img {
-    height: 2.8125rem;
+    width: 100%;
+    height: auto;
   }
 
   .site-header.header .wordmark-endorsement {
-    display: none;
+    display: block;
+    padding-left: 3.2rem;
+    font-size: 0.3125rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
   }
 
   .site-header .header-account {

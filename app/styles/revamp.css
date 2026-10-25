@@ -1544,7 +1544,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 .tea-empty {
   color: #849087;
-  font-style: italic;
+  font-style: normal;
 }
 .tea-recipe-tabs {
   display: flex;
@@ -1777,7 +1777,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 .tea-record-grid dd.is-missing {
   color: #849087;
-  font: italic 12px/1.5 var(--sans);
+  font: 400 12px/1.5 var(--sans);
 }
 .tea-fit-grid {
   display: grid;
@@ -1989,7 +1989,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 .product-specifications-grid dd.is-missing {
   color: #849087;
-  font-style: italic;
+  font-style: normal;
 }
 .product-related {
   max-width: 1320px;
@@ -4312,7 +4312,7 @@ main.main--offset:has(> .contact-page) {
 }
 .contact-location-content h2 em {
   color: #b9cbc2;
-  font-style: italic;
+  font-style: normal;
 }
 .contact-location-content > p {
   max-width: 480px;

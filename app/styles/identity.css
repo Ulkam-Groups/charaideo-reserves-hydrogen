@@ -369,7 +369,7 @@ button {cursor: pointer}
 .product-review-summary strong {font-weight: 600}
 .product-review-summary--empty {color: var(--quiet-ink)}
 .product-stars {color: var(--tea-liquor); letter-spacing: .08em}
-.product-taste-line {color: var(--burnt-clay)!important; font: 500 13px/1.6 var(--serif)!important; font-style: italic!important}
+.product-taste-line {color: var(--burnt-clay)!important; font: 500 13px/1.6 var(--serif)!important; font-style: normal!important}
 .product-price {display: block; margin: 18px 0; color: var(--aged-indigo)!important; font: 600 17px/1 var(--sans)!important}
 .product-price-on-sale {align-items: center}
 .product-form {padding: 18px 0; border-block: 1px solid var(--thread)}
@@ -438,7 +438,7 @@ button {cursor: pointer}
 .about-story-copy > h1 em {color: var(--assam-red)}
 .about-story-intro {margin: 0 0 24px; color: var(--burnt-clay); font-size: 12px; line-height: 1.75}
 .about-story-copy blockquote {margin: 0 0 32px; padding: 0 0 0 20px; border-left: 2px solid var(--heritage-red)}
-.about-story-copy blockquote p {margin: 0 0 17px; color: var(--leaf-ink); font-size: 12px; font-style: italic; font-weight: 500; line-height: 1.65}
+.about-story-copy blockquote p {margin: 0 0 17px; color: var(--leaf-ink); font-size: 12px; font-style: normal; font-weight: 500; line-height: 1.65}
 .about-story-copy blockquote p:last-child {margin-bottom: 0}
 .about-story-timeline {position: relative; display: grid; gap: 25px; margin: 0 0 34px; padding: 0 0 0 22px; list-style: none}
 .about-story-timeline::before {content: ''; position: absolute; inset: 4px auto 5px 0; width: 1px; background: var(--tea-liquor)}
@@ -1038,7 +1038,7 @@ body {font-size: var(--type-body); line-height: 1.65}
 .catalog-hero-art-cup {position: relative; display: block; width: 132px; height: 132px; border: 4px solid var(--paper); border-radius: 50%; background: #a45a25; box-shadow: 0 0 0 12px rgba(244,235,221,.14), inset 0 0 0 8px #c3803c}
 .catalog-hero-art-cup::after {content: ''; position: absolute; left: calc(100% + 2px); top: 35px; width: 28px; height: 49px; border: 8px solid var(--paper); border-left: 0; border-radius: 0 50% 50% 0}
 .catalog-hero-art-cup span {position: absolute; left: 30px; top: 38px; width: 65px; height: 20px; border-top: 2px solid rgba(255,255,255,.7); border-radius: 50%; transform: rotate(-20deg)}
-.catalog-hero-art-caption {font: italic 500 1.25rem/1 var(--serif)}
+.catalog-hero-art-caption {font: 500 1.25rem/1 var(--serif)}
 .catalog-page .catalog-index {grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin-bottom: 52px; background: var(--gamosa-cream); color: var(--aged-indigo)}
 .catalog-page .catalog-index span {align-items: center}
 .catalog-page .catalog-toolbar {padding: 20px 24px; border: 1px solid var(--thread); background: var(--pure-white)}

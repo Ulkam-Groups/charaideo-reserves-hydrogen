@@ -493,8 +493,7 @@ export default function ReserveList() {
                 <div className="reserve-filter-panel" id="reserve-filter-panel">
                   <header>
                     <div>
-                      <strong>Refine teas</strong>
-                      <span>Results update instantly</span>
+                      <strong>Filter teas</strong>
                     </div>
                     <button
                       type="button"
@@ -650,7 +649,7 @@ export default function ReserveList() {
                       className="reserve-filter-done"
                       onClick={() => setFiltersOpen(false)}
                     >
-                      Done
+                      Apply
                     </button>
                   </footer>
                 </div>
@@ -1134,7 +1133,7 @@ export function ReserveTeaCard({
             className="reserve-card-variants"
             data-product-available={product.availableForSale}
           >
-            <legend>Select pack</legend>
+            <legend className="reserve-visually-hidden">Choose a pack size</legend>
             <div>
               {product.variants.nodes.map((variant) => (
                 <label
