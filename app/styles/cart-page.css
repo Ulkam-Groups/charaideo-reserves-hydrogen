@@ -243,6 +243,8 @@
   display: none;
 }
 .cart-page .cart-quantity-stepper {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   overflow: hidden;
@@ -251,20 +253,32 @@
   background: #fff;
 }
 .cart-page .cart-quantity-stepper form {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex: 0 0 auto;
   margin: 0;
 }
 .cart-page .cart-quantity-stepper button {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
   width: 40px;
   min-width: 40px;
   height: 40px;
   min-height: 40px;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--leaf-ink);
   font-size: 1.125rem;
   line-height: 1;
+  pointer-events: auto;
   transition: background 0.15s ease;
+}
+.cart-page .cart-quantity-stepper button > span {
+  pointer-events: none;
 }
 .cart-page .cart-quantity-stepper button:hover:not(:disabled) {
   background: #f1f6ee;
