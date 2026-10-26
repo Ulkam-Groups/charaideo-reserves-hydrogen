@@ -115,6 +115,7 @@ function parseTeaJourney(value?: string | null): TeaJourney | null {
 export function ProductTeaJourney({product}: {product: JourneyProduct}) {
   const [active, setActive] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [hasVisitedRoute, setHasVisitedRoute] = useState(false);
   const journey = useMemo(
     () => parseTeaJourney(product.teaJourney?.value),
     [product.teaJourney?.value],
@@ -140,6 +141,10 @@ export function ProductTeaJourney({product}: {product: JourneyProduct}) {
 
     return () => window.clearInterval(timer);
   }, [isPaused, journey]);
+
+  useEffect(() => {
+    if (active === 1) setHasVisitedRoute(true);
+  }, [active]);
 
   if (!journey) return null;
 
@@ -193,25 +198,38 @@ export function ProductTeaJourney({product}: {product: JourneyProduct}) {
       <div className="product-journey-layout">
         <div className={`product-journey-viewport is-stage-${active + 1}`}>
           <div className="product-journey-map-layer" aria-hidden={active === 2}>
-            {active === 0 && embedUrl ? (
-              <iframe
-                title={`Map showing ${sourceName}`}
-                src={embedUrl}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            ) : active === 1 && directionsEmbedUrl ? (
-              <iframe
-                title={`Route from ${sourceName} to ${reserveName}`}
-                src={directionsEmbedUrl}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            ) : (
-              <JourneyRoute
-                sourceName={sourceName}
-                reserveName={reserveName}
-              />
+            <div
+              className={`product-journey-map-frame${active === 0 ? ' is-active' : ''}`}
+              aria-hidden={active !== 0}
+            >
+              {embedUrl ? (
+                <iframe
+                  title={`Map showing ${sourceName}`}
+                  src={embedUrl}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : (
+                <JourneyRoute sourceName={sourceName} reserveName={reserveName} />
+              )}
+            </div>
+
+            {(active === 1 || hasVisitedRoute) && (
+              <div
+                className={`product-journey-map-frame${active === 1 ? ' is-active' : ''}`}
+                aria-hidden={active !== 1}
+              >
+                {directionsEmbedUrl ? (
+                  <iframe
+                    title={`Route from ${sourceName} to ${reserveName}`}
+                    src={directionsEmbedUrl}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                ) : (
+                  <JourneyRoute sourceName={sourceName} reserveName={reserveName} />
+                )}
+              </div>
             )}
             <div className="product-journey-map-caption">
               <span>{active === 0 ? sourceName : `${sourceName} to ${reserveName}`}</span>

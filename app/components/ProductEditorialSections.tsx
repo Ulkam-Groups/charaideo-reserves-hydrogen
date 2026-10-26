@@ -421,12 +421,6 @@ function TeaRecord({
   });
   if (meaningful.length === 0) return null;
 
-  const highlightOrder = ['Origin', 'Estate', 'Harvest', 'Grade', 'Lot', 'Pack size'];
-  const highlights = highlightOrder
-    .map((label) => meaningful.find(([recordLabel]) => recordLabel === label))
-    .filter(Boolean)
-    .slice(0, 4) as Array<(typeof meaningful)[number]>;
-
   return (
     <section
       id="tea-record-section"
@@ -438,16 +432,6 @@ function TeaRecord({
         eyebrow="Product information"
         id="tea-record-title"
       />
-      {highlights.length > 0 && (
-        <dl className="tea-record-highlights">
-          {highlights.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
       <div className="tea-record-details">
         <div className="tea-record-summary">
           <span className="tea-record-summary-copy">

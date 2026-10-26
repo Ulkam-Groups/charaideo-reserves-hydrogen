@@ -3786,11 +3786,11 @@ html {
 /* Contact page */
 .contact-page {
   margin-top: -20px;
-  background: #f4ebdd;
+  background: #ffffff;
   color: #17392f;
 }
 main.main--offset:has(> .contact-page) {
-  background: #17392f;
+  background: #ffffff;
 }
 .contact-page :is(h1, h2, h3) {
   font-family: var(--serif);

@@ -283,19 +283,11 @@ button[data-state='busy'] {
 }
 
 /* P3 provenance: Shopify/metafield values stay untouched; improve reading hierarchy. */
-.tea-record-section .tea-record-highlights,
 .tea-record-section .tea-record-summary,
 .tea-record-section .tea-record-grid {
   font-family: var(--font-interface);
 }
 
-.tea-record-section .tea-record-highlights dt {
-  color: #4e6257;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-
-.tea-record-section .tea-record-highlights dd,
 .tea-record-section .tea-record-summary-copy strong,
 .tea-record-section .tea-record-grid dd {
   color: #17382a !important;
@@ -690,34 +682,6 @@ button[data-state='busy'] {
 .tea-record-section .tea-section-heading .eyebrow {
   margin-bottom: 0;
 }
-.tea-record-highlights {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-  max-width: 1080px;
-  margin: 0 0 12px;
-  padding: 0;
-}
-.tea-record-highlights > div {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid #e7e1d7;
-  border-radius: 12px;
-  background: #ffffff;
-}
-.tea-record-highlights dt {
-  margin-bottom: 7px;
-  color: #61736a;
-  font: 700 10px/1.2 var(--sans);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.tea-record-highlights dd {
-  margin: 0;
-  color: var(--pdp-ink);
-  font: 700 14px/1.35 var(--sans);
-  overflow-wrap: anywhere;
-}
 .tea-record-details {
   max-width: 1080px;
   overflow: hidden;
@@ -742,12 +706,12 @@ button[data-state='busy'] {
 .tea-record-summary-copy strong {
   color: var(--pdp-ink);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 }
 .tea-record-summary-copy small {
   color: #64766d;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
 }
 .tea-record-section .tea-record-grid {
   display: grid;
@@ -775,7 +739,7 @@ button[data-state='busy'] {
 .tea-record-section .tea-record-grid dt {
   color: #64766d;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -783,16 +747,13 @@ button[data-state='busy'] {
   margin: 0;
   color: var(--pdp-ink);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   overflow-wrap: anywhere;
 }
 #product-buy-box {
   scroll-margin-top: calc(var(--header-height) + 24px);
 }
 @media (max-width: 760px) {
-  .tea-record-highlights {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .tea-record-section .tea-record-grid {
     grid-template-columns: 1fr;
   }
@@ -1347,7 +1308,6 @@ button[data-state='busy'] {
 .product-page .product-rating-panel p,
 .product-page .product-review-card-topline,
 .product-page .product-review-card footer,
-.product-page .tea-record-highlights dt,
 .product-page .tea-record-summary-copy small,
 .product-page .tea-record-grid dt {
   color: #334b3f !important;
@@ -1374,7 +1334,6 @@ button[data-state='busy'] {
 }
 
 .product-page .product-information-sections summary,
-.product-page .tea-record-highlights dd,
 .product-page .tea-record-summary-copy strong,
 .product-page .tea-record-grid dd,
 .product-page .product-quick-facts dd {
@@ -1722,6 +1681,22 @@ button[data-state='busy'] {
   transform: scale(1);
 }
 
+.product-journey-map-frame {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms var(--pdp-ease), visibility 0s linear 320ms;
+}
+
+.product-journey-map-frame.is-active {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
 .product-journey-video-layer {
   display: grid;
   place-items: center;
@@ -1886,6 +1861,7 @@ button[data-state='busy'] {
 
 .product-journey-map-caption {
   position: absolute;
+  z-index: 2;
   right: 12px;
   bottom: 12px;
   left: 12px;
