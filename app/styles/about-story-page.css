@@ -1086,6 +1086,21 @@ main.main--offset:has(> .about-page) {
   border-top: 1px solid rgba(19, 42, 31, 0.14);
 }
 
+.about-page-close-newsletter {
+  width: min(100% - 48px, 920px);
+  gap: 0;
+  padding: clamp(26px, 3vw, 34px) clamp(24px, 4vw, 44px);
+}
+
+.about-page-close-newsletter .about-page-close-signup {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.about-page-close-newsletter .about-signup {
+  max-width: none;
+}
+
 .about-signup {
   max-width: 560px;
 }

@@ -6286,3 +6286,88 @@ main.main--offset .catalog-page {
     transform: translateY(-50%);
   }
 }
+
+.content-page-about-us :is(em, i),
+.academy-page :is(em, i),
+.sensory-page :is(em, i),
+.journal-page :is(em, i),
+.journal-article-page :is(em, i) {
+  font-style: normal !important;
+}
+
+/* Branded 404 */
+.not-found-page {
+  min-height: min(720px, calc(100vh - 180px));
+  padding: clamp(72px, 11vw, 150px) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 40%, rgb(244 233 210 / 48%), transparent 38%),
+    var(--pure-white);
+}
+
+.not-found-mark {
+  margin-bottom: 18px;
+  color: #a8733f;
+  font: 500 clamp(5rem, 14vw, 10rem) / 0.8 var(--serif);
+  letter-spacing: -0.05em;
+}
+
+.not-found-page .eyebrow {
+  margin: 0 0 18px;
+  color: var(--burnt-clay);
+}
+
+.not-found-page h1 {
+  max-width: 760px;
+  margin: 0;
+  color: var(--leaf-ink);
+  font-size: clamp(1.9rem, 3.4vw, 3.15rem);
+  line-height: 1.08;
+}
+
+.not-found-copy {
+  max-width: 610px;
+  margin: 24px auto 0;
+  color: var(--quiet-ink);
+  font-size: clamp(0.94rem, 1.15vw, 1.02rem);
+  line-height: 1.65;
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.not-found-actions .button {
+  min-width: 190px;
+}
+
+.not-found-academy {
+  margin-top: 30px;
+  color: var(--leaf-ink);
+  font-size: 0.92rem;
+  text-underline-offset: 5px;
+}
+
+@media (max-width: 540px) {
+  .not-found-page {
+    min-height: calc(100vh - 140px);
+    padding-inline: 22px;
+  }
+
+  .not-found-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .not-found-actions .button {
+    width: 100%;
+  }
+}
