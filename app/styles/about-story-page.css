@@ -452,10 +452,10 @@ main.main--offset:has(> .about-page) {
 .about-page-purpose-coordinate {
   display: inline-block;
   color: #b87936;
-  font:
-    500 54px/0.82 'Cormorant Garamond',
-    'Now',
-    serif;
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 54px;
+  font-weight: 500 !important;
+  line-height: 0.82;
   font-feature-settings:
     'onum' 1,
     'pnum' 1;
