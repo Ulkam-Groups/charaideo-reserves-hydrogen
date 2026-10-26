@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, type ReactNode} from 'react';
 
 type MetafieldValue = {value: string} | null | undefined;
 
@@ -93,17 +93,20 @@ const RECIPE_FIELDS = [
 export function ProductEditorialSections({
   product,
   selectedVariant,
+  afterTasteProfile,
 }: {
   product: ProductEditorialData;
   selectedVariant: VariantData;
+  afterTasteProfile?: ReactNode;
 }) {
   return (
     <div className="tea-editorial">
       <CupCharacter product={product} />
+      {afterTasteProfile}
+      <TeaRecord product={product} selectedVariant={selectedVariant} />
       <RecipeExperience product={product} />
       <TeaFit product={product} />
       <WhyThisTea product={product} />
-      <TeaRecord product={product} selectedVariant={selectedVariant} />
     </div>
   );
 }
@@ -115,15 +118,15 @@ function SectionHeading({
   id,
 }: {
   eyebrow: string;
-  title: string;
+  title?: string;
   intro?: string;
   id: string;
 }) {
   return (
     <header className="tea-section-heading">
       <div>
-        <span className="eyebrow">{eyebrow}</span>
-        <h2 id={id}>{title}</h2>
+        <span className="eyebrow" id={title ? undefined : id}>{eyebrow}</span>
+        {title && <h2 id={id}>{title}</h2>}
       </div>
       {intro && <p>{intro}</p>}
     </header>
@@ -433,8 +436,6 @@ function TeaRecord({
     >
       <SectionHeading
         eyebrow="Product information"
-        title="What you’re getting."
-        intro="Clear details about the tea’s origin, harvest, ingredients and pack."
         id="tea-record-title"
       />
       {highlights.length > 0 && (
@@ -462,13 +463,6 @@ function TeaRecord({
             </div>
           ))}
         </dl>
-      </div>
-      <div className="tea-record-shop-cta">
-        <div>
-          <strong>Ready to try this tea?</strong>
-          <span>Choose your pack size and checkout securely.</span>
-        </div>
-        <a href="#product-buy-box">Choose pack &amp; buy ↑</a>
       </div>
     </section>
   );

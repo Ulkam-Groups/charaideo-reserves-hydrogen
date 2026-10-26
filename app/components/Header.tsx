@@ -1,4 +1,4 @@
-import {Suspense, useEffect, useRef, useState} from 'react';
+import {startTransition, Suspense, useEffect, useRef, useState} from 'react';
 import {Brand} from './Brand';
 import {Await, Link, NavLink, useAsyncValue} from 'react-router';
 import {
@@ -36,7 +36,9 @@ export function Header({
       const headerTop =
         headerRef.current?.getBoundingClientRect().top ??
         Number.POSITIVE_INFINITY;
-      setIsDocked(window.scrollY > 0 && headerTop <= 0);
+      startTransition(() => {
+        setIsDocked(window.scrollY > 0 && headerTop <= 0);
+      });
     };
 
     updateDockedState();

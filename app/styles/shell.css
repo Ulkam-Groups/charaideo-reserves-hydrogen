@@ -958,8 +958,12 @@
   }
 
   .site-header.header .wordmark {
-    width: 10.5rem;
-    height: 3.375rem;
+    /* Keep the centred wordmark inside the space between the two action
+       groups. A fixed 10.5rem width overlaps the controls in narrow and
+       embedded mobile browser viewports. */
+    width: clamp(8.25rem, 26vw, 10.5rem);
+    max-width: calc(100% - 12rem);
+    height: auto;
   }
 
   .site-header.header .wordmark--endorsed {
@@ -969,8 +973,11 @@
 
   .site-header.header .wordmark img,
   .site-header.header .wordmark--endorsed img {
+    display: block;
+    max-width: 100%;
     width: 100%;
     height: auto;
+    object-fit: contain;
   }
 
   .site-header.header .wordmark-endorsement {

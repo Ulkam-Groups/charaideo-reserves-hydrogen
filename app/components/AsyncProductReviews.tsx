@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {startTransition, useEffect, useState} from 'react';
 import {ProductReviews} from '~/components/ProductReviews';
 import type {ProductReviewsResult} from '~/lib/judgeme.server';
 
@@ -36,10 +36,14 @@ export function AsyncProductReviews({
         return response.json() as Promise<ProductReviewsResult>;
       })
       .then((data) => {
-        if (active) setState({status: 'ready', data});
+        if (active) {
+          startTransition(() => setState({status: 'ready', data}));
+        }
       })
       .catch(() => {
-        if (active) setState({status: 'unavailable'});
+        if (active) {
+          startTransition(() => setState({status: 'unavailable'}));
+        }
       })
       .finally(() => window.clearTimeout(timeoutId));
 

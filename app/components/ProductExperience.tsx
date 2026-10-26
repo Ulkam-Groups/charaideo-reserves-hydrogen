@@ -1,11 +1,12 @@
-import {useEffect, useState} from 'react';
+import {startTransition, useEffect, useState} from 'react';
 
 const NAV_SECTIONS = [
   ['tea-character-section', 'Taste'],
+  ['tea-journey-section', 'Our Tea Journey'],
+  ['tea-record-section', 'Product information'],
   ['tea-recipe-section', 'How to brew'],
   ['tea-fit-section', 'Good for you?'],
   ['tea-why-section', 'Why we chose it'],
-  ['tea-record-section', 'Product details'],
   ['customer-notes', 'Reviews'],
 ] as const;
 
@@ -55,7 +56,7 @@ export function ProductSectionNav() {
 
   useEffect(() => {
     const present = NAV_SECTIONS.filter(([id]) => document.getElementById(id));
-    setItems(present);
+    startTransition(() => setItems(present));
     if (typeof IntersectionObserver === 'undefined') return;
 
     const observer = new IntersectionObserver(
@@ -63,7 +64,9 @@ export function ProductSectionNav() {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
-        if (visible) setActiveId(visible.target.id);
+        if (visible) {
+          startTransition(() => setActiveId(visible.target.id));
+        }
       },
       {rootMargin: '-30% 0px -60% 0px'},
     );

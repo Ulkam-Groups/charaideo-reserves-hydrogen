@@ -18,6 +18,7 @@ import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {AsyncProductReviews} from '~/components/AsyncProductReviews';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductEditorialSections} from '~/components/ProductEditorialSections';
+import {ProductTeaJourney} from '~/components/ProductTeaJourney';
 import {
   ProductSectionNav,
   TrustIcon,
@@ -464,7 +465,11 @@ export default function Product() {
 
       <ProductSectionNav />
 
-      <ProductEditorialSections product={product} selectedVariant={selectedVariant} />
+      <ProductEditorialSections
+        product={product}
+        selectedVariant={selectedVariant}
+        afterTasteProfile={<ProductTeaJourney product={product} />}
+      />
 
       <section
         className="product-reviews"
@@ -754,6 +759,7 @@ const PRODUCT_FRAGMENT = `#graphql
     isThisTeaNo: metafield(namespace: "custom", key: "is_this_tea_no") { value }
     whyChooseTea: metafield(namespace: "custom", key: "why_choose_tea") { value }
     whyChooseAttribution: metafield(namespace: "custom", key: "why_choose_attribution") { value }
+    teaJourney: metafield(namespace: "custom", key: "tea_journey") { value }
     reviewRating: metafield(namespace: "reviews", key: "rating") { value }
     reviewCount: metafield(namespace: "reviews", key: "rating_count") { value }
     descriptionHtml
