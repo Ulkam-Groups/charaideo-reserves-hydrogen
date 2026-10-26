@@ -197,9 +197,11 @@ export function validateRazorpayOrderForShopify(
   );
   const documentedLineTotal = integer(order.line_items_total, 'line total');
   const shippingFee = integer(order.shipping_fee ?? 0, 'shipping fee');
-  const codFee = integer(order.cod_fee ?? 0, 'COD fee');
+  // Magic Checkout reports COD fees separately. They are included in the
+  // pending COD payment, but not in the Razorpay order `amount`.
+  integer(order.cod_fee ?? 0, 'COD fee');
   const amount = integer(order.amount, 'amount');
-  if (lineTotal !== documentedLineTotal || amount !== lineTotal + shippingFee + codFee) {
+  if (lineTotal !== documentedLineTotal || amount !== lineTotal + shippingFee) {
     throw new RazorpayReconciliationError('Razorpay order total mismatch');
   }
   return {order, lines};
@@ -213,18 +215,53 @@ export function validateCapturedRazorpayPayment(
     throw new RazorpayReconciliationError('Invalid Razorpay payment');
   }
   const payment = value as RazorpayPaymentDetails;
+  const orderAmount = integer(order.amount, 'order amount');
+  const paidAmount = integer(order.amount_paid, 'paid amount');
+  const dueAmount = integer(order.amount_due, 'amount due');
+  const isFullyPaid =
+    order.status === 'paid' && paidAmount === orderAmount && dueAmount === 0;
+  const isPartialCod =
+    order.status === 'attempted' &&
+    paidAmount > 0 &&
+    paidAmount < orderAmount &&
+    dueAmount === orderAmount - paidAmount;
   if (
     !/^pay_[A-Za-z0-9]+$/.test(payment.id) ||
     payment.order_id !== order.id ||
     payment.currency !== 'INR' ||
     payment.status !== 'captured' ||
     payment.captured !== true ||
-    integer(payment.amount, 'payment amount') !== order.amount ||
-    integer(order.amount_paid, 'paid amount') !== order.amount ||
-    integer(order.amount_due, 'amount due') !== 0 ||
-    order.status !== 'paid'
+    integer(payment.amount, 'payment amount') !== paidAmount ||
+    (!isFullyPaid && !isPartialCod)
   ) {
     throw new RazorpayReconciliationError('Razorpay payment is not captured');
+  }
+  return payment;
+}
+
+export function validatePendingRazorpayCodPayment(
+  value: unknown,
+  order: RazorpayMagicOrderDetails,
+): RazorpayPaymentDetails {
+  if (!value || typeof value !== 'object') {
+    throw new RazorpayReconciliationError('Invalid Razorpay COD payment');
+  }
+  const payment = value as RazorpayPaymentDetails;
+  const orderAmount = integer(order.amount, 'order amount');
+  const codFee = integer(order.cod_fee ?? 0, 'COD fee');
+  if (
+    !/^pay_[A-Za-z0-9]+$/.test(payment.id) ||
+    payment.order_id !== order.id ||
+    payment.currency !== 'INR' ||
+    payment.status !== 'pending' ||
+    payment.captured !== false ||
+    payment.method !== 'cod' ||
+    integer(payment.amount, 'COD payment amount') !== orderAmount + codFee ||
+    integer(order.amount_paid, 'paid amount') !== 0 ||
+    integer(order.amount_due, 'amount due') !== orderAmount ||
+    order.status !== 'placed'
+  ) {
+    throw new RazorpayReconciliationError('Razorpay COD payment is invalid');
   }
   return payment;
 }
@@ -250,6 +287,9 @@ export function buildShopifyOrderInput({
   const billingAddress = mailingAddress(customer?.billing_address);
   const email = stringValue(customer?.email, 254);
   const phone = stringValue(customer?.contact, 30);
+  const paidAmount = integer(order.amount_paid, 'paid amount');
+  const dueAmount = integer(order.amount_due, 'amount due');
+  const isPartialCod = payment !== null && paidAmount > 0 && dueAmount > 0;
   const money = (paise: number) => ({
     shopMoney: {amount: paiseToRupees(paise), currencyCode: 'INR'},
   });
@@ -280,11 +320,24 @@ export function buildShopifyOrderInput({
     currency: 'INR',
     presentmentCurrency: 'INR',
     sourceIdentifier: order.id,
-    tags: ['razorpay', 'magic-checkout', payment ? 'prepaid' : 'cod'],
+    tags: [
+      'razorpay',
+      'magic-checkout',
+      isPartialCod ? 'partial-cod' : payment ? 'prepaid' : 'cod',
+    ],
     note: `Razorpay Magic Checkout order ${order.id}`,
     customAttributes: [
       {key: 'razorpay_order_id', value: order.id},
       ...(payment ? [{key: 'razorpay_payment_id', value: payment.id}] : []),
+      ...(isPartialCod
+        ? [
+            {key: 'razorpay_partial_cod_paid', value: paiseToRupees(paidAmount)},
+            {
+              key: 'razorpay_partial_cod_due',
+              value: paiseToRupees(dueAmount + codFee),
+            },
+          ]
+        : []),
     ],
     taxesIncluded: order.tax_details?.taxes_included === true,
     test,
@@ -292,7 +345,7 @@ export function buildShopifyOrderInput({
       ? {
           transactions: [
             {
-              amountSet: money(order.amount),
+              amountSet: money(payment.amount),
               authorizationCode: payment.id,
               gateway: 'Razorpay',
               kind: 'SALE',
@@ -307,6 +360,7 @@ export function buildShopifyOrderInput({
           ],
         }
       : {financialStatus: 'PENDING'}),
+    ...(isPartialCod ? {financialStatus: 'PARTIALLY_PAID'} : {}),
   };
 }
 
@@ -563,9 +617,7 @@ async function adminGraphql<T>({
     );
     if (throttled && !retriedThrottle) {
       retriedThrottle = true;
-      await new Promise((resolve) =>
-        setTimeout(resolve, shopifyThrottleDelay(result),
-      ));
+      await new Promise((resolve) => setTimeout(resolve, shopifyThrottleDelay(result)));
       continue;
     }
     if (throttled) {
@@ -1015,6 +1067,30 @@ async function fetchCapturedPayment(
   return validateCapturedRazorpayPayment(captured, order);
 }
 
+async function fetchPendingCodPayment(
+  razorpay: RazorpayOxygen,
+  order: RazorpayMagicOrderDetails,
+  paymentId?: string,
+) {
+  if (paymentId) {
+    return validatePendingRazorpayCodPayment(
+      await razorpay.payments.fetch(paymentId),
+      order,
+    );
+  }
+  const payments = await razorpay.orders.fetchPayments(order.id);
+  const pendingCod = (payments.items as unknown[]).find((value) => {
+    if (!value || typeof value !== 'object') return false;
+    const payment = value as Partial<RazorpayPaymentDetails>;
+    return (
+      payment.status === 'pending' &&
+      payment.method === 'cod' &&
+      payment.order_id === order.id
+    );
+  });
+  return validatePendingRazorpayCodPayment(pendingCod, order);
+}
+
 /**
  * Read-only validation used by webhook shadow mode. It deliberately performs
  * Razorpay API reads only: no Shopify authentication, query, or mutation.
@@ -1038,6 +1114,7 @@ export async function inspectRazorpayPrepaidOrder({
   const razorpay = new RazorpayOxygen({
     key_id: credentials.keyId,
     key_secret: credentials.keySecret,
+    fetcher,
   });
   const {order} = validateRazorpayOrderForShopify(
     await razorpay.orders.fetch(orderId),
@@ -1074,19 +1151,21 @@ async function reconcileRazorpayOrderOnce({
   const razorpay = new RazorpayOxygen({
     key_id: credentials.keyId,
     key_secret: credentials.keySecret,
+    fetcher,
   });
   const {order, lines} = validateRazorpayOrderForShopify(
     await razorpay.orders.fetch(orderId),
     orderId,
   );
   let payment: RazorpayPaymentDetails | null;
-  if (order.status === 'paid') {
+  if (order.status === 'paid' || order.status === 'attempted') {
     payment = await fetchCapturedPayment(razorpay, order, paymentId);
   } else if (
     order.status === 'placed' &&
     integer(order.amount_paid, 'paid amount') === 0 &&
     integer(order.amount_due, 'amount due') === order.amount
   ) {
+    await fetchPendingCodPayment(razorpay, order, paymentId);
     payment = null;
   } else {
     throw new RazorpayReconciliationError('Razorpay order is not payable');
@@ -1107,16 +1186,34 @@ async function reconcileRazorpayOrderOnce({
   ) {
     throw new RazorpayReconciliationError('Shopify draft order anchor mismatch');
   }
-  const shopifyOrder =
-    payment && razorpayDraftOrderAnchorEnabled(env) && anchoredDraftOrderId
-      ? await completeRazorpayDraftOrder({
-          env,
-          draftOrderId: anchoredDraftOrderId,
-          order,
-          payment,
-          fetcher,
-        })
-      : await createShopifyOrder(env, order, lines, payment, fetcher);
+  const completesDraft = Boolean(
+    payment &&
+    integer(order.amount_due, 'amount due') === 0 &&
+    razorpayDraftOrderAnchorEnabled(env) &&
+    anchoredDraftOrderId,
+  );
+  const shopifyOrder = completesDraft
+    ? await completeRazorpayDraftOrder({
+        env,
+        draftOrderId: anchoredDraftOrderId!,
+        order,
+        payment: payment!,
+        fetcher,
+      })
+    : await createShopifyOrder(env, order, lines, payment, fetcher);
+  if (!completesDraft && anchoredDraftOrderId && razorpayDraftOrderAnchorEnabled(env)) {
+    try {
+      await deleteRazorpayDraftOrderAnchor({
+        env,
+        draftOrderId: anchoredDraftOrderId,
+        fetcher,
+      });
+    } catch {
+      // The Shopify order is already durable. A stale draft must not turn a
+      // successful checkout into an error or cause an order retry.
+      console.error('Unable to remove finalized Razorpay draft order anchor');
+    }
+  }
   return {shopifyOrder, razorpayOrder: order, payment};
 }
 
