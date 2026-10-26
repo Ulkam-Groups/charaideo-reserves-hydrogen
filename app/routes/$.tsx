@@ -26,14 +26,14 @@ export default function CatchAllPage() {
         Continue exploring our Assam teas and stories.
       </p>
       <div className="not-found-actions">
-        <Link className="button primary" to="/reserve-list">
+        <Link className="button primary" to="/reserve-list" prefetch="intent">
           Explore the Tea Shop
         </Link>
-        <Link className="button secondary" to="/">
+        <Link className="button secondary" to="/" prefetch="intent">
           Return home
         </Link>
       </div>
-      <Link className="not-found-academy" to="/tea-academy">
+      <Link className="not-found-academy" to="/tea-academy" prefetch="intent">
         Visit the Tea Academy <span aria-hidden="true">→</span>
       </Link>
     </main>
