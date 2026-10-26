@@ -20,6 +20,7 @@ import {
   type RecentProduct,
 } from '~/lib/recent-products';
 import {publishCart} from '~/lib/cart-sync';
+import {useSyncedCart} from '~/hooks/useSyncedCart';
 import {
   cartDiscountProgressItems,
   discountProgressAmount,
@@ -81,10 +82,10 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
  * It is used by both the /cart route and the cart aside dialog.
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
-  const [cart, setCart] = useState(originalCart);
+  const cart = useSyncedCart(originalCart);
   const [refreshingCart, setRefreshingCart] = useState(false);
   const mutationWasPending = useRef(false);
-  const pendingCartFetcherKeys = useRef<string[]>([]);
+  const reconciliationController = useRef<AbortController | null>(null);
   const fetchers = useFetchers();
   const cartMutationPending = fetchers.some(
     (fetcher) =>
@@ -97,44 +98,42 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   useEffect(() => {
     if (cartMutationPending) {
       mutationWasPending.current = true;
-      pendingCartFetcherKeys.current = fetchers
-        .filter(
-          (fetcher) =>
-            fetcher.state !== 'idle' &&
-            fetcher.formAction &&
-            new URL(fetcher.formAction, 'https://storefront.invalid').pathname ===
-              '/cart',
-        )
-        .map((fetcher) => fetcher.key);
+      reconciliationController.current?.abort();
+      reconciliationController.current = null;
       startTransition(() => setRefreshingCart(true));
       return;
     }
     if (!mutationWasPending.current) return;
     mutationWasPending.current = false;
+    const controller = new AbortController();
+    reconciliationController.current = controller;
 
-    const completedCart = [...fetchers]
-      .reverse()
-      .filter((fetcher) => pendingCartFetcherKeys.current.includes(fetcher.key))
-      .map(
-        (fetcher) =>
-          (fetcher.data as {cart?: CartApiQueryFragment | null} | undefined)
-            ?.cart,
-      )
-      .find((candidate): candidate is CartApiQueryFragment => Boolean(candidate));
-    pendingCartFetcherKeys.current = [];
+    void fetch('/api/cart-state', {
+      cache: 'no-store',
+      credentials: 'same-origin',
+      headers: {Accept: 'application/json'},
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Unable to refresh cart');
+        return response.json() as Promise<{cart?: CartApiQueryFragment | null}>;
+      })
+      .then(({cart: confirmedCart}) => {
+        if (confirmedCart) publishCart(confirmedCart);
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('Cart refresh failed');
+        }
+      })
+      .finally(() => {
+        if (reconciliationController.current !== controller) return;
+        reconciliationController.current = null;
+        startTransition(() => setRefreshingCart(false));
+      });
 
-    startTransition(() => {
-      if (completedCart) {
-        setCart(completedCart);
-        publishCart(completedCart);
-      }
-      setRefreshingCart(false);
-    });
-  }, [cartMutationPending, fetchers]);
-
-  useEffect(() => {
-    setCart(originalCart);
-  }, [originalCart]);
+    return () => controller.abort();
+  }, [cartMutationPending]);
 
   const cartBusy = cartMutationPending || refreshingCart;
 

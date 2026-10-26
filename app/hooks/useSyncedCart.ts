@@ -3,6 +3,7 @@ import type {CartApiQueryFragment} from 'storefrontapi.generated';
 import {
   getPublishedCart,
   getServerCart,
+  selectAuthoritativeCart,
   subscribeToCart,
 } from '~/lib/cart-sync';
 
@@ -17,16 +18,16 @@ export function useSyncedCart(originalCart: CartApiQueryFragment | null) {
   // Shopify can return identical `updatedAt` values for rapid mutations, so
   // timestamp comparison alone can allow the older root cart to win.
   const synchronizedCart = publishedCart
-    ? newerCart(confirmedCart, publishedCart)
+    ? selectAuthoritativeCart(confirmedCart, publishedCart)
     : confirmedCart;
 
   useEffect(() => {
-    setConfirmedCart((current) => newerCart(current, originalCart));
+    setConfirmedCart((current) => selectAuthoritativeCart(current, originalCart));
   }, [originalCart]);
 
   useEffect(() => {
     if (publishedCart) {
-      setConfirmedCart((current) => newerCart(current, publishedCart));
+      setConfirmedCart((current) => selectAuthoritativeCart(current, publishedCart));
     }
   }, [
     publishedCart?.id,
@@ -35,15 +36,4 @@ export function useSyncedCart(originalCart: CartApiQueryFragment | null) {
   ]);
 
   return synchronizedCart;
-}
-
-function newerCart(
-  current: CartApiQueryFragment | null,
-  candidate: CartApiQueryFragment | null,
-) {
-  if (!candidate) return current;
-  if (!current) return candidate;
-  return Date.parse(candidate.updatedAt) >= Date.parse(current.updatedAt)
-    ? candidate
-    : current;
 }

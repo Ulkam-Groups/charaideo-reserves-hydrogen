@@ -23,3 +23,14 @@ export function getPublishedCart() {
 export function getServerCart() {
   return null;
 }
+
+export function selectAuthoritativeCart(
+  current: CartApiQueryFragment | null,
+  candidate: CartApiQueryFragment | null,
+) {
+  if (!candidate) return current;
+  if (!current) return candidate;
+  return Date.parse(candidate.updatedAt) >= Date.parse(current.updatedAt)
+    ? candidate
+    : current;
+}
