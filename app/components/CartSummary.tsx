@@ -366,7 +366,6 @@ function CartDiscounts({
             name="discountCode"
             placeholder="Discount code"
           />
-          &nbsp;
           <button type="submit" aria-label="Apply discount code">
             Apply
           </button>

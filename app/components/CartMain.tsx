@@ -19,7 +19,11 @@ import {
   readRecentProducts,
   type RecentProduct,
 } from '~/lib/recent-products';
-import {publishCart} from '~/lib/cart-sync';
+import {
+  invalidateCartReconciliation,
+  publishCart,
+  reconcileCartState,
+} from '~/lib/cart-sync';
 import {useSyncedCart} from '~/hooks/useSyncedCart';
 import {
   cartDiscountProgressItems,
@@ -100,6 +104,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
       mutationWasPending.current = true;
       reconciliationController.current?.abort();
       reconciliationController.current = null;
+      invalidateCartReconciliation();
       startTransition(() => setRefreshingCart(true));
       return;
     }
@@ -108,23 +113,12 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
     const controller = new AbortController();
     reconciliationController.current = controller;
 
-    void fetch('/api/cart-state', {
-      cache: 'no-store',
-      credentials: 'same-origin',
-      headers: {Accept: 'application/json'},
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Unable to refresh cart');
-        return response.json() as Promise<{cart?: CartApiQueryFragment | null}>;
-      })
-      .then(({cart: confirmedCart}) => {
-        if (confirmedCart) publishCart(confirmedCart);
+    void reconcileCartState()
+      .then((confirmedCart) => {
+        if (!controller.signal.aborted && confirmedCart) publishCart(confirmedCart);
       })
       .catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === 'AbortError')) {
-          console.error('Cart refresh failed');
-        }
+        if (!controller.signal.aborted) console.error('Cart refresh failed');
       })
       .finally(() => {
         if (reconciliationController.current !== controller) return;
@@ -452,13 +446,17 @@ function CartRecommendations({
                   >
                     {product.title}
                   </Link>
-                  {variant && variant.title !== 'Default Title' && (
-                    <small>{variant.title}</small>
-                  )}
-                  {eligibleReward && (
-                    <span className="cart-discount-eligibility is-eligible is-compact">
-                      {eligibleReward} eligible
-                    </span>
+                  {((variant && variant.title !== 'Default Title') || eligibleReward) && (
+                    <div className="cart-recommendation-meta">
+                      {variant && variant.title !== 'Default Title' && (
+                        <small>{variant.title}</small>
+                      )}
+                      {eligibleReward && (
+                        <span className="cart-discount-eligibility is-eligible is-compact">
+                          {eligibleReward} eligible
+                        </span>
+                      )}
+                    </div>
                   )}
                   {variant ? (
                     <Money data={variant.price} />
