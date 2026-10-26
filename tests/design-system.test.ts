@@ -205,10 +205,7 @@ test('P3 provenance improves hierarchy without changing Shopify content', async 
   ]);
 
   assert.match(css, /P3 provenance/);
-  assert.match(
-    css,
-    /\.tea-record-section \.tea-record-highlights dt[\s\S]*font-size: 11px/,
-  );
+  assert.match(css, /\.tea-record-section \.tea-record-grid dt[\s\S]*font-size: 11px/);
   assert.match(component, /\['Origin', product\.origin\?\.value\]/);
   assert.match(component, /\['Estate', product\.estate\?\.value\]/);
   assert.match(component, /\['Harvest', harvest\]/);

@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   chapterState,
   partitionReserveCollections,
+  reserveProductMetadata,
   reserveVariantLabel,
   type ReserveCollection,
 } from '../app/lib/reserve-list.ts';
@@ -63,5 +64,16 @@ test('variant labels prefer customer-facing option values', () => {
       selectedOptions: [{name: 'Title', value: 'Default Title'}],
     }),
     'Standard',
+  );
+});
+
+test('product cards consistently show estate, flush, and grade metadata', () => {
+  assert.equal(
+    reserveProductMetadata({
+      estate: {value: 'Chota Tingrai Tea Estate'},
+      flush: {value: 'Second flush'},
+      grade: {value: 'Specialty'},
+    }),
+    'Chota Tingrai Tea Estate · Second flush · Specialty',
   );
 });

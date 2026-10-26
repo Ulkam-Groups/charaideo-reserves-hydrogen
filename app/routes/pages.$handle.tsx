@@ -3,26 +3,41 @@ import {Link, useFetcher, useLoaderData} from 'react-router';
 import type {Route} from './+types/pages.$handle';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
-import aboutHeroImage from '../assets/about-charaideo-reserves-hero.png';
+import aboutHeroImage from '../assets/about-assam-tea-garden-hero.jpeg';
 import aboutStoryStylesheet from '~/styles/about-story-page.css?url';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {JourneyMap, NewsletterSignup} from '~/components/AboutStoryExtras';
+import {
+  brandedMetaDescription,
+  breadcrumbJsonLd,
+  canonicalUrl,
+} from '~/lib/seo';
 
 export const links: Route.LinksFunction = () => [
   {rel: 'stylesheet', href: aboutStoryStylesheet},
 ];
 
-export const meta: Route.MetaFunction = ({data}) => {
-  const description =
+export const meta: Route.MetaFunction = ({data, params}) => {
+  const description = brandedMetaDescription(
     data?.isStaticPage && 'excerpt' in data.page
       ? (data.page.seo?.description ?? data.page.excerpt)
-      : (data?.page.seo?.description ?? '');
+      : data?.page.seo?.description,
+    `Learn more about ${data?.page.title ?? 'Charaideo Reserves'}.`,
+  );
+  const handle = params.handle ?? '';
 
   return [
     {title: `${data?.page.title ?? 'Page'} | Charaideo Reserves™`},
     {
       name: 'description',
       content: description,
+    },
+    {rel: 'canonical', href: canonicalUrl(`/pages/${handle}`)},
+    {
+      'script:ld+json': breadcrumbJsonLd([
+        {name: 'Home', path: '/'},
+        {name: data?.page.title ?? 'Page', path: `/pages/${handle}`},
+      ]),
     },
   ];
 };
@@ -639,29 +654,55 @@ function ContactChannelIcon({platform}: {platform: string}) {
 }
 
 function AboutStoryPage() {
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let frame = 0;
+    const updateHeroProgress = () => {
+      frame = 0;
+      const rect = hero.getBoundingClientRect();
+      const progress = Math.min(1, Math.max(0, -rect.top / Math.max(rect.height * 0.72, 1)));
+      hero.style.setProperty('--hero-scroll', progress.toFixed(3));
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateHeroProgress);
+    };
+
+    updateHeroProgress();
+    window.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   return (
     <main className="content-page content-page-about-us about-page">
-      <section className="about-page-hero" aria-labelledby="about-page-title">
-        <div className="about-page-hero-copy">
-          <p className="about-page-kicker">Our story</p>
-          <h1 id="about-page-title">
-            Every Tea Has a Place.
-            <em>Every Place Has a Story.</em>
-          </h1>
-          <p className="about-page-hero-intro">
-            Charaideo Reserves began with my personal connection to Assam, a lifelong familiarity with tea, and a desire to share its many distinctive expressions with the world.
-          </p>
-        </div>
-
-        <figure className="about-page-hero-media">
+      <section ref={heroRef} className="about-page-hero" aria-labelledby="about-page-title">
+        <figure className="about-page-hero-media" aria-hidden="true">
           <img
             src={aboutHeroImage}
-            width="2048"
-            height="2048"
+            width="1600"
+            height="600"
             loading="eager"
-            alt="Charaideo Reserves emblem embossed on textured paper with Assamese-inspired botanical detailing"
+            alt=""
           />
         </figure>
+
+        <div className="about-page-hero-copy">
+          <h1 id="about-page-title">
+            <span>Every tea has a place.</span>
+            <em>Every place holds a story.</em>
+          </h1>
+          <p className="about-page-hero-intro">
+            Born from a lifelong connection to Assam, Charaideo Reserves brings the distinctive character of its gardens, people and craft to every cup.
+          </p>
+        </div>
       </section>
 
       <section className="about-page-story" aria-labelledby="story-title">
@@ -756,38 +797,6 @@ I created CHARAIDEO RESERVES to bring together distinctive teas that deserve to 
           </div>
         </div>
 
-        <div className="about-page-generations" data-generations>
-          <header>
-            <p className="about-page-kicker">Three generations of tea</p>
-            <h3>A legacy handed down, not started.</h3>
-          </header>
-          <ol>
-            <li>
-              <span className="about-page-generation-mark">I</span>
-              <h4>The garden</h4>
-              <p>
-                Our family&apos;s tea story begins in Rupai with cultivation: hand-plucking
-                at dawn and respecting the land and its people.
-              </p>
-            </li>
-            <li>
-              <span className="about-page-generation-mark">II</span>
-              <h4>The factory floor</h4>
-              <p>
-                Tea became a way of life. Days spent in the gardens and tea factories,
-                watching leaf become cup.
-              </p>
-            </li>
-            <li>
-              <span className="about-page-generation-mark">III</span>
-              <h4>The homecoming</h4>
-              <p>
-                A corporate career, then a return to Rupai, and Charaideo Reserves: single
-                gardens, traceable and named.
-              </p>
-            </li>
-          </ol>
-        </div>
       </section>
 
       <section className="about-page-purpose" aria-labelledby="purpose-title">
@@ -798,39 +807,16 @@ I created CHARAIDEO RESERVES to bring together distinctive teas that deserve to 
         <div className="about-page-purpose-grid">
           <article>
             <span>Mission</span>
-            <h3>To rescue real Assam tea from the commodity market.</h3>
+            <h3>A tea reserve of Assam’s finest teas, curated directly from the estates.</h3>
             <p>
-              We started Charaideo because we saw the paradox: Assam grows the
-              world&apos;s finest Orthodox tea, yet most Indians have never tasted it. The
-              best leaves are exported, while what remains for the domestic market is
-              dust, blends without origin, and CTC sold as &quot;Assam tea.&quot;
-            </p>
-            <p>
-              Our mission is to reverse that. To bring single-garden, whole-leaf,
-              traceable teas back to Indian tables - teas where you know the garden and
-              estate, the pluck date, and the people behind it. Directly sourced,
-              small-batch processed, and sold without disguising it in anonymous blends.
-            </p>
-            <p>
-              We are not selling just &quot;chai&quot;. We are selling provenance, fair
-              value to growers, and a ritual that remembers where it came from.
+              To curate and bring together a considered collection of Assam’s finest teas, sourced directly from the estates that produce them. We celebrate each tea’s individuality, the craftsmanship behind its making, and the people whose expertise brings it to life.
             </p>
           </article>
           <article>
             <span>Vision</span>
-            <h3>A tea vault that holds culture, not just leaves.</h3>
+            <h3>To establish Assam as a name synonymous with excellence, diversity and discovery in the world of tea.</h3>
             <p>
-              Our vision is to build India&apos;s first heritage tea vault - where tea is
-              treated like wine, with terroir, vintage and story. A vault named after
-              Charaideo, where Ahom kings were laid to rest with reverence, because we
-              believe Assam&apos;s tea heritage deserves the same reverence.
-            </p>
-            <p>
-              We want to make consumers ask: Which garden is this from? Not just &quot;is
-              it strong?&quot; To make North East heritage a daily ritual again - not an
-              exotic footnote. And to ensure that the future of Assam tea is not decided
-              in auction houses and export containers alone, but at Indian tables that
-              finally get to taste what was always theirs.
+              To establish Assam as a name synonymous with excellence, diversity and discovery in the world of tea. We envision CHARAIDEO RESERVES as a tea reserve that brings Assam’s remarkable teas to a wider audience, giving greater recognition to the estates behind them and inspiring a lasting culture of curiosity and appreciation for Assam’s tea heritage.
             </p>
           </article>
         </div>
@@ -899,7 +885,7 @@ I created CHARAIDEO RESERVES to bring together distinctive teas that deserve to 
       <section className="about-page-journey" aria-labelledby="journey-title">
         <header>
           <p className="about-page-kicker">Garden to cup</p>
-          <h2 id="journey-title">Follow one lot from Rupai to your table.</h2>
+          <h2 id="journey-title">From the garden to your table</h2>
         </header>
         <JourneyMap />
       </section>

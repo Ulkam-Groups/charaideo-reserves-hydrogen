@@ -18,6 +18,7 @@ import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {AsyncProductReviews} from '~/components/AsyncProductReviews';
 import {ProductItem} from '~/components/ProductItem';
 import {ProductEditorialSections} from '~/components/ProductEditorialSections';
+import {ProductTeaJourney} from '~/components/ProductTeaJourney';
 import {
   ProductSectionNav,
   TrustIcon,
@@ -31,18 +32,69 @@ import {
 } from '~/lib/recent-products';
 import type {ProductFragment} from 'storefrontapi.generated';
 import {settleDeferred} from '~/lib/deferred.server';
+import {
+  brandedMetaDescription,
+  breadcrumbJsonLd,
+  canonicalUrl,
+} from '~/lib/seo';
 
 // React Router's default deferred-data stream deadline is 4.95 seconds.
 // Optional Shopify recommendations must settle comfortably before that deadline.
 const PDP_DEFERRED_TIMEOUT_MS = 3_500;
 
 export const meta: Route.MetaFunction = ({data}) => {
+  const product = data?.product;
+  const handle = product?.handle;
+  const productUrl = canonicalUrl(`/products/${handle ?? ''}`);
+  const variant = product?.selectedOrFirstAvailableVariant;
+  const description = brandedMetaDescription(
+    product?.seo?.description || product?.description,
+    'Discover a traceable Assam tea selected by Charaideo Reserves.',
+  );
+
   return [
-    {title: ` ${data?.product.title ?? 'Tea'} | Charaideo Reserves™`},
+    {title: `${product?.seo?.title || product?.title || 'Tea'} | Charaideo Reserves™`},
+    {name: 'description', content: description},
     {
       rel: 'canonical',
-      href: `/products/${data?.product.handle}`,
+      href: productUrl,
     },
+    ...(product && variant
+      ? [
+          {
+            'script:ld+json': [
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Product',
+                '@id': `${productUrl}#product`,
+                name: product.title,
+                description,
+                sku: variant.sku || undefined,
+                image: product.images.nodes.map((image: {url: string}) => image.url),
+                brand: {
+                  '@type': 'Brand',
+                  name: 'Charaideo Reserves',
+                },
+                offers: {
+                  '@type': 'Offer',
+                  url: productUrl,
+                  priceCurrency: variant.price.currencyCode,
+                  price: variant.price.amount,
+                  availability: variant.availableForSale
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/OutOfStock',
+                  itemCondition: 'https://schema.org/NewCondition',
+                },
+              },
+              breadcrumbJsonLd([
+                {name: 'Home', path: '/'},
+                {name: 'The Reserve List', path: '/reserve-list'},
+                {name: product.title, path: `/products/${product.handle}`},
+              ]),
+            ],
+          },
+        ]
+      : []),
   ];
 };
 
@@ -464,7 +516,11 @@ export default function Product() {
 
       <ProductSectionNav />
 
-      <ProductEditorialSections product={product} selectedVariant={selectedVariant} />
+      <ProductEditorialSections
+        product={product}
+        selectedVariant={selectedVariant}
+        afterTasteProfile={<ProductTeaJourney product={product} />}
+      />
 
       <section
         className="product-reviews"
@@ -754,6 +810,7 @@ const PRODUCT_FRAGMENT = `#graphql
     isThisTeaNo: metafield(namespace: "custom", key: "is_this_tea_no") { value }
     whyChooseTea: metafield(namespace: "custom", key: "why_choose_tea") { value }
     whyChooseAttribution: metafield(namespace: "custom", key: "why_choose_attribution") { value }
+    teaJourney: metafield(namespace: "custom", key: "tea_journey") { value }
     reviewRating: metafield(namespace: "reviews", key: "rating") { value }
     reviewCount: metafield(namespace: "reviews", key: "rating_count") { value }
     descriptionHtml

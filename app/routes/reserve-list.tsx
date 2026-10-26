@@ -14,6 +14,7 @@ import {
   chapterState,
   isAvailableForSale,
   partitionReserveCollections,
+  reserveProductMetadata,
   reserveVariantLabel,
   type ReserveCollection,
 } from '~/lib/reserve-list';
@@ -22,6 +23,7 @@ import {useAside} from '~/components/Aside';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {WishlistButton} from '~/components/WishlistButton';
+import {breadcrumbJsonLd, canonicalUrl} from '~/lib/seo';
 
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
 
@@ -47,7 +49,15 @@ export const meta: Route.MetaFunction = () => [
   {title: 'The Reserve List | Charaideo Reserves™'},
   {
     name: 'description',
-    content: 'Explore the chapters and collections of Charaideo Reserves™.',
+    content:
+      'Explore authentic luxury Assam teas, including single-origin estate reserves, from Charaideo Reserves and the House of Tea Reserves of India.',
+  },
+  {rel: 'canonical', href: canonicalUrl('/reserve-list')},
+  {
+    'script:ld+json': breadcrumbJsonLd([
+      {name: 'Home', path: '/'},
+      {name: 'The Reserve List', path: '/reserve-list'},
+    ]),
   },
 ];
 
@@ -122,6 +132,9 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
           description
           vendor
           tags
+          estate: metafield(namespace: "custom", key: "estate") { value }
+          flush: metafield(namespace: "custom", key: "flush") { value }
+          grade: metafield(namespace: "custom", key: "grade") { value }
           availableForSale
           featuredImage { url altText width height }
           priceRange { minVariantPrice { amount currencyCode } }
@@ -344,6 +357,9 @@ export default function ReserveList() {
         product.title,
         product.vendor,
         product.description,
+        product.estate?.value,
+        product.flush?.value,
+        product.grade?.value,
         ...(product.tags ?? []),
       ]
         .join(' ')
@@ -1033,11 +1049,7 @@ export function ReserveTeaCard({
     ?.find((tag) => tag.toLowerCase().startsWith('origin-label:'))
     ?.slice('origin-label:'.length)
     .trim();
-  const tastingNotes =
-    product.tags
-      ?.filter((tag) => !tag.toLowerCase().startsWith('origin-label:'))
-      .slice(0, 3)
-      .join(' · ') ?? '';
+  const tastingNotes = reserveProductMetadata(product);
 
   if (lockWhenUnavailable && !isAvailableForSale(product)) {
     return (

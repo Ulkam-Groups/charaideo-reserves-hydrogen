@@ -1,11 +1,53 @@
 import {Link, useLoaderData} from 'react-router';
 import type {Route} from './+types/tea-academy.journal.$articleHandle';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
+import {
+  brandedMetaDescription,
+  breadcrumbJsonLd,
+  canonicalUrl,
+} from '~/lib/seo';
 
-export const meta: Route.MetaFunction = ({data}) => [
-  {title: `${data?.article.title ?? 'Tea Journal'} | Charaideo Reserves™`},
-  {name: 'description', content: data?.article.seo?.description || data?.article.excerpt || ''},
-];
+export const meta: Route.MetaFunction = ({data, params}) => {
+  const article = data?.article;
+  const handle = params.articleHandle ?? '';
+  const articleUrl = canonicalUrl(`/tea-academy/journal/${handle}`);
+  const description = brandedMetaDescription(
+    article?.seo?.description || article?.excerpt,
+    'Read the latest story from the Charaideo Reserves Tea Journal.',
+  );
+
+  return [
+    {title: `${article?.seo?.title || article?.title || 'Tea Journal'} | Charaideo Reserves™`},
+    {name: 'description', content: description},
+    {rel: 'canonical', href: articleUrl},
+    ...(article
+      ? [{
+          'script:ld+json': [
+            {
+              '@context': 'https://schema.org',
+              '@type': 'Article',
+              '@id': `${articleUrl}#article`,
+              headline: article.title,
+              description,
+              datePublished: article.publishedAt,
+              mainEntityOfPage: articleUrl,
+              image: article.image?.url,
+              author: article.authorV2?.name
+                ? {'@type': 'Person', name: article.authorV2.name}
+                : {'@type': 'Organization', name: 'Charaideo Reserves'},
+              publisher: {'@id': 'https://www.teareserves.com/#organization'},
+            },
+            breadcrumbJsonLd([
+              {name: 'Home', path: '/'},
+              {name: 'Tea Academy', path: '/tea-academy'},
+              {name: 'Tea Journal', path: '/tea-academy/journal'},
+              {name: article.title, path: `/tea-academy/journal/${handle}`},
+            ]),
+          ],
+        }]
+      : []),
+  ];
+};
 
 export async function loader({params, context}: Route.LoaderArgs) {
   const {blog} = await context.storefront.query(TEA_JOURNAL_ARTICLE_QUERY, {

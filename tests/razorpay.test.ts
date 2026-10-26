@@ -508,6 +508,25 @@ test('Razorpay final order and captured payment are validated before Shopify', (
   );
 });
 
+test('Razorpay COD fee is validated separately from the Magic Checkout order amount', () => {
+  const codOrder: RazorpayMagicOrderDetails = {
+    ...magicOrder,
+    amount: 100800,
+    amount_paid: 0,
+    amount_due: 100800,
+    status: 'placed',
+    cod_fee: 7000,
+  };
+
+  assert.doesNotThrow(() => validateRazorpayOrderForShopify(codOrder, codOrder.id));
+  assert.throws(() =>
+    validateRazorpayOrderForShopify(
+      {...codOrder, amount: codOrder.amount + codOrder.cod_fee!},
+      codOrder.id,
+    ),
+  );
+});
+
 test('Shopify order input records payment, addresses, shipping and idempotency key', () => {
   const {lines} = validateRazorpayOrderForShopify(magicOrder, magicOrder.id);
   const input = buildShopifyOrderInput({
@@ -543,6 +562,36 @@ test('Shopify order input records payment, addresses, shipping and idempotency k
   });
   assert.equal('financialStatus' in cod && cod.financialStatus, 'PENDING');
   assert.equal('transactions' in cod, false);
+
+  const partialOrder: RazorpayMagicOrderDetails = {
+    ...magicOrder,
+    amount_paid: 10000,
+    amount_due: magicOrder.amount - 10000,
+    status: 'attempted',
+  };
+  const partialPayment: RazorpayPaymentDetails = {
+    ...capturedPayment,
+    amount: 10000,
+  };
+  assert.equal(
+    validateCapturedRazorpayPayment(partialPayment, partialOrder).id,
+    partialPayment.id,
+  );
+  const partialCod = buildShopifyOrderInput({
+    order: partialOrder,
+    lines,
+    payment: partialPayment,
+    test: false,
+  });
+  assert.equal(partialCod.financialStatus, 'PARTIALLY_PAID');
+  assert.deepEqual(partialCod.tags, ['razorpay', 'magic-checkout', 'partial-cod']);
+  if (!('transactions' in partialCod))
+    throw new Error('Expected partial COD transaction');
+  assert.equal(partialCod.transactions[0].amountSet.shopMoney.amount, '100.00');
+  assert.deepEqual(partialCod.customAttributes.slice(-2), [
+    {key: 'razorpay_partial_cod_paid', value: '100.00'},
+    {key: 'razorpay_partial_cod_due', value: '908.00'},
+  ]);
 });
 
 test('Razorpay signatures and webhook event targets are verified', async () => {

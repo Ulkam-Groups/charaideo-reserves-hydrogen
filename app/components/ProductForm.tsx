@@ -10,7 +10,14 @@ import type {ProductFragment} from 'storefrontapi.generated';
 import type {loader as rootLoader} from '~/root';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
-import {Suspense, useEffect, useId, useRef, useState} from 'react';
+import {
+  startTransition,
+  Suspense,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from 'react';
 import {createPortal} from 'react-dom';
 import {useCheckoutError} from '~/lib/checkout/checkout-errors';
 import {DeliveryEstimate} from './DeliveryEstimate';
@@ -57,7 +64,7 @@ export function ProductForm({
     : undefined;
 
   useEffect(() => {
-    setQuantity(1);
+    startTransition(() => setQuantity(1));
   }, [selectedVariant?.id]);
 
   useEffect(() => {
@@ -65,7 +72,9 @@ export function ProductForm({
     if (!actions || typeof IntersectionObserver === 'undefined') return;
 
     const observer = new IntersectionObserver(([entry]) => {
-      setShowMobileBar(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      startTransition(() => {
+        setShowMobileBar(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      });
     });
     observer.observe(actions);
     return () => observer.disconnect();

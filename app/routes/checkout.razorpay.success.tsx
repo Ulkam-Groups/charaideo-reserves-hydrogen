@@ -7,6 +7,11 @@ import {
 } from '~/lib/ads/meta/meta-pixel';
 import {PreferredSourceButton} from '~/components/PreferredSourceButton';
 
+export const meta = () => [
+  {title: 'Order confirmed | Charaideo Reserves™'},
+  {name: 'robots', content: 'noindex,nofollow'},
+];
+
 type CheckoutConfirmation = {
   shopifyOrderName: string;
   razorpayOrderId?: string;

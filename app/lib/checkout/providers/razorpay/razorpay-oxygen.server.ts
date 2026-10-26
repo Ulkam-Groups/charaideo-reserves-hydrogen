@@ -3,6 +3,7 @@ type Options = {
   key_secret: string;
   hostUrl?: string;
   timeoutMs?: number;
+  fetcher?: typeof globalThis.fetch;
 };
 
 type FetchBackedApi = {
@@ -43,7 +44,7 @@ export default class RazorpayOxygen {
     request.adapter = 'fetch';
     request.timeout = options.timeoutMs ?? 10_000;
     request.env = {
-      fetch: globalThis.fetch,
+      fetch: options.fetcher ?? globalThis.fetch,
       Request: null,
       Response: null,
     };
