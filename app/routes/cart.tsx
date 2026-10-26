@@ -7,7 +7,10 @@ import {safeLocalRedirect} from '~/lib/redirect';
 import {readProtectedForm} from '~/lib/protected-write.server';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Your cart | Charaideo Reserves™`}];
+  return [
+    {title: `Your cart | Charaideo Reserves™`},
+    {name: 'robots', content: 'noindex,follow'},
+  ];
 };
 
 export const headers: HeadersFunction = ({actionHeaders}) => actionHeaders;

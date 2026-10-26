@@ -5015,7 +5015,7 @@ body {
   max-width: none;
   margin: 13px 0 6px;
   color: #132a1f;
-  font-size: clamp(1.35rem, 1.45vw, 1.55rem);
+  font-size: clamp(1.75rem, 2vw, 2.1rem);
   font-weight: 500;
   line-height: 1.12;
   letter-spacing: -0.025em;
@@ -5466,7 +5466,7 @@ body {
     border-radius: 18px;
   }
   .product-purchase .product-main h1 {
-    font-size: clamp(1.3rem, 6vw, 1.5rem);
+    font-size: clamp(1.6rem, 7vw, 1.85rem);
   }
   .product-purchase .product-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));

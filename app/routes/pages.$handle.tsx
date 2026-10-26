@@ -7,22 +7,37 @@ import aboutHeroImage from '../assets/about-assam-tea-garden-hero.jpeg';
 import aboutStoryStylesheet from '~/styles/about-story-page.css?url';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
 import {JourneyMap, NewsletterSignup} from '~/components/AboutStoryExtras';
+import {
+  brandedMetaDescription,
+  breadcrumbJsonLd,
+  canonicalUrl,
+} from '~/lib/seo';
 
 export const links: Route.LinksFunction = () => [
   {rel: 'stylesheet', href: aboutStoryStylesheet},
 ];
 
-export const meta: Route.MetaFunction = ({data}) => {
-  const description =
+export const meta: Route.MetaFunction = ({data, params}) => {
+  const description = brandedMetaDescription(
     data?.isStaticPage && 'excerpt' in data.page
       ? (data.page.seo?.description ?? data.page.excerpt)
-      : (data?.page.seo?.description ?? '');
+      : data?.page.seo?.description,
+    `Learn more about ${data?.page.title ?? 'Charaideo Reserves'}.`,
+  );
+  const handle = params.handle ?? '';
 
   return [
     {title: `${data?.page.title ?? 'Page'} | Charaideo Reserves™`},
     {
       name: 'description',
       content: description,
+    },
+    {rel: 'canonical', href: canonicalUrl(`/pages/${handle}`)},
+    {
+      'script:ld+json': breadcrumbJsonLd([
+        {name: 'Home', path: '/'},
+        {name: data?.page.title ?? 'Page', path: `/pages/${handle}`},
+      ]),
     },
   ];
 };

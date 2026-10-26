@@ -7,6 +7,9 @@ export type ReserveProduct = {
   description?: string;
   vendor?: string;
   tags?: string[];
+  estate?: {value: string} | null;
+  flush?: {value: string} | null;
+  grade?: {value: string} | null;
   availableForSale: boolean;
   featuredImage?: {url: string; altText: string | null; width: number; height: number} | null;
   priceRange?: {minVariantPrice: ProductItemFragment['priceRange']['minVariantPrice']};
@@ -29,6 +32,16 @@ export type ReserveCollection = {
   description: string;
   products: ReserveProduct[];
 };
+
+export function reserveProductMetadata(product: {
+  estate?: {value: string} | null;
+  flush?: {value: string} | null;
+  grade?: {value: string} | null;
+}) {
+  return [product.estate?.value, product.flush?.value, product.grade?.value]
+    .filter(Boolean)
+    .join(' · ');
+}
 
 const ROMAN_VALUES: Record<string, number> = {I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000};
 

@@ -16,7 +16,10 @@ import type {
 import {measureStorefront} from '~/lib/monitoring.server';
 
 export const meta: Route.MetaFunction = () => {
-  return [{title: `Search | Charaideo Reserves™`}];
+  return [
+    {title: `Search | Charaideo Reserves™`},
+    {name: 'robots', content: 'noindex,follow'},
+  ];
 };
 
 export async function loader({request, context}: Route.LoaderArgs) {

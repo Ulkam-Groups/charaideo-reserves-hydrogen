@@ -2,7 +2,10 @@ import {Link} from 'react-router';
 import {WishlistButton} from '~/components/WishlistButton';
 import {useWishlist} from '~/components/WishlistProvider';
 
-export const meta = () => [{title: 'Saved teas | Charaideo Reserves'}];
+export const meta = () => [
+  {title: 'Saved teas | Charaideo Reserves'},
+  {name: 'robots', content: 'noindex,follow'},
+];
 
 export default function WishlistPage() {
   const {products, ready, authenticated} = useWishlist();
