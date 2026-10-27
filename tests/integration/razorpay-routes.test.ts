@@ -5,9 +5,25 @@ import test from 'node:test';
 import type {ActionFunctionArgs, LoaderFunctionArgs} from 'react-router';
 import {action as orderAction} from '../../app/routes/api.checkout.razorpay.order.ts';
 import {action as verifyAction} from '../../app/routes/api.checkout.razorpay.verify.ts';
+import {action as cartClearAfterCheckoutAction} from '../../app/routes/api.cart-clear-after-checkout.ts';
+import {clearCartAfterSuccessfulCheckout} from '../../app/lib/checkout/cart-clear.server.ts';
 import {loader as successLoader} from '../../app/routes/checkout.razorpay.success.tsx';
 
 const origin = 'https://store.example';
+
+test('successful checkout cart cleanup removes all cart lines', async () => {
+  const removed: string[][] = [];
+  const cart = {
+    get: async () => ({lines: {nodes: [{id: 'line-1'}, {id: 'line-2'}]}}),
+    removeLines: async (lineIds: string[]) => {
+      removed.push(lineIds);
+      return {errors: []};
+    },
+  };
+
+  assert.equal(await clearCartAfterSuccessfulCheckout(cart), true);
+  assert.deepEqual(removed, [['line-1', 'line-2']]);
+});
 
 test('Razorpay success uses only verified session references and performs no lookup', () => {
   const session = new Map<string, unknown>([
@@ -36,6 +52,7 @@ test('Razorpay success uses only verified session references and performs no loo
     shopifyOrderName: '#1018',
     razorpayOrderId: 'order_abc123',
     razorpayPaymentId: 'pay_abc123',
+    clearCart: false,
   });
   assert.equal(
     new Headers(result.init?.headers).get('Cache-Control'),
@@ -75,6 +92,40 @@ function formRequest(path: string, body: URLSearchParams) {
     body,
   });
 }
+
+test('verified cart cleanup action accepts its protected background form', async () => {
+  const session = new Map<string, unknown>([
+    ['razorpayCartClearPending', {razorpayOrderId: 'order_abc123'}],
+  ]);
+  const removed: string[][] = [];
+  const response = await cartClearAfterCheckoutAction({
+    request: formRequest(
+      '/api/cart-clear-after-checkout',
+      new URLSearchParams({intent: 'clear-cart'}),
+    ),
+    params: {},
+    context: {
+      session: {
+        get: (key: string) => session.get(key),
+        unset: (key: string) => session.delete(key),
+      },
+      cart: {
+        get: async () => ({lines: {nodes: [{id: 'line-1'}]}}),
+        removeLines: async (lineIds: string[]) => {
+          removed.push(lineIds);
+          return {errors: []};
+        },
+      },
+    },
+  } as unknown as ActionFunctionArgs);
+
+  assert.equal(
+    response instanceof Response ? response.status : response.init?.status,
+    200,
+  );
+  assert.deepEqual(removed, [['line-1']]);
+  assert.equal(session.has('razorpayCartClearPending'), false);
+});
 
 test('Razorpay order route rejects invalid products before external calls', async () => {
   const requestId = '11111111-2222-4333-8444-555555555555';

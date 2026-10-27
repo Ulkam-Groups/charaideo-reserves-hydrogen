@@ -196,6 +196,12 @@ export async function action({request, context}: ActionFunctionArgs) {
         value: razorpayOrder.amount / 100,
       },
     });
+    if (razorpayOrder.notes?.source === 'cart') {
+      context.session.set('razorpayCartClearPending', {
+        razorpayOrderId: orderId,
+        shopifyOrderId: shopifyOrder.id,
+      });
+    }
     checkoutCount(context.monitor, 'razorpay.verify.succeeded', requestId);
     return json({redirectTo: '/checkout/razorpay/success'});
   } catch (error) {
