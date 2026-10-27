@@ -145,8 +145,7 @@ test('background checkout cleanup publishes the cleared server cart', async (t) 
     totalQuantity: 0,
     lines: {nodes: []},
   };
-  globalThis.fetch = async () =>
-    Response.json({cart: clearedCart, unavailable: false});
+  globalThis.fetch = async () => Response.json({cart: clearedCart, unavailable: false});
 
   assert.deepEqual(await refreshPublishedCart(), clearedCart);
   assert.deepEqual(getPublishedCart(), clearedCart);
