@@ -259,6 +259,110 @@ for (const scenario of scenarios) {
   });
 }
 
+for (const scenarioIndex of [5, 8]) {
+  const scenario = scenarios[scenarioIndex];
+  test(`anchored ${scenario.name} persists customer details before final order cleanup`, async () => {
+    const order = razorpayOrder(scenario);
+    const razorpayPayment =
+      scenario.state === 'cod' ? pendingCodPayment(order) : capturedPayment(order);
+    const draftOrderId = 'gid://shopify/DraftOrder/7001';
+    order.notes.shopify_draft_order_id = draftOrderId;
+    let draftUpdated = false;
+    let draftDeleted = false;
+    const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input instanceof Request ? input.url : String(input);
+      if (url === `https://api.razorpay.com/v1/orders/${order.id}`) {
+        return Response.json(order);
+      }
+      if (url === `https://api.razorpay.com/v1/payments/${razorpayPayment.id}`) {
+        return Response.json(razorpayPayment);
+      }
+      if (url.endsWith('/admin/oauth/access_token')) {
+        return Response.json({
+          access_token: 'admin-token',
+          scope: 'write_orders,write_draft_orders',
+        });
+      }
+      if (url.includes('/admin/api/2026-07/graphql.json')) {
+        const request = JSON.parse(String(init?.body)) as {
+          query: string;
+          variables: Record<string, any>;
+        };
+        if (request.query.includes('mutation UpdateRazorpayDraftOrder')) {
+          draftUpdated = true;
+          assert.equal(request.variables.id, draftOrderId);
+          assert.equal(request.variables.input.shippingAddress.address1, 'Tea Road');
+          assert.equal(request.variables.input.billingAddress.address1, 'Tea Road');
+          return Response.json({
+            data: {
+              draftOrderUpdate: {
+                draftOrder: {
+                  id: draftOrderId,
+                  status: 'OPEN',
+                  totalPriceSet: {
+                    presentmentMoney: {
+                      amount: ((order.amount + (order.cod_fee ?? 0)) / 100).toFixed(2),
+                      currencyCode: 'INR',
+                    },
+                  },
+                  shippingAddress: {address1: 'Tea Road'},
+                  billingAddress: {address1: 'Tea Road'},
+                  order: null,
+                },
+                userErrors: [],
+              },
+            },
+          });
+        }
+        if (request.query.includes('query RazorpayExistingOrder')) {
+          return Response.json({data: {orders: {nodes: []}}});
+        }
+        if (request.query.includes('mutation CreateRazorpayOrder')) {
+          return Response.json({
+            data: {
+              orderCreate: {
+                order: {
+                  id: 'gid://shopify/Order/7001',
+                  name: '#7001',
+                  shippingAddress: {address1: 'Tea Road'},
+                  billingAddress: {address1: 'Tea Road'},
+                },
+                userErrors: [],
+              },
+            },
+          });
+        }
+        if (request.query.includes('mutation DeleteRazorpayDraftOrder')) {
+          draftDeleted = true;
+          return Response.json({
+            data: {draftOrderDelete: {deletedId: draftOrderId, userErrors: []}},
+          });
+        }
+      }
+      throw new Error(`Unexpected mocked API request: ${url}`);
+    }) as typeof fetch;
+
+    const result = await reconcileRazorpayOrder({
+      env: {
+        RAZORPAY_KEY_ID: 'rzp_test_public',
+        RAZORPAY_KEY_SECRET: 'razorpay-secret',
+        PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
+        SHOPIFY_ADMIN_CLIENT_ID: `anchored-${scenarioIndex}`,
+        SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+        RAZORPAY_DRAFT_ORDER_ANCHOR_ENABLED: 'true',
+      } as Env,
+      orderId: order.id,
+      paymentId: razorpayPayment.id,
+      draftOrderId,
+      fetcher,
+    });
+
+    assert.equal(result.shopifyOrder.created, true);
+    assert.equal(draftUpdated, true);
+    assert.equal(draftDeleted, true);
+  });
+}
+
 test('financial reconciliation fails closed for inconsistent Razorpay order totals', () => {
   const base = razorpayOrder(scenarios[5]);
   const invalidOrders: Array<[string, RazorpayMagicOrderDetails]> = [

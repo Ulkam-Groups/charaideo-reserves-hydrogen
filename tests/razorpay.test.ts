@@ -763,6 +763,69 @@ test('Shopify creation checks for an existing Razorpay order before mutation', a
   assert.equal(mutation.variables.order.sourceIdentifier, magicOrder.id);
 });
 
+test('Shopify order creation repairs a missing persisted shipping address without hiding the order', async () => {
+  const {lines} = validateRazorpayOrderForShopify(magicOrder, magicOrder.id);
+  const calls: Array<{url: string; init?: RequestInit}> = [];
+  const responses = [
+    Response.json({access_token: 'admin-token'}),
+    Response.json({data: {orders: {nodes: []}}}),
+    Response.json({access_token: 'admin-token'}),
+    Response.json({
+      data: {
+        orderCreate: {
+          order: {
+            id: 'gid://shopify/Order/1',
+            name: '#1001',
+            shippingAddress: null,
+            billingAddress: {address1: '1 Tea Road'},
+          },
+          userErrors: [],
+        },
+      },
+    }),
+    Response.json({access_token: 'admin-token'}),
+    Response.json({
+      data: {
+        orderUpdate: {
+          order: {
+            id: 'gid://shopify/Order/1',
+            name: '#1001',
+            shippingAddress: {address1: '1 Tea Road'},
+            billingAddress: {address1: '1 Tea Road'},
+          },
+          userErrors: [],
+        },
+      },
+    }),
+  ];
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({url: String(input), init});
+    return responses.shift()!;
+  }) as typeof fetch;
+
+  const result = await createShopifyOrder(
+    {
+      SHOPIFY_ADMIN_STORE_DOMAIN: 'store.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'repair-client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+      RAZORPAY_KEY_ID: 'rzp_test_public',
+      RAZORPAY_KEY_SECRET: 'razorpay-secret',
+    } as Env,
+    magicOrder,
+    lines,
+    capturedPayment,
+    fetcher,
+  );
+
+  assert.deepEqual(result, {id: 'gid://shopify/Order/1', name: '#1001', created: true});
+  const repair = JSON.parse(String(calls[5].init?.body)) as {
+    variables: {input: {shippingAddress: {address1: string}; email: string; phone: string}};
+  };
+  assert.equal(repair.variables.input.shippingAddress.address1, 'Tea Road');
+  assert.equal(repair.variables.input.email, 'buyer@example.com');
+  assert.equal(repair.variables.input.phone, '9876543210');
+});
+
 test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft', async () => {
   assert.equal(razorpayDraftOrderAnchorEnabled({} as Env), false);
   assert.equal(
