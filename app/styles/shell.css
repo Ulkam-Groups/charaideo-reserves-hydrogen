@@ -25,7 +25,7 @@
   z-index: calc(var(--layer-header) + 1);
   height: var(--notice-height);
   min-height: var(--notice-height);
-  background: var(--surface-inverse);
+  background: var(--surface-matcha-gradient);
 }
 
 .site-notice-board .chapter-announcement {
@@ -33,7 +33,7 @@
   height: var(--notice-height);
   gap: var(--space-2);
   padding-inline: var(--page-gutter);
-  background: var(--surface-inverse);
+  background: transparent;
   color: var(--text-inverse);
   font-family: var(--font-interface);
   font-size: 0.6475rem;
@@ -62,9 +62,10 @@
   margin: 0 0 calc(-1 * var(--header-height));
   border: 0;
   border-bottom: 1px solid #bdc9c0;
-  background: #ffffff;
+  background: rgb(255 255 255 / 82%);
   box-shadow: none;
-  backdrop-filter: none;
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
 }
 
 .site-header.header.header-solid:not(.header-scrolled) {
@@ -108,9 +109,10 @@
   transform: translateY(var(--space-3));
   border: 1px solid #b9c7bd;
   border-radius: 26px;
-  background: #ffffff;
+  background: rgb(255 255 255 / 78%);
   box-shadow: 0 4px 10px rgb(19 42 31 / 6%);
-  backdrop-filter: none;
+  -webkit-backdrop-filter: blur(14px) saturate(125%);
+  backdrop-filter: blur(14px) saturate(125%);
 }
 
 .site-header.header.header-solid.header-scrolled .header-inner {
@@ -178,11 +180,11 @@
   border: 0;
   border-radius: var(--radius-button);
   background: transparent;
-  color: #0c2419;
+  color: #061b12;
   box-shadow: none;
   font-family: var(--font-interface);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
   transition:
@@ -212,7 +214,7 @@
   background: var(--surface-subtle);
   color: #5f411f;
   font-size: var(--type-label);
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0.04em;
 }
 
@@ -676,13 +678,12 @@
 
 .site-footer.footer {
   border-top: 0;
-  background: var(--surface-inverse);
+  background: var(--surface-matcha-gradient);
   color: var(--text-inverse);
 }
 
 .site-footer .footer-accent {
-  height: 3px;
-  background: #b87936;
+  display: none;
 }
 
 .site-footer .footer-inner {

@@ -3350,7 +3350,7 @@ shopify-chat[open]::part(dialog) {
   font-size: 15px;
 }
 .content-page-contact .content-hero {
-  background: #132a1f !important;
+  background: var(--surface-matcha-gradient) !important;
 }
 .content-page-contact .content-hero h1 {
   color: #ffffff;
@@ -3810,7 +3810,7 @@ main.main--offset:has(> .contact-page) {
   gap: clamp(36px, 6vw, 84px);
   align-items: start;
   padding: clamp(86px, 7vw, 104px) var(--gutter) clamp(36px, 4vw, 52px);
-  background: #17392f;
+  background: var(--surface-matcha-gradient);
   color: #f4ebdd;
 }
 .contact-intro .eyebrow,
@@ -4283,7 +4283,7 @@ main.main--offset:has(> .contact-page) {
   min-height: 0;
   padding: clamp(44px, 5vw, 60px) var(--gutter) 118px;
   overflow: hidden;
-  background: #132a1f;
+  background: var(--surface-matcha-gradient);
   color: #f4ebdd;
 }
 .contact-location::after {
