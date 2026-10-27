@@ -28,7 +28,7 @@ import {
 } from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => [
-  {title: 'Luxury Assam Tea | Charaideo Reserves · Tea Reserves of India'},
+  {title: 'Charaideo Reserves™ · Tea Reserves of Assam, India'},
   {rel: 'canonical', href: canonicalUrl('/')},
   {
     name: 'description',

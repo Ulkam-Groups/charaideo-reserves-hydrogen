@@ -819,7 +819,9 @@ test('Shopify order creation repairs a missing persisted shipping address withou
 
   assert.deepEqual(result, {id: 'gid://shopify/Order/1', name: '#1001', created: true});
   const repair = JSON.parse(String(calls[5].init?.body)) as {
-    variables: {input: {shippingAddress: {address1: string}; email: string; phone: string}};
+    variables: {
+      input: {shippingAddress: {address1: string}; email: string; phone: string};
+    };
   };
   assert.equal(repair.variables.input.shippingAddress.address1, 'Tea Road');
   assert.equal(repair.variables.input.email, 'buyer@example.com');
