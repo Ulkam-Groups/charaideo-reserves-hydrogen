@@ -5,6 +5,7 @@ import {
   getPublishedCart,
   invalidateCartReconciliation,
   publishCart,
+  refreshPublishedCart,
   reconcileCartState,
   selectAuthoritativeCart,
   subscribeToCart,
@@ -129,6 +130,26 @@ test('cart reconciliation retries a transient unavailable read', async (t) => {
 
   assert.equal((await reconcileCartState())?.totalQuantity, 4);
   assert.equal(requests, 2);
+});
+
+test('background checkout cleanup publishes the cleared server cart', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    invalidateCartReconciliation();
+  });
+
+  const clearedCart = {
+    id: 'gid://shopify/Cart/cleared',
+    updatedAt: '2026-10-27T12:00:03.000Z',
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+  globalThis.fetch = async () =>
+    Response.json({cart: clearedCart, unavailable: false});
+
+  assert.deepEqual(await refreshPublishedCart(), clearedCart);
+  assert.deepEqual(getPublishedCart(), clearedCart);
 });
 
 test('stale loader carts cannot overwrite empty-boundary mutations', () => {

@@ -44,6 +44,13 @@ export function reconcileCartState() {
   return promise;
 }
 
+export async function refreshPublishedCart() {
+  invalidateCartReconciliation();
+  const cart = await reconcileCartState();
+  if (cart) publishCart(cart);
+  return cart;
+}
+
 async function readCartStateWithRetry() {
   for (const delay of [0, 120, 300]) {
     if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
