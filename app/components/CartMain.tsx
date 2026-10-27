@@ -140,6 +140,21 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const discountMilestones = rootData?.cartDiscountProgress.milestones ?? [];
+  const freeShippingMilestone =
+    rootData?.cartDiscountProgress.status === 'ready'
+      ? discountMilestones.find(
+          (milestone) =>
+            milestone.reward === 'Free shipping' &&
+            milestone.method === 'automatic',
+        )
+      : undefined;
+  const freeShippingMessage = freeShippingMilestone
+    ? `On orders of ${new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: freeShippingMilestone.currencyCode,
+        maximumFractionDigits: 0,
+      }).format(freeShippingMilestone.threshold)} or more`
+    : 'Shipping calculated at checkout';
   const appliedMilestoneIds = discountMilestones
     .filter((milestone) =>
       (cart?.lines?.nodes ?? []).some((line) =>
@@ -270,7 +285,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               <li>
                 <span className="trust-color-icon" aria-hidden="true">🚚</span>
                 <strong>Free delivery</strong>
-                <span>On orders above ₹399</span>
+                <span>{freeShippingMessage}</span>
               </li>
               <li>
                 <span className="trust-color-icon" aria-hidden="true">🍃</span>

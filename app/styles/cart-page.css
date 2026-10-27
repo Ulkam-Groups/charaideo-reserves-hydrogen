@@ -8,7 +8,10 @@
 
 .cart-page .cart-main--page {
   position: relative;
+  height: auto;
+  max-height: none;
   margin: 0;
+  overflow: visible;
 }
 
 /* Page heading */
