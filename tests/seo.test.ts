@@ -85,3 +85,15 @@ test('robots allows public policy pages while protecting private routes', async 
   assert.match(robotsRoute, /Disallow: \/checkout/);
   assert.match(robotsRoute, /Disallow: \/account/);
 });
+
+test('catch-all route renders a useful noindex page with a real 404 status', async () => {
+  const catchAllRoute = await readFile(
+    new URL('../app/routes/$.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(catchAllRoute, /\{status: 404\}/);
+  assert.match(catchAllRoute, /noindex,follow/);
+  assert.match(catchAllRoute, /Explore the Tea Shop/);
+  assert.match(catchAllRoute, /Return home/);
+});

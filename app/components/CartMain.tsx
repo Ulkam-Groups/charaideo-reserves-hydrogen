@@ -19,7 +19,12 @@ import {
   readRecentProducts,
   type RecentProduct,
 } from '~/lib/recent-products';
-import {publishCart} from '~/lib/cart-sync';
+import {
+  invalidateCartReconciliation,
+  publishCart,
+  reconcileCartState,
+} from '~/lib/cart-sync';
+import {useSyncedCart} from '~/hooks/useSyncedCart';
 import {
   cartDiscountProgressItems,
   discountProgressAmount,
@@ -81,10 +86,10 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
  * It is used by both the /cart route and the cart aside dialog.
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
-  const [cart, setCart] = useState(originalCart);
+  const cart = useSyncedCart(originalCart);
   const [refreshingCart, setRefreshingCart] = useState(false);
   const mutationWasPending = useRef(false);
-  const pendingCartFetcherKeys = useRef<string[]>([]);
+  const reconciliationController = useRef<AbortController | null>(null);
   const fetchers = useFetchers();
   const cartMutationPending = fetchers.some(
     (fetcher) =>
@@ -97,44 +102,32 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   useEffect(() => {
     if (cartMutationPending) {
       mutationWasPending.current = true;
-      pendingCartFetcherKeys.current = fetchers
-        .filter(
-          (fetcher) =>
-            fetcher.state !== 'idle' &&
-            fetcher.formAction &&
-            new URL(fetcher.formAction, 'https://storefront.invalid').pathname ===
-              '/cart',
-        )
-        .map((fetcher) => fetcher.key);
+      reconciliationController.current?.abort();
+      reconciliationController.current = null;
+      invalidateCartReconciliation();
       startTransition(() => setRefreshingCart(true));
       return;
     }
     if (!mutationWasPending.current) return;
     mutationWasPending.current = false;
+    const controller = new AbortController();
+    reconciliationController.current = controller;
 
-    const completedCart = [...fetchers]
-      .reverse()
-      .filter((fetcher) => pendingCartFetcherKeys.current.includes(fetcher.key))
-      .map(
-        (fetcher) =>
-          (fetcher.data as {cart?: CartApiQueryFragment | null} | undefined)
-            ?.cart,
-      )
-      .find((candidate): candidate is CartApiQueryFragment => Boolean(candidate));
-    pendingCartFetcherKeys.current = [];
+    void reconcileCartState()
+      .then((confirmedCart) => {
+        if (!controller.signal.aborted && confirmedCart) publishCart(confirmedCart);
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) console.error('Cart refresh failed');
+      })
+      .finally(() => {
+        if (reconciliationController.current !== controller) return;
+        reconciliationController.current = null;
+        startTransition(() => setRefreshingCart(false));
+      });
 
-    startTransition(() => {
-      if (completedCart) {
-        setCart(completedCart);
-        publishCart(completedCart);
-      }
-      setRefreshingCart(false);
-    });
-  }, [cartMutationPending, fetchers]);
-
-  useEffect(() => {
-    setCart(originalCart);
-  }, [originalCart]);
+    return () => controller.abort();
+  }, [cartMutationPending]);
 
   const cartBusy = cartMutationPending || refreshingCart;
 
@@ -147,6 +140,21 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const discountMilestones = rootData?.cartDiscountProgress.milestones ?? [];
+  const freeShippingMilestone =
+    rootData?.cartDiscountProgress.status === 'ready'
+      ? discountMilestones.find(
+          (milestone) =>
+            milestone.reward === 'Free shipping' &&
+            milestone.method === 'automatic',
+        )
+      : undefined;
+  const freeShippingMessage = freeShippingMilestone
+    ? `On orders of ${new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: freeShippingMilestone.currencyCode,
+        maximumFractionDigits: 0,
+      }).format(freeShippingMilestone.threshold)} or more`
+    : 'Shipping calculated at checkout';
   const appliedMilestoneIds = discountMilestones
     .filter((milestone) =>
       (cart?.lines?.nodes ?? []).some((line) =>
@@ -277,7 +285,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               <li>
                 <span className="trust-color-icon" aria-hidden="true">🚚</span>
                 <strong>Free delivery</strong>
-                <span>On orders above ₹399</span>
+                <span>{freeShippingMessage}</span>
               </li>
               <li>
                 <span className="trust-color-icon" aria-hidden="true">🍃</span>
@@ -453,13 +461,17 @@ function CartRecommendations({
                   >
                     {product.title}
                   </Link>
-                  {variant && variant.title !== 'Default Title' && (
-                    <small>{variant.title}</small>
-                  )}
-                  {eligibleReward && (
-                    <span className="cart-discount-eligibility is-eligible is-compact">
-                      {eligibleReward} eligible
-                    </span>
+                  {((variant && variant.title !== 'Default Title') || eligibleReward) && (
+                    <div className="cart-recommendation-meta">
+                      {variant && variant.title !== 'Default Title' && (
+                        <small>{variant.title}</small>
+                      )}
+                      {eligibleReward && (
+                        <span className="cart-discount-eligibility is-eligible is-compact">
+                          {eligibleReward} eligible
+                        </span>
+                      )}
+                    </div>
                   )}
                   {variant ? (
                     <Money data={variant.price} />

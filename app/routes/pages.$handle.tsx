@@ -6,7 +6,7 @@ import kamalikaPortrait from '../assets/founder-kamalika-420.jpg';
 import aboutHeroImage from '../assets/about-assam-tea-garden-hero.jpeg';
 import aboutStoryStylesheet from '~/styles/about-story-page.css?url';
 import {sanitizeStorefrontHtml} from '~/lib/html.server';
-import {JourneyMap, NewsletterSignup} from '~/components/AboutStoryExtras';
+import {NewsletterSignup} from '~/components/AboutStoryExtras';
 import {
   brandedMetaDescription,
   breadcrumbJsonLd,
@@ -882,24 +882,10 @@ I created CHARAIDEO RESERVES to bring together distinctive teas that deserve to 
         </article>
       </section>
 
-      <section className="about-page-journey" aria-labelledby="journey-title">
-        <header>
-          <p className="about-page-kicker">Garden to cup</p>
-          <h2 id="journey-title">From the garden to your table</h2>
-        </header>
-        <JourneyMap />
-      </section>
-
-      <section className="about-page-close" aria-labelledby="legacy-title">
-        <div>
-          <p className="about-page-kicker">A name that remembers</p>
-          <h2 id="legacy-title">A name that remembers</h2>
-          <p>
-            Charaideo and the Ahom legacy live in the cultural memory of Assam. Our name
-            is an invitation to carry that memory into the everyday: a shared table, a
-            conversation, a cup of tea.
-          </p>
-        </div>
+      <section
+        className="about-page-close about-page-close-newsletter"
+        aria-label="Reserve newsletter"
+      >
         <div className="about-page-close-signup">
           <NewsletterSignup />
         </div>

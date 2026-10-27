@@ -595,6 +595,19 @@
   transform: none;
 }
 
+.site-overlay.overlay--cart aside > header {
+  height: 58px;
+  min-height: 58px;
+  padding-inline: var(--space-4);
+}
+
+.site-overlay.overlay--cart aside > header .close {
+  width: 35px;
+  min-width: 35px;
+  height: 35px;
+  min-height: 35px;
+}
+
 .site-overlay.overlay--search {
   --aside-width: min(32rem, calc(100vw - 1.25rem));
 }

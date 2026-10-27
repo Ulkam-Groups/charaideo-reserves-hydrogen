@@ -1276,7 +1276,7 @@ button[data-state='busy'] {
   margin: 0 8px 0 2px;
 }
 /* Cart savings row */
-.cart-savings{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;padding:6px 10px;border-radius:6px;background:#e8f3ec;color:#132a1f;font-size:13px;font-weight:700}
+.cart-savings{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;padding:4px 10px;border-radius:6px;background:#e8f3ec;color:#132a1f;font-size:13px;font-weight:700}
 .cart-savings dt,.cart-savings dd{margin:0}
 
 /* PDP contrast pass: colour and rendering only; preserve the compact sizing. */

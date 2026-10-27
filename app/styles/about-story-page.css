@@ -452,10 +452,10 @@ main.main--offset:has(> .about-page) {
 .about-page-purpose-coordinate {
   display: inline-block;
   color: #b87936;
-  font:
-    500 54px/0.82 'Cormorant Garamond',
-    'Now',
-    serif;
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 54px;
+  font-weight: 500 !important;
+  line-height: 0.82;
   font-feature-settings:
     'onum' 1,
     'pnum' 1;
@@ -1084,6 +1084,21 @@ main.main--offset:has(> .about-page) {
   grid-column: 1 / -1;
   padding-top: 22px;
   border-top: 1px solid rgba(19, 42, 31, 0.14);
+}
+
+.about-page-close-newsletter {
+  width: min(100% - 48px, 920px);
+  gap: 0;
+  padding: clamp(26px, 3vw, 34px) clamp(24px, 4vw, 44px);
+}
+
+.about-page-close-newsletter .about-page-close-signup {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.about-page-close-newsletter .about-signup {
+  max-width: none;
 }
 
 .about-signup {

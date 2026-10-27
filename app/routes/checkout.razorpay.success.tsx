@@ -1,5 +1,10 @@
 import {useEffect, useRef} from 'react';
-import {data, Link, redirect, type LoaderFunctionArgs} from 'react-router';
+import {
+  data,
+  Link,
+  redirect,
+  type LoaderFunctionArgs,
+} from 'react-router';
 import {
   parseMetaCommercePayload,
   queueMetaPurchase,
@@ -17,6 +22,7 @@ type CheckoutConfirmation = {
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   metaPurchase?: MetaCommercePayload;
+  clearCart: boolean;
 };
 
 function optionalReference(value: unknown, pattern: RegExp) {
@@ -35,6 +41,14 @@ export function loader({context}: LoaderFunctionArgs) {
   }
 
   const confirmation = result as Record<string, unknown>;
+  const pending = context.session.get('razorpayCartClearPending') as unknown;
+  const clearCart =
+    Boolean(pending) &&
+    typeof pending === 'object' &&
+    (pending as {razorpayOrderId?: unknown}).razorpayOrderId ===
+      confirmation.razorpayOrderId &&
+    (pending as {shopifyOrderId?: unknown}).shopifyOrderId ===
+      confirmation.shopifyOrderId;
   const metaPurchase = parseMetaCommercePayload(confirmation.metaPurchase);
   context.session.unset('razorpayPaymentVerified');
   return data<CheckoutConfirmation>(
@@ -49,6 +63,7 @@ export function loader({context}: LoaderFunctionArgs) {
         /^pay_[A-Za-z0-9]+$/,
       ),
       ...(metaPurchase ? {metaPurchase} : {}),
+      clearCart,
     },
     {headers: {'Cache-Control': 'private, no-store'}},
   );
@@ -60,6 +75,18 @@ export default function RazorpayCheckoutSuccess({
   loaderData: CheckoutConfirmation;
 }) {
   const published = useRef(false);
+  const cleanupStarted = useRef(false);
+
+  useEffect(() => {
+    if (!loaderData.clearCart || cleanupStarted.current) return;
+    cleanupStarted.current = true;
+    void fetch('/api/cart-clear-after-checkout', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: new URLSearchParams({intent: 'clear-cart'}),
+      credentials: 'same-origin',
+    }).catch(() => undefined);
+  }, [loaderData.clearCart]);
 
   useEffect(() => {
     if (!loaderData.metaPurchase || published.current) return;
