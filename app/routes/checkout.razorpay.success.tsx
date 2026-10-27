@@ -11,6 +11,7 @@ import {
   type MetaCommercePayload,
 } from '~/lib/ads/meta/meta-pixel';
 import {PreferredSourceButton} from '~/components/PreferredSourceButton';
+import {refreshPublishedCart} from '~/lib/cart-sync';
 
 export const meta = () => [
   {title: 'Order confirmed | Charaideo Reserves™'},
@@ -85,7 +86,12 @@ export default function RazorpayCheckoutSuccess({
       headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
       body: new URLSearchParams({intent: 'clear-cart'}),
       credentials: 'same-origin',
-    }).catch(() => undefined);
+    })
+      .then((response) => {
+        if (!response.ok) return;
+        return refreshPublishedCart();
+      })
+      .catch(() => undefined);
   }, [loaderData.clearCart]);
 
   useEffect(() => {

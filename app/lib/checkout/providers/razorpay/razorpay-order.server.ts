@@ -284,7 +284,7 @@ export function buildShopifyOrderInput({
   if (!shippingAddress) {
     throw new RazorpayReconciliationError('Razorpay shipping address is missing');
   }
-  const billingAddress = mailingAddress(customer?.billing_address);
+  const billingAddress = mailingAddress(customer?.billing_address) ?? shippingAddress;
   const email = stringValue(customer?.email, 254);
   const phone = stringValue(customer?.contact, 30);
   const paidAmount = integer(order.amount_paid, 'paid amount');
@@ -759,7 +759,12 @@ export async function deleteRazorpayDraftOrderAnchor({
   );
 }
 
-type ShopifyOrderReference = {id: string; name: string};
+type ShopifyOrderReference = {
+  id: string;
+  name: string;
+  shippingAddress?: {address1?: string | null} | null;
+  billingAddress?: {address1?: string | null} | null;
+};
 
 type RazorpayDraftOrderState = {
   id: string;
@@ -795,18 +800,22 @@ export function buildRazorpayDraftOrderFinalInput({
   payment,
 }: {
   order: RazorpayMagicOrderDetails;
-  payment: RazorpayPaymentDetails;
+  payment: RazorpayPaymentDetails | null;
 }) {
   const shippingAddress = mailingAddress(order.customer_details?.shipping_address);
   if (!shippingAddress) {
     throw new RazorpayReconciliationError('Razorpay shipping address is missing');
   }
-  const billingAddress = mailingAddress(order.customer_details?.billing_address);
+  const billingAddress =
+    mailingAddress(order.customer_details?.billing_address) ?? shippingAddress;
   const email = stringValue(order.customer_details?.email, 254);
   const phone = stringValue(order.customer_details?.contact, 30);
   const source = stringValue(order.notes.source, 20);
   const shippingFee = integer(order.shipping_fee ?? 0, 'shipping fee');
   const codFee = integer(order.cod_fee ?? 0, 'COD fee');
+  const paidAmount = integer(order.amount_paid, 'paid amount');
+  const dueAmount = integer(order.amount_due, 'amount due');
+  const isPartialCod = paidAmount > 0 && dueAmount > 0;
 
   return {
     shippingAddress,
@@ -824,19 +833,99 @@ export function buildRazorpayDraftOrderFinalInput({
           },
         }
       : {}),
-    tags: ['razorpay', 'magic-checkout', 'prepaid'],
+    tags: [
+      'razorpay',
+      'magic-checkout',
+      isPartialCod ? 'partial-cod' : payment ? 'prepaid' : 'cod',
+    ],
     note: `Razorpay Magic Checkout order ${order.id}`,
     customAttributes: [
       {key: 'checkout_provider', value: 'razorpay'},
       ...(source ? [{key: 'checkout_source', value: source}] : []),
       {key: 'razorpay_order_id', value: order.id},
-      {key: 'razorpay_payment_id', value: payment.id},
-      ...(payment.method
+      ...(payment ? [{key: 'razorpay_payment_id', value: payment.id}] : []),
+      ...(isPartialCod
+        ? [
+            {key: 'razorpay_partial_cod_paid', value: paiseToRupees(paidAmount)},
+            {
+              key: 'razorpay_partial_cod_due',
+              value: paiseToRupees(dueAmount + codFee),
+            },
+          ]
+        : []),
+      ...(payment?.method
         ? [{key: 'razorpay_payment_method', value: payment.method.slice(0, 100)}]
         : []),
     ],
     visibleToCustomer: false,
   };
+}
+
+async function updateRazorpayDraftOrderCustomerDetails({
+  credentials,
+  draftOrderId,
+  order,
+  payment,
+  fetcher,
+}: {
+  credentials: ShopifyAdminCredentials;
+  draftOrderId: string;
+  order: RazorpayMagicOrderDetails;
+  payment: RazorpayPaymentDetails | null;
+  fetcher: typeof fetch;
+}) {
+  const updated = await adminGraphql<{
+    draftOrderUpdate: {
+      draftOrder: (RazorpayDraftOrderState & {
+        shippingAddress?: {address1?: string | null} | null;
+        billingAddress?: {address1?: string | null} | null;
+      }) | null;
+      userErrors: Array<{field?: string[]; message: string}>;
+    };
+  }>({
+    credentials,
+    fetcher,
+    requiredScopes: ['write_draft_orders'],
+    query: `mutation UpdateRazorpayDraftOrder($id: ID!, $input: DraftOrderInput!) {
+      draftOrderUpdate(id: $id, input: $input) {
+        draftOrder {
+          id
+          status
+          totalPriceSet { presentmentMoney { amount currencyCode } }
+          shippingAddress { address1 }
+          billingAddress { address1 }
+          order { id name }
+        }
+        userErrors { field message }
+      }
+    }`,
+    variables: {
+      id: draftOrderId,
+      input: buildRazorpayDraftOrderFinalInput({order, payment}),
+    },
+  });
+  const draft = updated.draftOrderUpdate.draftOrder;
+  const total = draft?.totalPriceSet?.presentmentMoney;
+  const expectedTotal =
+    integer(order.amount, 'order amount') + integer(order.cod_fee ?? 0, 'COD fee');
+  const shippingAddressPersisted =
+    draft?.shippingAddress === undefined || Boolean(draft.shippingAddress?.address1);
+  const billingAddressPersisted =
+    draft?.billingAddress === undefined || Boolean(draft.billingAddress?.address1);
+  if (
+    updated.draftOrderUpdate.userErrors.length ||
+    !draft ||
+    draft.id !== draftOrderId ||
+    draft.status !== 'OPEN' ||
+    !shippingAddressPersisted ||
+    !billingAddressPersisted ||
+    !total ||
+    total.currencyCode !== 'INR' ||
+    inrToPaise(total.amount) !== expectedTotal
+  ) {
+    throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
+  }
+  return draft;
 }
 
 async function getRazorpayDraftOrder({
@@ -857,7 +946,12 @@ async function getRazorpayDraftOrder({
         id
         status
         totalPriceSet { presentmentMoney { amount currencyCode } }
-        order { id name }
+        order {
+          id
+          name
+          shippingAddress { address1 }
+          billingAddress { address1 }
+        }
       }
     }`,
     variables: {id: draftOrderId},
@@ -891,53 +985,30 @@ export async function completeRazorpayDraftOrder({
     throw new RazorpayReconciliationError('Shopify draft order anchor was not found');
   }
   if (validShopifyOrderReference(current.order)) {
-    return {...current.order, created: false};
+    const customerDetailsVerified = await ensureShopifyOrderCustomerDetails({
+      credentials,
+      shopifyOrder: current.order,
+      order,
+      fetcher,
+    });
+    return {
+      id: current.order.id,
+      name: current.order.name,
+      created: false,
+      ...(!customerDetailsVerified ? {customerDetailsVerified: false as const} : {}),
+    };
   }
   if (current.status !== 'OPEN') {
     throw new RazorpayReconciliationError('Shopify draft order is not open');
   }
 
-  const updated = await adminGraphql<{
-    draftOrderUpdate: {
-      draftOrder: RazorpayDraftOrderState | null;
-      userErrors: Array<{field?: string[]; message: string}>;
-    };
-  }>({
+  await updateRazorpayDraftOrderCustomerDetails({
     credentials,
+    draftOrderId,
+    order,
+    payment,
     fetcher,
-    requiredScopes: ['write_draft_orders'],
-    query: `mutation UpdateRazorpayDraftOrder($id: ID!, $input: DraftOrderInput!) {
-      draftOrderUpdate(id: $id, input: $input) {
-        draftOrder {
-          id
-          status
-          totalPriceSet { presentmentMoney { amount currencyCode } }
-          order { id name }
-        }
-        userErrors { field message }
-      }
-    }`,
-    variables: {
-      id: draftOrderId,
-      input: buildRazorpayDraftOrderFinalInput({order, payment}),
-    },
   });
-  const updatedDraft = updated.draftOrderUpdate.draftOrder;
-  const total = updatedDraft?.totalPriceSet?.presentmentMoney;
-  if (
-    updated.draftOrderUpdate.userErrors.length ||
-    !updatedDraft ||
-    updatedDraft.id !== draftOrderId ||
-    updatedDraft.status !== 'OPEN' ||
-    !total ||
-    total.currencyCode !== 'INR' ||
-    inrToPaise(total.amount) !== order.amount
-  ) {
-    console.error('Shopify rejected Razorpay draft order finalization', {
-      userErrorCount: updated.draftOrderUpdate.userErrors.length,
-    });
-    throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
-  }
 
   let completed:
     | {
@@ -955,7 +1026,16 @@ export async function completeRazorpayDraftOrder({
       requiredScopes: ['write_draft_orders'],
       query: `mutation CompleteRazorpayDraftOrder($id: ID!) {
         draftOrderComplete(id: $id) {
-          draftOrder { id status order { id name } }
+          draftOrder {
+            id
+            status
+            order {
+              id
+              name
+              shippingAddress { address1 }
+              billingAddress { address1 }
+            }
+          }
           userErrors { field message }
         }
       }`,
@@ -969,20 +1049,117 @@ export async function completeRazorpayDraftOrder({
     completed?.draftOrderComplete.userErrors.length === 0 &&
     validShopifyOrderReference(completedOrder)
   ) {
-    return {...completedOrder, created: true};
+    const customerDetailsVerified = await ensureShopifyOrderCustomerDetails({
+      credentials,
+      shopifyOrder: completedOrder,
+      order,
+      fetcher,
+    });
+    return {
+      id: completedOrder.id,
+      name: completedOrder.name,
+      created: true,
+      ...(!customerDetailsVerified ? {customerDetailsVerified: false as const} : {}),
+    };
   }
 
   // A concurrent retry can lose the completion race but must return the one
   // order already attached to this durable Shopify draft instead of failing.
   const reconciled = await getRazorpayDraftOrder({credentials, draftOrderId, fetcher});
   if (validShopifyOrderReference(reconciled?.order)) {
-    return {...reconciled.order, created: false};
+    const customerDetailsVerified = await ensureShopifyOrderCustomerDetails({
+      credentials,
+      shopifyOrder: reconciled.order,
+      order,
+      fetcher,
+    });
+    return {
+      id: reconciled.order.id,
+      name: reconciled.order.name,
+      created: false,
+      ...(!customerDetailsVerified ? {customerDetailsVerified: false as const} : {}),
+    };
   }
   if (completionError) throw completionError;
   console.error('Shopify rejected Razorpay draft order completion', {
     userErrorCount: completed?.draftOrderComplete.userErrors.length ?? 0,
   });
   throw new RazorpayReconciliationError('Shopify rejected the Razorpay draft order');
+}
+
+type ShopifyOrderCustomerDetails = {
+  id: string;
+  name: string;
+  shippingAddress?: {address1?: string | null} | null;
+  billingAddress?: {address1?: string | null} | null;
+};
+
+async function ensureShopifyOrderCustomerDetails({
+  credentials,
+  shopifyOrder,
+  order,
+  fetcher,
+}: {
+  credentials: ShopifyAdminCredentials;
+  shopifyOrder: ShopifyOrderCustomerDetails;
+  order: RazorpayMagicOrderDetails;
+  fetcher: typeof fetch;
+}) {
+  const shippingAddressPersisted =
+    shopifyOrder.shippingAddress === undefined ||
+    Boolean(shopifyOrder.shippingAddress?.address1);
+  const billingAddressPersisted =
+    shopifyOrder.billingAddress === undefined || Boolean(shopifyOrder.billingAddress?.address1);
+  if (shippingAddressPersisted && billingAddressPersisted) {
+    return true;
+  }
+
+  const shippingAddress = mailingAddress(order.customer_details?.shipping_address);
+  if (!shippingAddress) return false;
+  try {
+    const result = await adminGraphql<{
+      orderUpdate: {
+        order: ShopifyOrderCustomerDetails | null;
+        userErrors: Array<{field?: string[]; message: string}>;
+      };
+    }>({
+      credentials,
+      fetcher,
+      requiredScopes: ['write_orders'],
+      query: `mutation RepairRazorpayOrderAddress($input: OrderInput!) {
+        orderUpdate(input: $input) {
+          order {
+            id
+            name
+            shippingAddress { address1 }
+            billingAddress { address1 }
+          }
+          userErrors { field message }
+        }
+      }`,
+      variables: {
+        input: {
+          id: shopifyOrder.id,
+          shippingAddress,
+          ...(stringValue(order.customer_details?.email, 254)
+            ? {email: stringValue(order.customer_details?.email, 254)}
+            : {}),
+          ...(stringValue(order.customer_details?.contact, 30)
+            ? {phone: stringValue(order.customer_details?.contact, 30)}
+            : {}),
+        },
+      },
+    });
+    const repaired = result.orderUpdate.order;
+    return Boolean(
+      result.orderUpdate.userErrors.length === 0 &&
+        repaired?.shippingAddress?.address1 &&
+        repaired.billingAddress?.address1,
+    );
+  } catch (error) {
+    console.error('Unable to verify or repair Razorpay order customer details', error);
+    return false;
+  }
 }
 
 export async function createShopifyOrder(
@@ -997,23 +1174,42 @@ export async function createShopifyOrder(
     throw new RazorpayReconciliationError('Shopify order API is not configured');
   const query = `source_identifier:${order.id}`;
   const existing = await adminGraphql<{
-    orders: {nodes: Array<{id: string; name: string}>};
+    orders: {nodes: ShopifyOrderCustomerDetails[]};
   }>({
     credentials,
     fetcher,
     requiredScopes: ['write_orders'],
     query: `query RazorpayExistingOrder($query: String!) {
-      orders(first: 1, query: $query) { nodes { id name } }
+      orders(first: 1, query: $query) {
+        nodes {
+          id
+          name
+          shippingAddress { address1 }
+          billingAddress { address1 }
+        }
+      }
     }`,
     variables: {query},
   });
   if (existing.orders.nodes[0]) {
-    return {...existing.orders.nodes[0], created: false};
+    const found = existing.orders.nodes[0];
+    const customerDetailsVerified = await ensureShopifyOrderCustomerDetails({
+      credentials,
+      shopifyOrder: found,
+      order,
+      fetcher,
+    });
+    return {
+      id: found.id,
+      name: found.name,
+      created: false,
+      ...(!customerDetailsVerified ? {customerDetailsVerified: false as const} : {}),
+    };
   }
 
   const result = await adminGraphql<{
     orderCreate: {
-      order: {id: string; name: string} | null;
+      order: ShopifyOrderCustomerDetails | null;
       userErrors: Array<{field?: string[]; message: string}>;
     };
   }>({
@@ -1022,7 +1218,12 @@ export async function createShopifyOrder(
     requiredScopes: ['write_orders'],
     query: `mutation CreateRazorpayOrder($order: OrderCreateOrderInput!, $options: OrderCreateOptionsInput) {
       orderCreate(order: $order, options: $options) {
-        order { id name }
+        order {
+          id
+          name
+          shippingAddress { address1 }
+          billingAddress { address1 }
+        }
         userErrors { field message }
       }
     }`,
@@ -1046,7 +1247,18 @@ export async function createShopifyOrder(
     });
     throw new RazorpayReconciliationError('Shopify rejected the Razorpay order');
   }
-  return {...result.orderCreate.order, created: true};
+  const customerDetailsVerified = await ensureShopifyOrderCustomerDetails({
+    credentials,
+    shopifyOrder: result.orderCreate.order,
+    order,
+    fetcher,
+  });
+  return {
+    id: result.orderCreate.order.id,
+    name: result.orderCreate.order.name,
+    created: true,
+    ...(!customerDetailsVerified ? {customerDetailsVerified: false as const} : {}),
+  };
 }
 
 async function fetchCapturedPayment(
@@ -1192,6 +1404,30 @@ async function reconcileRazorpayOrderOnce({
     razorpayDraftOrderAnchorEnabled(env) &&
     anchoredDraftOrderId,
   );
+  let draftCustomerDetailsVerified = true;
+  if (
+    !completesDraft &&
+    anchoredDraftOrderId &&
+    razorpayDraftOrderAnchorEnabled(env)
+  ) {
+    const credentials = adminCredentials(env);
+    if (!credentials) {
+      draftCustomerDetailsVerified = false;
+    } else {
+      try {
+        await updateRazorpayDraftOrderCustomerDetails({
+          credentials,
+          draftOrderId: anchoredDraftOrderId,
+          order,
+          payment,
+          fetcher,
+        });
+      } catch (error) {
+        draftCustomerDetailsVerified = false;
+        console.error('Unable to persist Razorpay customer details on Shopify draft', error);
+      }
+    }
+  }
   const shopifyOrder = completesDraft
     ? await completeRazorpayDraftOrder({
         env,
@@ -1201,7 +1437,16 @@ async function reconcileRazorpayOrderOnce({
         fetcher,
       })
     : await createShopifyOrder(env, order, lines, payment, fetcher);
-  if (!completesDraft && anchoredDraftOrderId && razorpayDraftOrderAnchorEnabled(env)) {
+  const finalCustomerDetailsVerified =
+    !('customerDetailsVerified' in shopifyOrder) ||
+    shopifyOrder.customerDetailsVerified !== false;
+  if (
+    !completesDraft &&
+    draftCustomerDetailsVerified &&
+    finalCustomerDetailsVerified &&
+    anchoredDraftOrderId &&
+    razorpayDraftOrderAnchorEnabled(env)
+  ) {
     try {
       await deleteRazorpayDraftOrderAnchor({
         env,
