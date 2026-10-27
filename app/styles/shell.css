@@ -109,6 +109,7 @@
   transform: translateY(var(--space-3));
   border: 1px solid #b9c7bd;
   border-radius: 26px;
+  background: #ffffff;
   background: rgb(255 255 255 / 78%);
   box-shadow: 0 4px 10px rgb(19 42 31 / 6%);
   -webkit-backdrop-filter: blur(14px) saturate(125%);
@@ -209,12 +210,14 @@
 
 .site-header .header-menu-new {
   min-width: auto;
-  padding: 0.15rem 0.35rem;
+  min-height: 0.875rem;
+  padding: 1px 4px;
   border-radius: var(--radius-control);
   background: var(--surface-subtle);
   color: #5f411f;
-  font-size: var(--type-label);
+  font-size: 0.5625rem;
   font-weight: 400;
+  line-height: 1;
   letter-spacing: 0.04em;
 }
 
