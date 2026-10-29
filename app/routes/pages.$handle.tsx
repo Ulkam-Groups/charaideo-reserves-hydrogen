@@ -434,19 +434,18 @@ function ContactPage({
   return (
     <main className="contact-page">
       <section className="contact-intro">
+        <div className="contact-intro-media" aria-hidden="true">
+          <img
+            src="https://cdn.shopify.com/s/files/1/0651/6119/9713/files/about-charaideo-reserves-hero.png?v=1791097344"
+            alt=""
+            loading="eager"
+          />
+        </div>
         <div className="contact-intro-copy">
           <span className="eyebrow">{page.hero}</span>
           <h1>Let&rsquo;s start a conversation.</h1>
           <p>{page.excerpt}</p>
         </div>
-        <aside className="contact-intro-note" aria-label="Our promise">
-          <span>From the tea country</span>
-          <p>
-            Product questions, order support, wholesale enquiries, or simply a
-            shared love of Assam tea&mdash;our team is here to help.
-          </p>
-          <small>We usually reply within two business days.</small>
-        </aside>
       </section>
 
       <section className="contact-details" aria-labelledby="contact-details-title">

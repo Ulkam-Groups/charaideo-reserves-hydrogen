@@ -3804,14 +3804,31 @@ main.main--offset:has(> .contact-page) {
   letter-spacing: 0.11em;
 }
 .contact-intro {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
-  gap: clamp(36px, 6vw, 84px);
-  align-items: start;
-  padding: clamp(86px, 7vw, 104px) var(--gutter) clamp(36px, 4vw, 52px);
-  background: var(--surface-matcha-gradient);
+  position: relative;
+  display: flex;
+  min-height: clamp(400px, 52svh, 540px);
+  align-items: flex-end;
+  isolation: isolate;
+  overflow: hidden;
+  padding: calc(var(--header-height) + 64px) var(--gutter) clamp(36px, 4vw, 52px);
+  background: #17392f;
   color: #f4ebdd;
+}
+.contact-intro::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 24, 17, 0.52) 0%, rgba(5, 24, 17, 0.24) 42%, rgba(5, 24, 17, 0.03) 76%),
+    linear-gradient(0deg, rgba(5, 24, 17, 0.38) 0%, rgba(5, 24, 17, 0) 55%);
+  pointer-events: none;
+}
+.contact-intro-copy {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 650px);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
 }
 .contact-intro .eyebrow,
 .contact-location .eyebrow {
@@ -3848,6 +3865,33 @@ main.main--offset:has(> .contact-page) {
   color: #f4ebdd;
   font-size: clamp(17px, 1.25vw, 20px);
   line-height: 1.35;
+}
+.contact-intro-media {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+}
+.contact-intro-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;
+  transform: scale(1.015);
+  transform-origin: center center;
+  will-change: transform;
+  animation: contact-hero-smooth-zoom 16s ease-in-out infinite alternate;
+}
+@keyframes contact-hero-smooth-zoom {
+  from {transform: scale(1.015);}
+  to {transform: scale(1.14);}
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-intro-media img {
+    animation: none;
+    transform: none;
+  }
 }
 .contact-details,
 .contact-social {
@@ -4472,7 +4516,16 @@ main.main--offset:has(> .contact-page) {
   .contact-location,
   .contact-faq,
   .contact-social {grid-template-columns: 1fr;}
-  .contact-intro {min-height: auto; align-items: start; padding-top: 86px;}
+  .contact-intro {
+    min-height: clamp(430px, 68svh, 580px);
+    align-items: flex-end;
+    padding: calc(var(--header-height) + 56px) var(--gutter) 32px;
+  }
+  .contact-intro::after {
+    background: linear-gradient(0deg, rgba(5, 24, 17, 0.64) 0%, rgba(5, 24, 17, 0.3) 45%, rgba(5, 24, 17, 0.04) 78%);
+  }
+  .contact-intro-media {width: auto; min-height: 0; aspect-ratio: auto;}
+  .contact-intro-media img {object-position: center center;}
   .contact-section-heading {grid-template-columns: 1fr;}
   .contact-form-fields {grid-template-columns: 1fr;}
   .contact-form-section--modal {grid-template-columns: 1fr; padding-top: 50px;}
