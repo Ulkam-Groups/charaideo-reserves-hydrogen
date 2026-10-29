@@ -43,14 +43,7 @@ main.main--offset:has(> .about-page) {
 }
 
 .about-page-hero::after {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(5, 19, 12, 0.88) 0%, rgba(7, 26, 16, 0.68) 38%, rgba(7, 24, 15, 0.18) 68%, rgba(7, 24, 15, 0.08) 100%),
-    linear-gradient(0deg, rgba(5, 17, 11, 0.62) 0%, transparent 48%);
-  content: '';
-  pointer-events: none;
+  content: none;
 }
 
 .about-page-hero .about-page-kicker {
@@ -65,7 +58,7 @@ main.main--offset:has(> .about-page) {
   flex-direction: column;
   justify-content: center;
   padding: 0;
-  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.32);
+  text-shadow: 0 2px 12px rgb(0 0 0 / 78%), 0 1px 2px rgb(0 0 0 / 92%);
   will-change: transform, opacity;
 }
 
@@ -645,8 +638,7 @@ main.main--offset:has(> .about-page) {
   }
 
   .about-page-hero::after {
-    background:
-      linear-gradient(0deg, rgba(5, 18, 11, 0.9) 0%, rgba(7, 25, 15, 0.68) 48%, rgba(7, 24, 15, 0.16) 100%);
+    content: none;
   }
 
   .about-page-hero-copy {

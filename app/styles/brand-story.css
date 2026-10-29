@@ -816,10 +816,49 @@
   padding-block: var(--home-section-space);
 }
 
+@media (max-width: 960px) {
+  .revamp-home .heritage-note::after {
+    bottom: 0;
+  }
+
+  .revamp-home .heritage-seal {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    justify-self: end;
+    margin-top: 0;
+    padding: 0;
+    background: transparent;
+  }
+}
+
 @media (max-width: 767px) {
   .revamp-home {
     --home-section-space: clamp(52px, 15vw, 76px);
     --home-section-space-compact: clamp(36px, 11vw, 56px);
+  }
+
+  .revamp-home .heritage-note {
+    padding-block: 44px 36px;
+  }
+
+  .revamp-home .heritage-seal {
+    margin-top: -10px;
+  }
+
+  .revamp-home .heritage-seal-mark {
+    width: 30px;
+  }
+
+  .revamp-home .heritage-seal .heritage-seal-place {
+    margin-block: 4px 6px;
+    font-size: 6px;
+  }
+
+  .revamp-home .heritage-seal .heritage-seal-coordinate {
+    font-size: 40px;
   }
 
   .revamp-home :is(

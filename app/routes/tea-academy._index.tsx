@@ -4,6 +4,7 @@ import type {Route} from './+types/tea-academy._index';
 import {TeaSensoryExperience} from '~/components/TeaSensoryExperience';
 import {parseSensoryTea, type StorefrontSensoryProduct} from '~/lib/tea-sensory';
 import charaideoLogo from '~/assets/charaideo-reserves-logo.svg?url';
+import academyHeroImage from '~/assets/tea-academy-hero.jpeg';
 import {breadcrumbJsonLd, canonicalUrl} from '~/lib/seo';
 
 export const meta: Route.MetaFunction = () => [
@@ -53,6 +54,7 @@ export default function TeaAcademy() {
   );
   const [sensoryMatched, setSensoryMatched] = useState(false);
   const [sensorySession, setSensorySession] = useState(0);
+
   function selectSection(next: AcademySection) {
     if (next === 'sensory') {
       setSensoryMatched(false);
@@ -68,7 +70,7 @@ export default function TeaAcademy() {
   return (
     <main className="academy-page">
       <header className="academy-hero">
-        <div>
+        <div className="academy-hero-copy">
           <p className="eyebrow">Knowledge, ritual, provenance</p>
           <h1>
             Learn tea through <em>the senses.</em>
@@ -115,6 +117,9 @@ export default function TeaAcademy() {
               preserveAspectRatio="xMidYMid meet"
             />
           </svg>
+        </div>
+        <div className="academy-hero-media-frame" aria-hidden="true">
+          <img className="academy-hero-media" src={academyHeroImage} alt="" />
         </div>
       </header>
       <nav
