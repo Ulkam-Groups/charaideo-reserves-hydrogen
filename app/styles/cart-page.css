@@ -401,6 +401,16 @@
   color: #17392a;
   box-shadow: 0 14px 36px rgb(10 35 23 / 20%);
 }
+.discount-progress-popover-panel:has(.discount-progress-eligible-items[open]),
+.discount-progress-popover-panel:has(.discount-progress-eligible-items:hover),
+.discount-progress-popover-panel:has(.discount-progress-eligible-items:focus-within) {
+  overflow: visible;
+}
+.cart-main--aside:has(.discount-progress-eligible-items[open]),
+.cart-main--aside:has(.discount-progress-eligible-items:hover),
+.cart-main--aside:has(.discount-progress-eligible-items:focus-within) {
+  overflow: visible;
+}
 .discount-progress-popover-panel::before {
   position: absolute;
   top: -6px;

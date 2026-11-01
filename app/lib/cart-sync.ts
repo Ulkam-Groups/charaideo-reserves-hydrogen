@@ -65,12 +65,30 @@ async function readCartStateWithRetry() {
         cart?: CartApiQueryFragment | null;
         unavailable?: boolean;
       };
-      if (!result.unavailable) return result.cart ?? null;
+      if (!result.unavailable && isCartSnapshotComplete(result.cart)) {
+        return result.cart ?? null;
+      }
     } catch {
       // Retry transient cart reads while the mutation overlay remains visible.
     }
   }
   throw new Error('Unable to refresh cart');
+}
+
+function isCartSnapshotComplete(
+  cart: CartApiQueryFragment | null | undefined,
+) {
+  if (!cart || cart.totalQuantity === 0) return true;
+
+  // Older callers/tests may provide a deliberately partial cart shape. The
+  // Storefront API fragment always includes `lines`; only treat an explicitly
+  // empty returned connection as the transient inconsistency.
+  const lines = cart.lines?.nodes;
+  if (!lines) return true;
+  if (!lines.length) return false;
+
+  return lines.reduce((quantity, line) => quantity + line.quantity, 0) >=
+    cart.totalQuantity;
 }
 
 export function selectAuthoritativeCart(
@@ -79,6 +97,12 @@ export function selectAuthoritativeCart(
 ) {
   if (!candidate) return current;
   if (!current) return candidate;
+  // A cart read can briefly expose the new total before its lines are
+  // queryable (most often when the first cart is created). Never let that
+  // partial snapshot erase a complete mutation response.
+  if (isCartSnapshotComplete(current) && !isCartSnapshotComplete(candidate)) {
+    return current;
+  }
   return Date.parse(candidate.updatedAt) >= Date.parse(current.updatedAt)
     ? candidate
     : current;

@@ -132,6 +132,33 @@ test('cart reconciliation retries a transient unavailable read', async (t) => {
   assert.equal(requests, 2);
 });
 
+test('cart reconciliation retries when the total arrives before its lines', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    invalidateCartReconciliation();
+  });
+
+  const completeCart = {
+    id: 'gid://shopify/Cart/first-item',
+    updatedAt: '2026-10-27T12:00:02.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  let requests = 0;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return Response.json({
+      cart: requests === 1 ? {...completeCart, lines: {nodes: []}} : completeCart,
+      unavailable: false,
+    });
+  };
+  invalidateCartReconciliation();
+
+  assert.deepEqual(await reconcileCartState(), completeCart);
+  assert.equal(requests, 2);
+});
+
 test('background checkout cleanup publishes the cleared server cart', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => {
@@ -174,5 +201,24 @@ test('stale loader carts cannot overwrite empty-boundary mutations', () => {
   assert.equal(
     selectAuthoritativeCart(firstItemCart as never, lastItemRemovedCart as never),
     lastItemRemovedCart,
+  );
+});
+
+test('a partial cart read cannot overwrite a complete mutation cart', () => {
+  const completeCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const partialCart = {
+    ...completeCart,
+    updatedAt: '2026-10-12T12:00:01.000Z',
+    lines: {nodes: []},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(completeCart as never, partialCart as never),
+    completeCart,
   );
 });
