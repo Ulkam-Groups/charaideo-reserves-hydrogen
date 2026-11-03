@@ -127,6 +127,9 @@ function AddToCartSubmit({
             : undefined
         }
       >
+        <span className="add-to-cart-label">
+          {busy ? 'Adding...' : added ? 'Added ✓' : children}
+        </span>
         {mobileSwipe && (
           <span className="add-to-cart-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -135,9 +138,11 @@ function AddToCartSubmit({
             </svg>
           </span>
         )}
-        <span className="add-to-cart-label">
-          {busy ? 'Adding...' : added ? 'Added ✓' : children}
-        </span>
+        {mobileSwipe && !busy && !added && (
+          <span className="add-to-cart-swipe-cue" aria-hidden="true">
+            ›
+          </span>
+        )}
       </button>
     </>
   );

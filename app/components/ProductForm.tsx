@@ -46,8 +46,8 @@ export function ProductForm({
   const [checkoutPending, setCheckoutPending] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showMobileBar, setShowMobileBar] = useState(false);
+  const [footerNearViewport, setFooterNearViewport] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const mobileBarRef = useRef<HTMLElement>(null);
   const quantityLimitTooltipId = useId();
   useCheckoutError(setCheckoutError);
 
@@ -81,33 +81,16 @@ export function ProductForm({
   }, []);
 
   useEffect(() => {
-    const bar = mobileBarRef.current;
     const footer = document.querySelector<HTMLElement>('.site-footer');
-    if (!showMobileBar || !bar || !footer) return;
+    if (!footer || typeof IntersectionObserver === 'undefined') return;
 
-    let frame = 0;
-    const updateFooterOffset = () => {
-      frame = 0;
-      const overlap = Math.max(
-        0,
-        window.innerHeight - footer.getBoundingClientRect().top,
-      );
-      bar.style.setProperty('--footer-overlap', `${overlap}px`);
-    };
-    const scheduleUpdate = () => {
-      if (!frame) frame = window.requestAnimationFrame(updateFooterOffset);
-    };
-
-    updateFooterOffset();
-    window.addEventListener('scroll', scheduleUpdate, {passive: true});
-    window.addEventListener('resize', scheduleUpdate);
-
-    return () => {
-      window.removeEventListener('scroll', scheduleUpdate);
-      window.removeEventListener('resize', scheduleUpdate);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, [showMobileBar]);
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterNearViewport(entry.isIntersecting),
+      {rootMargin: '0px 0px 96px 0px'},
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   const stockLabel = !selectedVariant?.availableForSale
     ? 'Out of stock'
@@ -416,9 +399,11 @@ export function ProductForm({
           </Suspense>
         )}
       <DeliveryEstimate />
-      {showMobileBar && selectedVariant && !selectedVariant.availableForSale && (
+      {showMobileBar &&
+        !footerNearViewport &&
+        selectedVariant &&
+        !selectedVariant.availableForSale && (
         <aside
-          ref={mobileBarRef}
           className="product-mobile-purchase-bar"
           aria-label={`Quick purchase for ${selectedVariant.product.title}`}
         >
@@ -438,9 +423,8 @@ export function ProductForm({
           </button>
         </aside>
       )}
-      {showMobileBar && selectedVariant?.availableForSale && (
+      {showMobileBar && !footerNearViewport && selectedVariant?.availableForSale && (
         <aside
-          ref={mobileBarRef}
           className="product-mobile-purchase-bar"
           aria-label={`Quick purchase for ${selectedVariant.product.title}`}
         >

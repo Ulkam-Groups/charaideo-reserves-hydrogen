@@ -1050,12 +1050,45 @@ button[data-state='busy'] {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.product-purchase .add-to-cart-swipe-cue {
+  display: none;
+}
 @media (max-width: 640px) {
   .product-purchase .product-actions > form,
   .product-purchase .product-actions > form button,
   .product-purchase .product-actions .product-buy-now {
     height: 38px;
     min-height: 38px;
+  }
+
+  .product-purchase .add-to-cart-swipe-cue {
+    display: inline-flex;
+    align-items: center;
+    margin-left: -4px;
+    color: currentColor;
+    font-size: 17px;
+    line-height: 1;
+    opacity: 0.72;
+    animation: add-cart-swipe-cue 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes add-cart-swipe-cue {
+  0%,
+  55%,
+  100% {
+    opacity: 0.52;
+    transform: translateX(0);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translateX(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-purchase .add-to-cart-swipe-cue {
+    animation: none;
   }
 }
 .product-purchase .product-actions .product-buy-now {
@@ -1676,6 +1709,10 @@ button[data-state='busy'] {
 @media (max-width: 640px) {
   .product-purchase .product-mobile-purchase-bar {
     color: var(--pdp-ink);
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    animation: none;
     text-rendering: optimizeLegibility;
   }
 
@@ -1702,8 +1739,7 @@ button[data-state='busy'] {
   }
 
   .product-purchase .product-mobile-purchase-bar form button.add-to-cart-swipe {
-    display: inline-grid;
-    grid-template-columns: 18px auto;
+    display: inline-flex;
     height: 40px;
     min-height: 40px;
     padding: 0 14px;
@@ -2713,5 +2749,25 @@ button[data-state='busy'] {
     flex: 0 0 min(78vw, 300px);
     scroll-snap-align: start;
     scroll-snap-stop: always;
+  }
+
+  .product-page .product-related .catalog-card-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .product-page .product-related .catalog-card-footer form {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .product-page .product-related .catalog-card-footer form button {
+    width: auto;
+    min-width: 0;
+    min-height: 36px;
+    padding: 8px 14px;
+    white-space: nowrap;
   }
 }
