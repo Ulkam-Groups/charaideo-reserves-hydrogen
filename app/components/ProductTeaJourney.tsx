@@ -7,6 +7,8 @@ type JourneyProduct = {
   teaJourney?: MetafieldValue;
 };
 
+const STAGE_DURATIONS_MS = [2000, 4000, 4000] as const;
+
 type TeaJourney = {
   source: {
     name: string;
@@ -135,12 +137,12 @@ export function ProductTeaJourney({product}: {product: JourneyProduct}) {
   useEffect(() => {
     if (isPaused || !journey) return;
 
-    const timer = window.setInterval(() => {
+    const timer = window.setTimeout(() => {
       setActive((current) => (current + 1) % 3);
-    }, 5000);
+    }, STAGE_DURATIONS_MS[active]);
 
-    return () => window.clearInterval(timer);
-  }, [isPaused, journey]);
+    return () => window.clearTimeout(timer);
+  }, [active, isPaused, journey]);
 
   useEffect(() => {
     if (active === 1) setHasVisitedRoute(true);
@@ -248,6 +250,11 @@ export function ProductTeaJourney({product}: {product: JourneyProduct}) {
 
         <ol
           className={`product-journey-steps${isPaused ? ' is-paused' : ''}`}
+          style={
+            {
+              '--journey-stage-duration': `${STAGE_DURATIONS_MS[active]}ms`,
+            } as CSSProperties
+          }
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >

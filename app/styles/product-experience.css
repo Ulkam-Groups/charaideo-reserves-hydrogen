@@ -3,12 +3,14 @@
   --pdp-ink: #132a1f;
   --pdp-green: #132a1f;
   --pdp-green-deep: #1e402e;
-  --pdp-mint: #eef7f1;
-  --pdp-mint-line: #e7dfca;
-  --pdp-leaf: #fbf6e7;
+  --pdp-mint: #edf4ef;
+  --pdp-mint-line: #d5e0d8;
+  --pdp-leaf: #f5f8f4;
   --pdp-amber: #e8a317;
   --pdp-ease: cubic-bezier(0.22, 1, 0.36, 1);
   background: #ffffff;
+  color: var(--pdp-ink);
+  font-weight: 400;
 }
 
 /* Replace beige surfaces with white / cool mint */
@@ -562,8 +564,8 @@ button[data-state='busy'] {
   border-color: var(--pdp-mint-line) !important;
 }
 .tea-fit-card--no {
-  background: #fff7f1 !important;
-  border-color: #f3d9c6 !important;
+  background: #f8faf8 !important;
+  border-color: var(--pdp-mint-line) !important;
 }
 .tea-notes li {
   background: transparent !important;
@@ -648,6 +650,118 @@ button[data-state='busy'] {
   }
 }
 
+/* PDP editorial type floor: no customer-facing section copy below 14px. */
+.tea-editorial .tea-section-heading .eyebrow,
+.tea-editorial .tea-section-heading > p,
+.product-tea-journey .eyebrow {
+  font-size: 14px;
+}
+
+.tea-editorial .tea-section-heading h2 {
+  font-size: clamp(22px, 1.7vw, 26px);
+}
+
+.tea-record-summary-copy strong {
+  font-size: 15px;
+}
+
+.tea-record-summary-copy small,
+.tea-record-section .tea-record-grid dd {
+  font-size: 14px;
+}
+
+.tea-record-section .tea-record-grid dt {
+  font-size: 15px;
+}
+
+.tea-record-section .tea-record-grid > div,
+.tea-record-section .tea-record-grid > div:hover,
+.tea-record-section .tea-record-grid > div:nth-child(odd) {
+  padding-block: 8px;
+}
+
+.tea-editorial .tea-recipe-tabs button,
+.tea-editorial .tea-recipe-video-label,
+.tea-editorial .tea-recipe-panel dd,
+.tea-editorial .tea-recipe-panel p {
+  font-size: 14px;
+}
+
+.tea-editorial .tea-recipe-panel dt {
+  font-size: 15px;
+}
+
+.tea-editorial .tea-recipe-panel h3 {
+  font-size: 18px;
+}
+
+.tea-editorial .tea-recipe-panel dl > div {
+  padding-block: 8px;
+}
+
+.tea-editorial .tea-fit-card {
+  padding-block: 14px;
+}
+
+.tea-editorial .tea-fit-card h3 {
+  font-size: 15px;
+}
+
+.tea-editorial .tea-fit-card li {
+  padding-block: 8px;
+  font-size: 14px;
+}
+
+.tea-editorial .tea-founder-note {
+  padding-block: 14px;
+}
+
+.tea-editorial .tea-founder-note p,
+.tea-editorial .tea-founder-note footer,
+.tea-editorial .tea-meter-label,
+.tea-editorial .tea-character-facts span,
+.tea-editorial .tea-notes li {
+  font-size: 14px;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading,
+.tea-editorial .tea-fit-section .tea-section-heading,
+.tea-editorial .tea-why-section .tea-section-heading {
+  padding-block: 14px;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading > div,
+.tea-editorial .tea-fit-section .tea-section-heading > div,
+.tea-editorial .tea-why-section .tea-section-heading > div {
+  gap: 4px;
+}
+
+.product-journey-heading h2 {
+  font-size: 24px;
+}
+
+.product-journey-step-copy strong {
+  font-size: 17px;
+}
+
+.product-journey-step-copy small,
+.product-journey-step-copy > span {
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .product-journey-step-copy strong,
+  .product-journey-step-copy small {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .product-journey-heading h2 {
+    font-size: 22px;
+  }
+}
+
 /* Compact offer strip */
 .discount-progress {
   gap: 10px;
@@ -692,8 +806,8 @@ button[data-state='busy'] {
 .tea-record-summary {
   display: flex;
   align-items: center;
-  min-height: 64px;
-  padding: 10px 18px;
+  min-height: 56px;
+  padding: 8px 18px;
   border-bottom: 1px solid #ece5da;
   color: var(--pdp-ink);
   font-family: var(--sans);
@@ -705,12 +819,12 @@ button[data-state='busy'] {
 }
 .tea-record-summary-copy strong {
   color: var(--pdp-ink);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
 }
 .tea-record-summary-copy small {
   color: #64766d;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
 }
 .tea-record-section .tea-record-grid {
@@ -728,7 +842,7 @@ button[data-state='busy'] {
   gap: 12px;
   align-items: baseline;
   min-width: 0;
-  padding: 10px 0;
+  padding: 6px 0;
   border: 0;
   border-bottom: 1px solid #eee8de;
   border-radius: 0;
@@ -738,7 +852,7 @@ button[data-state='busy'] {
 }
 .tea-record-section .tea-record-grid dt {
   color: #64766d;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
@@ -746,7 +860,7 @@ button[data-state='busy'] {
 .tea-record-section .tea-record-grid dd {
   margin: 0;
   color: var(--pdp-ink);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   overflow-wrap: anywhere;
 }
@@ -1281,10 +1395,8 @@ button[data-state='busy'] {
 
 /* PDP contrast pass: colour and rendering only; preserve the compact sizing. */
 .product-page,
-.product-page button,
-.product-page input,
-.product-page summary {
-  -webkit-font-smoothing: antialiased;
+.product-page * {
+  -webkit-font-smoothing: auto !important;
   text-rendering: optimizeLegibility;
 }
 
@@ -1310,7 +1422,7 @@ button[data-state='busy'] {
 .product-page .product-review-card footer,
 .product-page .tea-record-summary-copy small,
 .product-page .tea-record-grid dt {
-  color: #334b3f !important;
+  color: #344b3f !important;
 }
 
 .product-page .product-section-nav a {
@@ -1338,6 +1450,32 @@ button[data-state='busy'] {
 .product-page .tea-record-grid dd,
 .product-page .product-quick-facts dd {
   color: #132a1f !important;
+}
+
+/* Keep small PDP copy on the regular/medium Now faces and maintain readable
+   contrast on the pale sage surfaces. */
+.product-page :where(p, li, dd, small) {
+  font-weight: 400;
+}
+
+.product-page :where(dt, label) {
+  font-weight: 500;
+}
+
+.tea-editorial .tea-recipe-panel p,
+.tea-editorial .tea-recipe-panel dd,
+.tea-editorial .tea-fit-card li,
+.tea-editorial .tea-founder-note p,
+.tea-editorial .tea-record-summary-copy small {
+  color: #344b3f !important;
+}
+
+.tea-editorial .tea-recipe-panel dt,
+.tea-editorial .tea-fit-card h3,
+.tea-editorial .tea-founder-note footer,
+.tea-editorial .tea-record-grid dt,
+.tea-editorial .tea-record-grid dd {
+  color: var(--pdp-ink) !important;
 }
 
 /* P3 purchase typography: preserve established buy-box and control geometry. */
@@ -1505,6 +1643,34 @@ button[data-state='busy'] {
   min-width: 0;
 }
 
+/* Keep the thumbnail rail scrollable without letting the native scrollbar
+   consume its narrow track and clip the thumbnail's right-hand border. */
+.product-purchase .product-thumbnails {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.product-purchase .product-thumbnails::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.product-purchase .product-thumbnail:hover,
+.product-purchase .product-thumbnail[aria-pressed='true'] {
+  transform: none;
+}
+
+@media (min-width: 641px) {
+  .product-purchase .product-media-gallery:has(.product-thumbnails) {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .product-purchase .product-thumbnails {
+    padding-right: 6px;
+  }
+}
+
 .product-purchase .product-gallery,
 .product-purchase .product-main,
 .product-purchase .product-form,
@@ -1573,6 +1739,126 @@ button[data-state='busy'] {
   font-family: var(--font-interface);
   font-size: 12px;
   line-height: 1.4;
+}
+
+.tea-editorial .tea-recipe-panel {
+  gap: clamp(24px, 3vw, 36px);
+  margin-top: 10px;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading {
+  margin-bottom: 12px;
+}
+
+.tea-editorial .tea-recipe-tabs {
+  gap: 6px;
+  padding: 4px;
+}
+
+.tea-editorial .tea-recipe-tabs button {
+  min-height: 0;
+  padding: 8px 18px;
+}
+
+.tea-editorial .tea-recipe-panel dl > div {
+  gap: 12px;
+  padding-block: 6px;
+}
+
+.tea-editorial .tea-recipe-panel dt {
+  font-size: 14px;
+}
+
+.tea-editorial .tea-recipe-panel dd {
+  font-size: 13px;
+}
+
+.tea-editorial .tea-recipe-video-thumb {
+  width: min(100%, 300px);
+  margin: 18px 0 0;
+}
+
+.tea-editorial .tea-fit-section,
+.tea-editorial .tea-why-section {
+  padding-block: 12px;
+}
+
+.tea-editorial .tea-why-section {
+  margin-top: 12px;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading,
+.tea-editorial .tea-fit-section .tea-section-heading,
+.tea-editorial .tea-why-section .tea-section-heading {
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 12px 20px;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading > div,
+.tea-editorial .tea-fit-section .tea-section-heading > div,
+.tea-editorial .tea-why-section .tea-section-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading .eyebrow,
+.tea-editorial .tea-fit-section .tea-section-heading .eyebrow,
+.tea-editorial .tea-why-section .tea-section-heading .eyebrow {
+  display: block;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.tea-editorial .tea-recipe-section .tea-section-heading h2,
+.tea-editorial .tea-fit-section .tea-section-heading h2,
+.tea-editorial .tea-why-section .tea-section-heading h2 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.tea-editorial .tea-fit-card {
+  padding: 10px 24px;
+}
+
+.tea-editorial .tea-fit-card h3 {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.tea-editorial .tea-fit-card li {
+  padding-block: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tea-editorial .tea-founder-note {
+  padding: 10px 24px;
+}
+
+.tea-editorial .tea-founder-note p {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tea-editorial .tea-founder-note footer {
+  display: grid;
+  gap: 3px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.tea-editorial .tea-founder-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tea-editorial .tea-founder-role {
+  padding-left: 14px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .product-page .product-review-card footer span {
@@ -1998,7 +2284,7 @@ button[data-state='busy'] {
   background: #a66f2d;
   transform: scaleX(0);
   transform-origin: left center;
-  animation: product-journey-progress 5s linear forwards;
+  animation: product-journey-progress var(--journey-stage-duration, 5s) linear forwards;
 }
 
 .product-journey-steps.is-paused button.is-active::after {
