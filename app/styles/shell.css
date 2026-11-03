@@ -1004,6 +1004,22 @@
     width: calc(100% - 2rem);
   }
 
+  .site-header.header,
+  .site-header.header.header-solid,
+  .site-header.header.header-scrolled,
+  .site-header.header.header-solid.header-scrolled {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .site-header.header.header-solid:not(.header-scrolled) .header-inner {
+    border-color: #a8b8ad;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgb(19 42 31 / 8%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
   .site-header.header .wordmark {
     /* Keep the centred wordmark inside the space between the two action
        groups. A fixed 10.5rem width overlaps the controls in narrow and
@@ -1025,14 +1041,29 @@
     width: 100%;
     height: auto;
     object-fit: contain;
+    opacity: 1;
+    filter: none;
   }
 
   .site-header.header .wordmark-endorsement {
     display: block;
     padding-left: 3.2rem;
+    color: #132a1f;
     font-size: 0.3125rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.09em;
+  }
+
+  .site-header .header-icon-button,
+  .site-header .header-menu-mobile-toggle {
+    color: #0d271b;
+    opacity: 1;
+  }
+
+  .site-header .header-icon-button svg,
+  .site-header .header-menu-mobile-toggle svg {
+    opacity: 1;
+    shape-rendering: geometricPrecision;
   }
 
   .site-header .header-account {
@@ -1056,13 +1087,80 @@
   }
 
   .site-footer .footer-preferences {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--space-4);
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .site-footer .footer-location {
+    width: auto;
+    min-width: 0;
+    margin-top: 0;
+  }
+
+  .site-footer .footer-location .market-picker {
+    width: auto;
+    max-width: none;
+  }
+
+  .site-footer .footer-location .market-picker summary,
+  .site-footer .footer-preferred-source .preferred-source-button {
+    min-height: 2.25rem;
+    box-sizing: border-box;
+  }
+
+  .site-footer .footer-location .market-picker summary {
+    width: auto;
+    gap: 0.4rem;
+    padding-inline: 0.65rem;
+  }
+
+  .site-footer .footer-location .market-picker summary > span {
+    font-size: 0.8125rem;
+  }
+
+  .site-footer .footer-location .market-picker summary > small {
+    font-size: 0.6875rem;
+  }
+
+  .site-footer .footer-location .market-picker-eyebrow {
+    font-size: 0.6875rem;
+  }
+
+  .site-footer .footer-location .header-country-indicator {
+    width: 1.25rem;
+    height: 0.875rem;
+    flex-basis: 1.25rem;
   }
 
   .site-footer .footer-preferred-source {
-    align-self: flex-end;
+    align-self: end;
+    justify-self: end;
+    width: auto;
+    min-width: 0;
+    margin-left: 0;
+    transform: translateY(0.25rem);
+  }
+
+  .site-footer .footer-preferred-source .preferred-source-button {
+    width: auto;
+    padding-inline: 0.7rem;
+    gap: 0.4rem;
+    font-size: 0.6875rem;
+  }
+
+  .site-footer .footer-preferred-source .preferred-source-button img {
+    width: 1rem;
+    min-width: 1rem;
+    max-width: 1rem;
+    height: 1rem;
+  }
+
+  .site-footer .footer-preferred-source .preferred-source-button span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .site-footer .footer-menu-desktop {

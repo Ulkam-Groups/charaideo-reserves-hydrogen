@@ -594,6 +594,39 @@ export default function Product() {
                     Shop all teas
                   </Link>
                 </div>
+                <div className="related-scroll-controls">
+                  <span>Swipe products</span>
+                  <div>
+                    <button
+                      type="button"
+                      aria-label="Show previous recommended product"
+                      onClick={(event) => {
+                        const rail = event.currentTarget
+                          .closest('.related-scroll-controls')
+                          ?.nextElementSibling;
+                        if (rail instanceof HTMLElement) {
+                          rail.scrollBy({left: -rail.clientWidth * 0.82, behavior: 'smooth'});
+                        }
+                      }}
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Show next recommended product"
+                      onClick={(event) => {
+                        const rail = event.currentTarget
+                          .closest('.related-scroll-controls')
+                          ?.nextElementSibling;
+                        if (rail instanceof HTMLElement) {
+                          rail.scrollBy({left: rail.clientWidth * 0.82, behavior: 'smooth'});
+                        }
+                      }}
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
                 <div className="recommended-products-grid">
                   {products.map((relatedProduct) => (
                     <ProductItem key={relatedProduct.id} product={relatedProduct} />

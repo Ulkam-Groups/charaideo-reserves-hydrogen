@@ -152,7 +152,7 @@ export function ProductTeaJourney({product}: {product: JourneyProduct}) {
 
   const steps = [
     {
-      title: 'Harvested & Crafted',
+      title: 'Plucked and crafted',
       date: formatDate(journey.source.craftedAt || journey.source.harvestedAt),
       body:
         journey.source.processNote ||

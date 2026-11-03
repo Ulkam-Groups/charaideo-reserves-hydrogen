@@ -1015,6 +1015,49 @@ button[data-state='busy'] {
   letter-spacing: 0.06em;
   box-shadow: none;
 }
+.product-purchase .product-actions > form button.add-to-cart-swipe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  line-height: 1;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.product-purchase .add-to-cart-label {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  line-height: 1;
+  transform: translateY(1px);
+}
+.product-purchase .add-to-cart-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  transform: translateX(var(--add-cart-swipe-offset, 0));
+  transition: transform 160ms ease;
+}
+.product-purchase .add-to-cart-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.product-purchase .add-to-cart-icon path {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (max-width: 640px) {
+  .product-purchase .product-actions > form,
+  .product-purchase .product-actions > form button,
+  .product-purchase .product-actions .product-buy-now {
+    height: 38px;
+    min-height: 38px;
+  }
+}
 .product-purchase .product-actions .product-buy-now {
   gap: 9px;
   position: relative;
@@ -1043,6 +1086,10 @@ button[data-state='busy'] {
 .product-purchase .product-actions .product-buy-now > * {
   position: relative;
   z-index: 1;
+}
+.product-purchase .product-actions .product-buy-now > span {
+  line-height: 1;
+  transform: translateY(1px);
 }
 .product-purchase .product-actions .product-buy-now::after {
   content: '';
@@ -1623,7 +1670,63 @@ button[data-state='busy'] {
   .product-purchase .product-mobile-purchase-bar > div span,
   .product-purchase .product-mobile-purchase-bar > div small {
     font-family: var(--font-interface);
-    font-size: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-purchase .product-mobile-purchase-bar {
+    color: var(--pdp-ink);
+    text-rendering: optimizeLegibility;
+  }
+
+  .product-purchase .product-mobile-purchase-bar > div span {
+    color: #193126;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .product-purchase .product-mobile-purchase-bar > div strong {
+    color: #10281d;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+
+  .product-purchase .product-mobile-purchase-bar > div small {
+    color: #263e32;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+
+  .product-purchase .product-mobile-purchase-bar form button.add-to-cart-swipe {
+    display: inline-grid;
+    grid-template-columns: 18px auto;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 14px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .product-purchase
+    .product-mobile-purchase-bar
+    button.add-to-cart-swipe
+    .add-to-cart-label {
+    align-self: center;
+    transform: none;
+  }
+
+  .product-purchase .product-mobile-purchase-bar .add-to-cart-icon {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
   }
 }
 
@@ -2432,5 +2535,183 @@ button[data-state='busy'] {
   .product-journey-steps button.is-active::after {
     animation: none;
     transform: scaleX(1);
+  }
+}
+
+/* Founder quotation: restrained editorial treatment with aligned attribution. */
+.tea-editorial .tea-founder-note {
+  position: relative;
+  padding: 18px 28px;
+}
+
+.tea-editorial .tea-founder-note p {
+  position: relative;
+  max-width: 1040px;
+  padding-left: 18px;
+  border-left: 2px solid #a97445;
+  color: var(--pdp-ink) !important;
+  font-family: var(--font-editorial);
+  font-size: clamp(16px, 1.2vw, 18px);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+
+.tea-editorial .tea-founder-note p::before {
+  content: none;
+}
+
+.tea-editorial .tea-founder-note footer {
+  margin-top: 16px;
+  padding-left: 20px;
+}
+
+.tea-editorial .tea-founder-role {
+  padding-left: 0;
+}
+
+@media (max-width: 600px) {
+  .tea-editorial .tea-founder-note {
+    padding: 16px 20px;
+  }
+
+  .tea-editorial .tea-founder-note p {
+    font-size: 16px;
+    padding-left: 14px;
+  }
+
+  .tea-editorial .tea-founder-note footer {
+    padding-left: 16px;
+  }
+}
+
+/* Use one rhythm between the four commerce/editorial information sections. */
+.tea-editorial :is(
+  .tea-record-section,
+  .tea-recipe-section,
+  .tea-fit-section,
+  .tea-why-section
+) {
+  margin-block: 0;
+  padding-block: 0;
+}
+
+.tea-editorial
+  :is(.tea-record-section, .tea-recipe-section, .tea-fit-section)
+  + :is(.tea-recipe-section, .tea-fit-section, .tea-why-section) {
+  margin-top: 30px;
+}
+
+/* Mobile related products: compact heading and one swipeable card rail. */
+.product-page .related-scroll-controls {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .product-page .product-related {
+    padding: 36px 20px 12px;
+  }
+
+  .product-page .product-related .editorial-heading {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .product-page .product-related .editorial-heading .eyebrow {
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .product-page .product-related .editorial-heading h2 {
+    font-size: 28px;
+    line-height: 1.05;
+  }
+
+  .product-page .product-related .editorial-heading p {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+
+  .product-page .product-related .text-link {
+    font-size: 14px;
+  }
+
+  .product-page .related-scroll-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #40564a;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .product-page .related-scroll-controls > div {
+    display: flex;
+    gap: 8px;
+  }
+
+  .product-page .related-scroll-controls button {
+    display: grid;
+    width: 36px;
+    min-height: 36px;
+    padding: 0;
+    place-items: center;
+    border: 1px solid #b8c7be;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--pdp-ink);
+    font-size: 24px;
+    line-height: 1;
+    box-shadow: none;
+  }
+
+  .product-page .related-scroll-controls button:active {
+    background: var(--pdp-mint);
+  }
+
+  .product-page .recommended-products-grid {
+    display: flex;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 12px;
+    justify-content: flex-start;
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: #789083 #edf4ef;
+    scrollbar-width: thin;
+    touch-action: pan-x;
+    cursor: grab;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .product-page .recommended-products-grid:active {
+    cursor: grabbing;
+  }
+
+  .product-page .recommended-products-grid::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .product-page .recommended-products-grid::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #edf4ef;
+  }
+
+  .product-page .recommended-products-grid::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #789083;
+  }
+
+  .product-page .recommended-products-grid > .catalog-card {
+    flex: 0 0 min(78vw, 300px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 }

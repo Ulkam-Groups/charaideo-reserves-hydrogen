@@ -297,6 +297,7 @@ export function ProductForm({
         {(!selectedVariant || selectedVariant.availableForSale) && (
           <AddToCartButton
             disabled={!selectedVariant || !selectedVariant.availableForSale}
+            mobileSwipe
             onClick={() => {
               open('cart');
             }}
@@ -454,6 +455,7 @@ export function ProductForm({
             </small>
           </div>
           <AddToCartButton
+            mobileSwipe
             lines={[
               {
                 merchandiseId: selectedVariant.id,
