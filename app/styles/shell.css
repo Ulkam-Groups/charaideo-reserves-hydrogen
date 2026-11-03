@@ -173,7 +173,7 @@
   width: auto;
   height: 3rem;
   opacity: 1;
-  filter: none;
+  filter: contrast(1.04) saturate(1.02);
   transition: opacity var(--motion-standard) var(--ease-standard);
 }
 
@@ -195,7 +195,7 @@
 .site-header.header .wordmark:hover img,
 .site-header.header .wordmark:focus-visible img {
   opacity: 1;
-  filter: none;
+  filter: contrast(1.04) saturate(1.02);
   transform: none;
 }
 
