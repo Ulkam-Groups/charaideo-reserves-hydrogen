@@ -3350,7 +3350,7 @@ shopify-chat[open]::part(dialog) {
   font-size: 15px;
 }
 .content-page-contact .content-hero {
-  background: #132a1f !important;
+  background: var(--surface-matcha-gradient) !important;
 }
 .content-page-contact .content-hero h1 {
   color: #ffffff;
@@ -3804,14 +3804,31 @@ main.main--offset:has(> .contact-page) {
   letter-spacing: 0.11em;
 }
 .contact-intro {
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
-  gap: clamp(36px, 6vw, 84px);
-  align-items: start;
-  padding: clamp(86px, 7vw, 104px) var(--gutter) clamp(36px, 4vw, 52px);
+  position: relative;
+  display: flex;
+  min-height: clamp(400px, 52svh, 540px);
+  align-items: flex-end;
+  isolation: isolate;
+  overflow: hidden;
+  padding: calc(var(--header-height) + 64px) var(--gutter) clamp(36px, 4vw, 52px);
   background: #17392f;
   color: #f4ebdd;
+}
+.contact-intro::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 24, 17, 0.52) 0%, rgba(5, 24, 17, 0.24) 42%, rgba(5, 24, 17, 0.03) 76%),
+    linear-gradient(0deg, rgba(5, 24, 17, 0.38) 0%, rgba(5, 24, 17, 0) 55%);
+  pointer-events: none;
+}
+.contact-intro-copy {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 650px);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
 }
 .contact-intro .eyebrow,
 .contact-location .eyebrow {
@@ -3848,6 +3865,33 @@ main.main--offset:has(> .contact-page) {
   color: #f4ebdd;
   font-size: clamp(17px, 1.25vw, 20px);
   line-height: 1.35;
+}
+.contact-intro-media {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  overflow: hidden;
+}
+.contact-intro-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 46%;
+  transform: scale(1.015);
+  transform-origin: center center;
+  will-change: transform;
+  animation: contact-hero-smooth-zoom 16s ease-in-out infinite alternate;
+}
+@keyframes contact-hero-smooth-zoom {
+  from {transform: scale(1.015);}
+  to {transform: scale(1.14);}
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-intro-media img {
+    animation: none;
+    transform: none;
+  }
 }
 .contact-details,
 .contact-social {
@@ -4283,7 +4327,7 @@ main.main--offset:has(> .contact-page) {
   min-height: 0;
   padding: clamp(44px, 5vw, 60px) var(--gutter) 118px;
   overflow: hidden;
-  background: #132a1f;
+  background: var(--surface-matcha-gradient);
   color: #f4ebdd;
 }
 .contact-location::after {
@@ -4472,7 +4516,16 @@ main.main--offset:has(> .contact-page) {
   .contact-location,
   .contact-faq,
   .contact-social {grid-template-columns: 1fr;}
-  .contact-intro {min-height: auto; align-items: start; padding-top: 86px;}
+  .contact-intro {
+    min-height: clamp(430px, 68svh, 580px);
+    align-items: flex-end;
+    padding: calc(var(--header-height) + 56px) var(--gutter) 32px;
+  }
+  .contact-intro::after {
+    background: linear-gradient(0deg, rgba(5, 24, 17, 0.64) 0%, rgba(5, 24, 17, 0.3) 45%, rgba(5, 24, 17, 0.04) 78%);
+  }
+  .contact-intro-media {width: auto; min-height: 0; aspect-ratio: auto;}
+  .contact-intro-media img {object-position: center center;}
   .contact-section-heading {grid-template-columns: 1fr;}
   .contact-form-fields {grid-template-columns: 1fr;}
   .contact-form-section--modal {grid-template-columns: 1fr; padding-top: 50px;}
@@ -4964,18 +5017,79 @@ body {
   backdrop-filter: blur(12px);
 }
 .product-image-lightbox-content {
+  position: relative;
   display: grid;
   place-items: center;
-  width: min(92vw, 940px);
-  height: min(88vh, 940px);
+  width: min(82vw, 900px);
+  height: min(74vh, 680px);
   overflow: hidden;
   border-radius: 20px;
-  background: #ffffff;
+  background: #f7f8f6;
+  box-shadow: 0 18px 56px rgba(0, 0, 0, 0.28);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.product-image-lightbox-content:active {
+  cursor: grabbing;
 }
 .product-image-lightbox-content img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: contain;
+  object-position: center;
+  transform-origin: center center;
+  will-change: transform;
+  pointer-events: none;
+}
+.product-image-lightbox-controls {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 5px;
+  border: 1px solid rgba(18, 49, 35, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 28px rgba(7, 19, 13, 0.18);
+  color: #123123;
+  transform: translateX(-50%);
+  cursor: default;
+}
+.product-image-lightbox-controls button {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #123123;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1;
+}
+.product-image-lightbox-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.product-image-lightbox-controls output {
+  min-width: 48px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.product-image-lightbox-controls .product-image-lightbox-reset {
+  min-width: auto;
 }
 .product-image-lightbox-close {
   position: absolute;

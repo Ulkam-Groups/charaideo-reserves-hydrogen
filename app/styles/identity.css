@@ -491,7 +491,7 @@ button {cursor: pointer}
 .content-section-grid h2 {margin: 48px 0 14px; color: var(--assam-red); font-size: 34px; line-height: 1}
 .content-section-grid p {max-width: 500px; margin: 0; color: var(--quiet-ink); font-size: 12px; line-height: 1.8}
 .content-section-grid a {color: var(--assam-red); border-bottom: 1px solid currentColor}
-.content-page-contact .content-hero {background: var(--aged-indigo)!important}
+.content-page-contact .content-hero {background: var(--surface-matcha-gradient)!important}
 .content-page-contact .content-hero h1 {color: var(--gamosa-cream)}
 .content-page-contact .content-hero p {color: rgba(244,235,221,.72)}
 .content-page-contact .content-hero .eyebrow {color: var(--tea-liquor)}
@@ -585,7 +585,7 @@ button {cursor: pointer}
 
 /* Sign in */
 .signin-page {display: grid; grid-template-columns: 1.15fr .85fr; min-height: calc(100vh - var(--header-height)); padding: 0}
-.signin-story {position: relative; display: flex; flex-direction: column; justify-content: center; padding: 70px var(--gutter); overflow: hidden; background: var(--aged-indigo); color: var(--gamosa-cream)}
+.signin-story {position: relative; display: flex; flex-direction: column; justify-content: center; padding: 70px var(--gutter); overflow: hidden; background: var(--surface-matcha-gradient); color: var(--gamosa-cream)}
 .signin-story .eyebrow {color: var(--tea-liquor)}
 .signin-cha {position: absolute; right: 7%; top: 8%; color: rgba(120,144,140,.24); font-size: clamp(180px,28vw,480px); font-family: serif; line-height: 1}
 .signin-story h1 {position: relative; z-index: 2; margin: 0; color: var(--gamosa-cream); font-size: clamp(60px,8vw,118px); line-height: .82}
@@ -1029,7 +1029,7 @@ body {font-size: var(--type-body); line-height: 1.65}
 
 /* Catalog: a clear dark introduction and quieter product canvas */
 .catalog-page {background: var(--paper)}
-.catalog-page .catalog-hero {grid-template-columns: minmax(0,1fr) minmax(300px,.8fr); gap: clamp(24px,5vw,80px); min-height: 390px; padding-block: 58px; background: var(--aged-indigo)}
+.catalog-page .catalog-hero {grid-template-columns: minmax(0,1fr) minmax(300px,.8fr); gap: clamp(24px,5vw,80px); min-height: 390px; padding-block: 58px; background: var(--surface-matcha-gradient)}
 .catalog-page .catalog-hero .eyebrow {color: #e7b474}
 .catalog-page .catalog-hero h1 {max-width: 720px; margin-bottom: 20px; color: var(--paper); line-height: .94}
 .catalog-page .catalog-hero h1 em {color: #d8cab3}
@@ -1050,7 +1050,7 @@ body {font-size: var(--type-body); line-height: 1.65}
 
 /* Merchant-authored Shopify policies */
 .policy-page,.policies-page {background: var(--paper)}
-.policy-hero {padding: 55px var(--gutter); background: var(--aged-indigo)}
+.policy-hero {padding: 55px var(--gutter); background: var(--surface-matcha-gradient)}
 .policy-hero-inner {max-width: 1120px; margin: 0 auto}
 .policy-back {display: inline-block; margin-bottom: 26px; color: var(--paper); font-size: var(--type-small)}
 .policy-hero .eyebrow {margin-bottom: 12px; color: #e7b474}

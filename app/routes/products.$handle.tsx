@@ -594,6 +594,39 @@ export default function Product() {
                     Shop all teas
                   </Link>
                 </div>
+                <div className="related-scroll-controls">
+                  <span>Swipe products</span>
+                  <div>
+                    <button
+                      type="button"
+                      aria-label="Show previous recommended product"
+                      onClick={(event) => {
+                        const rail = event.currentTarget
+                          .closest('.related-scroll-controls')
+                          ?.nextElementSibling;
+                        if (rail instanceof HTMLElement) {
+                          rail.scrollBy({left: -rail.clientWidth * 0.82, behavior: 'smooth'});
+                        }
+                      }}
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Show next recommended product"
+                      onClick={(event) => {
+                        const rail = event.currentTarget
+                          .closest('.related-scroll-controls')
+                          ?.nextElementSibling;
+                        if (rail instanceof HTMLElement) {
+                          rail.scrollBy({left: rail.clientWidth * 0.82, behavior: 'smooth'});
+                        }
+                      }}
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
                 <div className="recommended-products-grid">
                   {products.map((relatedProduct) => (
                     <ProductItem key={relatedProduct.id} product={relatedProduct} />
@@ -806,6 +839,7 @@ const PRODUCT_FRAGMENT = `#graphql
     process: metafield(namespace: "custom", key: "process") { value }
     teaStyle: metafield(namespace: "custom", key: "tea_style") { value }
     lotNumber: metafield(namespace: "custom", key: "lot_number") { value }
+    invoice: metafield(namespace: "custom", key: "invoice") { value }
     isThisTeaYes: metafield(namespace: "custom", key: "is_this_tea_yes") { value }
     isThisTeaNo: metafield(namespace: "custom", key: "is_this_tea_no") { value }
     whyChooseTea: metafield(namespace: "custom", key: "why_choose_tea") { value }

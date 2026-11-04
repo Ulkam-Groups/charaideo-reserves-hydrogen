@@ -132,6 +132,33 @@ test('cart reconciliation retries a transient unavailable read', async (t) => {
   assert.equal(requests, 2);
 });
 
+test('cart reconciliation retries when the total arrives before its lines', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    invalidateCartReconciliation();
+  });
+
+  const completeCart = {
+    id: 'gid://shopify/Cart/first-item',
+    updatedAt: '2026-10-27T12:00:02.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  let requests = 0;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return Response.json({
+      cart: requests === 1 ? {...completeCart, lines: {nodes: []}} : completeCart,
+      unavailable: false,
+    });
+  };
+  invalidateCartReconciliation();
+
+  assert.deepEqual(await reconcileCartState(), completeCart);
+  assert.equal(requests, 2);
+});
+
 test('background checkout cleanup publishes the cleared server cart', async (t) => {
   const originalFetch = globalThis.fetch;
   t.after(() => {
@@ -174,5 +201,108 @@ test('stale loader carts cannot overwrite empty-boundary mutations', () => {
   assert.equal(
     selectAuthoritativeCart(firstItemCart as never, lastItemRemovedCart as never),
     lastItemRemovedCart,
+  );
+});
+
+test('an equal-timestamp empty loader cart cannot erase the first item', () => {
+  const firstItemCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const staleEmptyCart = {
+    id: firstItemCart.id,
+    updatedAt: firstItemCart.updatedAt,
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(firstItemCart as never, staleEmptyCart as never),
+    firstItemCart,
+  );
+});
+
+test('an equal-timestamp first-item mutation replaces the original empty cart', () => {
+  const timestamp = '2026-10-12T12:00:00.000Z';
+  const originalEmptyCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: timestamp,
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+  const firstItemCart = {
+    ...originalEmptyCart,
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(originalEmptyCart as never, firstItemCart as never),
+    firstItemCart,
+  );
+});
+
+test('repeated equal-timestamp empty reads cannot roll back a confirmed first item', () => {
+  const firstItemCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const staleEmptyReads = Array.from({length: 10}, () => ({
+    id: firstItemCart.id,
+    updatedAt: firstItemCart.updatedAt,
+    totalQuantity: 0,
+    lines: {nodes: []},
+  }));
+
+  const selected = staleEmptyReads.reduce(
+    (cart, candidate) =>
+      selectAuthoritativeCart(cart as never, candidate as never) as typeof firstItemCart,
+    firstItemCart,
+  );
+
+  assert.equal(selected, firstItemCart);
+  assert.equal(selected.totalQuantity, 1);
+});
+
+test('a newer empty cart still clears the confirmed last item', () => {
+  const firstItemCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const clearedCart = {
+    id: firstItemCart.id,
+    updatedAt: '2026-10-12T12:00:00.001Z',
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(firstItemCart as never, clearedCart as never),
+    clearedCart,
+  );
+});
+
+test('a partial cart read cannot overwrite a complete mutation cart', () => {
+  const completeCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const partialCart = {
+    ...completeCart,
+    updatedAt: '2026-10-12T12:00:01.000Z',
+    lines: {nodes: []},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(completeCart as never, partialCart as never),
+    completeCart,
   );
 });

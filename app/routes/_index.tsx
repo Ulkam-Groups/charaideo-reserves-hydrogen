@@ -11,7 +11,6 @@ import {
   useRevalidator,
   useSearchParams,
 } from 'react-router';
-import heroImage from '~/assets/Misty Sunrise Tea Harvest.webp?url';
 import artifactStylesheet from '~/assets/homepage-artifact.css?url';
 import brandStoryStylesheet from '~/styles/brand-story.css?url';
 import type {Route} from './+types/_index';
@@ -257,6 +256,77 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
 const xe = React;
 const f = jsx;
 const y = jsxs;
+
+const HERO_VIDEO_CDN_ROOT =
+  'https://cdn.shopify.com/videos/c/vp/5cb3b91eb9664b4da21beaa3be340328';
+const HERO_VIDEO_1080_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-1080p-7.2Mbps-99984706.mp4`;
+const HERO_VIDEO_720_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-720p-4.5Mbps-99984706.mp4`;
+
+function HeroVideo() {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let isVisible = false;
+
+    const syncPlayback = () => {
+      if (document.hidden || reducedMotion.matches || !isVisible) {
+        video.pause();
+        return;
+      }
+
+      void video.play().catch(() => {
+        // Muted playback may still be blocked by a user-agent policy.
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = Boolean(entry?.isIntersecting);
+        syncPlayback();
+      },
+      {threshold: 0.05},
+    );
+    const handleVisibilityChange = () => syncPlayback();
+    const handleMotionChange = () => syncPlayback();
+
+    observer.observe(video);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    reducedMotion.addEventListener('change', handleMotionChange);
+    syncPlayback();
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      reducedMotion.removeEventListener('change', handleMotionChange);
+      video.pause();
+    };
+  }, []);
+
+  return (
+    <video
+      ref={videoRef}
+      className="home-hero-image"
+      poster="/hero-video-poster.jpg"
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      aria-hidden="true"
+    >
+      <source
+        src={HERO_VIDEO_720_URL}
+        type="video/mp4"
+        media="(max-width: 767px)"
+      />
+      <source src={HERO_VIDEO_1080_URL} type="video/mp4" />
+    </video>
+  );
+}
 
 function HeroBrandArtwork() {
   const artworkRef = React.useRef<HTMLDivElement>(null);
@@ -1120,16 +1190,7 @@ export default function Homepage() {
       f('section', {
         className: 'home-hero-stage relative overflow-hidden max-w-[100vw]',
         children: [
-          f(
-            'img',
-            {
-              className: 'home-hero-image',
-              src: heroImage,
-              alt: '',
-              'aria-hidden': true,
-            },
-            'hero-image',
-          ),
+          <HeroVideo key="hero-video" />,
           f(
             'div',
             {
@@ -1153,7 +1214,7 @@ export default function Homepage() {
                         className:
                           'hero-display-title serif text-[42px] md:text-[64px] leading-[0.93] tracking-[-0.025em] max-w-[560px]',
                         children: [
-                          'The Reserve Collections of ',
+                          'Tea Reserve of ',
                           f('span', {
                             className: 'hero-title-accent',
                             children: "Assam's",
@@ -1203,7 +1264,7 @@ export default function Homepage() {
                       }),
                     ],
                   }),
-                  <HeroBrandArtwork />,
+                  // <HeroBrandArtwork />,
                 ],
               }),
             },
@@ -1354,8 +1415,8 @@ export default function Homepage() {
                     }),
                     f('p', {
                       className:
-                        'mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]',
-                      children: 'Discover each garden as it enters the list.',
+                        'chapter-collection-copy mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]',
+                      children: 'From Assam\'s estates, we seek out teas that have something worth remembering - a distinct character, a sense of place, and a story of their own.',
                     }),
                   ],
                 }),

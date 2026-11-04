@@ -64,6 +64,12 @@
   --surface-page: var(--color-paper);
   --surface-subtle: var(--color-gamosa-100);
   --surface-inverse: var(--color-assam-green-900);
+  --surface-matcha-gradient: radial-gradient(
+    120% 120% at 80% 10%,
+    #29493b 0%,
+    #132a1f 55%,
+    #07160f 100%
+  );
   --text-primary: var(--color-ink);
   --text-secondary: var(--color-leaf-600);
   --text-accent: var(--color-tea-800);

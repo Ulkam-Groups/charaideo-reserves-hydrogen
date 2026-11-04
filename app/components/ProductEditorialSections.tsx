@@ -40,6 +40,7 @@ type ProductEditorialData = {
   process?: MetafieldValue;
   teaStyle?: MetafieldValue;
   lotNumber?: MetafieldValue;
+  invoice?: MetafieldValue;
   netWeight?: MetafieldValue;
   isThisTeaYes?: MetafieldValue;
   isThisTeaNo?: MetafieldValue;
@@ -410,6 +411,7 @@ function TeaRecord({
     ['Allergens', product.allergens?.value],
     ['Certifications', product.certifications?.value],
     ['Lot', product.lotNumber?.value],
+    ['Invoice', product.invoice?.value],
     ['Pack size', formatValue(product.netWeight?.value) || packSizes || selectedWeight],
   ] as const;
   const filled = records.filter(([, value]) => Boolean(value));
@@ -502,6 +504,11 @@ function FitList({
 function WhyThisTea({product}: {product: ProductEditorialData}) {
   if (!product.whyChooseTea?.value) return null;
 
+  const attribution = product.whyChooseAttribution?.value?.trim();
+  const [founderName, ...founderRoleParts] =
+    attribution?.split(/\s*[·•]\s*/) ?? [];
+  const founderRole = founderRoleParts.join(' · ');
+
   return (
     <section id="tea-why-section" className="tea-section tea-why-section" suppressHydrationWarning aria-labelledby="why-this-tea-title">
       <div className="tea-section-shell">
@@ -512,8 +519,13 @@ function WhyThisTea({product}: {product: ProductEditorialData}) {
         />
         <blockquote className="tea-founder-note">
           <p>{product.whyChooseTea.value}</p>
-          {product.whyChooseAttribution?.value && (
-            <footer>- {product.whyChooseAttribution.value}</footer>
+          {attribution && (
+            <footer>
+              <span className="tea-founder-name">- {founderName}</span>
+              {founderRole && (
+                <span className="tea-founder-role">{founderRole}</span>
+              )}
+            </footer>
           )}
         </blockquote>
       </div>

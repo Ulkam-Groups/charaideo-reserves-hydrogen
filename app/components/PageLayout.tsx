@@ -1,5 +1,5 @@
 import {Await, Link, useLocation} from 'react-router';
-import {Suspense, useEffect, useState} from 'react';
+import {Suspense} from 'react';
 import type {CartApiQueryFragment, HeaderQuery} from 'storefrontapi.generated';
 import {Aside, useAside} from '~/components/Aside';
 import {Footer, MarketSelector} from '~/components/Footer';
@@ -86,67 +86,30 @@ function NoticeBoard({
   notices: StorefrontNotice[];
   freeShippingMilestone?: DiscountProgressMilestone;
 }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [previousIndex, setPreviousIndex] = useState<number | null>(null);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    setActiveIndex(0);
-    setPreviousIndex(null);
-  }, [notices.length]);
-
-  useEffect(() => {
-    if (notices.length < 2 || paused) return;
-    const interval = window.setInterval(() => {
-      setPreviousIndex(activeIndex);
-      setActiveIndex((activeIndex + 1) % notices.length);
-    }, 5000);
-    return () => window.clearInterval(interval);
-  }, [activeIndex, notices.length, paused]);
-
-  useEffect(() => {
-    if (previousIndex === null) return;
-    const timeout = window.setTimeout(() => setPreviousIndex(null), 950);
-    return () => window.clearTimeout(timeout);
-  }, [previousIndex]);
-
   if (!notices.length) return null;
-  const notice = notices[activeIndex] ?? notices[0];
-  const previousNotice =
-    previousIndex === null ? null : (notices[previousIndex] ?? null);
 
   return (
-    <div
-      className="notice-board site-notice-board"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
-      }}
-      onFocus={() => setPaused(true)}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      {previousNotice && previousIndex !== activeIndex && (
-        <div
-          aria-hidden="true"
-          className="notice-board-slide notice-board-slide--outgoing"
-          key={`outgoing-${previousNotice.id}`}
-        >
-          <NoticeLink
-            notice={previousNotice}
-            freeShippingMilestone={freeShippingMilestone}
-            tabIndex={-1}
-          />
+    <div className="notice-board site-notice-board">
+      <div className="notice-marquee-track">
+        <div className="notice-marquee-group">
+          {notices.map((notice) => (
+            <NoticeLink
+              key={notice.id}
+              notice={notice}
+              freeShippingMilestone={freeShippingMilestone}
+            />
+          ))}
         </div>
-      )}
-      <div
-        className={`notice-board-slide ${
-          previousNotice
-            ? 'notice-board-slide--incoming'
-            : 'notice-board-slide--current'
-        }`}
-        key={`current-${notice.id}`}
-      >
-        <NoticeLink notice={notice} freeShippingMilestone={freeShippingMilestone} />
+        <div aria-hidden="true" className="notice-marquee-group">
+          {notices.map((notice) => (
+            <NoticeLink
+              key={`duplicate-${notice.id}`}
+              notice={notice}
+              freeShippingMilestone={freeShippingMilestone}
+              tabIndex={-1}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

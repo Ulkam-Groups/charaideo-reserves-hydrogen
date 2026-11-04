@@ -97,6 +97,19 @@ test('global shell follows the readable type and target-size contract', async ()
   assert.match(css, /\.notice-board-item[\s\S]*height: 100%/);
 });
 
+test('mobile endorsed wordmark cannot overflow its centered header slot', async () => {
+  const css = await readFile(shellUrl, 'utf8');
+
+  assert.match(
+    css,
+    /@media \(max-width: 40rem\) \{[\s\S]*\.site-header\.header \.wordmark--endorsed \{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 40rem\) \{[\s\S]*\.site-header\.header \.wordmark-endorsement \{[\s\S]*min-width: 0[\s\S]*width: 100%/,
+  );
+});
+
 test('P2 product cards use the canonical readable commerce contract', async () => {
   const css = await readFile(merchandisingUrl, 'utf8');
 
