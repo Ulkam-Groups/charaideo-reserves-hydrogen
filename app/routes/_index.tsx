@@ -311,6 +311,7 @@ function HeroVideo() {
       ref={videoRef}
       className="home-hero-image"
       poster="/hero-video-poster.jpg"
+      autoPlay
       muted
       loop
       playsInline
@@ -1414,8 +1415,8 @@ export default function Homepage() {
                     }),
                     f('p', {
                       className:
-                        'mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]',
-                      children: 'Discover each garden as it enters the list.',
+                        'chapter-collection-copy mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]',
+                      children: 'From Assam\'s estates, we seek out teas that have something worth remembering - a distinct character, a sense of place, and a story of their own.',
                     }),
                   ],
                 }),

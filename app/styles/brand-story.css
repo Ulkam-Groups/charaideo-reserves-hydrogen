@@ -146,6 +146,12 @@
   margin-bottom: 64px;
 }
 
+@media (min-width: 1024px) {
+  .chapter-collection-copy {
+    max-width: 680px;
+  }
+}
+
 .hero-action {
   display: inline-flex;
   align-items: center;
