@@ -1072,13 +1072,16 @@
   }
 
   .site-header.header .wordmark--endorsed {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto;
+    justify-items: stretch;
     gap: 0.125rem;
   }
 
   .site-header.header .wordmark img,
   .site-header.header .wordmark--endorsed img {
     display: block;
+    min-width: 0;
     max-width: 100%;
     width: 100%;
     height: auto;
@@ -1089,6 +1092,8 @@
 
   .site-header.header .wordmark-endorsement {
     display: block;
+    min-width: 0;
+    width: 100%;
     padding-left: 3.2rem;
     color: #132a1f;
     font-size: 0.3125rem;
