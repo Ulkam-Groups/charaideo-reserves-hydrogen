@@ -103,6 +103,17 @@ export function selectAuthoritativeCart(
   if (isCartSnapshotComplete(current) && !isCartSnapshotComplete(candidate)) {
     return current;
   }
+  // Shopify can reuse the same `updatedAt` value for the first mutation and a
+  // concurrent stale loader read. Do not let an equal-timestamp empty snapshot
+  // erase the authoritative first-item mutation. A truly newer empty cart is
+  // still accepted when the last item is intentionally removed.
+  if (
+    current.totalQuantity > 0 &&
+    candidate.totalQuantity === 0 &&
+    Date.parse(candidate.updatedAt) === Date.parse(current.updatedAt)
+  ) {
+    return current;
+  }
   return Date.parse(candidate.updatedAt) >= Date.parse(current.updatedAt)
     ? candidate
     : current;

@@ -204,6 +204,90 @@ test('stale loader carts cannot overwrite empty-boundary mutations', () => {
   );
 });
 
+test('an equal-timestamp empty loader cart cannot erase the first item', () => {
+  const firstItemCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const staleEmptyCart = {
+    id: firstItemCart.id,
+    updatedAt: firstItemCart.updatedAt,
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(firstItemCart as never, staleEmptyCart as never),
+    firstItemCart,
+  );
+});
+
+test('an equal-timestamp first-item mutation replaces the original empty cart', () => {
+  const timestamp = '2026-10-12T12:00:00.000Z';
+  const originalEmptyCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: timestamp,
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+  const firstItemCart = {
+    ...originalEmptyCart,
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(originalEmptyCart as never, firstItemCart as never),
+    firstItemCart,
+  );
+});
+
+test('repeated equal-timestamp empty reads cannot roll back a confirmed first item', () => {
+  const firstItemCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const staleEmptyReads = Array.from({length: 10}, () => ({
+    id: firstItemCart.id,
+    updatedAt: firstItemCart.updatedAt,
+    totalQuantity: 0,
+    lines: {nodes: []},
+  }));
+
+  const selected = staleEmptyReads.reduce(
+    (cart, candidate) =>
+      selectAuthoritativeCart(cart as never, candidate as never) as typeof firstItemCart,
+    firstItemCart,
+  );
+
+  assert.equal(selected, firstItemCart);
+  assert.equal(selected.totalQuantity, 1);
+});
+
+test('a newer empty cart still clears the confirmed last item', () => {
+  const firstItemCart = {
+    id: 'gid://shopify/Cart/test',
+    updatedAt: '2026-10-12T12:00:00.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  const clearedCart = {
+    id: firstItemCart.id,
+    updatedAt: '2026-10-12T12:00:00.001Z',
+    totalQuantity: 0,
+    lines: {nodes: []},
+  };
+
+  assert.equal(
+    selectAuthoritativeCart(firstItemCart as never, clearedCart as never),
+    clearedCart,
+  );
+});
+
 test('a partial cart read cannot overwrite a complete mutation cart', () => {
   const completeCart = {
     id: 'gid://shopify/Cart/test',
