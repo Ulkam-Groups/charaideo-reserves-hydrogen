@@ -257,8 +257,10 @@ const xe = React;
 const f = jsx;
 const y = jsxs;
 
-const HERO_VIDEO_URL =
-  'https://cdn.shopify.com/videos/c/o/v/48f1fd7e24f54486bdd9ae6832dbc420.mp4';
+const HERO_VIDEO_CDN_ROOT =
+  'https://cdn.shopify.com/videos/c/vp/5cb3b91eb9664b4da21beaa3be340328';
+const HERO_VIDEO_1080_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-1080p-7.2Mbps-99984706.mp4`;
+const HERO_VIDEO_720_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-720p-4.5Mbps-99984706.mp4`;
 
 function HeroVideo() {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -308,14 +310,20 @@ function HeroVideo() {
     <video
       ref={videoRef}
       className="home-hero-image"
-      src={HERO_VIDEO_URL}
       poster="/hero-video-poster.jpg"
       muted
       loop
       playsInline
       preload="auto"
       aria-hidden="true"
-    />
+    >
+      <source
+        src={HERO_VIDEO_720_URL}
+        type="video/mp4"
+        media="(max-width: 767px)"
+      />
+      <source src={HERO_VIDEO_1080_URL} type="video/mp4" />
+    </video>
   );
 }
 

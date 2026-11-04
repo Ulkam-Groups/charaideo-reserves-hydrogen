@@ -1,8 +1,10 @@
 .home-hero-stage {
+  --home-notice-height: 20px;
+  --home-marquee-height: 28px;
   display: grid;
-  height: calc(100vh - 49px);
-  height: calc(100svh - 49px);
-  height: calc(100dvh - 49px);
+  height: calc(100vh - var(--home-notice-height) - var(--home-marquee-height) - 1px);
+  height: calc(100svh - var(--home-notice-height) - var(--home-marquee-height) - 1px);
+  height: calc(100dvh - var(--home-notice-height) - var(--home-marquee-height) - 1px);
   min-height: 0;
   background-color: #f5f1e6;
   background-image: none;
@@ -1546,5 +1548,48 @@
 
   .revamp-home .hero-proof p {
     font-size: 10px;
+  }
+}
+
+/* A viewport-height hero is an enhancement, not a content constraint. Short
+   landscape windows need to grow and scroll so the conversion actions are
+   never clipped behind the marquee. Keep this after the width breakpoints so
+   height safety wins whenever the two conditions overlap. */
+@media (max-height: 600px) {
+  .home-hero-stage {
+    height: auto;
+    min-height: calc(100vh - var(--home-notice-height) - var(--home-marquee-height) - 1px);
+    min-height: calc(100svh - var(--home-notice-height) - var(--home-marquee-height) - 1px);
+  }
+
+  .revamp-home .home-hero-stage .home-hero-layout {
+    min-height: inherit;
+    align-content: start;
+    align-items: start;
+    padding-block: 88px 24px;
+  }
+
+  .revamp-home .home-hero-stage .home-hero-layout .hero-copy-reveal {
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .revamp-home .hero-display-title {
+    font-size: clamp(34px, min(5vw, 10dvh), 56px);
+  }
+
+  .revamp-home .hero-intro {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.38;
+  }
+
+  .revamp-home .hero-actions {
+    margin-top: 12px;
+  }
+
+  .revamp-home .hero-proof {
+    margin-top: 10px;
+    padding-top: 8px;
   }
 }
