@@ -40,6 +40,7 @@ type ProductEditorialData = {
   process?: MetafieldValue;
   teaStyle?: MetafieldValue;
   lotNumber?: MetafieldValue;
+  invoice?: MetafieldValue;
   netWeight?: MetafieldValue;
   isThisTeaYes?: MetafieldValue;
   isThisTeaNo?: MetafieldValue;
@@ -410,6 +411,7 @@ function TeaRecord({
     ['Allergens', product.allergens?.value],
     ['Certifications', product.certifications?.value],
     ['Lot', product.lotNumber?.value],
+    ['Invoice', product.invoice?.value],
     ['Pack size', formatValue(product.netWeight?.value) || packSizes || selectedWeight],
   ] as const;
   const filled = records.filter(([, value]) => Boolean(value));

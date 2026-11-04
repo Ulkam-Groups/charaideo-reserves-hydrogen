@@ -839,6 +839,7 @@ const PRODUCT_FRAGMENT = `#graphql
     process: metafield(namespace: "custom", key: "process") { value }
     teaStyle: metafield(namespace: "custom", key: "tea_style") { value }
     lotNumber: metafield(namespace: "custom", key: "lot_number") { value }
+    invoice: metafield(namespace: "custom", key: "invoice") { value }
     isThisTeaYes: metafield(namespace: "custom", key: "is_this_tea_yes") { value }
     isThisTeaNo: metafield(namespace: "custom", key: "is_this_tea_no") { value }
     whyChooseTea: metafield(namespace: "custom", key: "why_choose_tea") { value }
