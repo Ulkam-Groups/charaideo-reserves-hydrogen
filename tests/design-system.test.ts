@@ -150,7 +150,7 @@ test('P2 product cards use the canonical readable commerce contract', async () =
   assert.match(css, /min-height: var\(--control-height-compact\)/);
   assert.match(css, /border-radius: var\(--radius-button\)/);
   assert.match(css, /\.home-product-card/);
-  assert.match(css, /grid-auto-columns: clamp\(20rem, 23vw, 23rem\)/);
+  assert.match(css, /grid-auto-columns: clamp\(22rem, 26vw, 25rem\)/);
   assert.match(css, /font-size: 1\.0625rem/);
   assert.match(css, /min-height: 1\.875rem/);
   assert.match(css, /\.home-product-card-variants input:focus-visible \+ span/);
