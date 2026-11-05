@@ -5,6 +5,7 @@ import test from 'node:test';
 const cssUrl = new URL('../app/styles/design-system.css', import.meta.url);
 const componentUrl = new URL('../app/components/DesignSystem.tsx', import.meta.url);
 const shellUrl = new URL('../app/styles/shell.css', import.meta.url);
+const revampUrl = new URL('../app/styles/revamp.css', import.meta.url);
 const merchandisingUrl = new URL('../app/styles/merchandising.css', import.meta.url);
 const brandStoryUrl = new URL('../app/styles/brand-story.css', import.meta.url);
 const homeUrl = new URL('../app/routes/_index.tsx', import.meta.url);
@@ -101,6 +102,7 @@ test('global shell follows the readable type and target-size contract', async ()
 
 test('mobile endorsed wordmark cannot overflow its centered header slot', async () => {
   const css = await readFile(shellUrl, 'utf8');
+  const revampCss = await readFile(revampUrl, 'utf8');
 
   assert.match(
     css,
@@ -109,6 +111,18 @@ test('mobile endorsed wordmark cannot overflow its centered header slot', async 
   assert.match(
     css,
     /@media \(max-width: 40rem\) \{[\s\S]*\.site-header\.header \.wordmark-endorsement \{[\s\S]*min-width: 0[\s\S]*width: 100%/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 410px\) \{[\s\S]*\.site-header\.header \.wordmark-endorsement \{[\s\S]*display: none/,
+  );
+  assert.match(
+    revampCss,
+    /@media \(max-width: 360px\) \{[\s\S]*\.header-search-trigger,[\s\S]*\.header-account[\s\S]*display: none !important/,
+  );
+  assert.match(
+    revampCss,
+    /@media \(max-width: 360px\) \{[\s\S]*\.header-menu-mobile-toggle,[\s\S]*\.header-cart[\s\S]*width: 44px[\s\S]*height: 44px/,
   );
 });
 

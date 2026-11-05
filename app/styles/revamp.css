@@ -6523,6 +6523,28 @@ main.main--offset .catalog-page {
   }
 }
 
+/* Preserve the essential menu, brand, and cart actions on very narrow phones. */
+@media (max-width: 360px) {
+  .header.header-solid .header-ctas > .header-search-trigger,
+  .header.header-solid .header-ctas > .header-account {
+    display: none !important;
+  }
+
+  .header.header-solid .header-ctas > .header-menu-mobile-toggle,
+  .header.header-solid .header-ctas > .header-cart {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .header.header-solid .header-ctas > .header-menu-mobile-toggle svg,
+  .header.header-solid .header-ctas > .header-cart svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
 .content-page-about-us :is(em, i),
 .academy-page :is(em, i),
 .sensory-page :is(em, i),

@@ -1317,6 +1317,15 @@
   }
 }
 
+/* At the narrowest mobile widths the endorsement no longer has enough room
+   between the header action groups. Keep the primary wordmark readable and
+   remove only this supplementary line before it can overflow. */
+@media (max-width: 410px) {
+  .site-header.header .wordmark-endorsement {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-notice-board .notice-marquee-track {
     width: 100%;
