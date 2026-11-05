@@ -117,19 +117,13 @@ test('video hero exposes one reserve action and a responsive swipe cue without e
   const home = await readFile(homeUrl, 'utf8');
 
   assert.doesNotMatch(home, /data-mobile-label': 'Our Story'/);
-  assert.equal(
-    home.match(/href: '#chapter-collection'/g)?.length,
-    2,
-  );
+  assert.equal(home.match(/href: '#chapter-collection'/g)?.length, 2);
   assert.match(home, /className: 'hero-swipe-cue'/);
   assert.match(home, /HERO_VIDEO_720_URL/);
   assert.match(home, /HERO_VIDEO_1080_URL/);
   assert.match(home, /HERO_VIDEO_4K_URL/);
   assert.match(home, /media="\(max-width: 767px\)"/);
-  assert.match(
-    home,
-    /media="\(min-width: 1366px\) and \(min-resolution: 1\.5dppx\)"/,
-  );
+  assert.match(home, /media="\(min-width: 1366px\) and \(min-resolution: 1\.5dppx\)"/);
   assert.match(
     css,
     /\.revamp-home \.hero-swipe-cue \{[\s\S]*position: absolute[\s\S]*bottom: 8px[\s\S]*left: 50%[\s\S]*display: flex[\s\S]*width: 44px[\s\S]*height: 44px/,
@@ -142,10 +136,7 @@ test('video hero exposes one reserve action and a responsive swipe cue without e
     css,
     /\.revamp-home \.hero-actions \.hero-action \{[\s\S]*width: auto[\s\S]*min-height: 44px/,
   );
-  assert.match(
-    css,
-    /\.revamp-home \.home-hero-image \{\s*transform: none;/,
-  );
+  assert.match(css, /\.revamp-home \.home-hero-image \{\s*transform: none;/);
   assert.doesNotMatch(css, /min-aspect-ratio:[^\{]+\{[\s\S]*object-fit: contain/);
 });
 
