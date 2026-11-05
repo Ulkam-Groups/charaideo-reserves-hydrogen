@@ -301,7 +301,7 @@
 .home-product-card-image {
   display: grid;
   width: calc(100% + (2 * var(--space-4)));
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   margin: 0 calc(-1 * var(--space-4)) var(--space-4);
   overflow: hidden;
   border-radius: 0;

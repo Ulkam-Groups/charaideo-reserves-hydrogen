@@ -161,7 +161,7 @@
 .home-product-card-image {
   display: grid;
   width: calc(100% + 32px);
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1 / 1;
   margin: 0 -16px 12px;
   overflow: hidden;
   background: #f0ebe2;
