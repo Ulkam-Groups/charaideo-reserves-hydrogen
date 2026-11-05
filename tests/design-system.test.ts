@@ -6,6 +6,8 @@ const cssUrl = new URL('../app/styles/design-system.css', import.meta.url);
 const componentUrl = new URL('../app/components/DesignSystem.tsx', import.meta.url);
 const shellUrl = new URL('../app/styles/shell.css', import.meta.url);
 const merchandisingUrl = new URL('../app/styles/merchandising.css', import.meta.url);
+const brandStoryUrl = new URL('../app/styles/brand-story.css', import.meta.url);
+const homeUrl = new URL('../app/routes/_index.tsx', import.meta.url);
 
 test('design system exposes the canonical visual contract', async () => {
   const css = await readFile(cssUrl, 'utf8');
@@ -108,6 +110,43 @@ test('mobile endorsed wordmark cannot overflow its centered header slot', async 
     css,
     /@media \(max-width: 40rem\) \{[\s\S]*\.site-header\.header \.wordmark-endorsement \{[\s\S]*min-width: 0[\s\S]*width: 100%/,
   );
+});
+
+test('video hero exposes one reserve action and a responsive swipe cue without extra zoom', async () => {
+  const css = await readFile(brandStoryUrl, 'utf8');
+  const home = await readFile(homeUrl, 'utf8');
+
+  assert.doesNotMatch(home, /data-mobile-label': 'Our Story'/);
+  assert.equal(
+    home.match(/href: '#chapter-collection'/g)?.length,
+    2,
+  );
+  assert.match(home, /className: 'hero-swipe-cue'/);
+  assert.match(home, /HERO_VIDEO_720_URL/);
+  assert.match(home, /HERO_VIDEO_1080_URL/);
+  assert.match(home, /HERO_VIDEO_4K_URL/);
+  assert.match(home, /media="\(max-width: 767px\)"/);
+  assert.match(
+    home,
+    /media="\(min-width: 1366px\) and \(min-resolution: 1\.5dppx\)"/,
+  );
+  assert.match(
+    css,
+    /\.revamp-home \.hero-swipe-cue \{[\s\S]*position: absolute[\s\S]*bottom: 8px[\s\S]*left: 50%[\s\S]*display: flex[\s\S]*width: 44px[\s\S]*height: 44px/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 767px\) \{[\s\S]*\.revamp-home \.hero-actions \{[\s\S]*grid-template-columns: max-content[\s\S]*width: max-content/,
+  );
+  assert.match(
+    css,
+    /\.revamp-home \.hero-actions \.hero-action \{[\s\S]*width: auto[\s\S]*min-height: 44px/,
+  );
+  assert.match(
+    css,
+    /\.revamp-home \.home-hero-image \{\s*transform: none;/,
+  );
+  assert.doesNotMatch(css, /min-aspect-ratio:[^\{]+\{[\s\S]*object-fit: contain/);
 });
 
 test('P2 product cards use the canonical readable commerce contract', async () => {
@@ -274,5 +313,62 @@ test('P5 Tea Academy uses compact ecommerce navigation and a continuous surface'
   assert.match(
     css,
     /\.academy-page,[\s\S]*\.academy-manifesto \{[\s\S]*background: #ffffff/,
+  );
+});
+
+test('mobile drawer keeps tall-phone navigation tappable and market controls visible', async () => {
+  const [revamp, shell, footer, layout, root, header] = await Promise.all([
+    readFile(new URL('../app/styles/revamp.css', import.meta.url), 'utf8'),
+    readFile(new URL('../app/styles/shell.css', import.meta.url), 'utf8'),
+    readFile(new URL('../app/components/Footer.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../app/components/PageLayout.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../app/root.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../app/components/Header.tsx', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(
+    revamp,
+    /\.overlay--mobile aside \{[\s\S]*height: 100dvh;[\s\S]*flex-direction: column/,
+  );
+  assert.match(
+    revamp,
+    /@media \(max-width: 480px\) and \(min-height: 740px\)[\s\S]*min-height: 52px;[\s\S]*font-size: 17px/,
+  );
+  assert.match(revamp, /header-menu-item:focus-visible/);
+  assert.match(revamp, /header-menu-item:active/);
+  assert.match(
+    shell,
+    /\.mobile-menu-location \{[\s\S]*margin: 0 0 0 auto;[\s\S]*background: transparent/,
+  );
+  assert.match(
+    shell,
+    /\.mobile-menu-location \.market-picker-popover \{[\s\S]*top:[\s\S]*width: min\(18rem[\s\S]*background: #fff/,
+  );
+  assert.match(
+    shell,
+    /\.mobile-menu-location \.market-picker summary \{[\s\S]*height: 36px;[\s\S]*line-height: 1/,
+  );
+  assert.match(revamp, /\.overlay--mobile aside header \{[\s\S]*z-index: 4/);
+  assert.match(
+    revamp,
+    /@media \(pointer: coarse\) and \(min-width: 410px\)[\s\S]*min-height: 58px;[\s\S]*font-size: 18px/,
+  );
+  assert.match(layout, /headerActions=[\s\S]*<MarketSelector[\s\S]*hideLabel/);
+  assert.match(footer, /document\.addEventListener\('pointerdown', closePicker\)/);
+  assert.match(footer, /event\.key !== 'Escape'/);
+  assert.match(footer, /hideLabel \? current\.isoCode : current\.name/);
+  assert.match(footer, /Selected: \$\{current\.name\}/);
+  assert.match(header, /header-menu-label[\s\S]*Tea Academy[\s\S]*header-menu-new/);
+  assert.match(
+    revamp,
+    /\.overlay--mobile \.header-menu-item-with-badge \.header-menu-label \{[\s\S]*display: inline-flex[\s\S]*gap: 3px/,
+  );
+  assert.match(
+    revamp,
+    /\.overlay--mobile \.header-menu-item-with-badge \.header-menu-new \{[\s\S]*top: -7px[\s\S]*font-size: 0\.5rem/,
+  );
+  assert.match(
+    root,
+    /leftIsConfigured !== rightIsConfigured[\s\S]*leftIsConfigured \? -1 : 1/,
   );
 });

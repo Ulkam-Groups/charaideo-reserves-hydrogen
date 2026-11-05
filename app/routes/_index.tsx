@@ -258,9 +258,11 @@ const f = jsx;
 const y = jsxs;
 
 const HERO_VIDEO_CDN_ROOT =
-  'https://cdn.shopify.com/videos/c/vp/5cb3b91eb9664b4da21beaa3be340328';
-const HERO_VIDEO_1080_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-1080p-7.2Mbps-99984706.mp4`;
-const HERO_VIDEO_720_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-720p-4.5Mbps-99984706.mp4`;
+  'https://cdn.shopify.com/videos/c/vp/8bf20824fa9a4e328e8c56d9298e32c2';
+const HERO_VIDEO_4K_URL =
+  'https://cdn.shopify.com/videos/c/o/v/8bf20824fa9a4e328e8c56d9298e32c2.mp4';
+const HERO_VIDEO_1080_URL = `${HERO_VIDEO_CDN_ROOT}/8bf20824fa9a4e328e8c56d9298e32c2.HD-1080p-7.2Mbps-100044299.mp4`;
+const HERO_VIDEO_720_URL = `${HERO_VIDEO_CDN_ROOT}/8bf20824fa9a4e328e8c56d9298e32c2.HD-720p-4.5Mbps-100044299.mp4`;
 
 function HeroVideo() {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -322,6 +324,11 @@ function HeroVideo() {
         src={HERO_VIDEO_720_URL}
         type="video/mp4"
         media="(max-width: 767px)"
+      />
+      <source
+        src={HERO_VIDEO_4K_URL}
+        type="video/mp4"
+        media="(min-width: 1366px) and (min-resolution: 1.5dppx)"
       />
       <source src={HERO_VIDEO_1080_URL} type="video/mp4" />
     </video>
@@ -1241,16 +1248,6 @@ export default function Homepage() {
                               children: 'Explore the Reserve',
                             }),
                           }),
-                          f('a', {
-                            href: '/pages/about-us',
-                            className:
-                              'hero-action rounded-full border border-[#132A1F]/20 text-[#132A1F] uppercase font-[500] hover:border-[#132A1F] transition',
-                            'data-mobile-label': 'Our Story',
-                            children: f('span', {
-                              className: 'hero-action-label--desktop',
-                              children: 'Our Story',
-                            }),
-                          }),
                         ],
                       }),
                       f('div', {
@@ -1270,6 +1267,16 @@ export default function Homepage() {
             },
             'hero-content',
           ),
+          y('a', {
+            href: '#chapter-collection',
+            className: 'hero-swipe-cue',
+            'aria-label': 'Swipe down to explore the reserve',
+            children: [
+              f('span', {'aria-hidden': 'true'}),
+              f('span', {'aria-hidden': 'true'}),
+              f('span', {'aria-hidden': 'true'}),
+            ],
+          }),
         ],
       }),
       f('div', {

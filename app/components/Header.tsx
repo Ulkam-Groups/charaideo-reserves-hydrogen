@@ -110,7 +110,9 @@ export function HeaderMenu({
           </div>
         </div>
         <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
-          Tea Academy <span className="header-menu-new">New</span>
+          <span className="header-menu-label">
+            Tea Academy <span className="header-menu-new">New</span>
+          </span>
         </NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
@@ -135,7 +137,9 @@ export function HeaderMenu({
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/reserve-list">Tea Shop</NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
       <NavLink className="header-menu-item header-menu-item-with-badge" onClick={close} prefetch="none" to="/tea-academy">
-        Tea Academy <span className="header-menu-new">New</span>
+        <span className="header-menu-label">
+          Tea Academy <span className="header-menu-new">New</span>
+        </span>
       </NavLink>
       <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
     </nav>

@@ -314,18 +314,24 @@ function MobileMenuAside({
     header?.shop.primaryDomain.url ?? `https://${publicStoreDomain}`;
 
   return (
-    <Aside type="mobile" heading="Explore">
+    <Aside
+      type="mobile"
+      heading="Explore"
+      headerActions={
+        <MarketSelector
+          availableMarkets={availableMarkets}
+          buyerCountry={buyerCountry}
+          className="mobile-menu-location"
+          hideLabel
+          id="mobile-market"
+        />
+      }
+    >
       <HeaderMenu
         menu={header?.menu ?? null}
         viewport="mobile"
         primaryDomainUrl={primaryDomainUrl}
         publicStoreDomain={publicStoreDomain}
-      />
-      <MarketSelector
-        availableMarkets={availableMarkets}
-        buyerCountry={buyerCountry}
-        className="mobile-menu-location"
-        id="mobile-market"
       />
     </Aside>
   );

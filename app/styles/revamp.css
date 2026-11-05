@@ -2309,6 +2309,8 @@ button.header-search-trigger:hover .header-search-ai-icon {
   transform: translateX(0);
 }
 .overlay--mobile aside header {
+  position: relative;
+  z-index: 4;
   height: 60px;
   padding: 0 14px 0 18px;
   border-bottom: 1px solid #e7ede0;
@@ -2349,11 +2351,29 @@ button.header-search-trigger:hover .header-search-ai-icon {
   background: #132a1f;
   color: #ffffff;
 }
+.overlay--mobile aside {
+  display: flex;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  flex-direction: column;
+}
+
+.overlay--mobile aside header {
+  flex: 0 0 auto;
+}
+
 .overlay--mobile aside main {
-  height: calc(100dvh - 60px);
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
   margin: 0;
-  padding: 14px 12px 22px;
+  padding: 14px 12px max(22px, calc(env(safe-area-inset-bottom, 0px) + 16px));
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .overlay--mobile .header-menu-mobile {
   display: flex;
@@ -2391,6 +2411,39 @@ button.header-search-trigger:hover .header-search-ai-icon {
   color: #132a1f;
   box-shadow: none;
   transform: none;
+}
+
+.overlay--mobile .header-menu-mobile > .header-menu-item:focus-visible,
+.overlay--mobile .header-menu-mobile button.mobile-library-toggle.header-menu-item:focus-visible {
+  border-color: #8da397;
+  outline: 3px solid rgb(19 42 31 / 18%);
+  outline-offset: 1px;
+  background: #f5f7f1;
+  color: #132a1f;
+}
+
+.overlay--mobile .header-menu-mobile > .header-menu-item:active,
+.overlay--mobile .header-menu-mobile button.mobile-library-toggle.header-menu-item:active {
+  border-color: #b9c7b6;
+  background: #eaf0e7;
+  transform: scale(0.985);
+}
+
+.overlay--mobile .header-menu-item-with-badge .header-menu-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.overlay--mobile .header-menu-item-with-badge .header-menu-new {
+  position: relative;
+  top: -7px;
+  flex: 0 0 auto;
+  min-height: 13px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-size: 0.5rem;
+  line-height: 1;
 }
 .mobile-library-menu {
   border: 1px solid transparent;
@@ -2484,9 +2537,53 @@ button.header-search-trigger:hover .header-search-ai-icon {
 }
 @media (max-width: 480px) {
   .overlay--mobile aside header {height: 58px; padding-inline: 14px}
-  .overlay--mobile aside main {height: calc(100dvh - 58px); padding: 12px 10px 20px}
+  .overlay--mobile aside main {
+    height: auto;
+    padding: 12px 10px max(24px, calc(env(safe-area-inset-bottom, 0px) + 18px));
+  }
   .overlay--mobile .header-menu-mobile > .header-menu-item,
-  .overlay--mobile .header-menu-mobile button.mobile-library-toggle.header-menu-item {min-height: 44px; font-size: 15px !important}
+  .overlay--mobile .header-menu-mobile button.mobile-library-toggle.header-menu-item {
+    min-height: 48px;
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) and (min-height: 740px) {
+  .overlay--mobile .header-menu-mobile {
+    gap: 7px;
+  }
+
+  .overlay--mobile .header-menu-mobile > .header-menu-item,
+  .overlay--mobile .header-menu-mobile button.mobile-library-toggle.header-menu-item {
+    min-height: 52px;
+    padding-inline: 14px;
+    font-size: 17px !important;
+  }
+
+  .overlay--mobile .mobile-library-sections a {
+    min-height: 52px;
+    padding: 10px 14px 10px 20px;
+  }
+}
+
+/* Large Android phones expose a wider CSS viewport than current Pro iPhones. */
+@media (pointer: coarse) and (min-width: 410px) and (max-width: 480px) and (min-height: 800px) {
+  .overlay--mobile .header-menu-mobile {
+    gap: 8px;
+  }
+
+  .overlay--mobile .header-menu-mobile > .header-menu-item,
+  .overlay--mobile .header-menu-mobile button.mobile-library-toggle.header-menu-item {
+    min-height: 58px;
+    padding-inline: 16px;
+    border-radius: 13px;
+    font-size: 18px !important;
+  }
+
+  .overlay--mobile .mobile-library-sections a {
+    min-height: 58px;
+    font-size: 16px;
+  }
 }
 .overlay--search .predictive-search-form input {
   width: 100%;

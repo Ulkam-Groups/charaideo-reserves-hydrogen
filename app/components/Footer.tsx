@@ -5,7 +5,7 @@ import {POLICY_PAGES} from '~/lib/policies';
 import {PaymentLogos} from './PaymentLogos';
 import {CountryIndicator, countryDisplayName} from './Header';
 import type {StorefrontMarket} from '~/lib/markets';
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {PreferredSourceButton} from './PreferredSourceButton';
 
 export function Footer({
@@ -112,15 +112,38 @@ export function MarketSelector({
   availableMarkets,
   buyerCountry,
   className,
+  hideLabel = false,
   id,
 }: {
   availableMarkets: StorefrontMarket[];
   buyerCountry: string;
   className: string;
+  hideLabel?: boolean;
   id: string;
 }) {
   const location = useLocation();
   const [query, setQuery] = useState('');
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const closePicker = (event: PointerEvent | KeyboardEvent) => {
+      const details = detailsRef.current;
+      if (!details?.open) return;
+      if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
+      if (event instanceof PointerEvent && details.contains(event.target as Node)) return;
+      details.open = false;
+      if (event instanceof KeyboardEvent) {
+        details.querySelector<HTMLElement>('summary')?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', closePicker);
+    document.addEventListener('keydown', closePicker);
+    return () => {
+      document.removeEventListener('pointerdown', closePicker);
+      document.removeEventListener('keydown', closePicker);
+    };
+  }, []);
   const markets = availableMarkets.length
     ? availableMarkets
     : [
@@ -143,11 +166,14 @@ export function MarketSelector({
         type="hidden"
         value={`${location.pathname}${location.search}${location.hash}`}
       />
-      <span className="market-picker-eyebrow">Shopping from</span>
-      <details className="market-picker">
-        <summary aria-label="Change shopping country">
+      {!hideLabel && <span className="market-picker-eyebrow">Shopping from</span>}
+      <details className="market-picker" ref={detailsRef}>
+        <summary
+          aria-label={`Change shopping country. Selected: ${current.name}`}
+          title={hideLabel ? current.name : undefined}
+        >
           <CountryIndicator countryCode={current.isoCode} />
-          <span>{current.name}</span>
+          <span>{hideLabel ? current.isoCode : current.name}</span>
           {current.currency.isoCode && (
             <small>
               {current.currency.isoCode} {current.currency.symbol}
