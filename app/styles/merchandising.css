@@ -263,7 +263,7 @@
 /* Homepage commerce cards share the same anatomy without changing route data or actions. */
 
 .home-product-rail {
-  grid-auto-columns: clamp(20rem, 23vw, 23rem);
+  grid-auto-columns: clamp(22rem, 26vw, 25rem);
   gap: var(--space-4);
 }
 
@@ -301,7 +301,7 @@
 .home-product-card-image {
   display: grid;
   width: calc(100% + (2 * var(--space-4)));
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 4 / 5;
   margin: 0 calc(-1 * var(--space-4)) var(--space-4);
   overflow: hidden;
   border-radius: 0;
@@ -515,7 +515,7 @@
 
 @media (max-width: 40rem) {
   .home-product-rail {
-    grid-auto-columns: min(20rem, 86vw);
+    grid-auto-columns: min(22rem, 88vw);
     gap: var(--space-3);
   }
 
@@ -540,5 +540,72 @@
   .home-product-card:hover,
   .home-product-card:hover .home-product-card-image img {
     transform: none;
+  }
+}
+/* Product listing cards alternate their first two Shopify images every 4 seconds. */
+.product-card-image-rotator {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+.product-card-image-rotator__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(8%);
+  transition:
+    opacity 560ms cubic-bezier(.22, .72, .24, 1),
+    transform 560ms cubic-bezier(.22, .72, .24, 1);
+  pointer-events: none;
+}
+
+.product-card-image-rotator__slide.is-active {
+  z-index: 1;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.product-card-image-rotator__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-card-image-dots {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 12px;
+  left: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.product-card-image-dots button {
+  width: 7px;
+  height: 7px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 50%;
+  background: rgb(19 42 31 / 42%);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+}
+
+.product-card-image-dots button.is-active {
+  width: 18px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card-image-rotator__slide {
+    transition: none;
   }
 }

@@ -125,7 +125,7 @@
 
 .home-product-rail {
   display: grid;
-  grid-auto-columns: 282px;
+  grid-auto-columns: clamp(352px, 26vw, 400px);
   grid-auto-flow: column;
   gap: 18px;
   padding: 2px 2px 16px;
@@ -161,7 +161,7 @@
 .home-product-card-image {
   display: grid;
   width: calc(100% + 32px);
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 4 / 5;
   margin: 0 -16px 12px;
   overflow: hidden;
   background: #f0ebe2;
@@ -206,7 +206,7 @@
   .home-product-list {padding: 12px 12px 32px}
   .home-product-list > header {align-items: start; flex-direction: column; gap: 10px; margin-bottom: 20px}
   .home-product-list > header h2 {font-size: 28px}
-  .home-product-rail {grid-auto-columns: min(272px, 82vw); gap: 10px}
+  .home-product-rail {grid-auto-columns: min(352px, 88vw); gap: 10px}
 }
 
 @media (prefers-reduced-motion: reduce) {

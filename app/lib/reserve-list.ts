@@ -12,6 +12,7 @@ export type ReserveProduct = {
   grade?: {value: string} | null;
   availableForSale: boolean;
   featuredImage?: {url: string; altText: string | null; width: number; height: number} | null;
+  images?: {nodes: {url: string; altText: string | null; width: number; height: number}[]};
   priceRange?: {minVariantPrice: ProductItemFragment['priceRange']['minVariantPrice']};
   variants: {
     nodes: ReserveVariant[];

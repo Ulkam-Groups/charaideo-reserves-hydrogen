@@ -18,6 +18,7 @@ import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
 import {WishlistButton} from '~/components/WishlistButton';
+import {RotatingProductImage} from '~/components/RotatingProductImage';
 import {reserveProductMetadata, reserveVariantLabel} from '~/lib/reserve-list';
 import {
   canonicalUrl,
@@ -61,6 +62,14 @@ type ChapterProduct = {
     width: number;
     height: number;
   } | null;
+  images: {
+    nodes: {
+      url: string;
+      altText: string | null;
+      width: number;
+      height: number;
+    }[];
+  };
   priceRange: {minVariantPrice: {amount: string; currencyCode: string}};
   variants: {
     nodes: {
@@ -231,6 +240,7 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
           handle
           availableForSale
           featuredImage { url altText width height }
+          images(first: 2) { nodes { url altText width height } }
           priceRange { minVariantPrice { amount currencyCode } }
           estate: metafield(namespace: "custom", key: "estate") { value }
           flush: metafield(namespace: "custom", key: "flush") { value }
@@ -934,11 +944,10 @@ function HomepageProductCard({
         prefetch="none"
       >
         <div className="home-product-card-image">
-          {product.featuredImage ? (
-            <Image
-              data={product.featuredImage}
-              alt={product.featuredImage.altText || product.title}
-              loading="lazy"
+          {product.images.nodes.length ? (
+            <RotatingProductImage
+              images={product.images.nodes}
+              alt={product.title}
               sizes="(min-width: 900px) 360px, 78vw"
             />
           ) : (
@@ -1238,16 +1247,20 @@ export default function Homepage() {
                       y('div', {
                         className: 'hero-actions mt-8',
                         children: [
-                          f('a', {
-                            href: '#chapter-collection',
-                            className:
-                              'hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition',
-                            'data-mobile-label': 'Explore the Reserve',
-                            children: f('span', {
-                              className: 'hero-action-label--desktop',
-                              children: 'Explore the Reserve',
-                            }),
-                          }),
+                          f(
+                            'a',
+                            {
+                              href: '#chapter-collection',
+                              className:
+                                'hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition',
+                              'data-mobile-label': 'Explore the Reserve',
+                              children: f('span', {
+                                className: 'hero-action-label--desktop',
+                                children: 'Explore the Reserve',
+                              }),
+                            },
+                            'hero-primary-action',
+                          ),
                         ],
                       }),
                       f('div', {
@@ -1267,16 +1280,20 @@ export default function Homepage() {
             },
             'hero-content',
           ),
-          y('a', {
-            href: '#chapter-collection',
-            className: 'hero-swipe-cue',
-            'aria-label': 'Swipe down to explore the reserve',
-            children: [
-              f('span', {'aria-hidden': 'true'}),
-              f('span', {'aria-hidden': 'true'}),
-              f('span', {'aria-hidden': 'true'}),
-            ],
-          }),
+          y(
+            'a',
+            {
+              href: '#chapter-collection',
+              className: 'hero-swipe-cue',
+              'aria-label': 'Swipe down to explore the reserve',
+              children: [
+                f('span', {'aria-hidden': 'true'}, 'swipe-cue-1'),
+                f('span', {'aria-hidden': 'true'}, 'swipe-cue-2'),
+                f('span', {'aria-hidden': 'true'}, 'swipe-cue-3'),
+              ],
+            },
+            'hero-swipe-cue',
+          ),
         ],
       }),
       f('div', {
