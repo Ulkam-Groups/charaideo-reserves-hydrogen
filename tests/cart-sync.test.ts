@@ -44,6 +44,7 @@ test('cart reconciliation coalesces concurrent drawer and page reads', async (t)
         id: 'gid://shopify/Cart/coalesced',
         updatedAt: '2026-10-27T12:00:00.000Z',
         totalQuantity: 2,
+        lines: {nodes: [{id: 'line-1', quantity: 2}]},
       },
       unavailable: false,
     });
@@ -85,6 +86,7 @@ test('a new mutation invalidates an older cart reconciliation', async (t) => {
         id: 'gid://shopify/Cart/current',
         updatedAt: '2026-10-27T12:00:01.000Z',
         totalQuantity: 3,
+        lines: {nodes: [{id: 'line-1', quantity: 3}]},
       },
       unavailable: false,
     }),
@@ -97,6 +99,7 @@ test('a new mutation invalidates an older cart reconciliation', async (t) => {
         id: 'gid://shopify/Cart/stale',
         updatedAt: '2026-10-27T12:00:00.000Z',
         totalQuantity: 2,
+        lines: {nodes: [{id: 'line-1', quantity: 2}]},
       },
       unavailable: false,
     }),
@@ -122,6 +125,7 @@ test('cart reconciliation retries a transient unavailable read', async (t) => {
         id: 'gid://shopify/Cart/retried',
         updatedAt: '2026-10-27T12:00:02.000Z',
         totalQuantity: 4,
+        lines: {nodes: [{id: 'line-1', quantity: 4}]},
       },
       unavailable: false,
     });
@@ -129,6 +133,33 @@ test('cart reconciliation retries a transient unavailable read', async (t) => {
   invalidateCartReconciliation();
 
   assert.equal((await reconcileCartState())?.totalQuantity, 4);
+  assert.equal(requests, 2);
+});
+
+test('first-cart reconciliation retries while its cookie resolves to no cart', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    invalidateCartReconciliation();
+  });
+
+  const completeCart = {
+    id: 'gid://shopify/Cart/fresh-session',
+    updatedAt: '2026-10-27T12:00:02.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  let requests = 0;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return Response.json({
+      cart: requests === 1 ? null : completeCart,
+      unavailable: false,
+    });
+  };
+  invalidateCartReconciliation();
+
+  assert.deepEqual(await reconcileCartState(), completeCart);
   assert.equal(requests, 2);
 });
 
@@ -157,6 +188,33 @@ test('cart reconciliation retries when the total arrives before its lines', asyn
 
   assert.deepEqual(await reconcileCartState(), completeCart);
   assert.equal(requests, 2);
+});
+
+test('first-cart reconciliation survives a longer line propagation delay', async (t) => {
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    invalidateCartReconciliation();
+  });
+
+  const completeCart = {
+    id: 'gid://shopify/Cart/slow-first-item',
+    updatedAt: '2026-10-27T12:00:03.000Z',
+    totalQuantity: 1,
+    lines: {nodes: [{id: 'line-1', quantity: 1}]},
+  };
+  let requests = 0;
+  globalThis.fetch = async () => {
+    requests += 1;
+    return Response.json({
+      cart: requests < 4 ? {...completeCart, lines: {nodes: []}} : completeCart,
+      unavailable: false,
+    });
+  };
+  invalidateCartReconciliation();
+
+  assert.deepEqual(await reconcileCartState(), completeCart);
+  assert.equal(requests, 4);
 });
 
 test('background checkout cleanup publishes the cleared server cart', async (t) => {

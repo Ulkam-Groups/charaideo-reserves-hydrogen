@@ -2750,7 +2750,32 @@ button.header-search-trigger:hover .header-search-ai-icon {
   text-align: center;
 }
 .cart-empty[hidden] {
-  display: none;
+  display: none !important;
+}
+.cart-details[hidden] {
+  display: none !important;
+}
+.cart-recovery {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: #17382a;
+  text-align: center;
+}
+.cart-recovery p {
+  max-width: 32ch;
+  margin: 0;
+  color: #5a6b62;
+}
+.cart-recovery button {
+  min-height: 42px;
+  padding: 0 22px;
+  border: 1px solid #17382a;
+  border-radius: 999px;
+  background: #17382a;
+  color: #fff;
+  font-weight: 600;
 }
 .cart-main--aside > .cart-empty {
   flex: 1;

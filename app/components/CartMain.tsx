@@ -2,7 +2,7 @@ import {
   Image,
   Money,
 } from '@shopify/hydrogen';
-import {startTransition, useEffect, useRef, useState} from 'react';
+import {startTransition, useCallback, useEffect, useRef, useState} from 'react';
 import {Link, useFetchers, useRouteLoaderData} from 'react-router';
 import type {
   CartApiQueryFragment,
@@ -87,7 +87,12 @@ function getLineItemChildrenMap(lines: CartLine[]): LineItemChildrenMap {
  */
 export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const cart = useSyncedCart(originalCart);
+  const cartLines = cart?.lines?.nodes ?? [];
+  const cartQuantity = cart?.totalQuantity ?? 0;
+  const cartHasItems = cartQuantity > 0;
+  const cartSnapshotIncomplete = cartHasItems && cartLines.length === 0;
   const [refreshingCart, setRefreshingCart] = useState(false);
+  const [cartRefreshFailed, setCartRefreshFailed] = useState(false);
   const mutationWasPending = useRef(false);
   const reconciliationController = useRef<AbortController | null>(null);
   const fetchers = useFetchers();
@@ -99,26 +104,25 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           new URL(fetcher.formAction, 'https://storefront.invalid').pathname === '/cart',
       ),
   );
-  useEffect(() => {
-    if (cartMutationPending) {
-      mutationWasPending.current = true;
-      reconciliationController.current?.abort();
-      reconciliationController.current = null;
-      invalidateCartReconciliation();
-      startTransition(() => setRefreshingCart(true));
-      return;
-    }
-    if (!mutationWasPending.current) return;
-    mutationWasPending.current = false;
+
+  const refreshCart = useCallback((force = false) => {
+    reconciliationController.current?.abort();
+    if (force) invalidateCartReconciliation();
+
     const controller = new AbortController();
     reconciliationController.current = controller;
+    setCartRefreshFailed(false);
+    startTransition(() => setRefreshingCart(true));
 
     void reconcileCartState()
       .then((confirmedCart) => {
         if (!controller.signal.aborted && confirmedCart) publishCart(confirmedCart);
       })
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted) console.error('Cart refresh failed');
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          console.error('Cart refresh failed');
+          setCartRefreshFailed(true);
+        }
       })
       .finally(() => {
         if (reconciliationController.current !== controller) return;
@@ -126,17 +130,38 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
         startTransition(() => setRefreshingCart(false));
       });
 
+    return controller;
+  }, []);
+
+  useEffect(() => {
+    if (cartMutationPending) {
+      mutationWasPending.current = true;
+      reconciliationController.current?.abort();
+      reconciliationController.current = null;
+      invalidateCartReconciliation();
+      setCartRefreshFailed(false);
+      startTransition(() => setRefreshingCart(true));
+      return;
+    }
+    if (!mutationWasPending.current && !cartSnapshotIncomplete) return;
+    mutationWasPending.current = false;
+    const controller = refreshCart();
+
     return () => controller.abort();
-  }, [cartMutationPending]);
+  }, [cartMutationPending, cartSnapshotIncomplete, refreshCart]);
+
+  useEffect(
+    () => () => reconciliationController.current?.abort(),
+    [],
+  );
 
   const cartBusy = cartMutationPending || refreshingCart;
 
-  const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
+  const linesCount = cartLines.length > 0;
   const withDiscount =
     cart && Boolean(cart?.discountCodes?.filter((code) => code.applicable)?.length);
   const className = `cart-main cart-main--${layout} ${withDiscount ? 'with-discount' : ''}`;
-  const cartHasItems = cart?.totalQuantity ? cart.totalQuantity > 0 : false;
-  const childrenMap = getLineItemChildrenMap(cart?.lines?.nodes ?? []);
+  const childrenMap = getLineItemChildrenMap(cartLines);
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const discountMilestones = rootData?.cartDiscountProgress.milestones ?? [];
@@ -217,11 +242,11 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
         aria-hidden={cartBusy || undefined}
         style={{display: 'contents', ...(cartBusy ? {visibility: 'hidden'} : {})}}
       >
-        <CartEmpty hidden={linesCount} layout={layout} />
+        <CartEmpty hidden={cartHasItems} layout={layout} />
       </div>
       <div
         className="cart-details"
-        hidden={!linesCount}
+        hidden={!cartHasItems}
       >
         <div className="cart-lines-wrap" aria-busy={cartBusy}>
           <h2 id="cart-lines" className="cart-section-label">
@@ -229,7 +254,7 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
             <b>{cart?.totalQuantity ?? 0}</b>
           </h2>
           <ul aria-labelledby="cart-lines">
-            {(cart?.lines?.nodes ?? []).map((line) => {
+            {cartLines.map((line) => {
               // we do not render non-parent lines at the root of the cart
               if ('parentRelationship' in line && line.parentRelationship?.parent) {
                 return null;
@@ -280,7 +305,24 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               );
             })}
           </ul>
-          {layout === 'page' && (
+          {cartSnapshotIncomplete && !refreshingCart && (
+            <div className="cart-recovery" role={cartRefreshFailed ? 'alert' : 'status'}>
+              <strong>
+                {cartRefreshFailed
+                  ? 'Your cart is taking longer than expected.'
+                  : 'Loading your tea…'}
+              </strong>
+              {cartRefreshFailed && (
+                <>
+                  <p>Your item is saved. Refresh the cart to load its details.</p>
+                  <button type="button" onClick={() => refreshCart(true)}>
+                    Retry
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+          {layout === 'page' && !cartSnapshotIncomplete && (
             <ul className="cart-trust" aria-label="Our promise">
               <li>
                 <span className="trust-color-icon" aria-hidden="true">🚚</span>
@@ -297,16 +339,18 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
               </li>
             </ul>
           )}
-          <CartRecommendations
-            layout={layout}
-            discountItems={discountItems}
-            discountMilestones={discountMilestones}
-            productIds={(cart?.lines?.nodes ?? []).map(
-              (line) => line.merchandise.product.id,
-            )}
-          />
+          {!cartSnapshotIncomplete && (
+            <CartRecommendations
+              layout={layout}
+              discountItems={discountItems}
+              discountMilestones={discountMilestones}
+              productIds={cartLines.map((line) => line.merchandise.product.id)}
+            />
+          )}
         </div>
-        {cartHasItems && cart && <CartSummary cart={cart} layout={layout} />}
+        {cartHasItems && !cartSnapshotIncomplete && cart && (
+          <CartSummary cart={cart} layout={layout} />
+        )}
       </div>
     </div>
   );
