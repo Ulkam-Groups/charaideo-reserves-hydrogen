@@ -1447,11 +1447,6 @@ export default function Homepage() {
               ],
             }),
             f('div', {
-              className:
-                'md:hidden mb-6 inline-flex h-[28px] px-4 rounded-full border border-[#132A1F]/20 text-[10px] tracking-[0.18em] uppercase font-[600] items-center text-[#132A1F]/70',
-              children: `LIBRARY • ${chapterCollections.length} CHAPTERS • PERMANENT`,
-            }),
-            f('div', {
               className: 'chapter-card-track',
               children: chapterCollections.map((collection, index) =>
                 f(

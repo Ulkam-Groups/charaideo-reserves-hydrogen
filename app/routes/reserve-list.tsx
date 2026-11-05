@@ -201,7 +201,7 @@ export default function ReserveList() {
     const updateStickyState = () => {
       const discovery = discoveryRef.current;
       const sentinel = discoverySentinelRef.current;
-      if (!discovery || !sentinel || window.matchMedia('(max-width: 820px)').matches) {
+      if (!discovery || !sentinel) {
         setDiscoveryStuck(false);
         return;
       }
