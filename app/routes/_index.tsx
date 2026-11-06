@@ -78,6 +78,7 @@ type ChapterProduct = {
     }[];
   };
   estate?: {value: string} | null;
+  teaStyle?: {value: string} | null;
   flush?: {value: string} | null;
   grade?: {value: string} | null;
   pluckDate?: {value: string} | null;
@@ -239,6 +240,7 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
           images(first: 2) { nodes { url altText width height } }
           priceRange { minVariantPrice { amount currencyCode } }
           estate: metafield(namespace: "custom", key: "estate") { value }
+          teaStyle: metafield(namespace: "custom", key: "tea_style") { value }
           flush: metafield(namespace: "custom", key: "flush") { value }
           grade: metafield(namespace: "custom", key: "grade") { value }
           pluckDate: metafield(namespace: "custom", key: "pluck_date") { value }

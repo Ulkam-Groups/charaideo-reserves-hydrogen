@@ -1,19 +1,21 @@
 import {Brand} from './Brand';
 import {useAnalytics} from '@shopify/hydrogen';
-import {NavLink, useLocation} from 'react-router';
+import {Await, NavLink, useLocation} from 'react-router';
 import {POLICY_PAGES} from '~/lib/policies';
 import {PaymentLogos} from './PaymentLogos';
 import {CountryIndicator, countryDisplayName} from './Header';
 import type {StorefrontMarket} from '~/lib/markets';
-import {useEffect, useRef, useState} from 'react';
+import {Suspense, useEffect, useRef, useState} from 'react';
 import {PreferredSourceButton} from './PreferredSourceButton';
 
 export function Footer({
   buyerCountry,
   availableMarkets,
+  isLoggedIn,
 }: {
   buyerCountry: string;
   availableMarkets: StorefrontMarket[];
+  isLoggedIn: Promise<boolean>;
 }) {
   const {privacyBanner} = useAnalytics();
 
@@ -34,13 +36,29 @@ export function Footer({
             {label: 'Contact', to: '/pages/contact'},
           ]}
         />
-        <FooterColumn
-          title="Your visit"
-          links={[
-            {label: 'Account', to: '/sign-in'},
-            {label: 'Cart', to: '/cart'},
-          ]}
-        />
+        <Suspense
+          fallback={
+            <FooterColumn
+              title="Your visit"
+              links={[
+                {label: 'Account', to: '/account/login'},
+                {label: 'Cart', to: '/cart'},
+              ]}
+            />
+          }
+        >
+          <Await resolve={isLoggedIn}>
+            {(loggedIn) => (
+              <FooterColumn
+                title="Your visit"
+                links={[
+                  {label: 'Account', to: loggedIn ? '/account' : '/account/login'},
+                  {label: 'Cart', to: '/cart'},
+                ]}
+              />
+            )}
+          </Await>
+        </Suspense>
         <section className="footer-contact">
           <h3>Contact</h3>
           <p>Ouguri Gaon, Rupai Siding, Assam 786153, India</p>
