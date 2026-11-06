@@ -8,6 +8,7 @@ export type ReserveProduct = {
   vendor?: string;
   tags?: string[];
   estate?: {value: string} | null;
+  teaStyle?: {value: string} | null;
   flush?: {value: string} | null;
   grade?: {value: string} | null;
   availableForSale: boolean;
@@ -35,11 +36,11 @@ export type ReserveCollection = {
 };
 
 export function reserveProductMetadata(product: {
-  estate?: {value: string} | null;
+  teaStyle?: {value: string} | null;
   flush?: {value: string} | null;
   grade?: {value: string} | null;
 }) {
-  return [product.estate?.value, product.flush?.value, product.grade?.value]
+  return [product.teaStyle?.value, product.flush?.value, product.grade?.value]
     .filter(Boolean)
     .join(' · ');
 }

@@ -134,6 +134,7 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
           vendor
           tags
           estate: metafield(namespace: "custom", key: "estate") { value }
+          teaStyle: metafield(namespace: "custom", key: "tea_style") { value }
           flush: metafield(namespace: "custom", key: "flush") { value }
           grade: metafield(namespace: "custom", key: "grade") { value }
           availableForSale
@@ -360,6 +361,7 @@ export default function ReserveList() {
         product.vendor,
         product.description,
         product.estate?.value,
+        product.teaStyle?.value,
         product.flush?.value,
         product.grade?.value,
         ...(product.tags ?? []),
