@@ -67,13 +67,13 @@ test('variant labels prefer customer-facing option values', () => {
   );
 });
 
-test('product cards consistently show estate, flush, and grade metadata', () => {
+test('product cards consistently show tea style, flush, and grade metadata', () => {
   assert.equal(
     reserveProductMetadata({
-      estate: {value: 'Chota Tingrai Tea Estate'},
+      teaStyle: {value: 'Orthodox black tea'},
       flush: {value: 'Second flush'},
       grade: {value: 'Specialty'},
     }),
-    'Chota Tingrai Tea Estate · Second flush · Specialty',
+    'Orthodox black tea · Second flush · Specialty',
   );
 });
