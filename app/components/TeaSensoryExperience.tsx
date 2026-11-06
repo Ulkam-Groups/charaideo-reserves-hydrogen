@@ -29,7 +29,10 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
   const [answers, setAnswers] = useState<Partial<SensoryAnswers>>({});
   const [revealed, setRevealed] = useState(false);
   const [rotation, setRotation] = useState(30);
+  const [isDraggingWheel, setIsDraggingWheel] = useState(false);
   const wheelColumnRef = useRef<HTMLDivElement>(null);
+  const wheelRotationRef = useRef(30);
+  const wheelDragRef = useRef<{pointerId: number; angle: number; rotation: number} | null>(null);
   const scrollAnimationRef = useRef<number | null>(null);
   const previousScrollBehaviorRef = useRef<string | null>(null);
   const question = QUESTIONS[step];
@@ -43,9 +46,60 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
       const currentPosition = ((current % 360) + 360) % 360;
       const targetPosition = (360 - (segment * 60 + 30)) % 360;
       const shortestTurn = ((targetPosition - currentPosition + 540) % 360) - 180;
-      return current + shortestTurn;
+      const nextRotation = current + shortestTurn;
+      wheelRotationRef.current = nextRotation;
+      return nextRotation;
     });
     if (window.matchMedia('(max-width: 760px)').matches) scrollToWheel();
+  }
+
+  function pointerAngle(event: React.PointerEvent<HTMLDivElement>) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    return Math.atan2(
+      event.clientY - (bounds.top + bounds.height / 2),
+      event.clientX - (bounds.left + bounds.width / 2),
+    ) * 180 / Math.PI;
+  }
+
+  function startWheelDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    wheelDragRef.current = {
+      pointerId: event.pointerId,
+      angle: pointerAngle(event),
+      rotation: wheelRotationRef.current,
+    };
+    setIsDraggingWheel(true);
+  }
+
+  function dragWheel(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = wheelDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const angleDelta = ((pointerAngle(event) - drag.angle + 540) % 360) - 180;
+    const nextRotation = drag.rotation + angleDelta;
+    wheelRotationRef.current = nextRotation;
+    setRotation(nextRotation);
+  }
+
+  function finishWheelDrag(event: React.PointerEvent<HTMLDivElement>, select = true) {
+    const drag = wheelDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    wheelDragRef.current = null;
+    setIsDraggingWheel(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    if (!select) return;
+
+    const segmentAtPointer = ((Math.round((-wheelRotationRef.current - 30) / 60) % 6) + 6) % 6;
+    const options = question.options as readonly (readonly [string, string, string, number])[];
+    const selectedOption = options.reduce((closest, option) => {
+      const optionDistance = Math.abs(((option[3] - segmentAtPointer + 3) % 6) - 3);
+      const closestDistance = Math.abs(((closest[3] - segmentAtPointer + 3) % 6) - 3);
+      return optionDistance < closestDistance ? option : closest;
+    });
+    if (event.pointerType !== 'mouse' && 'vibrate' in navigator) navigator.vibrate(12);
+    choose(question.key, selectedOption[0], selectedOption[3]);
   }
 
   function scrollToWheel() {
@@ -60,7 +114,7 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
     const headerHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 70;
     const sectionMenuHeight = document.querySelector<HTMLElement>('.academy-section-menu')?.getBoundingClientRect().height ?? 0;
     const start = window.scrollY;
-    const target = Math.max(0, start + wheel.getBoundingClientRect().top - headerHeight - sectionMenuHeight - 32);
+    const target = Math.max(0, start + wheel.getBoundingClientRect().top - headerHeight - sectionMenuHeight - 76);
     const distance = target - start;
     if (Math.abs(distance) < 4) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -87,12 +141,19 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
 
   function restart() {
     setStep(0); setAnswers({}); setRevealed(false); setRotation(30);
+    wheelRotationRef.current = 30;
     onRevealChange?.(false);
   }
 
   function reveal() {
     setRevealed(true);
     onRevealChange?.(true);
+  }
+
+  function advance() {
+    if (!answers[question.key]) return;
+    if (step === QUESTIONS.length - 1) reveal();
+    else setStep((value) => value + 1);
   }
 
   if (revealed) {
@@ -106,9 +167,19 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
       {!teas.length ? <p className="sensory-data-notice" role="status">Preview mode · The wheel is ready, but product recommendations will appear after sensory metafields are added in Shopify.</p> : null}
       <div className="sensory-wheel-column" ref={wheelColumnRef}>
         <p className="eyebrow">Your sensory compass</p>
-        <div className="sensory-wheel-shell">
+        <div
+          aria-label="Rotate the sensory wheel to select an answer"
+          className={`sensory-wheel-shell${isDraggingWheel ? ' is-dragging' : ''}`}
+          onPointerCancel={(event) => finishWheelDrag(event, false)}
+          onPointerDown={startWheelDrag}
+          onPointerMove={dragWheel}
+          onPointerUp={finishWheelDrag}
+        >
           <span className="sensory-wheel-pointer" aria-hidden="true" />
-          <div className="sensory-wheel" style={{transform: `rotate(${rotation}deg)`}}>
+          <div
+            className="sensory-wheel"
+            style={{transform: `rotate(${rotation}deg)`}}
+          >
             {[
               ['Floral', 'floral'],
               ['Fresh', 'grassy'],
@@ -134,9 +205,17 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
               </button>
             ))}
           </div>
-          <div className="sensory-wheel-centre" aria-hidden="true">
+          <button
+            aria-label={step === QUESTIONS.length - 1 ? 'Reveal my tea' : 'Continue to the next question'}
+            className="sensory-wheel-centre"
+            disabled={!answers[question.key]}
+            onClick={advance}
+            onPointerDown={(event) => event.stopPropagation()}
+            title={step === QUESTIONS.length - 1 ? 'Reveal my tea' : 'Continue'}
+            type="button"
+          >
             <img src={charaideoLogo} alt="" />
-          </div>
+          </button>
         </div>
         <p className="sensory-wheel-note">Each answer turns the wheel closer to your cup.</p>
       </div>
@@ -158,7 +237,7 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
         </div>
         <div className="sensory-actions">
           <button className="sensory-back" type="button" disabled={step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>Back</button>
-          <button className="button primary" type="button" disabled={!answers[question.key]} onClick={() => step === QUESTIONS.length - 1 ? reveal() : setStep((value) => value + 1)}>
+          <button className="button primary" type="button" disabled={!answers[question.key]} onClick={advance}>
             {step === QUESTIONS.length - 1 ? 'Reveal my tea' : 'Continue'}
           </button>
         </div>
