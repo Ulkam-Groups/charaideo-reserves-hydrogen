@@ -28,11 +28,13 @@ type AsideContextValue = {
 export function Aside({
   children,
   heading,
+  headerActions,
   type,
 }: {
   children?: React.ReactNode;
   type: AsideType;
   heading: React.ReactNode;
+  headerActions?: React.ReactNode;
 }) {
   const {type: activeType, close} = useAside();
   const expanded = type === activeType;
@@ -79,6 +81,7 @@ export function Aside({
       <aside>
         <header>
           <h3>{heading}</h3>
+          {headerActions}
           <button className="close reset" onClick={close} aria-label="Close">
             <svg aria-hidden="true" viewBox="0 0 24 24">
               <path d="M6 6l12 12M18 6 6 18" />

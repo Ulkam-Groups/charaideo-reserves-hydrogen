@@ -23,6 +23,7 @@ import {useAside} from '~/components/Aside';
 import {canStartCheckout} from '~/lib/checkout/checkout';
 import {startCheckout} from '~/lib/checkout/checkout.client';
 import {WishlistButton} from '~/components/WishlistButton';
+import {RotatingProductImage} from '~/components/RotatingProductImage';
 import {breadcrumbJsonLd, canonicalUrl} from '~/lib/seo';
 
 export const headers: Route.HeadersFunction = ({loaderHeaders}) => loaderHeaders;
@@ -137,6 +138,7 @@ const COLLECTION_PRODUCTS_QUERY = `#graphql
           grade: metafield(namespace: "custom", key: "grade") { value }
           availableForSale
           featuredImage { url altText width height }
+          images(first: 2) { nodes { url altText width height } }
           priceRange { minVariantPrice { amount currencyCode } }
           variants(first: 25) {
             nodes {
@@ -199,7 +201,7 @@ export default function ReserveList() {
     const updateStickyState = () => {
       const discovery = discoveryRef.current;
       const sentinel = discoverySentinelRef.current;
-      if (!discovery || !sentinel || window.matchMedia('(max-width: 820px)').matches) {
+      if (!discovery || !sentinel) {
         setDiscoveryStuck(false);
         return;
       }
@@ -1056,11 +1058,10 @@ export function ReserveTeaCard({
       <article className="reserve-tea-card reserve-tea-card-locked">
         <div className="reserve-tea-locked-content" aria-hidden="true">
           <div className="reserve-tea-image">
-            {product.featuredImage ? (
-              <Image
-                data={product.featuredImage}
+            {product.images?.nodes.length ? (
+              <RotatingProductImage
+                images={product.images.nodes}
                 alt=""
-                loading="lazy"
                 sizes="(min-width: 900px) 300px, (min-width: 600px) 45vw, 92vw"
               />
             ) : (
@@ -1105,11 +1106,10 @@ export function ReserveTeaCard({
       >
         <div className="reserve-tea-image">
           {originLabel && <span className="reserve-image-badge">{originLabel}</span>}
-          {product.featuredImage ? (
-            <Image
-              data={product.featuredImage}
-              alt={product.featuredImage.altText || product.title}
-              loading="lazy"
+          {product.images?.nodes.length ? (
+            <RotatingProductImage
+              images={product.images.nodes}
+              alt={product.title}
               sizes="(min-width: 900px) 300px, (min-width: 600px) 45vw, 92vw"
             />
           ) : (

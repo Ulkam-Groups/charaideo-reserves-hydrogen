@@ -96,7 +96,14 @@ function buildCountryOptions(result: LocalizationResult | null): StorefrontMarke
           currency: {isoCode: '', symbol: ''},
         },
     )
-    .sort((left, right) => left.name.localeCompare(right.name));
+    .sort((left, right) => {
+      const leftIsConfigured = configured.has(left.isoCode);
+      const rightIsConfigured = configured.has(right.isoCode);
+      if (leftIsConfigured !== rightIsConfigured) {
+        return leftIsConfigured ? -1 : 1;
+      }
+      return left.name.localeCompare(right.name);
+    });
 }
 const SHOPIFY_CHAT_WARMUP_MS = 120;
 const SHOPIFY_CHAT_REVEAL_FALLBACK_MS = 7_000;

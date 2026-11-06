@@ -52,7 +52,10 @@ export async function refreshPublishedCart() {
 }
 
 async function readCartStateWithRetry() {
-  for (const delay of [0, 120, 300]) {
+  // New Shopify carts can expose their quantity before their line connection,
+  // especially in mobile in-app browsers. Keep retries bounded while allowing
+  // enough time for the cart cookie and line data to converge.
+  for (const delay of [0, 150, 350, 750, 1_500, 2_500]) {
     if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
     try {
       const response = await fetch('/api/cart-state', {
@@ -78,14 +81,14 @@ async function readCartStateWithRetry() {
 function isCartSnapshotComplete(
   cart: CartApiQueryFragment | null | undefined,
 ) {
-  if (!cart || cart.totalQuantity === 0) return true;
+  if (!cart) return false;
+  if (cart.totalQuantity === 0) return true;
 
-  // Older callers/tests may provide a deliberately partial cart shape. The
-  // Storefront API fragment always includes `lines`; only treat an explicitly
-  // empty returned connection as the transient inconsistency.
+  // A positive cart is not renderable until its line connection is present.
+  // Fresh sessions can temporarily return null, omit `lines`, or return an
+  // empty connection while the new cart cookie becomes visible.
   const lines = cart.lines?.nodes;
-  if (!lines) return true;
-  if (!lines.length) return false;
+  if (!lines?.length) return false;
 
   return lines.reduce((quantity, line) => quantity + line.quantity, 0) >=
     cart.totalQuantity;

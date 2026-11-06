@@ -194,6 +194,26 @@ test('cart cookie keeps the cart after a new page load', async ({page, context})
   ).toBeEnabled();
 });
 
+test('first item opens a populated cart drawer without an empty or recovery state', async ({
+  page,
+  context,
+}) => {
+  await isolateCheckout(context);
+  await page.setViewportSize({width: 390, height: 844});
+  await page.goto('/reserve-list');
+  await page.locator('a[href^="/products/"]').first().click();
+  await expect(page).toHaveURL(/\/products\//);
+  await page.waitForLoadState('networkidle');
+  await addCurrentProductToCart(page);
+
+  const drawer = page.getByRole('dialog', {name: 'cart'});
+  await expect(drawer).toHaveClass(/expanded/);
+  await expect(drawer.locator('.cart-line')).toHaveCount(1);
+  await expect(drawer.locator('.cart-empty')).toBeHidden();
+  await expect(drawer.locator('.cart-recovery')).toHaveCount(0);
+  await expect(drawer.locator('.cart-summary-aside')).toBeVisible();
+});
+
 test('empty cart has no Fastrr launch control', async ({page, context}) => {
   await isolateCheckout(context);
   await page.goto('/cart');

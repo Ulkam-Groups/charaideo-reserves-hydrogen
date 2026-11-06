@@ -18,6 +18,7 @@ import {selectStockedChapterProduct} from '~/lib/chapter-inventory';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {useAside} from '~/components/Aside';
 import {WishlistButton} from '~/components/WishlistButton';
+import {RotatingProductImage} from '~/components/RotatingProductImage';
 import {reserveProductMetadata, reserveVariantLabel} from '~/lib/reserve-list';
 import {
   canonicalUrl,
@@ -61,6 +62,14 @@ type ChapterProduct = {
     width: number;
     height: number;
   } | null;
+  images: {
+    nodes: {
+      url: string;
+      altText: string | null;
+      width: number;
+      height: number;
+    }[];
+  };
   priceRange: {minVariantPrice: {amount: string; currencyCode: string}};
   variants: {
     nodes: {
@@ -231,6 +240,7 @@ const CHAPTER_COLLECTION_QUERY = `#graphql
           handle
           availableForSale
           featuredImage { url altText width height }
+          images(first: 2) { nodes { url altText width height } }
           priceRange { minVariantPrice { amount currencyCode } }
           estate: metafield(namespace: "custom", key: "estate") { value }
           flush: metafield(namespace: "custom", key: "flush") { value }
@@ -258,9 +268,11 @@ const f = jsx;
 const y = jsxs;
 
 const HERO_VIDEO_CDN_ROOT =
-  'https://cdn.shopify.com/videos/c/vp/5cb3b91eb9664b4da21beaa3be340328';
-const HERO_VIDEO_1080_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-1080p-7.2Mbps-99984706.mp4`;
-const HERO_VIDEO_720_URL = `${HERO_VIDEO_CDN_ROOT}/5cb3b91eb9664b4da21beaa3be340328.HD-720p-4.5Mbps-99984706.mp4`;
+  'https://cdn.shopify.com/videos/c/vp/8bf20824fa9a4e328e8c56d9298e32c2';
+const HERO_VIDEO_4K_URL =
+  'https://cdn.shopify.com/videos/c/o/v/8bf20824fa9a4e328e8c56d9298e32c2.mp4';
+const HERO_VIDEO_1080_URL = `${HERO_VIDEO_CDN_ROOT}/8bf20824fa9a4e328e8c56d9298e32c2.HD-1080p-7.2Mbps-100044299.mp4`;
+const HERO_VIDEO_720_URL = `${HERO_VIDEO_CDN_ROOT}/8bf20824fa9a4e328e8c56d9298e32c2.HD-720p-4.5Mbps-100044299.mp4`;
 
 function HeroVideo() {
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -322,6 +334,11 @@ function HeroVideo() {
         src={HERO_VIDEO_720_URL}
         type="video/mp4"
         media="(max-width: 767px)"
+      />
+      <source
+        src={HERO_VIDEO_4K_URL}
+        type="video/mp4"
+        media="(min-width: 1366px) and (min-resolution: 1.5dppx)"
       />
       <source src={HERO_VIDEO_1080_URL} type="video/mp4" />
     </video>
@@ -927,11 +944,10 @@ function HomepageProductCard({
         prefetch="none"
       >
         <div className="home-product-card-image">
-          {product.featuredImage ? (
-            <Image
-              data={product.featuredImage}
-              alt={product.featuredImage.altText || product.title}
-              loading="lazy"
+          {product.images.nodes.length ? (
+            <RotatingProductImage
+              images={product.images.nodes}
+              alt={product.title}
               sizes="(min-width: 900px) 360px, 78vw"
             />
           ) : (
@@ -1231,26 +1247,20 @@ export default function Homepage() {
                       y('div', {
                         className: 'hero-actions mt-8',
                         children: [
-                          f('a', {
-                            href: '#chapter-collection',
-                            className:
-                              'hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition',
-                            'data-mobile-label': 'Explore the Reserve',
-                            children: f('span', {
-                              className: 'hero-action-label--desktop',
-                              children: 'Explore the Reserve',
-                            }),
-                          }),
-                          f('a', {
-                            href: '/pages/about-us',
-                            className:
-                              'hero-action rounded-full border border-[#132A1F]/20 text-[#132A1F] uppercase font-[500] hover:border-[#132A1F] transition',
-                            'data-mobile-label': 'Our Story',
-                            children: f('span', {
-                              className: 'hero-action-label--desktop',
-                              children: 'Our Story',
-                            }),
-                          }),
+                          f(
+                            'a',
+                            {
+                              href: '#chapter-collection',
+                              className:
+                                'hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition',
+                              'data-mobile-label': 'Explore the Reserve',
+                              children: f('span', {
+                                className: 'hero-action-label--desktop',
+                                children: 'Explore the Reserve',
+                              }),
+                            },
+                            'hero-primary-action',
+                          ),
                         ],
                       }),
                       f('div', {
@@ -1269,6 +1279,20 @@ export default function Homepage() {
               }),
             },
             'hero-content',
+          ),
+          y(
+            'a',
+            {
+              href: '#chapter-collection',
+              className: 'hero-swipe-cue',
+              'aria-label': 'Swipe down to explore the reserve',
+              children: [
+                f('span', {'aria-hidden': 'true'}, 'swipe-cue-1'),
+                f('span', {'aria-hidden': 'true'}, 'swipe-cue-2'),
+                f('span', {'aria-hidden': 'true'}, 'swipe-cue-3'),
+              ],
+            },
+            'hero-swipe-cue',
           ),
         ],
       }),
@@ -1421,11 +1445,6 @@ export default function Homepage() {
                   ],
                 }),
               ],
-            }),
-            f('div', {
-              className:
-                'md:hidden mb-6 inline-flex h-[28px] px-4 rounded-full border border-[#132A1F]/20 text-[10px] tracking-[0.18em] uppercase font-[600] items-center text-[#132A1F]/70',
-              children: `LIBRARY • ${chapterCollections.length} CHAPTERS • PERMANENT`,
             }),
             f('div', {
               className: 'chapter-card-track',

@@ -860,13 +860,6 @@
   color: #f2c879;
 }
 
-.revamp-home .hero-actions a:nth-child(2) {
-  border-color: rgb(255 250 240 / 70%);
-  background: rgb(10 30 20 / 24%);
-  color: #fffaf0;
-  text-shadow: 0 1px 8px rgb(0 0 0 / 72%);
-}
-
 /* Homepage vertical rhythm: natural page scrolling with predictable section
    spacing. Horizontal commerce rails retain their independent touch snapping. */
 .revamp-home {
@@ -977,24 +970,6 @@
   padding-inline: 24px;
   font-size: 12px;
   font-weight: 600;
-}
-
-.revamp-home .hero-actions a:nth-child(2) {
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
-  text-decoration: underline;
-  text-decoration-color: rgb(19 42 31 / 28%);
-  text-underline-offset: 5px;
-}
-
-.revamp-home .hero-actions a:nth-child(2):hover,
-.revamp-home .hero-actions a:nth-child(2):focus-visible {
-  border-color: transparent;
-  background: transparent;
-  box-shadow: none;
-  text-decoration-color: #132a1f;
-  transform: none;
 }
 
 .home-marquee-strip {
@@ -1467,18 +1442,6 @@
     height: 46px;
   }
 
-  .revamp-home .hero-actions a:nth-child(2) {
-    color: var(--reserve-warm-white);
-    text-decoration-color: rgb(255 254 248 / 72%);
-    text-shadow: 0 1px 8px rgb(19 42 31 / 62%);
-  }
-
-  .revamp-home .hero-actions a:nth-child(2):hover,
-  .revamp-home .hero-actions a:nth-child(2):focus-visible {
-    color: var(--reserve-warm-white);
-    text-decoration-color: var(--reserve-warm-white);
-  }
-
   .revamp-home .hero-proof p {
     color: var(--reserve-warm-white);
     text-shadow: 0 1px 9px rgb(19 42 31 / 68%);
@@ -1598,4 +1561,87 @@
     margin-top: 10px;
     padding-top: 8px;
   }
+}
+
+
+.revamp-home .hero-swipe-cue {
+  position: absolute;
+  z-index: 3;
+  bottom: 8px;
+  left: 50%;
+  display: flex;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  transform: translateX(-50%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  border-radius: 999px;
+  color: #fffef8;
+}
+
+.revamp-home .hero-swipe-cue span {
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  transform: rotate(45deg);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  filter: drop-shadow(0 1px 3px rgb(4 18 12 / 72%));
+  animation: hero-swipe-cue-pulse 1.55s ease-in-out infinite;
+}
+
+.revamp-home .hero-swipe-cue span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.revamp-home .hero-swipe-cue span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+@keyframes hero-swipe-cue-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(-2px) rotate(45deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(2px) rotate(45deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .revamp-home .hero-actions {
+    grid-template-columns: max-content;
+    width: max-content;
+    max-width: 100%;
+    justify-self: start;
+  }
+
+  .revamp-home .hero-actions .hero-action {
+    width: auto;
+    min-width: 0;
+    min-height: 44px;
+    height: 44px;
+    padding-inline: 20px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revamp-home .hero-swipe-cue span {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+/* The previous cinematic scales discarded another 6% on desktop and 12% on
+   mobile. Preserve the maximum possible frame while retaining full-bleed cover
+   at every aspect ratio. */
+.revamp-home .home-hero-image {
+  transform: none;
 }

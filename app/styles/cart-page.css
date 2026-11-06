@@ -473,6 +473,10 @@
   font-size: 0.625rem;
   line-height: 1.2;
 }
+.cart-main--aside .discount-progress-summary-milestones {
+  color: #3f5148;
+  font-weight: 400;
+}
 .discount-progress-summary-milestones > span {
   display: inline-flex;
   align-items: center;
