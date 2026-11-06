@@ -58,6 +58,7 @@ export function Header({
           viewport="desktop"
           primaryDomainUrl={primaryDomainUrl}
           publicStoreDomain={publicStoreDomain}
+          isLoggedIn={isLoggedIn}
         />
         <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
       </div>
@@ -67,11 +68,13 @@ export function Header({
 
 export function HeaderMenu({
   viewport,
+  isLoggedIn,
 }: {
   menu: HeaderQuery['menu'];
   primaryDomainUrl: string;
   viewport: Viewport;
   publicStoreDomain: HeaderProps['publicStoreDomain'];
+  isLoggedIn: HeaderProps['isLoggedIn'];
 }) {
   const className = `header-menu-${viewport}`;
   const {close} = useAside();
@@ -117,7 +120,13 @@ export function HeaderMenu({
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/about-us">Our story</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/pages/contact">Contact</NavLink>
         <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/wishlist">Saved teas</NavLink>
-        <NavLink className="header-menu-item" onClick={close} prefetch="none" to="/sign-in">Account</NavLink>
+        <Suspense fallback={<NavLink className="header-menu-item" onClick={close} prefetch="none" to="/account/login">Account</NavLink>}>
+          <Await resolve={isLoggedIn}>
+            {(loggedIn) => (
+              <NavLink className="header-menu-item" onClick={close} prefetch="none" to={loggedIn ? '/account' : '/account/login'}>Account</NavLink>
+            )}
+          </Await>
+        </Suspense>
         <button
           className="header-menu-item reset"
           onClick={(event) => {

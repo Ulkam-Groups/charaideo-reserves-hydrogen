@@ -55,6 +55,7 @@ export function PageLayout({
       <SearchAside />
       <MobileMenuAside
         header={header}
+        isLoggedIn={isLoggedIn}
         publicStoreDomain={publicStoreDomain}
         buyerCountry={buyerCountry}
         availableMarkets={availableMarkets}
@@ -73,7 +74,11 @@ export function PageLayout({
         Skip to content
       </a>
       <main id="main-content" className={pathname === '/' ? undefined : 'main--offset'}>{children}</main>
-      <Footer buyerCountry={buyerCountry} availableMarkets={availableMarkets} />
+      <Footer
+        buyerCountry={buyerCountry}
+        availableMarkets={availableMarkets}
+        isLoggedIn={isLoggedIn}
+      />
     </Aside.Provider>
     </WishlistProvider>
   );
@@ -301,11 +306,13 @@ function SearchAside() {
 
 function MobileMenuAside({
   header,
+  isLoggedIn,
   publicStoreDomain,
   buyerCountry,
   availableMarkets,
 }: {
   header: PageLayoutProps['header'];
+  isLoggedIn: PageLayoutProps['isLoggedIn'];
   publicStoreDomain: PageLayoutProps['publicStoreDomain'];
   buyerCountry: PageLayoutProps['buyerCountry'];
   availableMarkets: PageLayoutProps['availableMarkets'];
@@ -332,6 +339,7 @@ function MobileMenuAside({
         viewport="mobile"
         primaryDomainUrl={primaryDomainUrl}
         publicStoreDomain={publicStoreDomain}
+        isLoggedIn={isLoggedIn}
       />
     </Aside>
   );
