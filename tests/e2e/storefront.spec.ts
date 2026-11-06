@@ -120,12 +120,12 @@ test('storefront CSP permits configured checkout and third-party assets', async 
     'https://uc.shiprocket.in',
     'https://otpless.com',
     'https://uptime2.fastrr.com',
-    'https://fonts.googleapis.com',
-    'https://fonts.gstatic.com',
     'https://images.unsplash.com',
   ]) {
     expect(csp).toContain(origin);
   }
+  expect(csp).not.toContain('https://fonts.googleapis.com');
+  expect(csp).not.toContain('https://fonts.gstatic.com');
   expect(csp).toMatch(/script-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/connect-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/frame-src[^;]*https:\/\/news\.google\.com/);

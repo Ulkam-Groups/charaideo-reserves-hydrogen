@@ -527,8 +527,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
     transform: translate(-50%, -4px);
     transition: opacity 0.16s ease, transform 0.16s ease;
   }
-  .header-icon-button[data-tooltip]:hover::after,
-  .header-icon-button[data-tooltip]:focus-visible::after {
+  .header-icon-button[data-tooltip]:hover::after {
     opacity: 1;
     transform: translate(-50%, 0);
   }
@@ -537,8 +536,7 @@ button.header-search-trigger:hover .header-search-ai-icon {
     left: auto;
     transform: translateY(-4px);
   }
-  .header-cart[data-tooltip]:hover::after,
-  .header-cart[data-tooltip]:focus-visible::after {
+  .header-cart[data-tooltip]:hover::after {
     transform: translateY(0);
   }
 }
@@ -4535,7 +4533,7 @@ main.main--offset:has(> .contact-page) {
 }
 .contact-location-seal strong {
   color: #b87936;
-  font: 500 54px/0.82 'Cormorant Garamond', 'Now', serif;
+  font: 500 54px/0.82 'Now', system-ui, sans-serif;
   font-variant-numeric: oldstyle-nums proportional-nums;
   font-feature-settings: 'onum' 1, 'pnum' 1;
   letter-spacing: -0.035em;

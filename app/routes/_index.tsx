@@ -41,10 +41,6 @@ export const meta: Route.MetaFunction = () => [
 ];
 
 export const links = () => [
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap',
-  },
   {rel: 'stylesheet', href: artifactStylesheet},
   {rel: 'stylesheet', href: brandStoryStylesheet},
 ];
