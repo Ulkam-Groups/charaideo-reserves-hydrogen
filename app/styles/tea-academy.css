@@ -605,6 +605,64 @@ body:has(.academy-page) main.main--offset {
   }
 }
 
+/* Warm liquid-glass finish: retain the tasting-wheel hues with quieter depth. */
+.sensory-wheel {
+  border-color: rgb(255 248 230 / 58%);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 26%) 0%, transparent 30%, rgb(17 42 32 / 9%) 100%),
+    repeating-conic-gradient(from 0deg, rgb(255 248 230 / 42%) 0deg 0.6deg, transparent 0.6deg 60deg),
+    conic-gradient(#a855a5 0 60deg, #56a447 60deg 120deg, #b87333 120deg 180deg, #6b3f2a 180deg 240deg, #e09224 240deg 300deg, #237a3b 300deg);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 42%),
+    inset -1px -1px 0 rgb(20 40 30 / 18%),
+    inset 0 14px 28px rgb(255 255 255 / 10%),
+    0 16px 38px rgb(19 42 31 / 14%);
+  -webkit-backdrop-filter: blur(10px) saturate(112%);
+  backdrop-filter: blur(10px) saturate(112%);
+}
+
+.sensory-wheel::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: 2px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgb(255 255 255 / 22%), transparent 36% 72%, rgb(10 34 24 / 10%));
+  pointer-events: none;
+}
+
+.sensory-wheel::after {
+  border-color: rgb(255 246 221 / 48%);
+  background: radial-gradient(circle at 34% 24%, rgb(58 95 77 / 92%), rgb(16 53 40 / 96%) 48%, rgb(7 28 21 / 98%) 100%);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 26%),
+    inset -1px -1px 0 rgb(0 0 0 / 24%),
+    0 7px 18px rgb(7 22 15 / 24%);
+}
+
+.sensory-wheel-centre {
+  border-color: rgb(255 248 230 / 72%);
+  background: linear-gradient(145deg, rgb(255 255 255 / 88%), rgb(255 247 229 / 74%));
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 84%),
+    inset -1px -1px 0 rgb(92 63 35 / 16%),
+    0 4px 12px rgb(7 22 15 / 18%);
+  -webkit-backdrop-filter: blur(12px) saturate(108%);
+  backdrop-filter: blur(12px) saturate(108%);
+}
+
+.sensory-wheel > button.selected,
+.sensory-wheel > button:not(:disabled):hover {
+  border: 1px solid rgb(255 248 230 / 72%);
+  background: rgb(255 249 237 / 76%);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 72%),
+    0 3px 10px rgb(7 22 15 / 20%);
+  -webkit-backdrop-filter: blur(7px) saturate(110%);
+  backdrop-filter: blur(7px) saturate(110%);
+  color: var(--assam-red);
+}
+
 /* Tea Academy hero: one CSS-only composition, with no scroll listener. */
 .academy-page .academy-hero {
   display: block;
