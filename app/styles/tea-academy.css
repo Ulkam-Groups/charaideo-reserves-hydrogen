@@ -660,7 +660,7 @@ body:has(.academy-page) main.main--offset {
 
 @media (max-width: 760px) {
   .academy-page .academy-hero {
-    min-height: 430px;
+    min-height: 370px;
   }
 
   .academy-page .academy-hero > .academy-hero-copy {
@@ -679,9 +679,9 @@ body:has(.academy-page) main.main--offset {
   }
 
   .academy-page .academy-hero-mark {
-    right: auto;
+    right: 16px;
     bottom: 14px;
-    left: 16px;
+    left: auto;
     width: 86px;
   }
 }
