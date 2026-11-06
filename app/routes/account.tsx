@@ -62,16 +62,16 @@ function AccountMenu() {
       <span className="account-menu-label">Account cabinet</span>
       <nav className="account-menu" aria-label="Customer account">
       <NavLink to="/account/orders" prefetch="none" className={accountLinkClass}>
-        <span aria-hidden="true">01</span> Orders
+        Orders
       </NavLink>
       <NavLink to="/account/profile" prefetch="none" className={accountLinkClass}>
-        <span aria-hidden="true">02</span> Profile
+        Profile
       </NavLink>
       <NavLink to="/account/addresses" prefetch="none" className={accountLinkClass}>
-        <span aria-hidden="true">03</span> Addresses
+        Addresses
       </NavLink>
       <NavLink to="/wishlist" prefetch="none" className={accountLinkClass}>
-        <span aria-hidden="true">04</span> Saved teas
+        Saved teas
       </NavLink>
       <Logout />
       </nav>

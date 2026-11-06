@@ -188,8 +188,6 @@ const SHOPIFY_CHAT_TOP_COMPOSER_CSS = `
     bottom: var(--private-spacing-lg) !important;
   }
 `;
-const GOOGLE_FONTS_STYLESHEET =
-  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap';
 type ChapterAnnouncementResult = {
   collections: {
     nodes: Array<{
@@ -225,8 +223,6 @@ export function links() {
       href: 'https://messaging-api.shopifyapps.com',
       crossOrigin: 'anonymous',
     },
-    {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
-    {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
   ];
 }
 
@@ -443,7 +439,6 @@ export default function App() {
         <FastrrWarmup enabled={Boolean(data.fastrrSellerDomain)} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <DeferredStylesheet href={GOOGLE_FONTS_STYLESHEET} />
         <Script
           waitForHydration
           {...{'preferred-sources-control': 'manual'}}
@@ -492,22 +487,6 @@ function FastrrWarmup({enabled}: {enabled: boolean}) {
       if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
     };
   }, [enabled, pathname]);
-
-  return null;
-}
-
-function DeferredStylesheet({href}: {href: string}) {
-  useEffect(() => {
-    const existing = Array.from(
-      document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
-    ).some((link) => link.href === href);
-    if (existing) return;
-
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = href;
-    document.head.appendChild(link);
-  }, [href]);
 
   return null;
 }

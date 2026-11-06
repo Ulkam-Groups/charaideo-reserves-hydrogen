@@ -244,7 +244,7 @@ function AccountLink({loggedIn}: {loggedIn: boolean}) {
       className="header-icon-button header-account"
       data-tooltip={label}
       prefetch="none"
-      to={loggedIn ? '/account' : '/sign-in'}
+      to={loggedIn ? '/account' : '/account/login'}
     >
       <AccountIcon />
     </NavLink>
