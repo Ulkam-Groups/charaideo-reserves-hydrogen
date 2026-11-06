@@ -98,6 +98,7 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
       const closestDistance = Math.abs(((closest[3] - segmentAtPointer + 3) % 6) - 3);
       return optionDistance < closestDistance ? option : closest;
     });
+    if (event.pointerType !== 'mouse' && 'vibrate' in navigator) navigator.vibrate(12);
     choose(question.key, selectedOption[0], selectedOption[3]);
   }
 
@@ -175,7 +176,10 @@ export function TeaSensoryExperience({teas, onRevealChange}: {teas: SensoryTea[]
           onPointerUp={finishWheelDrag}
         >
           <span className="sensory-wheel-pointer" aria-hidden="true" />
-          <div className="sensory-wheel" style={{transform: `rotate(${rotation}deg)`}}>
+          <div
+            className="sensory-wheel"
+            style={{transform: `rotate(${rotation}deg)`}}
+          >
             {[
               ['Floral', 'floral'],
               ['Fresh', 'grassy'],
