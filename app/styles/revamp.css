@@ -3180,6 +3180,39 @@ shopify-chat[open]::part(dialog) {
   transition-delay: 120ms !important;
 }
 
+/* Show progress over Shopify's initially blank iframe until its UI is ready. */
+shopify-chat[data-chat-loading='true'][open]::part(dialog)::after {
+  content: '';
+  position: absolute;
+  z-index: 10;
+  top: calc(50% - 18px);
+  left: 50%;
+  width: 42px;
+  height: 42px;
+  margin: -25px 0 0 -25px;
+  border: 4px solid rgb(19 42 31 / 16%);
+  border-top-color: #132a1f;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: chat-buffering-spin 800ms linear infinite;
+}
+
+shopify-chat[data-chat-loading='true'][open]::part(dialog)::before {
+  content: var(--charaideo-chat-loading-message, 'Exploring our tea reserves…');
+  position: absolute;
+  z-index: 10;
+  top: calc(50% + 31px);
+  left: 50%;
+  width: min(360px, calc(100% - 48px));
+  translate: -50% 0;
+  color: rgb(19 42 31 / 72%);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  pointer-events: none;
+}
+
 @starting-style {
   shopify-chat[open]::part(dialog) {
     opacity: 0 !important;
@@ -3214,6 +3247,12 @@ shopify-chat[open]::part(dialog) {
   }
 }
 
+@keyframes chat-buffering-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   button.header-search-trigger {
     transition: none;
@@ -3221,6 +3260,10 @@ shopify-chat[open]::part(dialog) {
 
   shopify-chat::part(dialog) {
     transition: none !important;
+  }
+
+  shopify-chat[data-chat-loading='true'][open]::part(dialog)::after {
+    animation-duration: 1.6s;
   }
 
   shopify-chat::part(activator) {
@@ -4533,7 +4576,7 @@ main.main--offset:has(> .contact-page) {
 }
 .contact-location-seal strong {
   color: #b87936;
-  font: 500 54px/0.82 'Now', system-ui, sans-serif;
+  font: 500 54px/0.82 'Cormorant Garamond', 'Now', serif;
   font-variant-numeric: oldstyle-nums proportional-nums;
   font-feature-settings: 'onum' 1, 'pnum' 1;
   letter-spacing: -0.035em;
