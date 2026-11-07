@@ -47,6 +47,8 @@ import {warmFastrrCheckout} from '~/lib/checkout/providers/fastrr/fastrr.client'
 import {loadShopifyDiscountProgress} from '~/lib/shopify-discounts.server';
 
 const SHOPIFY_CHAT_SCRIPT = '/shopify-chat-assets/chat.js?v=top-composer-1';
+const CORMORANT_GARAMOND_STYLESHEET =
+  'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&display=swap';
 const LOCALIZATION_QUERY = `#graphql
   query StorefrontMarkets($country: CountryCode, $language: LanguageCode)
   @inContext(country: $country, language: $language) {
@@ -213,6 +215,9 @@ export function links() {
   return [
     {rel: 'icon', type: 'image/svg+xml', href: favicon},
     {rel: 'preconnect', href: 'https://cdn.shopify.com', crossOrigin: 'anonymous'},
+    {rel: 'preconnect', href: 'https://fonts.googleapis.com'},
+    {rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous'},
+    {rel: 'stylesheet', href: CORMORANT_GARAMOND_STYLESHEET},
     {
       rel: 'preconnect',
       href: 'https://storefront-agent-server.shopify.ai',
@@ -520,6 +525,15 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
     const escapeBoundDocuments = new WeakSet<Document>();
     const styledChatRoots = new WeakSet<ShadowRoot>();
     const styledConversationRoots = new WeakSet<ShadowRoot>();
+
+    const clearChatLoadingState = (chat: HTMLElement | null) => {
+      chat?.removeAttribute('data-chat-loading');
+      chat?.removeAttribute('aria-busy');
+    };
+
+    const handleChatLoadFailure = () => {
+      clearChatLoadingState(document.querySelector<HTMLElement>('shopify-chat'));
+    };
     let pageScrollPosition: number | null = null;
     const originalRootOverflow = {
       value: document.documentElement.style.getPropertyValue('overflow'),
@@ -668,6 +682,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
       if (!watchedFrames.has(iframe)) {
         iframe.addEventListener('load', startLayoutProbe);
+        iframe.addEventListener('error', handleChatLoadFailure);
         watchedFrames.add(iframe);
       }
 
@@ -738,6 +753,9 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       scrollContainer.style.setProperty('min-height', '0', 'important');
 
       conversation?.setAttribute('data-composer-position', 'top');
+      chat.dataset.chatReady = 'true';
+      chat.removeAttribute('data-chat-loading');
+      chat.removeAttribute('aria-busy');
       return true;
     };
 
@@ -748,9 +766,12 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
 
       const probe = () => {
         layoutProbeCount += 1;
-        const complete =
-          installTopComposerLayout() ||
-          layoutProbeCount >= SHOPIFY_CHAT_LAYOUT_PROBE_LIMIT;
+        const layoutReady = installTopComposerLayout();
+        const timedOut = layoutProbeCount >= SHOPIFY_CHAT_LAYOUT_PROBE_LIMIT;
+        const complete = layoutReady || timedOut;
+        if (timedOut && !layoutReady) {
+          clearChatLoadingState(document.querySelector<HTMLElement>('shopify-chat'));
+        }
         if (complete) {
           if (layoutProbeTimer !== undefined) {
             window.clearInterval(layoutProbeTimer);
@@ -864,6 +885,7 @@ function ShopifyChat({storeDomain}: {storeDomain: string}) {
       });
       watchedFrames.forEach((iframe) => {
         iframe.removeEventListener('load', startLayoutProbe);
+        iframe.removeEventListener('error', handleChatLoadFailure);
         iframe.contentDocument?.removeEventListener('keydown', closeChatOnEscape, true);
       });
     };

@@ -124,13 +124,18 @@ test('storefront CSP permits configured checkout and third-party assets', async 
   ]) {
     expect(csp).toContain(origin);
   }
-  expect(csp).not.toContain('https://fonts.googleapis.com');
-  expect(csp).not.toContain('https://fonts.gstatic.com');
+  expect(csp).toMatch(/style-src[^;]*https:\/\/fonts\.googleapis\.com/);
+  expect(csp).toMatch(/font-src[^;]*https:\/\/fonts\.gstatic\.com/);
   expect(csp).toMatch(/script-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/connect-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/frame-src[^;]*https:\/\/news\.google\.com/);
   expect(csp).toMatch(/font-src[^;]*https:\/\/cdn\.shopify\.com/);
   expect(csp).toMatch(/img-src[^;]*https:\/\/www\.gstatic\.com/);
+  await expect(
+    page.locator(
+      'link[rel="stylesheet"][href*="fonts.googleapis.com"][href*="Cormorant"]',
+    ),
+  ).toHaveCount(1);
   await expect(page.locator('script[src*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(0);
   await expect(page.locator('link[href*="fastrr-boost-ui.pickrr.com"]')).toHaveCount(0);
   await expect(page.locator('script[src*="checkout.razorpay.com"]')).toHaveCount(0);

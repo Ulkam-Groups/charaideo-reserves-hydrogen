@@ -34,6 +34,7 @@ export default async function handleRequest(
   );
   const {nonce, header, NonceProvider} = createContentSecurityPolicy({
     styleSrc: [
+      'https://fonts.googleapis.com',
       ...(fastrrEnabled ? FASTRR_CSP.styleSrc : []),
       ...(razorpayEnabled ? RAZORPAY_CSP.styleSrc : []),
     ],
@@ -78,6 +79,7 @@ export default async function handleRequest(
     fontSrc: [
       "'self'",
       'https://cdn.shopify.com',
+      'https://fonts.gstatic.com',
     ],
     imgSrc: [
       "'self'",

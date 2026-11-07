@@ -317,6 +317,47 @@ function SearchToggle() {
 }
 
 let shopifyChatGeometryCleanup: (() => void) | null = null;
+let shopifyChatMessageTimer: number | null = null;
+
+const SHOPIFY_CHAT_LOADING_MESSAGES = [
+  'Exploring our tea reserves…',
+  'Steeping some recommendations…',
+  'Matching teas to your taste…',
+  'Gathering tasting notes…',
+  'Almost ready to pour…',
+  'Still steeping—thanks for waiting…',
+  'Your tea guide is nearly ready…',
+] as const;
+
+function stopShopifyChatLoadingMessages() {
+  if (shopifyChatMessageTimer === null) return;
+  window.clearInterval(shopifyChatMessageTimer);
+  shopifyChatMessageTimer = null;
+}
+
+function startShopifyChatLoadingMessages(chat: HTMLElement) {
+  stopShopifyChatLoadingMessages();
+  let messageIndex = 0;
+
+  const showMessage = () => {
+    if (
+      chat.dataset.chatLoading !== 'true' ||
+      chat.dataset.chatReady === 'true'
+    ) {
+      stopShopifyChatLoadingMessages();
+      return;
+    }
+
+    chat.style.setProperty(
+      '--charaideo-chat-loading-message',
+      JSON.stringify(SHOPIFY_CHAT_LOADING_MESSAGES[messageIndex]),
+    );
+    messageIndex = (messageIndex + 1) % SHOPIFY_CHAT_LOADING_MESSAGES.length;
+  };
+
+  showMessage();
+  shopifyChatMessageTimer = window.setInterval(showMessage, 1_200);
+}
 
 function openShopifyChat(trigger: HTMLElement | null) {
   const chat = document.querySelector<HTMLElement & {show?: () => void}>(
@@ -355,6 +396,15 @@ function revealShopifyChat(
   shopifyChatGeometryCleanup?.();
   shopifyChatGeometryCleanup = null;
   document.documentElement.dataset.shopifyChatOpen = 'true';
+  if (chat.dataset.chatReady === 'true') {
+    chat.removeAttribute('data-chat-loading');
+    chat.removeAttribute('aria-busy');
+    stopShopifyChatLoadingMessages();
+  } else {
+    chat.dataset.chatLoading = 'true';
+    chat.setAttribute('aria-busy', 'true');
+    startShopifyChatLoadingMessages(chat);
+  }
 
   if (trigger) {
     const headerSurface = document.querySelector<HTMLElement>('.header-inner');
@@ -431,6 +481,7 @@ function revealShopifyChat(
       headerResizeObserver?.disconnect();
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
+      stopShopifyChatLoadingMessages();
       if (shopifyChatGeometryCleanup === cleanup) {
         shopifyChatGeometryCleanup = null;
       }

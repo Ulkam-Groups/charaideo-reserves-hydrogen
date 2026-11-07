@@ -456,7 +456,7 @@ main.main--offset:has(> .about-page) {
 .about-page-purpose-coordinate {
   display: inline-block;
   color: #b87936;
-  font-family: 'Now', system-ui, sans-serif !important;
+  font-family: 'Cormorant Garamond', 'Now', serif !important;
   font-size: 54px;
   font-weight: 500 !important;
   line-height: 0.82;
