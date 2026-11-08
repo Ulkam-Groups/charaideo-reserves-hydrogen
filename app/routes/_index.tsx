@@ -462,7 +462,7 @@ function HeroBrandArtwork() {
         <svg className="hero-brand-cha" viewBox="100 104 130 150" fill="none">
           <path
             d="M106.5 110.5H216.498L223.482 121.849H143.166C142.293 124.468 142.293 127.087 144.912 130.579C150.15 137.563 156.261 141.055 164.118 145.42C172.848 149.785 180.705 152.404 188.562 155.023C195.546 155.896 200.784 159.388 205.149 165.499C207.768 168.991 208.641 174.229 208.641 179.467C208.641 190.816 204.276 203.038 199.038 212.641C192.927 222.244 182.451 231.847 170.229 235.339C163.245 237.958 152.769 236.212 145.785 233.593C136.182 230.101 131.817 224.863 130.071 217.879C129.198 215.26 129.198 213.514 129.198 210.022V122.722L114.357 121.849L106.5 110.5ZM142.293 142.801C145.785 148.039 151.023 154.15 156.261 159.388C164.118 165.499 172.848 169.864 180.705 171.61C184.197 172.483 185.943 172.483 187.689 174.229C188.562 177.721 187.689 182.086 186.816 185.578C185.07 195.181 180.705 203.038 174.594 210.022C169.356 215.26 163.245 219.625 158.88 220.498C154.515 221.371 150.15 219.625 146.658 217.006C144.039 215.26 142.293 213.514 142.293 210.895V142.801Z"
-            fill="#5C171C"
+            fill="#553b43"
             fillRule="evenodd"
             clipRule="evenodd"
           />
@@ -516,7 +516,7 @@ function ChapterCollectionCard({
 
   return (
     <article
-      className={`chapter-card ${canJoinWaitlist ? 'chapter-card--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card--teaser' : ''} rounded-[24px] bg-white border border-[#E7EDE0] p-[16px] shadow-[0_8px_32px_rgba(19,42,31,0.04)] flex flex-col ${isInteractive ? 'cursor-pointer' : ''}`}
+      className={`chapter-card ${canJoinWaitlist ? 'chapter-card--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card--teaser' : ''} rounded-[24px] bg-white border border-[#d9d2c9] p-[16px] shadow-[0_8px_32px_rgba(46,48,41,0.04)] flex flex-col ${isInteractive ? 'cursor-pointer' : ''}`}
       role={isOpen ? 'link' : isInteractive ? 'button' : undefined}
       tabIndex={isInteractive ? 0 : undefined}
       aria-label={
@@ -536,7 +536,7 @@ function ChapterCollectionCard({
       }}
     >
       <div
-        className={`chapter-card-art relative h-[280px] rounded-[20px] bg-[#F9F1E6] overflow-hidden flex items-center justify-center ${canJoinWaitlist ? 'chapter-card-art--waitlist' : ''}`}
+        className={`chapter-card-art relative h-[280px] rounded-[20px] bg-[#f4efeb] overflow-hidden flex items-center justify-center ${canJoinWaitlist ? 'chapter-card-art--waitlist' : ''}`}
       >
         {canJoinWaitlist && primaryProduct ? (
           <ChapterWaitlistArtwork
@@ -548,7 +548,7 @@ function ChapterCollectionCard({
           <ChapterMediaCarousel collection={collection} products={products} />
         )}
         <span
-          className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#D8CAB3] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#132A1F] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card-status--teaser' : ''}`}
+          className={`chapter-card-status absolute top-4 left-4 z-20 inline-flex h-[24px] px-3 rounded-full bg-[#d9d2c9] text-[10px] tracking-[0.14em] uppercase font-[600] items-center text-[#2e3029] ${canJoinWaitlist ? 'chapter-card-status--waitlist' : ''} ${canJoinChapterUpdates ? 'chapter-card-status--teaser' : ''}`}
         >
           {collection.title} · {status}
         </span>
@@ -556,27 +556,27 @@ function ChapterCollectionCard({
       <div className="pt-5 px-1 pb-1 flex flex-col flex-1">
         <h3 className="serif text-[22px] leading-[1.12]">{collection.title}</h3>
         {canJoinWaitlist ? (
-          <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
+          <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#706c62]">
             {collection.description ||
               'A rare single-estate tea is being prepared for the Reserve.'}
           </p>
         ) : canJoinChapterUpdates ? (
-          <p className="mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
+          <p className="mt-2 text-[14px] leading-[1.45] text-[#706c62]">
             The next estate will be revealed here.
           </p>
         ) : (
           <>
             {collection.description && (
-              <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#5A6B62]">
+              <p className="chapter-card-description mt-2 text-[14px] leading-[1.45] text-[#706c62]">
                 {collection.description}
               </p>
             )}
-            <p className="mt-2 text-[13px] leading-[1.4] text-[#5A6B62]">
+            <p className="mt-2 text-[13px] leading-[1.4] text-[#706c62]">
               {products.length} {products.length === 1 ? 'tea' : 'teas'} ·{' '}
               {inventoryLabel}
             </p>
             {primaryProduct && (
-              <p className="mt-1 text-[12px] leading-[1.35] text-[#5A6B62]/70">
+              <p className="mt-1 text-[12px] leading-[1.35] text-[#706c62]/70">
                 {primaryProduct.title}
               </p>
             )}
@@ -584,7 +584,7 @@ function ChapterCollectionCard({
         )}
         <div className="mt-4 flex-1 flex items-end">
           <span
-            className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#132A1F] bg-[#132A1F] text-white hover:bg-black' : isOpen ? 'border-[#132A1F] text-[#132A1F] hover:bg-[#132A1F] hover:text-white' : canJoinChapterUpdates ? 'border-[#5C171C] bg-[#5C171C] text-white hover:bg-[#3F1014]' : 'bg-[#F5F1E6] border-[#E7EDE0] text-[#5A6B62]/60 cursor-not-allowed'}`}
+            className={`w-full min-h-[42px] px-4 rounded-full border text-[11px] tracking-[0.06em] uppercase font-[500] inline-flex items-center justify-center text-center transition ${canJoinWaitlist ? 'border-[#2e3029] bg-[#2e3029] text-white hover:bg-black' : isOpen ? 'border-[#2e3029] text-[#2e3029] hover:bg-[#2e3029] hover:text-white' : canJoinChapterUpdates ? 'border-[#553b43] bg-[#553b43] text-white hover:bg-[#553b43]' : 'bg-[#f4efeb] border-[#d9d2c9] text-[#706c62]/60 cursor-not-allowed'}`}
           >
             {isOpen
               ? `Explore ${collection.title}`
@@ -837,7 +837,7 @@ function ChapterProductArtwork({
       <div
         className="absolute w-[72%] aspect-[1.1/0.9]"
         style={{
-          background: '#E7EDE0',
+          background: '#d9d2c9',
           borderRadius: '58% 42% 38% 62% / 42% 58% 62% 48%',
           opacity: 0.95,
         }}
@@ -848,13 +848,13 @@ function ChapterProductArtwork({
           return (
             <div
               key={product.handle}
-              className="absolute w-[48%] max-w-[150px] rounded-[12px] border border-[#132A1F]/10 bg-white p-[7px] shadow-[0_10px_26px_rgba(19,42,31,0.12)]"
+              className="absolute w-[48%] max-w-[150px] rounded-[12px] border border-[#2e3029]/10 bg-white p-[7px] shadow-[0_10px_26px_rgba(46,48,41,0.12)]"
               style={{
                 transform: `translate(${index === 0 ? '-34%' : '34%'}, ${index === 0 ? '-8%' : '12%'}) rotate(${index === 0 ? '-4deg' : '5deg'})`,
                 zIndex: index + 1,
               }}
             >
-              <div className="h-[142px] overflow-hidden rounded-[8px] border border-[#132A1F]/[0.06] bg-[#F5F1E6] flex items-center justify-center">
+              <div className="h-[142px] overflow-hidden rounded-[8px] border border-[#2e3029]/[0.06] bg-[#f4efeb] flex items-center justify-center">
                 {image ? (
                   <Image
                     data={image}
@@ -864,19 +864,19 @@ function ChapterProductArtwork({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="px-3 text-center text-[11px] leading-[1.35] text-[#132A1F]">
+                  <span className="px-3 text-center text-[11px] leading-[1.35] text-[#2e3029]">
                     {product.title}
                   </span>
                 )}
               </div>
-              <p className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-[#132A1F]">
+              <p className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[9px] text-[#2e3029]">
                 {product.title}
               </p>
             </div>
           );
         })}
         {products.length > 2 && (
-          <span className="absolute right-0 bottom-2 z-20 rounded-full bg-[#132A1F] px-3 py-1.5 text-[9px] font-[600] tracking-[0.08em] text-[#FFFEF8]">
+          <span className="absolute right-0 bottom-2 z-20 rounded-full bg-[#2e3029] px-3 py-1.5 text-[9px] font-[600] tracking-[0.08em] text-[#fbf9f6]">
             +{products.length - 2} MORE
           </span>
         )}
@@ -890,7 +890,7 @@ function ChapterComingSoonArtwork({collectionTitle}: {collectionTitle: string}) 
     <>
       <div
         className="absolute w-[68%] aspect-square opacity-60"
-        style={{background: '#E7EDE0', borderRadius: '62% 38% 52% 48% / 48% 62% 38% 52%'}}
+        style={{background: '#d9d2c9', borderRadius: '62% 38% 52% 48% / 48% 62% 38% 52%'}}
       />
       <div className="chapter-teaser-copy relative z-10 flex flex-col items-center gap-2 text-center">
         <span className="chapter-teaser-label">{collectionTitle}</span>
@@ -1199,7 +1199,7 @@ export default function Homepage() {
     };
   return y('div', {
     className:
-      'revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white text-[#132A1F] antialiased selection:bg-[#D8CAB3]/40',
+      'revamp-home min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white text-[#2e3029] antialiased selection:bg-[#d9d2c9]/40',
     children: [
       f('section', {
         className: 'home-hero-stage relative overflow-hidden max-w-[100vw]',
@@ -1218,9 +1218,9 @@ export default function Homepage() {
                     children: [
                       y('div', {
                         className:
-                          'hero-eyebrow inline-flex items-center gap-2 text-[12px] tracking-[0.16em] uppercase text-[#C4A484] font-[600] mb-6',
+                          'hero-eyebrow inline-flex items-center gap-2 text-[12px] tracking-[0.16em] uppercase text-[#a85e62] font-[600] mb-6',
                         children: [
-                          f('span', {className: 'w-6 h-[1px] bg-[#C4A484]'}),
+                          f('span', {className: 'w-6 h-[1px] bg-[#a85e62]'}),
                           'Assam, North-East India',
                         ],
                       }),
@@ -1238,7 +1238,7 @@ export default function Homepage() {
                       }),
                       f('p', {
                         className:
-                          'hero-intro mt-5 text-[16px] md:text-[17px] leading-[1.5] text-[#132A1F]/70 max-w-[500px]',
+                          'hero-intro mt-5 text-[16px] md:text-[17px] leading-[1.5] text-[#2e3029]/70 max-w-[500px]',
                         children:
                           'We go to one estate at a time and bring what they do best to you. Straight from the source, released chapter by chapter.',
                       }),
@@ -1250,7 +1250,7 @@ export default function Homepage() {
                             {
                               href: '#chapter-collection',
                               className:
-                                'hero-action rounded-full bg-[#132A1F] text-[#FFFEF8] uppercase font-[500] hover:bg-black transition',
+                                'hero-action rounded-full bg-[#2e3029] text-[#fbf9f6] uppercase font-[500] hover:bg-black transition',
                               'data-mobile-label': 'Explore the Reserve',
                               children: f('span', {
                                 className: 'hero-action-label--desktop',
@@ -1263,10 +1263,10 @@ export default function Homepage() {
                       }),
                       f('div', {
                         className:
-                          'hero-proof mt-10 pt-6 border-t border-[#132A1F]/[0.08] max-w-[480px]',
+                          'hero-proof mt-10 pt-6 border-t border-[#2e3029]/[0.08] max-w-[480px]',
                         children: f('p', {
                           className:
-                            'text-[12px] tracking-[0.12em] uppercase text-[#5A6B62] font-[600]',
+                            'text-[12px] tracking-[0.12em] uppercase text-[#706c62] font-[600]',
                           children: 'Grown in Assam, reserved as it is.',
                         }),
                       }),
@@ -1296,7 +1296,7 @@ export default function Homepage() {
       }),
       f('div', {
         className:
-          'home-marquee-strip w-full max-w-[100vw] bg-[#132A1F] overflow-hidden marquee-viewport',
+          'home-marquee-strip w-full max-w-[100vw] bg-[#2e3029] overflow-hidden marquee-viewport',
         children: f('div', {
           className: 'home-marquee-inner relative w-full max-w-[100vw] overflow-hidden',
           children: y('div', {
@@ -1307,50 +1307,50 @@ export default function Homepage() {
                 children: [
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                 ],
@@ -1361,50 +1361,50 @@ export default function Homepage() {
                 children: [
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                   y('span', {
                     className:
-                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#FFFEF8] font-[500]',
+                      'flex items-center gap-8 text-[12px] tracking-[0.22em] uppercase text-[#fbf9f6] font-[500]',
                     children: [
                       f('span', {children: 'Curated from Origin'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Reserved with Purpose'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                       f('span', {children: 'Shared with the World'}),
-                      f('span', {className: 'w-1 h-1 rounded-full bg-[#FFFEF8]/60'}),
+                      f('span', {className: 'w-1 h-1 rounded-full bg-[#fbf9f6]/60'}),
                     ],
                   }),
                 ],
@@ -1428,7 +1428,7 @@ export default function Homepage() {
                   children: [
                     f('div', {
                       className:
-                        'text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-3',
+                        'text-[11px] tracking-[0.18em] uppercase text-[#a85e62] font-[600] mb-3',
                       children: 'Our Reserves',
                     }),
                     f('h2', {
@@ -1437,7 +1437,7 @@ export default function Homepage() {
                     }),
                     f('p', {
                       className:
-                        'chapter-collection-copy mt-3 text-[15px] leading-[1.5] text-[#5A6B62] max-w-[460px]',
+                        'chapter-collection-copy mt-3 text-[15px] leading-[1.5] text-[#706c62] max-w-[460px]',
                       children: 'From Assam\'s estates, we seek out teas that have something worth remembering - a distinct character, a sense of place, and a story of their own.',
                     }),
                   ],
@@ -1541,7 +1541,7 @@ export default function Homepage() {
       }),
       f('section', {
         className:
-          'home-ritual-section bg-white border-t border-[#132A1F]/[0.06] max-w-[100vw] overflow-hidden',
+          'home-ritual-section bg-white border-t border-[#2e3029]/[0.06] max-w-[100vw] overflow-hidden',
         children: y('div', {
           className: 'mx-auto max-w-[1280px] px-6 md:px-8',
           children: [
@@ -1550,7 +1550,7 @@ export default function Homepage() {
               children: [
                 f('div', {
                   className:
-                    'text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-4',
+                    'text-[11px] tracking-[0.18em] uppercase text-[#a85e62] font-[600] mb-4',
                   children: 'The art of taking a moment',
                 }),
                 f('h2', {
@@ -1561,7 +1561,7 @@ export default function Homepage() {
             }),
             f('div', {
               className:
-                'mt-14 grid md:grid-cols-3 gap-10 md:gap-12 border-t border-[#132A1F]/[0.06] pt-10',
+                'mt-14 grid md:grid-cols-3 gap-10 md:gap-12 border-t border-[#2e3029]/[0.06] pt-10',
               children: [
                 {
                   n: '01',
@@ -1585,7 +1585,7 @@ export default function Homepage() {
                     children: [
                       f('div', {
                         className:
-                          'text-[12px] tracking-[0.14em] uppercase text-[#C4A484] font-[600] mb-3',
+                          'text-[12px] tracking-[0.14em] uppercase text-[#a85e62] font-[600] mb-3',
                         children: a.n,
                       }),
                       f('h3', {
@@ -1593,7 +1593,7 @@ export default function Homepage() {
                         children: a.t,
                       }),
                       f('p', {
-                        className: 'mt-2 text-[14px] leading-[1.5] text-[#5A6B62]',
+                        className: 'mt-2 text-[14px] leading-[1.5] text-[#706c62]',
                         children: a.d,
                       }),
                     ],
@@ -1612,20 +1612,20 @@ export default function Homepage() {
             f('button', {
               'aria-label': 'Close waitlist modal',
               onClick: E,
-              className: 'absolute inset-0 bg-[#132A1F]/40 backdrop-blur-[6px]',
+              className: 'absolute inset-0 bg-[#2e3029]/40 backdrop-blur-[6px]',
             }),
             y('div', {
               role: 'dialog',
               'aria-modal': 'true',
               'aria-labelledby': 'waitlist-title',
               className:
-                'relative w-full max-w-[520px] bg-white rounded-[24px] border border-[#132A1F]/[0.08] shadow-[0_24px_80px_rgba(19,42,31,0.18),0_4px_16px_rgba(19,42,31,0.08)] p-7 md:p-10',
+                'relative w-full max-w-[520px] bg-white rounded-[24px] border border-[#2e3029]/[0.08] shadow-[0_24px_80px_rgba(46,48,41,0.18),0_4px_16px_rgba(46,48,41,0.08)] p-7 md:p-10',
               children: [
                 f('button', {
                   onClick: E,
                   'aria-label': 'Close',
                   className:
-                    'absolute top-5 right-5 w-8 h-8 rounded-full bg-[#F5F1E6] border border-[#E7EDE0] flex items-center justify-center text-[#132A1F] hover:bg-[#132A1F] hover:text-white transition',
+                    'absolute top-5 right-5 w-8 h-8 rounded-full bg-[#f4efeb] border border-[#d9d2c9] flex items-center justify-center text-[#2e3029] hover:bg-[#2e3029] hover:text-white transition',
                   children: f('span', {
                     className: 'text-[16px] leading-none',
                     children: '✕',
@@ -1636,9 +1636,9 @@ export default function Homepage() {
                   children: [
                     y('div', {
                       className:
-                        'inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#C4A484] font-[600] mb-4',
+                        'inline-flex items-center gap-2 text-[11px] tracking-[0.18em] uppercase text-[#a85e62] font-[600] mb-4',
                       children: [
-                        f('span', {className: 'w-5 h-[1px] bg-[#C4A484]'}),
+                        f('span', {className: 'w-5 h-[1px] bg-[#a85e62]'}),
                         `Reserve Access • ${waitlistChapter?.products.nodes.length ?? 0} ${(waitlistChapter?.products.nodes.length ?? 0) === 1 ? 'Tea' : 'Teas'}`,
                       ],
                     }),
@@ -1650,7 +1650,7 @@ export default function Homepage() {
                     }),
                     y('div', {
                       className:
-                        'mt-4 flex flex-wrap items-center gap-2 text-[13px] leading-[1.6] text-[#5A6B62]',
+                        'mt-4 flex flex-wrap items-center gap-2 text-[13px] leading-[1.6] text-[#706c62]',
                       children: [
                         f('span', {
                           children: `${waitlistProduct?.title ?? 'Reserve'} • Opening Soon- Estate:`,
@@ -1662,7 +1662,7 @@ export default function Homepage() {
                       ],
                     }),
                     f('p', {
-                      className: 'mt-3 text-[13.5px] leading-[1.6] text-[#5A6B62]/90',
+                      className: 'mt-3 text-[13.5px] leading-[1.6] text-[#706c62]/90',
                       children:
                         'Receive an invitation when this Chapter opens. No payment today.',
                     }),
@@ -1675,7 +1675,7 @@ export default function Homepage() {
                     f('label', {
                       htmlFor: 'waitlist-email',
                       className:
-                        'block text-[11px] tracking-[0.14em] uppercase font-[600] text-[#5A6B62] mb-2.5',
+                        'block text-[11px] tracking-[0.14em] uppercase font-[600] text-[#706c62] mb-2.5',
                       children: `Email for ${waitlistChapter?.title} access`,
                     }),
                     y('div', {
@@ -1691,21 +1691,21 @@ export default function Homepage() {
                           onChange: (a) => i(a.target.value),
                           placeholder: 'your@email.com',
                           className:
-                            'w-full h-[48px] rounded-full bg-white border border-[#132A1F]/15 px-6 text-[15px] placeholder:text-[#132A1F]/40 outline-none focus:border-[#132A1F] focus:ring-2 focus:ring-[#132A1F]/10 transition',
+                            'w-full h-[48px] rounded-full bg-white border border-[#2e3029]/15 px-6 text-[15px] placeholder:text-[#2e3029]/40 outline-none focus:border-[#2e3029] focus:ring-2 focus:ring-[#2e3029]/10 transition',
                           autoComplete: 'email',
                         }),
                         f('button', {
                           type: 'submit',
                           disabled: submitting,
                           className:
-                            'w-full h-[52px] rounded-full bg-[#132A1F] text-[#FFFEF8] text-[13.5px] tracking-[0.06em] uppercase font-[600] inline-flex items-center justify-center hover:bg-black transition',
+                            'w-full h-[52px] rounded-full bg-[#2e3029] text-[#fbf9f6] text-[13.5px] tracking-[0.06em] uppercase font-[600] inline-flex items-center justify-center hover:bg-black transition',
                           children: `Reserve My Access for ${waitlistChapter?.title}`,
                         }),
                       ],
                     }),
                     f('div', {
                       className:
-                        'mt-4 text-center text-[11px] leading-[1.5] text-[#5A6B62]/70',
+                        'mt-4 text-center text-[11px] leading-[1.5] text-[#706c62]/70',
                       children: `By joining, you agree to receive the ${waitlistChapter?.title ?? 'reserve'} opening invitation. No spam, unsubscribe anytime.`,
                     }),
                   ],
@@ -1723,11 +1723,11 @@ export default function Homepage() {
           style: {animation: 'toastIn 0.32s ease-out'},
           children: y('div', {
             className:
-              'bg-[#132A1F] text-[#FFFEF8] rounded-full px-6 py-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.24)] flex items-center gap-3 text-[13px] leading-[1.4]',
+              'bg-[#2e3029] text-[#fbf9f6] rounded-full px-6 py-3.5 shadow-[0_12px_40px_rgba(0,0,0,0.24)] flex items-center gap-3 text-[13px] leading-[1.4]',
             children: [
               f('span', {
                 className:
-                  'w-6 h-6 rounded-full bg-[#FFFEF8]/15 flex items-center justify-center text-[12px]',
+                  'w-6 h-6 rounded-full bg-[#fbf9f6]/15 flex items-center justify-center text-[12px]',
                 children: '✓',
               }),
               f('span', {className: 'font-[500] tracking-[0.01em]', children: o.message}),

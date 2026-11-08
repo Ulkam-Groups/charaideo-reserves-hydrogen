@@ -1,18 +1,18 @@
 /* Charaideo Reserves - River Thread identity layer */
 :root {
-  --paper: #ffffff;
-  --pure-white: #ffffff;
-  --gamosa-cream: #f5f1e6;
-  --assam-red: #132a1f;
-  --heritage-red: #132a1f;
-  --river-mist: #e7ede0;
-  --aged-indigo: #132a1f;
-  --tea-liquor: #c4a484;
-  --burnt-clay: #c4a484;
-  --leaf-ink: #132a1f;
-  --quiet-ink: #5a6b62;
-  --steeped-brown: #132a1f;
-  --thread: rgba(49,72,74,.32);
+  --paper: #f4efeb;
+  --pure-white: #fbf9f6;
+  --gamosa-cream: #a9a77d;
+  --assam-red: #553b43;
+  --heritage-red: #553b43;
+  --river-mist: #d9d2c9;
+  --aged-indigo: #302e28;
+  --tea-liquor: #a85e62;
+  --burnt-clay: #a85e62;
+  --leaf-ink: #2e3029;
+  --quiet-ink: #706c62;
+  --steeped-brown: #302e28;
+  --thread: #d9d2c9;
   --serif: 'Now', system-ui, sans-serif;
   --sans: 'Now', system-ui, sans-serif;
   --gutter: clamp(20px, 5vw, 80px);
@@ -73,7 +73,7 @@ button {cursor: pointer}
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(19,42,31,.62);
+  background: rgba(46,48,41,.62);
   backdrop-filter: blur(5px);
 }
 .checkout-confirmation-progress section {
@@ -81,7 +81,7 @@ button {cursor: pointer}
   padding: clamp(30px,6vw,52px);
   border: 1px solid var(--thread);
   background: var(--paper);
-  box-shadow: 0 24px 70px rgba(19,42,31,.24);
+  box-shadow: 0 24px 70px rgba(46,48,41,.24);
   text-align: center;
 }
 .checkout-confirmation-spinner {
@@ -126,7 +126,7 @@ button {cursor: pointer}
   padding: clamp(24px,4vw,38px);
   border: 1px solid var(--thread);
   background: var(--paper);
-  box-shadow: 0 22px 65px rgba(19,42,31,.1);
+  box-shadow: 0 22px 65px rgba(46,48,41,.1);
 }
 .checkout-success-card h1 {
   margin: 0;
@@ -192,8 +192,8 @@ button {cursor: pointer}
   color: var(--quiet-ink);
   font-size: var(--type-small);
 }
-.checkout-success-preferred-source .preferred-source-button {min-height: 44px; margin-top: 12px; padding-inline: 18px; border-color: var(--leaf-ink); background: var(--leaf-ink); color: var(--paper); box-shadow: 0 3px 10px rgba(19,42,31,.12); font-size: var(--type-small)}
-.checkout-success-preferred-source .preferred-source-button:hover {border-color: #5c171c; background: #5c171c; color: #fff; box-shadow: 0 5px 14px rgba(92,23,28,.16)}
+.checkout-success-preferred-source .preferred-source-button {min-height: 44px; margin-top: 12px; padding-inline: 18px; border-color: var(--leaf-ink); background: var(--leaf-ink); color: var(--paper); box-shadow: 0 3px 10px rgba(46,48,41,.12); font-size: var(--type-small)}
+.checkout-success-preferred-source .preferred-source-button:hover {border-color: #553b43; background: #553b43; color: #f4efeb; box-shadow: 0 5px 14px rgba(85,59,67,.16)}
 @media (max-width: 560px) {
   .checkout-success-references > div {grid-template-columns: 1fr; gap: 5px}
   .checkout-success-actions .button {width: 100%}
@@ -259,7 +259,7 @@ button {cursor: pointer}
 .products-grid,.recommended-products-grid {counter-reset: tea-card}
 .catalog-card {counter-increment: tea-card}
 .catalog-card-image {display: block; overflow: hidden; background: var(--gamosa-cream); border: 1px solid var(--thread)}
-.catalog-card:nth-child(2n) .catalog-card-image {background: #e4e9e4}
+.catalog-card:nth-child(2n) .catalog-card-image {background: #d9d2c9}
 .catalog-card-image img {width: 100%; aspect-ratio: 4/5; object-fit: cover; transition: transform .45s ease,filter .45s ease}
 .catalog-card:hover .catalog-card-image img {transform: scale(1.022); filter: saturate(.9)}
 .catalog-card-body {display: grid; gap: 12px; padding: 18px 0 0}
@@ -270,7 +270,7 @@ button {cursor: pointer}
 .catalog-card-footer {display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 13px; border-top: 1px solid var(--thread)}
 .catalog-card-footer > div,.catalog-card-footer strong {font: 600 11px/1 var(--sans); color: var(--aged-indigo)}
 .catalog-card-footer button {min-height: 40px; padding: 10px 12px; font-size: 8px}
-.catalog-card-placeholder {aspect-ratio: 4/5; background: linear-gradient(135deg,var(--gamosa-cream),#e4e9e4)}
+.catalog-card-placeholder {aspect-ratio: 4/5; background: linear-gradient(135deg,var(--gamosa-cream),#d9d2c9)}
 .heritage-note {position: relative; display: grid; grid-template-columns: .55fr 1.45fr; gap: 50px; padding: 100px var(--gutter); background: var(--aged-indigo); overflow: hidden}
 .heritage-note::after {content: ''; position: absolute; left: -3%; right: -3%; bottom: 35px; height: 100px; border-top: 2px solid var(--river-mist); border-radius: 50%; transform: rotate(2deg); pointer-events: none}
 .heritage-note .eyebrow {color: var(--tea-liquor)}
@@ -283,7 +283,7 @@ button {cursor: pointer}
 .heritage-seal span {color: var(--river-mist); font: 600 7px/1 var(--sans); letter-spacing: .25em; margin: 5px 0}
 .heritage-seal-mark {display: block; width: 42px; height: auto; color: var(--tea-liquor)}
 .heritage-seal .heritage-seal-place {margin: 5px 0 7px; color: var(--river-mist); font: 600 7px/1 var(--sans); letter-spacing: .25em}
-.heritage-seal .heritage-seal-coordinate {display: inline-block; margin: 0; color: #b87936; font: 500 54px/.82 'Cormorant Garamond', 'Now', serif; font-variant-numeric: oldstyle-nums proportional-nums; font-feature-settings: 'onum' 1,'pnum' 1; letter-spacing: -.035em; white-space: nowrap}
+.heritage-seal .heritage-seal-coordinate {display: inline-block; margin: 0; color: #a85e62; font: 500 54px/.82 'Cormorant Garamond', 'Now', serif; font-variant-numeric: oldstyle-nums proportional-nums; font-feature-settings: 'onum' 1,'pnum' 1; letter-spacing: -.035em; white-space: nowrap}
 .heritage-seal-coordinate sup {position: relative; top: -.62em; margin-left: .04em; font-size: .48em; line-height: 0; vertical-align: baseline}
 .ritual-section {background: var(--gamosa-cream)}
 .ritual-grid {display: grid; grid-template-columns: repeat(3,1fr); gap: 50px; margin-top: 54px}
@@ -359,7 +359,7 @@ button {cursor: pointer}
 .product-image {display: grid; place-items: center; width: 100%; aspect-ratio: 4/3; padding: 0; overflow: hidden; border: 0; background: var(--gamosa-cream); box-shadow: none}
 .product-image img {display: block; width: 100%; height: 100%; max-height: 354px; object-fit: contain}
 .product-thumbnails {display: flex; gap: 8px; max-width: 100%; padding: 2px 0; overflow-x: auto; scrollbar-width: thin}
-.product-thumbnail {flex: 0 0 62px; width: 62px; height: 62px; padding: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,.52); border-radius: 2px 12px 2px 12px; background: var(--gamosa-cream); box-shadow: none}
+.product-thumbnail {flex: 0 0 62px; width: 62px; height: 62px; padding: 3px; overflow: hidden; border: 1px solid rgba(251,249,246,.52); border-radius: 2px 12px 2px 12px; background: var(--gamosa-cream); box-shadow: none}
 .product-thumbnail[aria-pressed='true'] {border-color: var(--tea-liquor); box-shadow: inset 0 0 0 1px var(--tea-liquor)}
 .product-thumbnail img {display: block; width: 100%; height: 100%; object-fit: cover}
 .product-thumbnail:focus-visible {outline: 2px solid var(--pure-white); outline-offset: 2px}
@@ -642,7 +642,7 @@ button {cursor: pointer}
 .account-section-heading h2 {margin: 0 0 8px; font-size: clamp(32px,3.5vw,42px); line-height: .98}
 .account-section-heading > p {max-width: 570px; margin: 0; color: var(--quiet-ink); font-size: 11px; line-height: 1.75}
 .account-form {display: grid; gap: 18px; margin: 0}
-.account-form-card,.order-search-fieldset {min-width: 0; margin: 0; padding: clamp(22px,3vw,30px); border: 1px solid var(--thread); border-radius: 2px 24px 2px 24px; background: rgba(255,255,255,.72)}
+.account-form-card,.order-search-fieldset {min-width: 0; margin: 0; padding: clamp(22px,3vw,30px); border: 1px solid var(--thread); border-radius: 2px 24px 2px 24px; background: rgba(251,249,246,.72)}
 .account-form-card > legend,.order-search-legend {padding: 0 11px; color: var(--burnt-clay); font: 600 8px/1.3 var(--sans); letter-spacing: .17em; text-transform: uppercase}
 .account-form-card > legend {display: flex; align-items: center; gap: 10px}
 .account-form-grid {display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 18px}
@@ -665,7 +665,7 @@ button {cursor: pointer}
 .account-button--primary {background: var(--assam-red); color: var(--paper)}
 .account-button--primary:hover {border-color: var(--aged-indigo); background: var(--aged-indigo); color: var(--paper); text-decoration: none}
 .account-button--quiet {background: transparent; color: var(--assam-red)}
-.account-button--quiet:hover {background: rgba(92,23,28,.06); color: var(--assam-red)}
+.account-button--quiet:hover {background: rgba(85,59,67,.06); color: var(--assam-red)}
 .account-button:disabled {cursor: wait; opacity: .55}
 .account-form-message {margin: 0; padding: 11px 14px; border-left: 2px solid; font-size: 10px}
 .account-form-message--error {border-color: var(--heritage-red); background: rgba(177,43,45,.07); color: var(--assam-red)}
@@ -674,7 +674,7 @@ button {cursor: pointer}
 .account-address-layout h3 {margin: 0 0 18px; color: var(--aged-indigo); font: 600 9px/1.3 var(--sans); letter-spacing: .16em; text-transform: uppercase}
 .account-address-list {display: grid; gap: 22px}
 .account-default-badge {padding: 4px 7px; border: 1px solid rgba(184,121,54,.55); color: var(--tea-liquor); font-size: 7px; letter-spacing: .12em}
-.account-empty {display: grid; justify-items: start; min-height: 230px; padding: clamp(28px,4vw,46px); border: 1px solid var(--thread); border-radius: 2px 28px 2px 28px; background: rgba(255,255,255,.68)}
+.account-empty {display: grid; justify-items: start; min-height: 230px; padding: clamp(28px,4vw,46px); border: 1px solid var(--thread); border-radius: 2px 28px 2px 28px; background: rgba(251,249,246,.68)}
 .account-empty--compact {min-height: 150px}
 .account-empty > span {color: var(--heritage-red); font-size: 24px}
 .account-empty h3 {margin: 13px 0 7px; color: var(--assam-red); font: 500 28px/1 var(--serif); letter-spacing: -.03em; text-transform: none}
@@ -687,7 +687,7 @@ button {cursor: pointer}
 .account-order-cards {display: grid; gap: 10px}
 .account-orders-list > div > a:not(.account-button) {justify-self: start; color: var(--assam-red); font: 600 8px/1.4 var(--sans); letter-spacing: .1em; text-transform: uppercase}
 .account-empty > .account-button--primary {color: var(--paper)}
-.account-order-card {display: grid; grid-template-columns: 86px minmax(0,1fr) 90px 96px; align-items: center; gap: 16px; padding: 16px 20px; border: 1px solid var(--thread); border-radius: 2px 18px 2px 18px; background: rgba(255,255,255,.72)}
+.account-order-card {display: grid; grid-template-columns: 86px minmax(0,1fr) 90px 96px; align-items: center; gap: 16px; padding: 16px 20px; border: 1px solid var(--thread); border-radius: 2px 18px 2px 18px; background: rgba(251,249,246,.72)}
 .account-order-card-index {display: grid; gap: 4px; padding-right: 16px; border-right: 1px solid var(--thread)}
 .account-order-card-index span,.account-order-card-total span {color: var(--burnt-clay); font: 600 7px/1 var(--sans); letter-spacing: .15em; text-transform: uppercase}
 .account-order-card-index strong {color: var(--assam-red); font: 500 20px/1 var(--serif)}
@@ -705,7 +705,7 @@ button {cursor: pointer}
 .account-order-heading h2 {max-width: 100%; font-size: clamp(30px,3.4vw,46px); overflow-wrap: anywhere; word-break: break-word}
 .account-confirmation {margin-top: 5px!important; color: var(--burnt-clay)!important; font-size: 9px!important; letter-spacing: .06em}
 .account-order-layout {display: grid; grid-template-columns: minmax(0,1fr) 220px; gap: 20px; align-items: start}
-.account-order-table-wrap {min-width: 0; overflow-x: auto; border: 1px solid var(--thread); border-radius: 2px 24px 2px 24px; background: rgba(255,255,255,.72)}
+.account-order-table-wrap {min-width: 0; overflow-x: auto; border: 1px solid var(--thread); border-radius: 2px 24px 2px 24px; background: rgba(251,249,246,.72)}
 .account-order-table {width: 100%; min-width: 560px; border-collapse: collapse}
 .account-order-table th,.account-order-table td {padding: 12px 14px; border-bottom: 1px solid var(--thread); color: var(--leaf-ink); font-size: 10px; text-align: left; vertical-align: middle}
 .account-order-table thead th {color: var(--burnt-clay); font-size: 7px; letter-spacing: .15em; text-transform: uppercase}
@@ -1048,16 +1048,16 @@ body {font-size: var(--type-body); line-height: 1.65}
 /* Catalog: a clear dark introduction and quieter product canvas */
 .catalog-page {background: var(--paper)}
 .catalog-page .catalog-hero {grid-template-columns: minmax(0,1fr) minmax(300px,.8fr); gap: clamp(24px,5vw,80px); min-height: 390px; padding-block: 58px; background: var(--surface-matcha-gradient)}
-.catalog-page .catalog-hero .eyebrow {color: #e7b474}
+.catalog-page .catalog-hero .eyebrow {color: #a85e62}
 .catalog-page .catalog-hero h1 {max-width: 720px; margin-bottom: 20px; color: var(--paper); line-height: .94}
-.catalog-page .catalog-hero h1 em {color: #d8cab3}
-.catalog-page .catalog-hero p {max-width: 510px; color: #ffffff}
+.catalog-page .catalog-hero h1 em {color: #d9d2c9}
+.catalog-page .catalog-hero p {max-width: 510px; color: #fbf9f6}
 .catalog-hero-art {position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 270px; padding: 20px; border: 1px solid rgba(244,235,221,.5); color: var(--paper); background: radial-gradient(circle at 50% 48%,rgba(184,121,54,.32),transparent 55%)}
 .catalog-hero-art::before {content: ''; position: absolute; inset: 9px; border: 1px solid rgba(244,235,221,.2); pointer-events: none}
 .catalog-hero-art-label {align-self: flex-start; font: 600 var(--type-label)/1 var(--sans); letter-spacing: .2em}
-.catalog-hero-art-cup {position: relative; display: block; width: 132px; height: 132px; border: 4px solid var(--paper); border-radius: 50%; background: #a45a25; box-shadow: 0 0 0 12px rgba(244,235,221,.14), inset 0 0 0 8px #c3803c}
+.catalog-hero-art-cup {position: relative; display: block; width: 132px; height: 132px; border: 4px solid var(--paper); border-radius: 50%; background: #a85e62; box-shadow: 0 0 0 12px rgba(244,235,221,.14), inset 0 0 0 8px #a85e62}
 .catalog-hero-art-cup::after {content: ''; position: absolute; left: calc(100% + 2px); top: 35px; width: 28px; height: 49px; border: 8px solid var(--paper); border-left: 0; border-radius: 0 50% 50% 0}
-.catalog-hero-art-cup span {position: absolute; left: 30px; top: 38px; width: 65px; height: 20px; border-top: 2px solid rgba(255,255,255,.7); border-radius: 50%; transform: rotate(-20deg)}
+.catalog-hero-art-cup span {position: absolute; left: 30px; top: 38px; width: 65px; height: 20px; border-top: 2px solid rgba(251,249,246,.7); border-radius: 50%; transform: rotate(-20deg)}
 .catalog-hero-art-caption {font: 500 1.25rem/1 var(--serif)}
 .catalog-page .catalog-index {grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; margin-bottom: 52px; background: var(--gamosa-cream); color: var(--aged-indigo)}
 .catalog-page .catalog-index span {align-items: center}
@@ -1071,9 +1071,9 @@ body {font-size: var(--type-body); line-height: 1.65}
 .policy-hero {padding: 55px var(--gutter); background: var(--surface-matcha-gradient)}
 .policy-hero-inner {max-width: 1120px; margin: 0 auto}
 .policy-back {display: inline-block; margin-bottom: 26px; color: var(--paper); font-size: var(--type-small)}
-.policy-hero .eyebrow {margin-bottom: 12px; color: #e7b474}
+.policy-hero .eyebrow {margin-bottom: 12px; color: #a85e62}
 .policy-hero h1 {margin: 0 0 10px; color: var(--paper); font-size: var(--type-page-title); line-height: 1}
-.policy-hero p {margin: 0; color: #ffffff; font-size: var(--type-body)}
+.policy-hero p {margin: 0; color: #fbf9f6; font-size: var(--type-body)}
 .policy-layout {display: grid; grid-template-columns: 230px minmax(0,1fr); gap: clamp(35px,6vw,90px); max-width: 1220px; margin: 0 auto; padding: 60px var(--gutter) 100px}
 .policy-nav {display: flex; flex-direction: column; align-self: start; position: sticky; top: calc(var(--header-height) + 24px); padding: 22px; border: 1px solid var(--thread); background: var(--gamosa-cream)}
 .policy-nav .eyebrow {margin-bottom: 10px}

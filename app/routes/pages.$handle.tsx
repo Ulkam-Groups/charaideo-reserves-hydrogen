@@ -623,11 +623,11 @@ function ContactChannelIcon({platform}: {platform: string}) {
       <svg className="contact-channel-icon contact-channel-icon--instagram" viewBox="0 0 24 24" aria-hidden="true">
         <defs>
           <linearGradient id="contact-instagram-gradient" x1="2" y1="22" x2="22" y2="2" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#ffdc80" />
-            <stop offset="0.28" stopColor="#fcaf45" />
-            <stop offset="0.5" stopColor="#f77737" />
-            <stop offset="0.72" stopColor="#e1306c" />
-            <stop offset="1" stopColor="#833ab4" />
+            <stop offset="0" stopColor="#a85e62" />
+            <stop offset="0.28" stopColor="#a85e62" />
+            <stop offset="0.5" stopColor="#a85e62" />
+            <stop offset="0.72" stopColor="#a85e62" />
+            <stop offset="1" stopColor="#a85e62" />
           </linearGradient>
         </defs>
         <rect className="contact-instagram-stroke" x="3.5" y="3.5" width="17" height="17" rx="5" />

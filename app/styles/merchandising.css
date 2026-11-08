@@ -435,7 +435,7 @@
 .home-product-card-variants label[data-selected='true'] span::before {
   content: '✓';
   margin-right: 0.25rem;
-  color: #d9aa45;
+  color: #a85e62;
   font-size: 0.95em;
   font-weight: 800;
   line-height: 1;
@@ -592,16 +592,16 @@
   height: 7px;
   min-height: 0;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 88%);
+  border: 1px solid rgb(251 249 246 / 88%);
   border-radius: 50%;
-  background: rgb(19 42 31 / 42%);
+  background: rgb(46 48 41 / 42%);
   box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
 }
 
 .product-card-image-dots button.is-active {
   width: 18px;
   border-radius: 999px;
-  background: #fff;
+  background: #f4efeb;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -59,15 +59,15 @@ var {
   color-scheme: light;
 
   /* Core colour palette */
-  --color-assam-green-900: #132a1f;
-  --color-assam-green-700: #2f4d3e;
-  --color-leaf-600: #5a6b62;
-  --color-river-200: #e7ede0;
-  --color-gamosa-100: #f5f1e6;
-  --color-paper: #ffffff;
-  --color-tea-500: #c4a484;
-  --color-tea-800: #76552f;
-  --color-ink: var(--color-assam-green-900);
+  --color-assam-green-900: #553b43;
+  --color-assam-green-700: #302e28;
+  --color-leaf-600: #706c62;
+  --color-river-200: #d9d2c9;
+  --color-gamosa-100: #a9a77d;
+  --color-paper: #f4efeb;
+  --color-tea-500: #a85e62;
+  --color-tea-800: #553b43;
+  --color-ink: #2e3029;
 
   /* Semantic colour roles */
   --surface-page: var(--color-paper);
@@ -75,23 +75,23 @@ var {
   --surface-inverse: var(--color-assam-green-900);
   --surface-matcha-gradient: radial-gradient(
     120% 120% at 80% 10%,
-    #29493b 0%,
-    #132a1f 55%,
-    #07160f 100%
+    #a9a77d 0%,
+    #a9a77d 55%,
+    #706c62 100%
   );
   --text-primary: var(--color-ink);
   --text-secondary: var(--color-leaf-600);
   --text-accent: var(--color-tea-800);
   --text-inverse: var(--color-paper);
   --border-subtle: var(--color-river-200);
-  --border-strong: rgb(19 42 31 / 32%);
+  --border-strong: rgb(217 210 201 / 100%);
   --action-primary: var(--color-assam-green-900);
-  --action-primary-hover: #0b1d15;
-  --focus-ring: var(--color-assam-green-900);
-  --status-success: #246b45;
-  --status-warning: #8a5a16;
-  --status-critical: #a52a2a;
-  --status-info: #315d70;
+  --action-primary-hover: #302e28;
+  --focus-ring: #a85e62;
+  --status-success: #553b43;
+  --status-warning: #706c62;
+  --status-critical: #a85e62;
+  --status-info: #553b43;
 
   /* Typography */
   --font-editorial: 'Now', system-ui, sans-serif;
@@ -133,8 +133,8 @@ var {
   --control-height-compact: 2rem;
   --control-height-standard: 2.375rem;
   --field-height: 2.75rem;
-  --shadow-subtle: 0 8px 24px rgb(19 42 31 / 7%);
-  --shadow-overlay: 0 24px 64px rgb(8 24 16 / 22%);
+  --shadow-subtle: 0 8px 24px rgb(48 46 40 / 7%);
+  --shadow-overlay: 0 24px 64px rgb(48 46 40 / 22%);
 
   /* Motion */
   --motion-fast: 120ms;

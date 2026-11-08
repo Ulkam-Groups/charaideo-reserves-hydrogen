@@ -91,12 +91,12 @@
   height: var(--header-height);
   margin: 0 0 calc(-1 * var(--header-height));
   border: 0;
-  border-bottom: 1px solid #bdc9c0;
-  background: #ffffff;
+  border-bottom: 1px solid #d9d2c9;
+  background: #fbf9f6;
   box-shadow: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  color: #132a1f;
+  color: #2e3029;
   text-rendering: geometricPrecision;
 }
 
@@ -139,10 +139,10 @@
   width: min(calc(100% - 2.5rem), var(--content-max));
   padding-inline: var(--space-5);
   transform: translateY(var(--space-3));
-  border: 1px solid #b9c7bd;
+  border: 1px solid #d9d2c9;
   border-radius: 26px;
-  background: #ffffff;
-  box-shadow: 0 4px 10px rgb(19 42 31 / 6%);
+  background: #fbf9f6;
+  box-shadow: 0 4px 10px rgb(46 48 41 / 6%);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -183,7 +183,7 @@
 
 .site-header.header .wordmark-endorsement {
   padding-left: 3.66rem;
-  color: #132a1f;
+  color: #2e3029;
   font-family: var(--font-interface);
   font-size: 0.375rem;
   font-weight: 700;
@@ -201,7 +201,7 @@
 
 .site-header .header-menu-item,
 .site-header .header-menu-item:visited {
-  color: #132a1f;
+  color: #2e3029;
   font-weight: 600;
   opacity: 1;
 }
@@ -211,7 +211,7 @@
 .site-header button.header-search-trigger,
 .site-header .header-account,
 .site-header .header-cart {
-  color: #132a1f;
+  color: #2e3029;
   opacity: 1;
 }
 
@@ -232,7 +232,7 @@
   border: 0;
   border-radius: var(--radius-button);
   background: transparent;
-  color: #061b12;
+  color: #2e3029;
   box-shadow: none;
   font-family: var(--font-interface);
   font-size: 0.9375rem;
@@ -261,7 +261,7 @@
   left: var(--space-3);
   display: block;
   height: 1px;
-  background: #5c171c;
+  background: #553b43;
   content: '';
   transform: scaleX(0);
   transform-origin: center;
@@ -276,7 +276,7 @@
 
 .site-header .header-menu-item.active,
 .site-header .header-menu-item[aria-current='page'] {
-  color: #5c171c;
+  color: #553b43;
   text-decoration: none;
 }
 
@@ -308,7 +308,7 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-button);
   background: var(--surface-page);
-  color: #153226;
+  color: #2e3029;
   box-shadow: none;
   font: 700 0.8125rem / 1.2 var(--font-interface);
   white-space: nowrap;
@@ -333,7 +333,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-control);
   background: var(--surface-subtle);
-  color: #153226;
+  color: #2e3029;
   font: 700 var(--type-label) / 1 var(--font-interface);
 }
 
@@ -427,8 +427,8 @@
   width: min(18rem, calc(100vw - 2rem));
   max-height: min(28rem, calc(100dvh - 6rem));
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 18px 50px rgb(19 42 31 / 24%);
+  background: #f4efeb;
+  box-shadow: 0 18px 50px rgb(46 48 41 / 24%);
 }
 
 .mobile-menu-location .market-picker-options {
@@ -450,7 +450,7 @@
   margin: var(--space-5) 0 0;
   padding: 0;
   border: 0;
-  color: rgb(255 255 255 / 78%);
+  color: rgb(251 249 246 / 78%);
   font-family: var(--font-interface);
   font-size: var(--type-metadata);
 }
@@ -472,7 +472,7 @@
 .site-footer .footer-location select,
 .mobile-menu-location select {
   min-height: 2.25rem;
-  border: 1px solid rgb(255 255 255 / 28%);
+  border: 1px solid rgb(251 249 246 / 28%);
   border-radius: var(--radius-button);
   color: var(--text-inverse);
   background: transparent;
@@ -529,7 +529,7 @@
   min-height: 2.25rem;
   max-width: 15rem;
   padding: 0 var(--space-3);
-  border: 1px solid rgb(255 255 255 / 28%);
+  border: 1px solid rgb(251 249 246 / 28%);
   border-radius: var(--radius-button);
   color: inherit;
   cursor: pointer;
@@ -626,13 +626,13 @@
 
 .site-footer .market-picker-popover,
 .site-overlay .market-picker-popover {
-  background-color: #fff;
-  color: #132a1f;
+  background-color: #f4efeb;
+  color: #2e3029;
 }
 
 .site-footer .market-picker-options button,
 .site-overlay .market-picker-options button {
-  color: #132a1f;
+  color: #2e3029;
 }
 
 .market-picker-options button:hover,
@@ -825,7 +825,7 @@
 .site-footer .footer-menu a,
 .site-footer .footer-privacy-choices,
 .site-footer .footer-bottom {
-  color: rgb(255 255 255 / 78%);
+  color: rgb(251 249 246 / 78%);
   font-family: var(--font-interface);
   font-size: var(--type-metadata);
   line-height: 1.6;
@@ -857,7 +857,7 @@
   height: 4.8px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: #b87936;
+  background: #a85e62;
   content: '';
   pointer-events: none;
 }
@@ -874,11 +874,11 @@
   gap: 0.55rem;
   min-height: 2.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid rgb(19 42 31 / 18%);
+  border: 1px solid rgb(46 48 41 / 18%);
   border-radius: var(--radius-button);
-  background: #fff;
+  background: #f4efeb;
   color: var(--leaf-ink);
-  box-shadow: 0 2px 8px rgb(19 42 31 / 8%);
+  box-shadow: 0 2px 8px rgb(46 48 41 / 8%);
   cursor: pointer;
   font: 600 var(--type-label) / 1.2 var(--font-interface);
   letter-spacing: 0.01em;
@@ -892,8 +892,8 @@
 }
 
 .preferred-source-button:hover {
-  border-color: rgb(19 42 31 / 34%);
-  box-shadow: 0 4px 12px rgb(19 42 31 / 14%);
+  border-color: rgb(46 48 41 / 34%);
+  box-shadow: 0 4px 12px rgb(46 48 41 / 14%);
   transform: translateY(-1px);
 }
 
@@ -967,7 +967,7 @@
   max-width: none;
   margin-inline: auto;
   padding-inline: 0;
-  border-top: 1px solid rgb(255 255 255 / 14%);
+  border-top: 1px solid rgb(251 249 246 / 14%);
 }
 
 .site-footer .footer-menu {
@@ -1101,9 +1101,9 @@
   }
 
   .site-header.header.header-solid:not(.header-scrolled) .header-inner {
-    border-color: #a8b8ad;
-    background: #ffffff;
-    box-shadow: 0 2px 6px rgb(19 42 31 / 8%);
+    border-color: #d9d2c9;
+    background: #fbf9f6;
+    box-shadow: 0 2px 6px rgb(46 48 41 / 8%);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -1141,7 +1141,7 @@
     min-width: 0;
     width: 100%;
     padding-left: 3.2rem;
-    color: #132a1f;
+    color: #2e3029;
     font-size: 0.3125rem;
     font-weight: 700;
     letter-spacing: 0.09em;
@@ -1149,7 +1149,7 @@
 
   .site-header .header-icon-button,
   .site-header .header-menu-mobile-toggle {
-    color: #0d271b;
+    color: #2e3029;
     opacity: 1;
   }
 
@@ -1264,7 +1264,7 @@
     display: block;
     width: min(calc(100% - (2 * var(--page-gutter))), var(--content-wide));
     margin-inline: auto;
-    border-top: 1px solid rgb(255 255 255 / 14%);
+    border-top: 1px solid rgb(251 249 246 / 14%);
   }
 
   .site-footer .footer-policies-mobile summary {
@@ -1304,7 +1304,7 @@
 
   .site-footer .footer-policies-mobile a,
   .site-footer .footer-policies-mobile .footer-privacy-choices {
-    color: rgb(255 255 255 / 78%);
+    color: rgb(251 249 246 / 78%);
     font-family: var(--font-interface);
     font-size: var(--type-metadata);
     line-height: 1.5;
