@@ -238,6 +238,10 @@ function requestServiceability(
   url.searchParams.set('delivery_postcode', destinationPincode);
   url.searchParams.set('weight', String(config.defaultWeightKg));
   url.searchParams.set('cod', '0');
+  url.searchParams.set('length', '30');
+  url.searchParams.set('breadth', '20');
+  url.searchParams.set('height', '6');
+  url.searchParams.set('mode', 'Air');
 
   return fetchWithTimeout(fetcher, url, {
     headers: {

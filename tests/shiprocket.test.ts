@@ -67,6 +67,10 @@ test('Shiprocket authenticates server-side and returns its recommended courier',
   assert.equal(requests[1].url.searchParams.get('delivery_postcode'), '560001');
   assert.equal(requests[1].url.searchParams.get('weight'), '0.5');
   assert.equal(requests[1].url.searchParams.get('cod'), '0');
+  assert.equal(requests[1].url.searchParams.get('length'), '30');
+  assert.equal(requests[1].url.searchParams.get('breadth'), '20');
+  assert.equal(requests[1].url.searchParams.get('height'), '6');
+  assert.equal(requests[1].url.searchParams.get('mode'), 'Air');
   assert.equal(
     new Headers(requests[1].init?.headers).get('Authorization'),
     `Bearer ${'a'.repeat(40)}`,
