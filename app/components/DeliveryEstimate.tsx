@@ -101,7 +101,7 @@ export function DeliveryEstimate() {
       </div>
       {result?.serviceable && (
         <p className="delivery-estimate-note">
-          Courier estimate only; the final delivery date may change after dispatch.
+          Freshly dispatched from Assam. Delivery times may vary by location.
         </p>
       )}
     </section>
