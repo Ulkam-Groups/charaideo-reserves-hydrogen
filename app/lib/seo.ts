@@ -1,7 +1,100 @@
-export const SITE_URL = 'https://www.teareserves.com';
+export const SITE_URL = 'https://teareserves.com';
 export const SITE_NAME = 'Charaideo Reserves';
 export const PARENT_BRAND_NAME = 'Tea Reserves of India';
 export const BRAND_ENDORSEMENT = `From the House of ${PARENT_BRAND_NAME}.`;
+
+export const merchantReturnPolicyJsonLd = {
+  '@type': 'MerchantReturnPolicy',
+  applicableCountry: 'IN',
+  returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+  merchantReturnLink: canonicalPolicyUrl('/policies/refund-policy'),
+};
+
+const indiaDestinationJsonLd = {
+  '@type': 'DefinedRegion',
+  addressCountry: 'IN',
+};
+
+export function domesticShippingDetailsJsonLd(orderValue: number) {
+  return {
+    '@type': 'OfferShippingDetails',
+    shippingRate: {
+      '@type': 'MonetaryAmount',
+      value: orderValue >= 399 ? 0 : 60,
+      currency: 'INR',
+    },
+    shippingDestination: indiaDestinationJsonLd,
+    deliveryTime: {
+      '@type': 'ShippingDeliveryTime',
+      handlingTime: {
+        '@type': 'QuantitativeValue',
+        minValue: 2,
+        maxValue: 4,
+        unitCode: 'DAY',
+      },
+      transitTime: {
+        '@type': 'QuantitativeValue',
+        minValue: 3,
+        maxValue: 10,
+        unitCode: 'DAY',
+      },
+    },
+  };
+}
+
+export const domesticShippingServiceJsonLd = {
+  '@type': 'ShippingService',
+  name: 'Standard delivery within India',
+  fulfillmentType: 'https://schema.org/FulfillmentTypeDelivery',
+  handlingTime: {
+    '@type': 'ServicePeriod',
+    duration: {
+      '@type': 'QuantitativeValue',
+      minValue: 2,
+      maxValue: 4,
+      unitCode: 'DAY',
+    },
+  },
+  shippingConditions: [
+    shippingCondition(0, 398.99, 60),
+    shippingCondition(399, undefined, 0),
+  ],
+};
+
+function shippingCondition(
+  minValue: number,
+  maxValue: number | undefined,
+  shippingRate: number,
+) {
+  return {
+    '@type': 'ShippingConditions',
+    shippingDestination: indiaDestinationJsonLd,
+    orderValue: {
+      '@type': 'MonetaryAmount',
+      minValue,
+      ...(maxValue === undefined ? {} : {maxValue}),
+      currency: 'INR',
+    },
+    shippingRate: {
+      '@type': 'MonetaryAmount',
+      value: shippingRate,
+      currency: 'INR',
+    },
+    transitTime: {
+      '@type': 'ServicePeriod',
+      duration: {
+        '@type': 'QuantitativeValue',
+        minValue: 3,
+        maxValue: 10,
+        unitCode: 'DAY',
+      },
+    },
+  };
+}
+
+function canonicalPolicyUrl(path: string) {
+  return new URL(path, SITE_URL).toString();
+}
 
 export function canonicalUrl(path = '/') {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
@@ -64,6 +157,8 @@ export const organizationJsonLd = {
   parentOrganization: {
     '@id': `${SITE_URL}/#tea-reserves-of-india`,
   },
+  hasMerchantReturnPolicy: merchantReturnPolicyJsonLd,
+  hasShippingService: domesticShippingServiceJsonLd,
 };
 
 export const parentOrganizationJsonLd = {
