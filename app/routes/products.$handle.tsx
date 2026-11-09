@@ -36,6 +36,8 @@ import {
   brandedMetaDescription,
   breadcrumbJsonLd,
   canonicalUrl,
+  domesticShippingDetailsJsonLd,
+  merchantReturnPolicyJsonLd,
 } from '~/lib/seo';
 
 // React Router's default deferred-data stream deadline is 4.95 seconds.
@@ -51,6 +53,22 @@ export const meta: Route.MetaFunction = ({data}) => {
     product?.seo?.description || product?.description,
     'Discover a traceable Assam tea selected by Charaideo Reserves.',
   );
+  const rating = parseRating(product?.reviewRating?.value);
+  const ratingCount = Number(product?.reviewCount?.value || 0);
+  const aggregateRating =
+    rating !== null &&
+    rating > 0 &&
+    rating <= 5 &&
+    Number.isInteger(ratingCount) &&
+    ratingCount > 0
+      ? {
+          '@type': 'AggregateRating',
+          ratingValue: rating,
+          ratingCount,
+          bestRating: 5,
+          worstRating: 1,
+        }
+      : undefined;
 
   return [
     {title: `${product?.seo?.title || product?.title || 'Tea'} | Charaideo Reserves™`},
@@ -75,6 +93,7 @@ export const meta: Route.MetaFunction = ({data}) => {
                   '@type': 'Brand',
                   name: 'Charaideo Reserves',
                 },
+                aggregateRating,
                 offers: {
                   '@type': 'Offer',
                   url: productUrl,
@@ -84,6 +103,10 @@ export const meta: Route.MetaFunction = ({data}) => {
                     ? 'https://schema.org/InStock'
                     : 'https://schema.org/OutOfStock',
                   itemCondition: 'https://schema.org/NewCondition',
+                  shippingDetails: domesticShippingDetailsJsonLd(
+                    Number(variant.price.amount),
+                  ),
+                  hasMerchantReturnPolicy: merchantReturnPolicyJsonLd,
                 },
               },
               breadcrumbJsonLd([
@@ -601,11 +624,14 @@ export default function Product() {
                       type="button"
                       aria-label="Show previous recommended product"
                       onClick={(event) => {
-                        const rail = event.currentTarget
-                          .closest('.related-scroll-controls')
-                          ?.nextElementSibling;
+                        const rail = event.currentTarget.closest(
+                          '.related-scroll-controls',
+                        )?.nextElementSibling;
                         if (rail instanceof HTMLElement) {
-                          rail.scrollBy({left: -rail.clientWidth * 0.82, behavior: 'smooth'});
+                          rail.scrollBy({
+                            left: -rail.clientWidth * 0.82,
+                            behavior: 'smooth',
+                          });
                         }
                       }}
                     >
@@ -615,11 +641,14 @@ export default function Product() {
                       type="button"
                       aria-label="Show next recommended product"
                       onClick={(event) => {
-                        const rail = event.currentTarget
-                          .closest('.related-scroll-controls')
-                          ?.nextElementSibling;
+                        const rail = event.currentTarget.closest(
+                          '.related-scroll-controls',
+                        )?.nextElementSibling;
                         if (rail instanceof HTMLElement) {
-                          rail.scrollBy({left: rail.clientWidth * 0.82, behavior: 'smooth'});
+                          rail.scrollBy({
+                            left: rail.clientWidth * 0.82,
+                            behavior: 'smooth',
+                          });
                         }
                       }}
                     >

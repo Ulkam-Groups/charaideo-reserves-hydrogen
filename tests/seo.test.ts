@@ -6,16 +6,52 @@ import {
   brandedMetaDescription,
   breadcrumbJsonLd,
   canonicalUrl,
+  domesticShippingDetailsJsonLd,
+  domesticShippingServiceJsonLd,
   metaDescription,
+  merchantReturnPolicyJsonLd,
   organizationJsonLd,
   parentOrganizationJsonLd,
 } from '../app/lib/seo.ts';
 
-test('canonical URLs always use the production HTTPS www host', () => {
-  assert.equal(canonicalUrl('/'), 'https://www.teareserves.com/');
+test('merchant policies describe the published India fulfillment rules', () => {
+  const paidShipping = domesticShippingDetailsJsonLd(398.99);
+  const freeShipping = domesticShippingDetailsJsonLd(399);
+
+  assert.equal(merchantReturnPolicyJsonLd.applicableCountry, 'IN');
+  assert.equal(
+    merchantReturnPolicyJsonLd.returnPolicyCategory,
+    'https://schema.org/MerchantReturnNotPermitted',
+  );
+  assert.equal(
+    merchantReturnPolicyJsonLd.merchantReturnLink,
+    'https://teareserves.com/policies/refund-policy',
+  );
+  assert.equal(paidShipping.shippingDestination.addressCountry, 'IN');
+  assert.equal(paidShipping.shippingRate.value, 60);
+  assert.equal(paidShipping.shippingRate.currency, 'INR');
+  assert.equal(freeShipping.shippingRate.value, 0);
+  assert.deepEqual(paidShipping.deliveryTime.handlingTime, {
+    '@type': 'QuantitativeValue',
+    minValue: 2,
+    maxValue: 4,
+    unitCode: 'DAY',
+  });
+  assert.equal(paidShipping.deliveryTime.transitTime.maxValue, 10);
+  assert.equal(
+    domesticShippingServiceJsonLd.shippingConditions[0].orderValue.maxValue,
+    398.99,
+  );
+  assert.equal(domesticShippingServiceJsonLd.shippingConditions[1].shippingRate.value, 0);
+  assert.equal(organizationJsonLd.hasMerchantReturnPolicy, merchantReturnPolicyJsonLd);
+  assert.equal(organizationJsonLd.hasShippingService, domesticShippingServiceJsonLd);
+});
+
+test('canonical URLs always use the primary production HTTPS host', () => {
+  assert.equal(canonicalUrl('/'), 'https://teareserves.com/');
   assert.equal(
     canonicalUrl('/products/assam-tea'),
-    'https://www.teareserves.com/products/assam-tea',
+    'https://teareserves.com/products/assam-tea',
   );
 });
 
@@ -50,10 +86,7 @@ test('breadcrumb structured data uses absolute canonical item URLs', () => {
 
   assert.equal(schema['@type'], 'BreadcrumbList');
   assert.equal(schema.itemListElement[1]?.position, 2);
-  assert.equal(
-    schema.itemListElement[1]?.item,
-    'https://www.teareserves.com/tea-academy',
-  );
+  assert.equal(schema.itemListElement[1]?.item, 'https://teareserves.com/tea-academy');
 });
 
 test('sitemap only advertises implemented resource types and routes', async () => {
