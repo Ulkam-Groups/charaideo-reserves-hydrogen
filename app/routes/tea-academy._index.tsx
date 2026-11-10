@@ -4,8 +4,13 @@ import type {Route} from './+types/tea-academy._index';
 import {TeaSensoryExperience} from '~/components/TeaSensoryExperience';
 import {parseSensoryTea, type StorefrontSensoryProduct} from '~/lib/tea-sensory';
 import charaideoLogo from '~/assets/charaideo-reserves-logo.svg?url';
-import academyHeroImage from '~/assets/tea-academy-hero.jpeg';
 import {breadcrumbJsonLd, canonicalUrl} from '~/lib/seo';
+
+const ctcImage = 'https://cdn.shopify.com/s/files/1/0651/6119/9713/files/ctc.jpg?v=1793814820';
+const greenImage = 'https://cdn.shopify.com/s/files/1/0651/6119/9713/files/green.jpg?v=1793814789';
+const orthodoxImage = 'https://cdn.shopify.com/s/files/1/0651/6119/9713/files/orthodox.jpg?v=1793814823';
+const hojichaImage = 'https://cdn.shopify.com/s/files/1/0651/6119/9713/files/hojicha.jpg?v=1793814821';
+const matchaImage = 'https://cdn.shopify.com/s/files/1/0651/6119/9713/files/matcha.jpg?v=1793814822';
 
 export const meta: Route.MetaFunction = () => [
   {title: 'Tea Academy | Charaideo Reserves™'},
@@ -70,57 +75,41 @@ export default function TeaAcademy() {
   return (
     <main className="academy-page">
       <header className="academy-hero">
-        <div className="academy-hero-copy">
-          <p className="eyebrow">Knowledge, ritual, provenance</p>
-          <h1>
-            Learn tea through <em>the senses.</em>
-          </h1>
-          <p>
-            Follow flavour, feeling, and the voices of the people who know each leaf. Tea
-            Academy is a living guide to understanding what is in your cup.
-          </p>
+        <div className="academy-atlas-layout">
+          <div className="academy-atlas-copy">
+            <p className="academy-atlas-eyebrow">Knowledge, ritual, provenance</p>
+            <h1>One bud, two leaves.<br />Many forms.</h1>
+            <p>How processing changes the leaf’s structure, aroma and cup.</p>
+            <div className="academy-atlas-signature" aria-label="Charaideo Reserves Tea Academy">
+              <img src={charaideoLogo} alt="" />
+              <span><strong>Charaideo Reserves</strong><small>Tea Academy</small></span>
+            </div>
+          </div>
+          <div className="academy-atlas-study">
+            <div className="academy-atlas-ruler">
+              <p><i>Camellia sinensis</i> var. <i>assamica</i></p>
+              <svg viewBox="0 0 600 28" aria-hidden="true">
+                <path d="M1 6H599M1 1V18M120 6V18M240 6V18M360 6V18M480 6V18M599 1V18" />
+              </svg>
+              <div aria-hidden="true"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50 mm</span></div>
+            </div>
+            <ol className="academy-atlas-specimens" aria-label="Five forms of processed tea">
+              {[
+                ['01', 'CTC', 'Crush · Tear · Curl', ctcImage],
+                ['02', 'Green', 'Pan-fired', greenImage],
+                ['03', 'Orthodox', 'Roller-dried', orthodoxImage],
+                ['04', 'Hojicha', 'Roasted', hojichaImage],
+                ['05', 'Matcha', 'Stone-ground', matchaImage],
+              ].map(([number, name, process, image]) => (
+                <li key={name}>
+                  <img src={image} alt={`${name} tea leaves`} />
+                  <span>{number}</span><strong>{name}</strong><small>{process}</small>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
-        <div className="academy-hero-mark">
-          <svg
-            aria-label="Charaideo Reserves Tea Academy"
-            role="img"
-            viewBox="0 0 240 240"
-          >
-            <defs>
-              <path d="M 44 120 A 76 76 0 0 1 196 120" id="academy-stamp-top" />
-              <path d="M 44 128 A 76 76 0 0 0 196 128" id="academy-stamp-bottom" />
-            </defs>
-            <circle cx="120" cy="120" r="94" />
-            <circle cx="120" cy="120" r="86" />
-            <text className="academy-stamp-copy">
-              <textPath href="#academy-stamp-top" startOffset="50%" textAnchor="middle">
-                CHARAIDEO RESERVES™
-              </textPath>
-            </text>
-            <text className="academy-stamp-copy">
-              <textPath
-                href="#academy-stamp-bottom"
-                startOffset="50%"
-                textAnchor="middle"
-              >
-                TEA ACADEMY
-              </textPath>
-            </text>
-            <image
-              aria-hidden="true"
-              className="academy-stamp-logo"
-              href={charaideoLogo}
-              x="50"
-              y="67"
-              width="140"
-              height="106"
-              preserveAspectRatio="xMidYMid meet"
-            />
-          </svg>
-        </div>
-        <div className="academy-hero-media-frame" aria-hidden="true">
-          <img className="academy-hero-media" src={academyHeroImage} alt="" />
-        </div>
+        <div className="academy-atlas-border" aria-hidden="true" />
       </header>
       <nav
         className="academy-section-menu"

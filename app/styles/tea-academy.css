@@ -665,6 +665,7 @@ body:has(.academy-page) main.main--offset {
 
 /* Tea Academy hero: one CSS-only composition, with no scroll listener. */
 .academy-page .academy-hero {
+  --academy-atlas-shift: -7vw;
   display: block;
   min-height: clamp(440px, 48vw, 500px);
   overflow: visible;
@@ -1557,6 +1558,742 @@ body:has(.academy-page) main.main--offset {
 
   .academy-page .academy-section-menu strong {
     font-size: 14px;
+  }
+}
+
+/* Final Tea Academy atlas hero. The artwork includes its own typography and
+   lower signature; the clear upper field is reserved for the site header. */
+.academy-page .academy-hero {
+  display: block;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  background: #0b281b;
+}
+
+.academy-hero-picture,
+.academy-page .academy-hero-artwork {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.academy-hero-picture {
+  transform: translateY(var(--academy-atlas-shift));
+  margin-bottom: var(--academy-atlas-shift);
+}
+
+.academy-page .academy-hero-artwork {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+}
+
+.academy-atlas-copy {
+  position: absolute;
+  z-index: 2;
+  top: 42.5%;
+  left: 3.15%;
+  width: 25%;
+  color: #f5ead8;
+  transform: translateY(var(--academy-atlas-shift));
+}
+
+.academy-atlas-copy .academy-atlas-eyebrow {
+  margin: 0 0 5vw;
+  color: #dec18a;
+  font: 600 clamp(.45rem,.72vw,.88rem)/1 var(--sans);
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+.academy-atlas-copy h1 {
+  margin: 0;
+  color: #f5ead8;
+  font: 500 clamp(2rem,4.25vw,5.25rem)/.88 var(--serif);
+  letter-spacing: -.025em;
+}
+
+.academy-atlas-copy h1 + p {
+  margin: 1.6vw 0 0;
+  color: #f5ead8;
+  font: 400 clamp(.68rem,1.1vw,1.35rem)/1.45 var(--sans);
+}
+
+.academy-atlas-copy button {
+  margin-top: 1.7vw;
+  padding: 0 0 .42vw;
+  border: 0;
+  border-bottom: 2px solid #a63132;
+  background: transparent;
+  color: #f5ead8;
+  font: italic 500 clamp(.85rem,1.3vw,1.55rem)/1 var(--serif);
+}
+
+.academy-atlas-copy button span {color:#b73a3a;margin-left:.45em}
+.academy-atlas-botanical{position:absolute;z-index:2;top:31.4%;right:10.5%;margin:0;color:#f5ead8;font:500 clamp(.7rem,1.15vw,1.4rem)/1 var(--serif);letter-spacing:.035em;transform:translateY(var(--academy-atlas-shift))}
+.academy-atlas-scale{position:absolute;z-index:2;top:42%;right:6.8%;display:flex;justify-content:space-between;width:32.5%;color:#f5ead8;font:500 clamp(.5rem,.78vw,.94rem)/1 var(--serif);transform:translateY(var(--academy-atlas-shift))}
+.academy-atlas-specimens{position:absolute;z-index:2;top:83%;right:3.1%;display:grid;grid-template-columns:repeat(5,1fr);width:65.6%;margin:0;padding:0;list-style:none;color:#f5ead8;text-align:center;transform:translateY(var(--academy-atlas-shift))}
+.academy-atlas-specimens li{display:flex;min-width:0;flex-direction:column;align-items:center}
+.academy-atlas-specimens span{color:#b43839;font:600 clamp(.68rem,1.15vw,1.4rem)/1 var(--sans)}
+.academy-atlas-specimens strong{margin-top:.55vw;font:500 clamp(.9rem,1.55vw,1.9rem)/1 var(--serif);letter-spacing:.08em;text-transform:uppercase}
+.academy-atlas-specimens small{margin-top:.75vw;color:#dec18a;font:600 clamp(.42rem,.66vw,.8rem)/1 var(--sans);letter-spacing:.22em;text-transform:uppercase}
+.academy-atlas-signature{position:absolute;z-index:2;bottom:7.1%;left:3.2%;display:flex;align-items:center;gap:.55vw;color:#f5ead8;transform:translateY(var(--academy-atlas-shift))}
+.academy-atlas-signature>img{width:clamp(38px,4vw,78px);filter:brightness(0) saturate(100%) invert(22%) sepia(61%) saturate(1720%) hue-rotate(326deg) brightness(83%) contrast(92%)}
+.academy-atlas-signature>span{display:flex;flex-direction:column}.academy-atlas-signature strong{font:500 clamp(.55rem,.85vw,1rem)/1.1 var(--serif)}.academy-atlas-signature small{margin-top:.32vw;font:600 clamp(.35rem,.5vw,.62rem)/1 var(--sans);letter-spacing:.28em;text-transform:uppercase}
+
+@media (max-width: 760px) {
+  .academy-page .academy-hero {
+    --academy-atlas-shift: 0px;
+    min-height: 0;
+  }
+
+  .academy-hero-picture {
+    aspect-ratio: 4 / 5;
+  }
+
+  .academy-page .academy-hero-artwork {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+  }
+
+  .academy-atlas-copy{top:22%;left:7%;width:72%}
+  .academy-atlas-copy .academy-atlas-eyebrow{margin-bottom:6.5vw;font-size:clamp(.46rem,1.8vw,.7rem);letter-spacing:.18em}
+  .academy-atlas-copy h1{font-size:clamp(2.35rem,12vw,4.25rem);line-height:.88}
+  .academy-atlas-copy h1 + p{display:block;margin-top:3vw;font-size:clamp(.72rem,2.6vw,1rem);line-height:1.45}
+  .academy-atlas-copy button{margin-top:3vw;padding-bottom:1vw;font-size:clamp(.85rem,3.2vw,1.2rem)}
+  .academy-atlas-botanical{display:block;top:42%;right:8%;font-size:clamp(.62rem,2.3vw,.9rem)}
+  .academy-atlas-scale{display:flex;top:48.3%;right:13.5%;width:57%;font-size:clamp(.42rem,1.55vw,.62rem)}
+  .academy-atlas-specimens{inset:0;width:auto}
+  .academy-atlas-specimens li{position:absolute;width:24%}
+  .academy-atlas-specimens li:nth-child(1){top:67.5%;left:21%}
+  .academy-atlas-specimens li:nth-child(2){top:67.5%;left:42%}
+  .academy-atlas-specimens li:nth-child(3){top:67.5%;left:65%}
+  .academy-atlas-specimens li:nth-child(4){top:87%;left:31.5%}
+  .academy-atlas-specimens li:nth-child(5){top:87%;left:55.5%}
+  .academy-atlas-specimens span{font-size:clamp(.5rem,1.8vw,.7rem)}
+  .academy-atlas-specimens strong{margin-top:.8vw;font-size:clamp(.66rem,2.5vw,1rem);letter-spacing:.05em}
+  .academy-atlas-specimens small{display:block;margin-top:1vw;font-size:clamp(.34rem,1.25vw,.5rem);letter-spacing:.12em}
+  .academy-atlas-signature{display:flex;bottom:3.7%;left:6%;gap:1.2vw}
+  .academy-atlas-signature>img{width:clamp(28px,7vw,44px)}
+  .academy-atlas-signature strong{font-size:clamp(.52rem,2vw,.75rem)}
+  .academy-atlas-signature small{font-size:clamp(.3rem,1.1vw,.43rem)}
+}
+
+/* Responsive atlas composition: raster photography, vector rules, live type. */
+.academy-page .academy-hero {
+  display: block;
+  min-height: 0;
+  padding: clamp(118px, 8.5vw, 150px) clamp(24px, 3.2vw, 64px) 0;
+  background:
+    radial-gradient(circle at 54% 45%, rgb(28 66 43 / 24%), transparent 36%),
+    linear-gradient(135deg, #0b281b, #061f15 68%, #0a291b);
+}
+
+.academy-atlas-layout {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(270px, 21vw, 400px) minmax(0, 1fr);
+  gap: clamp(24px, 2.5vw, 48px);
+  align-items: start;
+  max-width: 2200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.academy-atlas-copy {
+  position: static;
+  width: auto;
+  padding: 0 0 8px;
+  transform: none;
+}
+
+.academy-atlas-copy .academy-atlas-eyebrow {
+  margin: 0 0 clamp(28px, 2.3vw, 42px);
+  font-size: clamp(.58rem, .72vw, .82rem);
+}
+
+.academy-atlas-copy h1 {
+  position: relative;
+  font-size: clamp(2.45rem, 3.8vw, 4.6rem);
+  line-height: .9;
+}
+
+.academy-atlas-copy h1::before {
+  content: none;
+}
+
+.academy-atlas-copy h1::after {
+  content: '';
+  display: block;
+  width: min(100%, 390px);
+  height: 1px;
+  margin-top: clamp(16px, 1.4vw, 24px);
+  background: #dfd2ad;
+}
+
+.academy-atlas-copy h1 + p {
+  width: min(100%, 350px);
+  max-width: none;
+  margin: clamp(14px, 1.1vw, 20px) 0 0;
+  font-size: clamp(.78rem, .88vw, 1rem);
+  line-height: 1.5;
+}
+
+.academy-atlas-copy button {
+  margin-top: clamp(20px, 1.8vw, 32px);
+  padding-bottom: 7px;
+  font-size: clamp(1.1rem, 1.45vw, 1.65rem);
+}
+
+.academy-atlas-study {
+  min-width: 0;
+  width: 100%;
+  max-width: 1100px;
+  justify-self: center;
+  align-self: stretch;
+  padding-left: clamp(24px, 2.8vw, 52px);
+  border-left: 1px solid #dfd2ad;
+}
+
+.academy-atlas-ruler {
+  position: relative;
+  width: min(58%, 620px);
+  margin: 0 3% clamp(22px, 2vw, 36px) auto;
+  color: #f5ead8;
+}
+
+.academy-atlas-ruler p {
+  margin: 0 0 7px;
+  color:#f3e7d2;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:clamp(.68rem,.72vw,.82rem);
+  font-style:italic;
+  font-weight:400;
+  line-height:1;
+  letter-spacing:.025em;
+  text-align:right;
+}
+
+.academy-atlas-ruler svg {display:block;width:100%;height:auto}
+.academy-atlas-ruler>svg:not(.academy-atlas-botanical-mark) path {fill:none;stroke:#d9c28b;stroke-width:1.25}
+.academy-atlas-ruler>div{display:flex;justify-content:space-between;margin-top:-5px;font:500 clamp(.55rem,.68vw,.78rem)/1 var(--sans)}
+
+.academy-atlas-specimens {
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 28px);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  transform: none;
+}
+
+.academy-atlas-specimens li {
+  position: static;
+  width: auto;
+  min-width: 0;
+}
+
+.academy-atlas-specimens li img {
+  display: block;
+  width: min(100%, clamp(112px, 9.25vw, 176px));
+  aspect-ratio: 1;
+  border: clamp(4px, .42vw, 8px) solid #f8f1df;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-inline: auto;
+  box-shadow: 0 10px 26px rgb(0 0 0 / 24%);
+}
+
+.academy-atlas-specimens span {margin-top:12px;font-size:clamp(.7rem,.88vw,1rem)}
+.academy-atlas-specimens strong {margin-top:6px;font-size:clamp(.95rem,1.35vw,1.55rem);letter-spacing:.05em}
+.academy-atlas-specimens small {margin-top:9px;font-size:clamp(.48rem,.58vw,.66rem);letter-spacing:.16em}
+
+.academy-atlas-signature {
+  position: static;
+  margin-top: clamp(26px, 2.5vw, 42px);
+  transform: none;
+}
+
+.academy-atlas-signature>img {width:clamp(42px,3.8vw,68px)}
+.academy-atlas-signature strong {font-size:clamp(.72rem,.82vw,.95rem)}
+.academy-atlas-signature small {font-size:clamp(.4rem,.48vw,.56rem)}
+
+.academy-atlas-border {
+  height: clamp(24px, 2vw, 34px);
+  margin: clamp(28px, 2.4vw, 44px) calc(clamp(24px, 3.2vw, 64px) * -1) 0;
+  border-block: 2px solid #8f2529;
+  background:
+    linear-gradient(45deg, transparent 42%, #a52c30 43% 47%, transparent 48%) 0 0/26px 26px,
+    linear-gradient(-45deg, transparent 42%, #a52c30 43% 47%, transparent 48%) 0 0/26px 26px,
+    #071c14;
+}
+
+@media (max-width: 900px) {
+  .academy-page .academy-hero {padding-top:88px}
+  .academy-atlas-layout {grid-template-columns:1fr;align-items:start;gap:18px}
+  .academy-atlas-copy {max-width:560px}
+  .academy-atlas-copy .academy-atlas-eyebrow {margin-bottom:22px}
+  .academy-atlas-copy h1 {font-size:clamp(2rem,5vw,2.6rem)}
+  .academy-atlas-copy h1 + p {margin-top:14px;font-size:.82rem}
+  .academy-atlas-copy button {margin-top:16px;font-size:1.08rem}
+  .academy-atlas-signature {margin-top:18px}
+  .academy-atlas-study {width:100%;max-width:none;padding:18px 0 0;border-top:1px solid #dfd2ad;border-left:0}
+  .academy-atlas-ruler {width:min(88%,620px);margin:0 auto 14px}
+  .academy-atlas-ruler p {margin-bottom:8px;font-size:.78rem}
+  .academy-atlas-specimens {display:flex;max-width:none;margin-inline:0;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 16px 12px}
+  .academy-atlas-specimens {scrollbar-width:none}
+  .academy-atlas-specimens::-webkit-scrollbar {display:none}
+  .academy-atlas-specimens li {flex:0 0 clamp(104px,18vw,132px);scroll-snap-align:start}
+  .academy-atlas-specimens li img {width:100%}
+  .academy-atlas-specimens span {margin-top:7px;font-size:.62rem}
+  .academy-atlas-specimens strong {margin-top:4px;font-size:.82rem}
+  .academy-atlas-specimens small {margin-top:5px;font-size:.43rem;letter-spacing:.1em}
+  .academy-atlas-specimens li:nth-child(5) {width:auto}
+  .academy-atlas-signature {display:flex}
+  .academy-atlas-border {margin-top:22px}
+}
+
+@media (min-width: 521px) and (max-width: 900px) {
+  .academy-atlas-specimens {
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px;
+    overflow:visible;
+    padding-inline:0;
+  }
+  .academy-atlas-specimens li {width:auto;min-width:0}
+  .academy-atlas-specimens li img {width:min(100%,118px)}
+  .academy-atlas-specimens strong {font-size:clamp(.68rem,1.8vw,.88rem)}
+  .academy-atlas-specimens small {font-size:clamp(.34rem,1vw,.45rem)}
+}
+
+@media (min-width: 361px) and (max-width: 520px) {
+  .academy-atlas-specimens {
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:5px;
+    width:100%;
+    margin-inline:0;
+    padding:0 0 8px;
+    overflow:visible;
+  }
+  .academy-atlas-specimens li {width:auto;min-width:0}
+  .academy-atlas-specimens li img {width:100%;border-width:3px}
+  .academy-atlas-specimens span {margin-top:6px;font-size:.5rem}
+  .academy-atlas-specimens strong {margin-top:3px;font-size:clamp(.54rem,2.6vw,.7rem);letter-spacing:0}
+  .academy-atlas-specimens small {margin-top:4px;font-size:clamp(.27rem,1.25vw,.34rem);letter-spacing:.04em}
+}
+
+@media (min-width: 1800px) {
+  .academy-page .academy-hero {padding-top:118px}
+  .academy-atlas-layout {max-width:2200px}
+  .academy-atlas-specimens li img {max-width:176px;margin-inline:auto}
+}
+
+/* Stop the visible hero group expanding once its useful content width is reached. */
+@media (min-width: 1200px) {
+  .academy-page .academy-hero {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    justify-items:center;
+  }
+  .academy-page .academy-hero > .academy-atlas-layout {
+    grid-template-columns:clamp(300px,21vw,400px) minmax(0,1100px);
+    gap:clamp(32px,2.5vw,48px);
+    width:calc(100vw - 128px);
+    max-width:1548px;
+    margin:0;
+    transform:none;
+  }
+  .academy-atlas-study {
+    width:100%;
+    max-width:1100px;
+    justify-self:center;
+  }
+  .academy-atlas-border {
+    width:100vw;
+    margin-left:calc(50% - 50vw);
+    margin-right:calc(50% - 50vw);
+    justify-self:stretch;
+  }
+}
+
+@media (min-width: 901px) {
+  .academy-page .academy-hero {padding-top:clamp(100px,6.5vw,118px)}
+  .academy-atlas-copy .academy-atlas-eyebrow {margin-bottom:28px}
+  .academy-atlas-copy h1::after {margin-top:16px}
+  .academy-atlas-copy h1 + p {margin-top:14px}
+  .academy-atlas-copy button {margin-top:22px}
+  .academy-atlas-signature {margin-top:24px}
+  .academy-atlas-ruler {margin-bottom:24px}
+  .academy-atlas-border {margin-top:20px}
+}
+
+@media (max-width: 600px) {
+  .academy-page .academy-hero {
+    padding: clamp(108px, 26vw, 128px) 12px 0;
+  }
+
+  .academy-atlas-layout {gap:12px}
+  .academy-atlas-copy .academy-atlas-eyebrow {
+    margin-bottom:16px;
+    font-size:clamp(.46rem,2.1vw,.62rem);
+    letter-spacing:.16em;
+  }
+  .academy-atlas-copy h1 {
+    font-size:clamp(1.7rem,8.5vw,2.15rem);
+    line-height:.92;
+  }
+  .academy-atlas-copy h1::before {top:-13px;width:100%}
+  .academy-atlas-copy h1 + p {
+    max-width:32rem;
+    margin-top:10px;
+    font-size:clamp(.66rem,2.9vw,.82rem);
+  }
+  .academy-atlas-copy button {
+    margin-top:12px;
+    font-size:clamp(.9rem,4.5vw,1.25rem);
+  }
+  .academy-atlas-signature {margin-top:12px;gap:7px}
+  .academy-atlas-signature>img {width:clamp(32px,10vw,48px)}
+  .academy-atlas-signature strong {font-size:clamp(.58rem,2.8vw,.78rem)}
+  .academy-atlas-signature small {font-size:clamp(.34rem,1.55vw,.46rem)}
+  .academy-atlas-study {padding-top:10px}
+  .academy-atlas-ruler {width:100%;margin-bottom:10px}
+  .academy-atlas-ruler p {font-size:clamp(.7rem,3.2vw,.92rem)}
+  .academy-atlas-ruler>div {font-size:clamp(.42rem,2vw,.56rem)}
+  .academy-atlas-specimens {margin-inline:-12px;padding-inline:12px}
+  .academy-atlas-specimens li {flex-basis:clamp(104px,32vw,132px)}
+  .academy-atlas-specimens strong {font-size:clamp(.76rem,4vw,1rem)}
+  .academy-atlas-specimens small {font-size:clamp(.42rem,2.1vw,.54rem)}
+  .academy-atlas-border {margin-inline:-12px}
+}
+
+/* Use the available width on phones and small tablets instead of a tall text stack. */
+@media (min-width: 361px) and (max-width: 719px) {
+  .academy-atlas-layout {gap:0}
+  .academy-atlas-copy {
+    display:grid;
+    grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);
+    grid-template-rows:auto auto auto 1fr;
+    column-gap:clamp(16px,4vw,30px);
+    align-items:start;
+  }
+  .academy-atlas-copy .academy-atlas-eyebrow {
+    grid-column:1 / -1;
+    grid-row:1;
+    margin:0 0 18px;
+  }
+  .academy-atlas-copy h1 {
+    grid-column:1;
+    grid-row:2 / 5;
+    margin:0;
+    padding-right:clamp(12px,3vw,22px);
+    font-size:clamp(1.65rem,5vw,1.95rem);
+  }
+  .academy-atlas-copy h1::before {top:-12px}
+  .academy-atlas-copy h1::after {
+    width:100%;
+    margin-top:14px;
+  }
+  .academy-atlas-copy h1 + p {
+    grid-column:2;
+    grid-row:2;
+    margin:0;
+  }
+  .academy-atlas-copy button {
+    grid-column:2;
+    grid-row:3;
+    justify-self:start;
+    margin-top:14px;
+  }
+  .academy-atlas-signature {
+    grid-column:2;
+    grid-row:3;
+    margin-top:14px;
+  }
+}
+
+/* Very small phones keep the copy side by side and drop the duplicate lockup. */
+@media (max-width: 360px) {
+  .academy-page .academy-hero {
+    padding:clamp(96px,29vw,108px) 10px 0;
+  }
+  .academy-atlas-layout {gap:0}
+  .academy-atlas-copy {
+    display:grid;
+    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);
+    grid-template-rows:auto auto auto;
+    column-gap:clamp(10px,4vw,16px);
+    width:100%;
+    max-width:none;
+    padding-bottom:0;
+    align-items:start;
+  }
+  .academy-atlas-copy .academy-atlas-eyebrow {
+    grid-column:1 / -1;
+    grid-row:1;
+    margin:0 0 12px;
+    font-size:clamp(.4rem,2vw,.5rem);
+    line-height:1.2;
+    letter-spacing:.12em;
+  }
+  .academy-atlas-copy h1 {
+    grid-column:1;
+    grid-row:2 / 4;
+    margin:0;
+    padding-right:4px;
+    font-size:clamp(1.05rem,6.5vw,1.4rem);
+    line-height:.98;
+  }
+  .academy-atlas-copy h1::after {display:none}
+  .academy-atlas-copy h1 + p {
+    grid-column:2;
+    grid-row:2;
+    width:100%;
+    margin:0;
+    font-size:clamp(.5rem,2.8vw,.64rem);
+    line-height:1.35;
+  }
+  .academy-atlas-copy button {
+    grid-column:2;
+    grid-row:3;
+    justify-self:start;
+    margin-top:10px;
+    padding-bottom:0;
+    border-bottom:0;
+    font-size:clamp(.72rem,4vw,.92rem);
+  }
+  .academy-atlas-signature {display:none}
+  .academy-atlas-study {
+    margin-top:clamp(14px,5vw,20px);
+    padding-top:0;
+    border-top:0;
+  }
+  .academy-atlas-ruler {margin-bottom:8px}
+  .academy-atlas-ruler p {font-size:clamp(.56rem,3vw,.7rem)}
+}
+
+/* Progressive specimen sizing for narrow screens. */
+@media (max-width: 500px) {
+  .academy-atlas-specimens {
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:6px;
+    width:100%;
+    margin-inline:0;
+    padding:0 0 8px;
+    overflow:visible;
+  }
+  .academy-atlas-specimens li {
+    width:auto;
+    min-width:0;
+    flex:none;
+  }
+  .academy-atlas-specimens li img {
+    width:min(100%,72px);
+    border-width:3px;
+  }
+}
+
+@media (max-width: 400px) {
+  .academy-atlas-specimens {gap:4px}
+  .academy-atlas-specimens li img {width:min(100%,58px)}
+  .academy-atlas-specimens span {font-size:.43rem}
+  .academy-atlas-specimens strong {font-size:clamp(.5rem,2.8vw,.62rem)}
+  .academy-atlas-specimens small {
+    font-size:clamp(.24rem,1.3vw,.3rem);
+    letter-spacing:.02em;
+  }
+}
+
+@media (max-width: 360px) {
+  .academy-atlas-specimens {gap:3px}
+  .academy-atlas-specimens li img {width:min(100%,48px)}
+}
+
+@media (max-width: 340px) {
+  .academy-atlas-specimens li {
+    overflow:hidden;
+    text-rendering:geometricPrecision;
+    -webkit-font-smoothing:antialiased;
+  }
+  .academy-atlas-specimens span {
+    margin-top:4px;
+    font-size:clamp(.34rem,1.8vw,.4rem);
+    line-height:1;
+  }
+  .academy-atlas-specimens strong {
+    display:block;
+    width:100%;
+    margin-top:2px;
+    font-size:clamp(.34rem,2.4vw,.54rem);
+    line-height:1;
+    letter-spacing:-.015em;
+    white-space:nowrap;
+  }
+  .academy-atlas-specimens small {
+    display:block;
+    width:100%;
+    margin-top:3px;
+    font-size:clamp(.26rem,1.45vw,.32rem);
+    line-height:1.12;
+    letter-spacing:0;
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+}
+
+@media (max-width: 300px) {
+  .academy-atlas-specimens {gap:3px}
+  .academy-atlas-specimens li img {
+    width:min(100%,38px);
+    border-width:2px;
+  }
+  .academy-atlas-specimens span {font-size:.34rem}
+  .academy-atlas-specimens strong {font-size:clamp(.34rem,2.3vw,.43rem)}
+  .academy-atlas-specimens small {font-size:clamp(.25rem,1.4vw,.28rem)}
+}
+
+@media (max-width: 360px) {
+  .academy-atlas-specimens {gap:10px}
+  .academy-atlas-specimens li {flex-basis:clamp(88px,38vw,108px)}
+  .academy-atlas-specimens li img {width:100%;border-width:3px}
+  .academy-atlas-specimens strong {font-size:.68rem}
+  .academy-atlas-specimens small {font-size:.34rem}
+}
+
+@media (max-width: 280px) {
+  .academy-page .academy-hero {padding-inline:10px}
+  .academy-atlas-copy h1 {font-size:1.72rem}
+  .academy-atlas-copy h1 + p {font-size:.66rem}
+  .academy-atlas-ruler p {font-size:.66rem}
+  .academy-atlas-specimens {margin-inline:-10px;padding-inline:10px}
+  .academy-atlas-specimens li {flex-basis:88px}
+  .academy-atlas-border {margin-inline:-10px}
+}
+
+/* Keep the five-item comparison fully visible on ordinary mobile widths. */
+@media (min-width: 361px) and (max-width: 520px) {
+  .academy-atlas-specimens {
+    margin-inline:0;
+    padding:0 0 8px;
+  }
+  .academy-atlas-specimens strong {font-size:clamp(.54rem,2.6vw,.7rem)}
+  .academy-atlas-specimens small {font-size:clamp(.27rem,1.25vw,.34rem)}
+}
+
+/* Small tablets need the phone's full-width rhythm, without its tight edges. */
+@media (min-width: 601px) and (max-width: 719px) {
+  .academy-page .academy-hero {padding:100px 16px 0}
+  .academy-atlas-copy {max-width:none}
+  .academy-atlas-copy .academy-atlas-eyebrow {margin-bottom:16px}
+  .academy-atlas-copy h1 {font-size:clamp(1.65rem,5vw,1.95rem)}
+  .academy-atlas-copy h1::after {margin-top:12px}
+  .academy-atlas-copy h1 + p {margin-top:10px}
+  .academy-atlas-copy button {margin-top:12px}
+  .academy-atlas-signature {margin-top:14px}
+  .academy-atlas-study {padding-top:12px}
+  .academy-atlas-border {margin-inline:-16px}
+}
+
+/* Wider tablets retain the editorial split instead of inheriting the phone stack. */
+@media (min-width: 720px) and (max-width: 900px) {
+  .academy-page .academy-hero {padding:112px 24px 0}
+  .academy-atlas-layout {
+    grid-template-columns:minmax(230px,34%) minmax(0,1fr);
+    gap:24px;
+    align-items:start;
+  }
+  .academy-atlas-copy {max-width:none}
+  .academy-atlas-copy .academy-atlas-eyebrow {margin-bottom:20px;font-size:.56rem}
+  .academy-atlas-copy h1 {font-size:clamp(2rem,4.5vw,2.65rem)}
+  .academy-atlas-copy h1::after {margin-top:14px}
+  .academy-atlas-copy h1 + p {margin-top:12px;font-size:.76rem}
+  .academy-atlas-copy button {margin-top:14px;font-size:1rem}
+  .academy-atlas-signature {margin-top:18px}
+  .academy-atlas-study {
+    width:100%;
+    padding:0 0 0 22px;
+    border-top:0;
+    border-left:1px solid #dfd2ad;
+  }
+  .academy-atlas-ruler {width:min(92%,520px);margin:0 auto 16px}
+  .academy-atlas-specimens {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:0;overflow:visible}
+  .academy-atlas-specimens li img {width:min(100%,96px)}
+  .academy-atlas-specimens strong {font-size:clamp(.58rem,1.4vw,.78rem)}
+  .academy-atlas-specimens small {font-size:clamp(.3rem,.75vw,.4rem)}
+  .academy-atlas-border {margin-top:18px;margin-inline:-24px}
+}
+
+/* Compact the editorial copy at the narrow end of the tablet split. */
+@media (min-width: 720px) and (max-width: 870px) {
+  .academy-atlas-copy .academy-atlas-eyebrow {
+    margin-bottom:14px;
+    font-size:clamp(.45rem,.85vw,.53rem);
+    letter-spacing:.14em;
+  }
+  .academy-atlas-copy h1 {
+    font-size:clamp(1.65rem,3.8vw,2.05rem);
+    line-height:.94;
+  }
+  .academy-atlas-copy h1::after {margin-top:10px}
+  .academy-atlas-copy h1 + p {
+    margin-top:9px;
+    font-size:clamp(.62rem,1.35vw,.72rem);
+    line-height:1.4;
+  }
+  .academy-atlas-signature {
+    margin-top:12px;
+    gap:7px;
+  }
+  .academy-atlas-signature>img {width:clamp(34px,5vw,42px)}
+  .academy-atlas-signature strong {font-size:clamp(.58rem,1.2vw,.68rem)}
+  .academy-atlas-signature small {font-size:clamp(.34rem,.7vw,.4rem)}
+  .academy-atlas-border {margin-top:12px}
+}
+
+/* Final phone/small-tablet type scale and clean editorial treatment. */
+@media (min-width: 361px) and (max-width: 719px) {
+  .academy-atlas-copy .academy-atlas-eyebrow {
+    font-size:clamp(.47rem,1.7vw,.62rem);
+    line-height:1.25;
+  }
+  .academy-atlas-copy h1 {
+    font-size:clamp(1.45rem,5vw,1.95rem);
+    line-height:.98;
+  }
+  .academy-atlas-copy h1::after {display:none}
+  .academy-atlas-copy h1 + p {
+    margin-top:0;
+    font-size:clamp(.64rem,2vw,.82rem);
+    line-height:1.42;
+  }
+  .academy-atlas-copy button {
+    margin-top:clamp(10px,2.4vw,14px);
+    padding-bottom:0;
+    border-bottom:0;
+    font-size:clamp(.9rem,3vw,1.15rem);
+  }
+  .academy-atlas-signature {
+    margin-top:0;
+  }
+  .academy-atlas-signature strong {
+    font-size:clamp(.56rem,1.9vw,.76rem);
+  }
+  .academy-atlas-signature small {
+    font-size:clamp(.33rem,1.1vw,.44rem);
+  }
+  .academy-atlas-study {
+    margin-top:8px;
+    padding-top:0;
+    border-top:0;
   }
 }
 
