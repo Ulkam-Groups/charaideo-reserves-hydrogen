@@ -60,16 +60,18 @@ test('non-combinable order code suppresses a reached free-shipping offer', () =>
     combinableDiscountMilestones(
       [freeShipping],
       ['TESTLOGISTIC1'],
-      [{
-        id: 'test-logistic-1',
-        codes: ['TESTLOGISTIC1'],
-        discountClasses: ['ORDER'],
-        combinesWith: {
-          orderDiscounts: false,
-          productDiscounts: false,
-          shippingDiscounts: false,
+      [
+        {
+          id: 'test-logistic-1',
+          codes: ['TESTLOGISTIC1'],
+          discountClasses: ['ORDER'],
+          combinesWith: {
+            orderDiscounts: false,
+            productDiscounts: false,
+            shippingDiscounts: false,
+          },
         },
-      }],
+      ],
     ),
     [],
   );
@@ -77,16 +79,18 @@ test('non-combinable order code suppresses a reached free-shipping offer', () =>
     incompatibleDiscountMilestoneIds(
       [freeShipping],
       ['TESTLOGISTIC1'],
-      [{
-        id: 'test-logistic-1',
-        codes: ['TESTLOGISTIC1'],
-        discountClasses: ['ORDER'],
-        combinesWith: {
-          orderDiscounts: false,
-          productDiscounts: false,
-          shippingDiscounts: false,
+      [
+        {
+          id: 'test-logistic-1',
+          codes: ['TESTLOGISTIC1'],
+          discountClasses: ['ORDER'],
+          combinesWith: {
+            orderDiscounts: false,
+            productDiscounts: false,
+            shippingDiscounts: false,
+          },
         },
-      }],
+      ],
     ),
     ['free-shipping'],
   );
@@ -123,13 +127,15 @@ test('cart progress keeps incompatible offers visible and labels them unavailabl
     createElement(DiscountProgress, {
       surface: 'cart',
       status: 'ready',
-      items: [{
-        productId: 'product',
-        variantId: 'variant',
-        collectionIds: [],
-        amount: 1410,
-        currencyCode: 'INR',
-      }],
+      items: [
+        {
+          productId: 'product',
+          variantId: 'variant',
+          collectionIds: [],
+          amount: 1410,
+          currencyCode: 'INR',
+        },
+      ],
       milestones,
       unavailableMilestoneIds: ['free-shipping', 'ten-percent'],
     }),
@@ -170,16 +176,18 @@ test('mutually combinable order code preserves a free-shipping offer', () => {
     combinableDiscountMilestones(
       [freeShipping],
       ['SAVE10'],
-      [{
-        id: 'save-10',
-        codes: ['SAVE10'],
-        discountClasses: ['ORDER'],
-        combinesWith: {
-          orderDiscounts: false,
-          productDiscounts: false,
-          shippingDiscounts: true,
+      [
+        {
+          id: 'save-10',
+          codes: ['SAVE10'],
+          discountClasses: ['ORDER'],
+          combinesWith: {
+            orderDiscounts: false,
+            productDiscounts: false,
+            shippingDiscounts: true,
+          },
         },
-      }],
+      ],
     ).length,
     1,
   );
