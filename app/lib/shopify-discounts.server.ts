@@ -1,6 +1,5 @@
 import type {
   DiscountProgressData,
-  DiscountProgressMilestone,
   DiscountProgressStatus,
   DiscountProgressTargets,
 } from './discount-progress';
@@ -285,7 +284,20 @@ async function queryActiveDiscounts(
     })
     .sort((a, b) => a.threshold - b.threshold);
 
-  return {status: 'ready', milestones};
+  const codeDiscounts = discountNodes.flatMap((node) => {
+    const discount = node.discount;
+    const codes = discount?.codes?.nodes?.map(({code}) => code) ?? [];
+    if (!discount || !codes.length || !isCurrentlyActive(discount, now)) return [];
+
+    return [{
+      id: node.id,
+      codes,
+      discountClasses: discount.discountClasses ?? [],
+      combinesWith: discount.combinesWith ?? undefined,
+    }];
+  });
+
+  return {status: 'ready', milestones, codeDiscounts};
 }
 
 const ALL_DISCOUNT_PROGRESS_TARGETS: DiscountProgressTargets = {

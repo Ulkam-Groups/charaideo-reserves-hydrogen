@@ -500,6 +500,13 @@
   background: #176b3a;
   box-shadow: inset 0 0 0 1.5px #fff;
 }
+.discount-progress-summary-milestones .is-unavailable {
+  color: #7a655d;
+}
+.discount-progress-summary-milestones .is-unavailable i {
+  border-color: #9b7a6d;
+  background: #f3e9e4;
+}
 .discount-progress-details[open] .discount-progress-details-label::after {
   content: ' ▴';
 }

@@ -7,7 +7,9 @@ import {DiscountProgress} from '../../app/components/DiscountProgress.tsx';
 import {loadShopifyDiscountProgress} from '../../app/lib/shopify-discounts.server.ts';
 import {
   cartDiscountProgressItems,
+  combinableDiscountMilestones,
   discountProgressAmount,
+  incompatibleDiscountMilestoneIds,
   isDiscountProgressEligible,
 } from '../../app/lib/discount-progress.ts';
 
@@ -27,6 +29,159 @@ test('cart discount progress ignores an incomplete optimistic line', () => {
       },
     } as never),
     [],
+  );
+});
+
+test('non-combinable order code suppresses a reached free-shipping offer', () => {
+  const freeShipping = {
+    id: 'free-shipping',
+    threshold: 399,
+    currencyCode: 'INR' as const,
+    reward: 'Free shipping',
+    title: 'Free shipping',
+    method: 'automatic' as const,
+    codes: [],
+    discountClasses: ['SHIPPING'],
+    combinesWith: {
+      orderDiscounts: false,
+      productDiscounts: false,
+      shippingDiscounts: false,
+    },
+    productSpecific: false,
+    targets: {
+      allItems: true,
+      productIds: [],
+      variantIds: [],
+      collectionIds: [],
+    },
+  };
+
+  assert.deepEqual(
+    combinableDiscountMilestones(
+      [freeShipping],
+      ['TESTLOGISTIC1'],
+      [{
+        id: 'test-logistic-1',
+        codes: ['TESTLOGISTIC1'],
+        discountClasses: ['ORDER'],
+        combinesWith: {
+          orderDiscounts: false,
+          productDiscounts: false,
+          shippingDiscounts: false,
+        },
+      }],
+    ),
+    [],
+  );
+  assert.deepEqual(
+    incompatibleDiscountMilestoneIds(
+      [freeShipping],
+      ['TESTLOGISTIC1'],
+      [{
+        id: 'test-logistic-1',
+        codes: ['TESTLOGISTIC1'],
+        discountClasses: ['ORDER'],
+        combinesWith: {
+          orderDiscounts: false,
+          productDiscounts: false,
+          shippingDiscounts: false,
+        },
+      }],
+    ),
+    ['free-shipping'],
+  );
+});
+
+test('cart progress keeps incompatible offers visible and labels them unavailable', () => {
+  const milestones = [
+    {
+      id: 'free-shipping',
+      threshold: 399,
+      currencyCode: 'INR' as const,
+      reward: 'Free shipping',
+      title: 'Free shipping',
+      method: 'automatic' as const,
+      codes: [],
+      discountClasses: ['SHIPPING'],
+      productSpecific: false,
+      targets: {allItems: true, productIds: [], variantIds: [], collectionIds: []},
+    },
+    {
+      id: 'ten-percent',
+      threshold: 1099,
+      currencyCode: 'INR' as const,
+      reward: '10% off',
+      title: '10% off',
+      method: 'automatic' as const,
+      codes: [],
+      discountClasses: ['ORDER'],
+      productSpecific: false,
+      targets: {allItems: true, productIds: [], variantIds: [], collectionIds: []},
+    },
+  ];
+  const html = renderToStaticMarkup(
+    createElement(DiscountProgress, {
+      surface: 'cart',
+      status: 'ready',
+      items: [{
+        productId: 'product',
+        variantId: 'variant',
+        collectionIds: [],
+        amount: 1410,
+        currencyCode: 'INR',
+      }],
+      milestones,
+      unavailableMilestoneIds: ['free-shipping', 'ten-percent'],
+    }),
+  );
+
+  assert.match(html, /0 of 2 offers applicable/);
+  assert.match(html, /₹399\.00 Free shipping · not applicable/);
+  assert.match(html, /₹1,099\.00 10% off · not applicable/);
+  assert.match(html, /Not applicable with applied discount/);
+  assert.doesNotMatch(html, /Conditions met/);
+});
+
+test('mutually combinable order code preserves a free-shipping offer', () => {
+  const freeShipping = {
+    id: 'free-shipping',
+    threshold: 399,
+    currencyCode: 'INR' as const,
+    reward: 'Free shipping',
+    title: 'Free shipping',
+    method: 'automatic' as const,
+    codes: [],
+    discountClasses: ['SHIPPING'],
+    combinesWith: {
+      orderDiscounts: true,
+      productDiscounts: false,
+      shippingDiscounts: false,
+    },
+    productSpecific: false,
+    targets: {
+      allItems: true,
+      productIds: [],
+      variantIds: [],
+      collectionIds: [],
+    },
+  };
+
+  assert.equal(
+    combinableDiscountMilestones(
+      [freeShipping],
+      ['SAVE10'],
+      [{
+        id: 'save-10',
+        codes: ['SAVE10'],
+        discountClasses: ['ORDER'],
+        combinesWith: {
+          orderDiscounts: false,
+          productDiscounts: false,
+          shippingDiscounts: true,
+        },
+      }],
+    ).length,
+    1,
   );
 });
 
@@ -187,6 +342,27 @@ test('Shopify discount progress parses order and product milestones in threshold
                 codes: {nodes: [{code: 'SAVE15'}]},
               },
             },
+            {
+              id: 'gid://shopify/DiscountNode/test-logistic-1',
+              discount: {
+                __typename: 'DiscountCodeBasic',
+                title: 'TESTLOGISTIC1',
+                status: 'ACTIVE',
+                context: {all: 'ALL'},
+                discountClasses: ['ORDER'],
+                combinesWith: {
+                  orderDiscounts: false,
+                  productDiscounts: false,
+                  shippingDiscounts: false,
+                },
+                minimumRequirement: {__typename: 'DiscountMinimumQuantity'},
+                customerGets: {
+                  items: {allItems: true},
+                  value: {percentage: 0.8},
+                },
+                codes: {nodes: [{code: 'TESTLOGISTIC1'}]},
+              },
+            },
           ],
         },
       },
@@ -209,6 +385,19 @@ test('Shopify discount progress parses order and product milestones in threshold
       productDiscounts: false,
       shippingDiscounts: false,
     });
+    assert.deepEqual(
+      progress.codeDiscounts?.find(({codes}) => codes.includes('TESTLOGISTIC1')),
+      {
+        id: 'gid://shopify/DiscountNode/test-logistic-1',
+        codes: ['TESTLOGISTIC1'],
+        discountClasses: ['ORDER'],
+        combinesWith: {
+          orderDiscounts: false,
+          productDiscounts: false,
+          shippingDiscounts: false,
+        },
+      },
+    );
     assert.deepEqual(
       progress.milestones.map(({threshold, reward, method, codes}) => ({
         threshold,

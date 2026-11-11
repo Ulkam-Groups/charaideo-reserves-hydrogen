@@ -420,6 +420,15 @@ button[data-state='busy'] {
   background: none;
   animation: dp-pop 700ms var(--pdp-ease) both;
 }
+.discount-progress-marker.is-unavailable {
+  width: 15px;
+  height: 15px;
+  border-color: #9b7a6d;
+  background: #f3e9e4;
+  color: #6f4e43;
+  font-size: 12px;
+  font-weight: 700;
+}
 @keyframes dp-pop {
   0% { transform: translate(-50%, -50%) scale(0.2) rotate(-30deg); opacity: 0; }
   60% { transform: translate(-50%, -80%) scale(1.5) rotate(12deg); opacity: 1; }

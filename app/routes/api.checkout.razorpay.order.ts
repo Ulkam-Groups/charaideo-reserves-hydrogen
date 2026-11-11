@@ -170,6 +170,7 @@ export async function action({request, context}: ActionFunctionArgs) {
   try {
     let lines: RazorpayOrderLine[];
     let expectedAmount: number;
+    let discountCodes: string[] = [];
 
     if (source === 'cart') {
       const cart = (await context.cart.get()) as CartApiQueryFragment | null;
@@ -183,6 +184,11 @@ export async function action({request, context}: ActionFunctionArgs) {
       if (JSON.stringify(cartProducts) !== JSON.stringify(requestedProducts)) {
         return json({error: 'Cart changed before checkout'}, 409);
       }
+      const rejectedDiscountCode = cart.discountCodes.find((code) => !code.applicable);
+      if (rejectedDiscountCode) {
+        return json({error: 'A discount code is no longer applicable'}, 409);
+      }
+      discountCodes = cart.discountCodes.map(({code}) => code);
       stage = 'checkout_payload';
       // Shopify has already resolved discount eligibility, combination rules,
       // caps, and allocation priority. Never reconstruct this amount from the
@@ -233,6 +239,8 @@ export async function action({request, context}: ActionFunctionArgs) {
         env: context.env,
         lines,
         source,
+        discountCodes,
+        expectedAmount,
       });
       draftOrderId = draftOrder.id;
     }
@@ -245,8 +253,8 @@ export async function action({request, context}: ActionFunctionArgs) {
       expectedAmount,
       notes: {
         ...(draftOrderId ? {shopify_draft_order_id: draftOrderId} : {}),
-        ...(typeof form.get('couponCode') === 'string'
-          ? {coupon: String(form.get('couponCode')).slice(0, 100)}
+        ...(discountCodes.length
+          ? {shopify_discount_codes: JSON.stringify(discountCodes).slice(0, 256)}
           : {}),
         ...(typeof form.get('utmParams') === 'string'
           ? {utm: String(form.get('utmParams')).slice(0, 256)}
