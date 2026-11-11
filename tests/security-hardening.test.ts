@@ -115,10 +115,13 @@ test('global security headers are applied without weakening CSP', () => {
   assert.equal(response.headers.get('content-security-policy'), "default-src 'self'");
 });
 
-test('Admin API scopes include discount reads without granting unrelated writes', async () => {
+test('Admin API scopes include discount and anchored Draft Order access only', async () => {
   const config = await readFile(new URL('../shopify.app.toml', import.meta.url), 'utf8');
-  assert.match(config, /^scopes\s*=\s*"read_orders,write_orders,read_discounts"$/m);
-  assert.doesNotMatch(config, /write_(products|customers|inventory|draft_orders)/);
+  assert.match(
+    config,
+    /^scopes\s*=\s*"read_orders,write_orders,read_discounts,read_draft_orders,write_draft_orders"$/m,
+  );
+  assert.doesNotMatch(config, /write_(products|customers|inventory)/);
 });
 
 test('protected account routes use the awaited auth guard', async () => {
