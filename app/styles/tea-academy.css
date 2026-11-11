@@ -1933,7 +1933,7 @@ body:has(.academy-page) main.main--offset {
   .academy-atlas-signature {margin-top:20px}
   .academy-atlas-ruler {margin-bottom:24px}
   .academy-atlas-specimens {transform:translateY(clamp(30px,2.2vw,38px))}
-  .academy-atlas-border {margin-top:2px}
+  .academy-atlas-border {margin-top:6px}
 }
 
 @media (max-width: 600px) {
