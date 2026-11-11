@@ -1636,7 +1636,7 @@ body:has(.academy-page) main.main--offset {
 .academy-atlas-scale{position:absolute;z-index:2;top:42%;right:6.8%;display:flex;justify-content:space-between;width:32.5%;color:#f5ead8;font:500 clamp(.5rem,.78vw,.94rem)/1 var(--serif);transform:translateY(var(--academy-atlas-shift))}
 .academy-atlas-specimens{position:absolute;z-index:2;top:83%;right:3.1%;display:grid;grid-template-columns:repeat(5,1fr);width:65.6%;margin:0;padding:0;list-style:none;color:#f5ead8;text-align:center;transform:translateY(var(--academy-atlas-shift))}
 .academy-atlas-specimens li{display:flex;min-width:0;flex-direction:column;align-items:center}
-.academy-atlas-specimens span{color:#b43839;font:600 clamp(.68rem,1.15vw,1.4rem)/1 var(--sans)}
+.academy-atlas-specimens span{color:#dc625e;font:600 clamp(.68rem,1.15vw,1.4rem)/1 var(--sans)}
 .academy-atlas-specimens strong{margin-top:.55vw;font:500 clamp(.9rem,1.55vw,1.9rem)/1 var(--serif);letter-spacing:.08em;text-transform:uppercase}
 .academy-atlas-specimens small{margin-top:.75vw;color:#dec18a;font:600 clamp(.42rem,.66vw,.8rem)/1 var(--sans);letter-spacing:.22em;text-transform:uppercase}
 .academy-atlas-signature{position:absolute;z-index:2;bottom:7.1%;left:3.2%;display:flex;align-items:center;gap:.55vw;color:#f5ead8;transform:translateY(var(--academy-atlas-shift))}
@@ -1689,8 +1689,8 @@ body:has(.academy-page) main.main--offset {
   min-height: 0;
   padding: clamp(118px, 8.5vw, 150px) clamp(24px, 3.2vw, 64px) 0;
   background:
-    radial-gradient(circle at 54% 45%, rgb(28 66 43 / 24%), transparent 36%),
-    linear-gradient(135deg, #0b281b, #061f15 68%, #0a291b);
+    radial-gradient(circle at 58% 38%, rgb(49 91 61 / 42%), transparent 44%),
+    linear-gradient(135deg, #0e3422 0%, #061b12 58%, #0b2f1f 100%);
 }
 
 .academy-atlas-layout {
@@ -1827,11 +1827,11 @@ body:has(.academy-page) main.main--offset {
 .academy-atlas-border {
   height: clamp(24px, 2vw, 34px);
   margin: clamp(28px, 2.4vw, 44px) calc(clamp(24px, 3.2vw, 64px) * -1) 0;
-  border-block: 2px solid #8f2529;
-  background:
-    linear-gradient(45deg, transparent 42%, #a52c30 43% 47%, transparent 48%) 0 0/26px 26px,
-    linear-gradient(-45deg, transparent 42%, #a52c30 43% 47%, transparent 48%) 0 0/26px 26px,
-    #071c14;
+  background-color:#071c14;
+  background-image:url('../assets/gamosa-border.svg');
+  background-position:center;
+  background-repeat:repeat-x;
+  background-size:auto 100%;
 }
 
 @media (max-width: 900px) {
@@ -1929,10 +1929,11 @@ body:has(.academy-page) main.main--offset {
   .academy-atlas-copy .academy-atlas-eyebrow {margin-bottom:28px}
   .academy-atlas-copy h1::after {margin-top:16px}
   .academy-atlas-copy h1 + p {margin-top:14px}
-  .academy-atlas-copy button {margin-top:22px}
-  .academy-atlas-signature {margin-top:24px}
+  .academy-atlas-copy button {margin-top:20px}
+  .academy-atlas-signature {margin-top:20px}
   .academy-atlas-ruler {margin-bottom:24px}
-  .academy-atlas-border {margin-top:20px}
+  .academy-atlas-specimens {transform:translateY(clamp(30px,2.2vw,38px))}
+  .academy-atlas-border {margin-top:2px}
 }
 
 @media (max-width: 600px) {
@@ -2018,6 +2019,33 @@ body:has(.academy-page) main.main--offset {
     grid-row:3;
     margin-top:14px;
   }
+}
+
+/* High-contrast gold accents for the Academy's supporting copy. */
+.academy-atlas-copy h1 + p {
+  color:#dfbd76;
+  font-weight:400;
+  opacity:1;
+  text-shadow:none;
+}
+
+.academy-section-menu-label,
+.academy-panel-heading .eyebrow {
+  color:#95631f;
+  opacity:1;
+  text-shadow:none;
+}
+
+.academy-section-menu-label {font-weight:700}
+.academy-panel-heading .eyebrow {font-weight:600}
+
+/* Preserve the intended weights while rendering all Academy type cleanly. */
+.academy-page,
+.academy-page :where(h1,h2,h3,h4,p,span,strong,small,em,li,dt,dd,blockquote,label,a,button) {
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:auto;
+  -moz-osx-font-smoothing:auto;
+  text-shadow:none;
 }
 
 /* Very small phones keep the copy side by side and drop the duplicate lockup. */

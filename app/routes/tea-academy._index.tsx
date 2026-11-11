@@ -96,9 +96,9 @@ export default function TeaAcademy() {
             <ol className="academy-atlas-specimens" aria-label="Five forms of processed tea">
               {[
                 ['01', 'CTC', 'Crush · Tear · Curl', ctcImage],
-                ['02', 'Green', 'Pan-fired', greenImage],
+                ['02', 'Green', 'Hand-rolled', greenImage],
                 ['03', 'Orthodox', 'Roller-dried', orthodoxImage],
-                ['04', 'Hojicha', 'Roasted', hojichaImage],
+                ['04', 'Hojicha', 'Pan-fired · Roasted', hojichaImage],
                 ['05', 'Matcha', 'Stone-ground', matchaImage],
               ].map(([number, name, process, image]) => (
                 <li key={name}>
