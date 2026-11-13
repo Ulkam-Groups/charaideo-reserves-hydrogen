@@ -14,7 +14,6 @@ import {startCheckout} from '~/lib/checkout/checkout.client';
 import {useAside} from '~/components/Aside';
 import {
   cartDiscountProgressItems,
-  combinableDiscountMilestones,
   discountProgressAmount,
   isDiscountProgressEligible,
 } from '~/lib/discount-progress';
@@ -32,15 +31,7 @@ type CartSummaryProps = {
 export function CartSummary({cart, layout}: CartSummaryProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
   const progressItems = cartDiscountProgressItems(cart);
-  const appliedCodes = (cart?.discountCodes ?? [])
-    .filter(({applicable}) => applicable)
-    .map(({code}) => code);
-  const compatibleMilestones = combinableDiscountMilestones(
-    rootData?.cartDiscountProgress.milestones ?? [],
-    appliedCodes,
-    rootData?.cartDiscountProgress.codeDiscounts ?? [],
-  );
-  const freeShipping = compatibleMilestones.some(
+  const freeShipping = (rootData?.cartDiscountProgress.milestones ?? []).some(
     (milestone) =>
       /shipping|delivery/i.test(milestone.reward) &&
       isDiscountProgressEligible(milestone, progressItems) &&
@@ -66,11 +57,7 @@ export function CartSummary({cart, layout}: CartSummaryProps) {
           <dl className="cart-subtotal">
             <dt>Subtotal</dt>
             <dd>
-              {cart?.cost?.totalAmount ? (
-                <Money data={cart.cost.totalAmount} />
-              ) : (
-                '-'
-              )}
+              {cart?.cost?.subtotalAmount ? <Money data={cart.cost.subtotalAmount} /> : '-'}
             </dd>
           </dl>
           <CartCheckoutActions cart={cart} layout={layout} />

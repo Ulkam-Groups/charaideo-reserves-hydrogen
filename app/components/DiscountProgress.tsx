@@ -20,7 +20,6 @@ export function DiscountProgress({
   paused = false,
   detailsMode = 'inline',
   appliedMilestoneIds = [],
-  unavailableMilestoneIds = [],
 }: {
   items?: readonly DiscountProgressItem[];
   /** Items that decide which offers belong on this surface. Defaults to items. */
@@ -33,8 +32,6 @@ export function DiscountProgress({
   detailsMode?: 'inline' | 'popup';
   /** IDs confirmed by Shopify's cart discount allocations. */
   appliedMilestoneIds?: readonly string[];
-  /** Offers blocked by the currently applied Shopify discount combination rules. */
-  unavailableMilestoneIds?: readonly string[];
 }) {
   const offerEligibilityItems = eligibilityItems ?? items;
 
@@ -66,7 +63,6 @@ export function DiscountProgress({
         paused={paused}
         detailsMode={detailsMode}
         appliedMilestoneIds={appliedMilestoneIds}
-        unavailableMilestoneIds={unavailableMilestoneIds}
       />
     );
   }
@@ -162,20 +158,17 @@ function CartDiscountProgress({
   paused,
   detailsMode,
   appliedMilestoneIds,
-  unavailableMilestoneIds,
 }: {
   items: readonly DiscountProgressItem[];
   milestones: DiscountProgressMilestone[];
   paused: boolean;
   detailsMode: 'inline' | 'popup';
   appliedMilestoneIds: readonly string[];
-  unavailableMilestoneIds: readonly string[];
 }) {
   const popoverRef = useRef<HTMLDetailsElement>(null);
   const groups = groupMilestonesByTarget(milestones);
   const reached = milestones.filter(
     (milestone) =>
-      !unavailableMilestoneIds.includes(milestone.id) &&
       discountProgressAmount(milestone, items) >= milestone.threshold,
   );
   const completion = (reached.length / milestones.length) * 100;
@@ -211,9 +204,7 @@ function CartDiscountProgress({
       <span className="discount-progress-summary-copy">
         <span aria-hidden="true">{reached.length ? '🎉' : '🎁'}</span>
         <strong>
-          {unavailableMilestoneIds.length
-            ? `${reached.length} of ${milestones.length} offers applicable`
-            : `${reached.length} of ${milestones.length} offer conditions met`}
+          {reached.length} of {milestones.length} offer conditions met
         </strong>
         {detailsMode === 'inline' && (
           <span className="discount-progress-details-label">Offer details</span>
@@ -223,16 +214,15 @@ function CartDiscountProgress({
         {milestones.map((milestone) => {
           const done =
             discountProgressAmount(milestone, items) >= milestone.threshold;
-          const unavailable = unavailableMilestoneIds.includes(milestone.id);
           return (
             <span
               key={milestone.id}
-              className={unavailable ? 'is-unavailable' : done ? 'is-reached' : undefined}
+              className={done ? 'is-reached' : undefined}
               title={`${milestone.reward} at ${formatMoney(milestone.threshold, milestone.currencyCode)}`}
             >
               <i />
               {formatMoney(milestone.threshold, milestone.currencyCode)}{' '}
-              {milestone.reward}{unavailable ? ' · not applicable' : ''}
+              {milestone.reward}
             </span>
           );
         })}
@@ -274,14 +264,14 @@ function CartDiscountProgress({
                   ×
                 </button>
               </div>
-              <CartDiscountProgressGroups groups={groups} items={items} appliedMilestoneIds={appliedMilestoneIds} unavailableMilestoneIds={unavailableMilestoneIds} />
+              <CartDiscountProgressGroups groups={groups} items={items} appliedMilestoneIds={appliedMilestoneIds} />
             </div>
           </details>
         </div>
       ) : (
         <details className="discount-progress-details">
           <summary>{summaryContent}</summary>
-          <CartDiscountProgressGroups groups={groups} items={items} appliedMilestoneIds={appliedMilestoneIds} unavailableMilestoneIds={unavailableMilestoneIds} />
+          <CartDiscountProgressGroups groups={groups} items={items} appliedMilestoneIds={appliedMilestoneIds} />
         </details>
       )}
       <CelebrationBanner
@@ -297,12 +287,10 @@ function CartDiscountProgressGroups({
   groups,
   items,
   appliedMilestoneIds,
-  unavailableMilestoneIds,
 }: {
   groups: ReturnType<typeof groupMilestonesByTarget>;
   items: readonly DiscountProgressItem[];
   appliedMilestoneIds: readonly string[];
-  unavailableMilestoneIds: readonly string[];
 }) {
   return (
     <div className="discount-progress-detail-panel">
@@ -320,16 +308,9 @@ function CartDiscountProgressGroups({
             .reverse()
             .find((milestone) => amount >= milestone.threshold);
           const activeMilestone = next ?? lastReached ?? group.milestones[0];
-          const activeMilestoneUnavailable = unavailableMilestoneIds.includes(
-            activeMilestone.id,
-          );
           const appliedMilestone = [...group.milestones]
             .reverse()
-            .find(
-              (milestone) =>
-                !unavailableMilestoneIds.includes(milestone.id) &&
-                appliedMilestoneIds.includes(milestone.id),
-            );
+            .find((milestone) => appliedMilestoneIds.includes(milestone.id));
           const groupTitles = [
             ...new Set(group.milestones.map(({title}) => title)),
           ];
@@ -343,9 +324,7 @@ function CartDiscountProgressGroups({
                     : activeMilestone.reward}
                 </strong>
                 <span>
-                  {activeMilestoneUnavailable
-                    ? 'Not applicable with applied discount'
-                    : appliedMilestone
+                  {appliedMilestone
                     ? `${appliedMilestone.reward} applied`
                     : !next && group.productSpecific && appliedMilestoneIds.length > 0
                       ? 'A better offer has been applied'
@@ -370,18 +349,17 @@ function CartDiscountProgressGroups({
                 />
                 {group.milestones.map((milestone) => {
                   const done = amount >= milestone.threshold;
-                  const unavailable = unavailableMilestoneIds.includes(milestone.id);
                   return (
                     <span
                       key={milestone.id}
-                      className={`discount-progress-marker${unavailable ? ' is-unavailable' : done ? ' is-reached' : ''}`}
+                      className={`discount-progress-marker${done ? ' is-reached' : ''}`}
                       style={{
                         left: `${(milestone.threshold / visualMaximum) * 100}%`,
                       }}
                       title={`${milestone.reward}: ${formatMoney(amount, milestone.currencyCode)} counted toward ${formatMoney(milestone.threshold, milestone.currencyCode)}`}
                       aria-hidden="true"
                     >
-                      {unavailable ? '×' : done ? '✓' : ''}
+                      {done ? '✓' : ''}
                     </span>
                   );
                 })}
