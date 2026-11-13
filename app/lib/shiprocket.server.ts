@@ -241,7 +241,7 @@ function requestServiceability(
   url.searchParams.set('length', '30');
   url.searchParams.set('breadth', '20');
   url.searchParams.set('height', '6');
-  url.searchParams.set('mode', 'Air');
+  url.searchParams.set('mode', 'Surface');
 
   return fetchWithTimeout(fetcher, url, {
     headers: {

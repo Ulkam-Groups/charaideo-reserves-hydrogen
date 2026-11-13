@@ -2,8 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {Link} from 'react-router';
 
 const OFFER_STORAGE_KEY = 'charaideo:first-visit-discovery-offer:v1';
-const DISCOVERY_SET_URL =
-  '/products/chapter-one-the-discovery-set?Title=Default+Title';
+const DISCOVERY_SET_URL = '/products/chapter-one-the-discovery-set?Title=Default+Title';
 
 export function FirstVisitOfferBanner() {
   const [visible, setVisible] = useState(false);
@@ -74,14 +73,16 @@ export function FirstVisitOfferBanner() {
 
         <div className="first-visit-offer-copy">
           <div className="first-visit-offer-product">
-            <span className="first-visit-offer-eyebrow">New release · Available to order</span>
+            <span className="first-visit-offer-eyebrow">
+              New release · Available to order
+            </span>
             <h2 id="first-visit-offer-title">The Discovery Set</h2>
             <p id="first-visit-offer-description">
               A curated tasting of five distinctive teas from Charaideo Reserves.
             </p>
             <Link
               to={DISCOVERY_SET_URL}
-              prefetch="intent"
+              prefetch="none"
               className="first-visit-offer-action"
               onClick={() => setVisible(false)}
             >

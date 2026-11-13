@@ -1,6 +1,12 @@
 import {expect, test, type Page} from '@playwright/test';
 import {isolateCheckout} from './fastrr-guard';
 
+test.beforeEach(async ({page}) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem('charaideo:first-visit-discovery-offer:v1', 'e2e-seen');
+  });
+});
+
 async function addCurrentProductToCart(page: Page) {
   await page.getByRole('button', {name: 'Add to cart'}).click();
   await expect(page.getByRole('button', {name: 'Add to cart'})).toBeEnabled();
