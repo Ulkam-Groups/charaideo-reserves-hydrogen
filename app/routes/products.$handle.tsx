@@ -150,9 +150,9 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
     maxAge: 60,
     staleWhileRevalidate: 600,
   });
-  const [{product}, productOriginLabel, taxonomyAttributes] = await Promise.all([
+  const [{product}, productTagData, taxonomyAttributes] = await Promise.all([
     queryCriticalProduct(context, productVariables, productCache),
-    loadProductOriginLabel(context, handle),
+    loadProductTagData(context, handle),
     loadProductTaxonomyAttributes(context, handle),
   ]);
 
@@ -164,7 +164,7 @@ async function loadCriticalData({context, params, request}: Route.LoaderArgs) {
   redirectIfHandleIsLocalized(request, {handle, data: product});
 
   return {
-    productOriginLabel,
+    ...productTagData,
     product: {
       ...product,
       ...taxonomyAttributes,
@@ -244,7 +244,7 @@ function loadDeferredData({context}: Route.LoaderArgs, shopifyProductGid: string
   };
 }
 
-async function loadProductOriginLabel(
+async function loadProductTagData(
   context: Route.LoaderArgs['context'],
   handle: string,
 ) {
@@ -256,12 +256,19 @@ async function loadProductOriginLabel(
         staleWhileRevalidate: 3600,
       }),
     });
+    const tags = product?.tags ?? [];
 
-    return getProductOriginLabel(product?.tags);
+    return {
+      productOriginLabel: getProductOriginLabel(tags),
+      isCombo: tags.some((tag: string) => tag.trim().toLowerCase() === 'combo'),
+    };
   } catch {
     // Product-tag access is optional. Keep the PDP available when the
     // unauthenticated_read_product_tags permission has not been granted.
-    return getProductOriginLabel();
+    return {
+      productOriginLabel: getProductOriginLabel(),
+      isCombo: false,
+    };
   }
 }
 
@@ -350,7 +357,7 @@ async function loadRelatedProductTags(
 }
 
 export default function Product() {
-  const {product, productOriginLabel, relatedProducts} = useLoaderData<typeof loader>();
+  const {product, productOriginLabel, isCombo, relatedProducts} = useLoaderData<typeof loader>();
 
   // Optimistically selects a variant with given available variant information
   const selectedVariant = useOptimisticVariant(
@@ -430,7 +437,7 @@ export default function Product() {
           <div className="product-origin-tab">{productOriginLabel}</div>
           <ProductImage
             image={selectedVariant?.image}
-            images={product.images.nodes}
+            media={product.media.nodes}
             overlay={
               <WishlistButton
                 className="wishlist-button--pdp-image"
@@ -542,6 +549,7 @@ export default function Product() {
       <ProductEditorialSections
         product={product}
         selectedVariant={selectedVariant}
+        isCombo={isCombo}
         afterTasteProfile={<ProductTeaJourney product={product} />}
       />
 
@@ -886,6 +894,36 @@ const PRODUCT_FRAGMENT = `#graphql
         altText
         width
         height
+      }
+    }
+    media(first: 250) {
+      nodes {
+        __typename
+        ... on MediaImage {
+          id
+          image {
+            id
+            url
+            altText
+            width
+            height
+          }
+        }
+        ... on Video {
+          id
+          alt
+          previewImage {
+            id
+            url
+            altText
+            width
+            height
+          }
+          sources {
+            url
+            mimeType
+          }
+        }
       }
     }
     encodedVariantExistence
