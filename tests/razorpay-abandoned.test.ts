@@ -31,31 +31,29 @@ test('rejects an invalid order anchor in the webhook payload', () => {
 
 test('parses the published Razorpay abandoned-cart payload without an order id', () => {
   const payload = {
-      shop_id: 'magic-checkout-test-store-1',
-      platform: 'shopify',
-      token: 'a9de14647f2c1e7b58cafeac93c4712c',
-      cart_token: 'c1-68be3bdc331cfec1e79d05d8c4caa7d7',
+    shop_id: 'magic-checkout-test-store-1',
+    platform: 'shopify',
+    token: 'a9de14647f2c1e7b58cafeac93c4712c',
+    cart_token: 'c1-68be3bdc331cfec1e79d05d8c4caa7d7',
+    email: 'buyer@example.com',
+    phone: '+919999999999',
+    currency: 'INR',
+    line_items: [{variant_id: '43306810998951', quantity: 1, price: 5000}],
+    line_items_total: '5000',
+    customer: {
       email: 'buyer@example.com',
-      phone: '+919999999999',
-      currency: 'INR',
-      line_items: [
-        {variant_id: '43306810998951', quantity: 1, price: 5000},
-      ],
-      line_items_total: '5000',
-      customer: {
-        email: 'buyer@example.com',
-        Shipping_address: {
-          First_name: 'Gaurav',
-          Last_name: 'Kumar',
-          Address1: 'Near Nehru Road',
-          City: 'Bengaluru',
-          Province: 'Karnataka',
-          Country_code: 'IN',
-          Zip: '829122',
-          Phone: '+919999999999',
-        },
+      Shipping_address: {
+        First_name: 'Gaurav',
+        Last_name: 'Kumar',
+        Address1: 'Near Nehru Road',
+        City: 'Bengaluru',
+        Province: 'Karnataka',
+        Country_code: 'IN',
+        Zip: '829122',
+        Phone: '+919999999999',
       },
-    };
+    },
+  };
   assert.equal(abandonedRazorpayOrderId(payload), null);
   const parsed = parseDocumentedAbandonedRazorpayPayload(payload);
   assert.equal(parsed?.cartToken, 'c1-68be3bdc331cfec1e79d05d8c4caa7d7');
@@ -173,12 +171,14 @@ test('documented payload updates one exact open draft and persists correlation t
   assert.equal(
     (updateInput?.customAttributes as Array<{key: string; value: string}>).some(
       ({key, value}) =>
-        key === 'razorpay_cart_token' &&
-        value === 'c1-68be3bdc331cfec1e79d05d8c4caa7d7',
+        key === 'razorpay_cart_token' && value === 'c1-68be3bdc331cfec1e79d05d8c4caa7d7',
     ),
     true,
   );
-  assert.equal(operations.some((query) => query.includes('draftOrderComplete')), false);
+  assert.equal(
+    operations.some((query) => query.includes('draftOrderComplete')),
+    false,
+  );
 });
 
 test('updates only the anchored open draft for a zero-attempt abandoned order', async () => {
@@ -293,9 +293,18 @@ test('updates only the anchored open draft for a zero-attempt abandoned order', 
   assert.equal(result.updated, true);
   assert.equal(result.draftOrderId, 'gid://shopify/DraftOrder/1066559701089');
   assert.equal(operations.length, 3);
-  assert.equal(operations.some((query) => query.includes('draftOrderComplete')), false);
-  assert.equal(operations.some((query) => query.includes('draftOrderDelete')), false);
-  assert.equal(operations.some((query) => query.includes('orderCreate')), false);
+  assert.equal(
+    operations.some((query) => query.includes('draftOrderComplete')),
+    false,
+  );
+  assert.equal(
+    operations.some((query) => query.includes('draftOrderDelete')),
+    false,
+  );
+  assert.equal(
+    operations.some((query) => query.includes('orderCreate')),
+    false,
+  );
   assert.equal(updateInput?.email, 'wizatul1@gmail.com');
   assert.equal(updateInput?.phone, '+919002048910');
   assert.equal('tags' in (updateInput ?? {}), false);
@@ -308,8 +317,8 @@ test('updates only the anchored open draft for a zero-attempt abandoned order', 
     {key: 'razorpay_abandonment_event_id', value: 'event_abandoned_1'},
   ]);
   assert.equal(
-    (updateInput?.shippingLine as {priceWithCurrency: {amount: string}})
-      .priceWithCurrency.amount,
+    (updateInput?.shippingLine as {priceWithCurrency: {amount: string}}).priceWithCurrency
+      .amount,
     '30.00',
   );
 });
@@ -370,5 +379,8 @@ test('a late abandonment callback never mutates a completed draft', async () => 
 
   assert.equal(result.updated, false);
   assert.equal(operations.length, 1);
-  assert.equal(operations.some((query) => query.includes('mutation')), false);
+  assert.equal(
+    operations.some((query) => query.includes('mutation')),
+    false,
+  );
 });
