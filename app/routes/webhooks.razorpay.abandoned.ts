@@ -1,20 +1,28 @@
 import type {ActionFunctionArgs} from 'react-router';
 import {
   abandonedRazorpayOrderId,
+  abandonedWebhookSecretMatches,
   updateDocumentedAbandonedRazorpayDraft,
   updateAbandonedRazorpayDraft,
 } from '~/lib/checkout/providers/razorpay/razorpay-abandoned.server';
-import {verifyRazorpayWebhook} from '~/lib/checkout/providers/razorpay/razorpay.server';
 
 const MAX_BODY_BYTES = 256_000;
+const DELAYED_ABANDONED_WEBHOOK_ENABLED = false;
 
 export async function action({request, context}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return new Response('Method not allowed', {status: 405, headers: {Allow: 'POST'}});
   }
+
+  // Temporarily disabled: mx-analytics handles abandonment against the exact
+  // session-bound Razorpay order. Keep acknowledging to prevent webhook retries.
+  if (!DELAYED_ABANDONED_WEBHOOK_ENABLED) return new Response(null, {status: 204});
+
   const secret = context.env.RAZORPAY_ABANDONED_WEBHOOK_SECRET?.trim();
-  const signature = request.headers.get('x-razorpay-signature');
-  if (!secret || !signature) return new Response('Unauthorized', {status: 401});
+  const suppliedSecret = new URL(request.url).searchParams.get('auth');
+  if (!secret || !(await abandonedWebhookSecretMatches(secret, suppliedSecret))) {
+    return new Response('Unauthorized', {status: 401});
+  }
 
   const declaredLength = Number(request.headers.get('content-length') || 0);
   if (!Number.isFinite(declaredLength) || declaredLength > MAX_BODY_BYTES) {
@@ -24,10 +32,6 @@ export async function action({request, context}: ActionFunctionArgs) {
   if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
     return new Response('Payload too large', {status: 413});
   }
-  if (!(await verifyRazorpayWebhook(rawBody, signature, secret))) {
-    return new Response('Unauthorized', {status: 401});
-  }
-
   let payload: unknown;
   try {
     payload = JSON.parse(rawBody);

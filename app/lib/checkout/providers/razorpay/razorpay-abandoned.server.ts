@@ -11,6 +11,25 @@ type RazorpayAddress = NonNullable<
   RazorpayMagicOrderDetails['customer_details']
 >['shipping_address'];
 
+export async function abandonedWebhookSecretMatches(
+  expected: string,
+  received: string | null,
+) {
+  if (!received) return false;
+  const encoder = new TextEncoder();
+  const [expectedHash, receivedHash] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(expected)),
+    crypto.subtle.digest('SHA-256', encoder.encode(received)),
+  ]);
+  const expectedBytes = new Uint8Array(expectedHash);
+  const receivedBytes = new Uint8Array(receivedHash);
+  let mismatch = 0;
+  for (let index = 0; index < expectedBytes.length; index += 1) {
+    mismatch |= expectedBytes[index] ^ receivedBytes[index];
+  }
+  return mismatch === 0;
+}
+
 function text(value: unknown, max = 255) {
   if (typeof value !== 'string') return undefined;
   const result = value.trim();
@@ -56,6 +75,13 @@ type DocumentedAbandonedPayload = {
   promotions?: string;
 };
 
+type AnalyticsAbandonment = {
+  timeSinceOpen?: number;
+  email?: string;
+  phone?: string;
+  shippingAddress?: ReturnType<typeof mailingAddress>;
+};
+
 function positiveInteger(value: unknown) {
   if (typeof value === 'number') return Number.isSafeInteger(value) && value > 0 ? value : null;
   if (typeof value !== 'string' || !/^\d+$/.test(value)) return null;
@@ -87,6 +113,51 @@ function documentedMailingAddress(value: unknown) {
   };
 }
 
+export function parseRazorpayAnalyticsAbandonment(
+  payload: unknown,
+): AnalyticsAbandonment | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const value = payload as Record<string, unknown>;
+  if (value.event !== 'checkout_abandoned') return null;
+  const elapsed = value.time_since_open;
+  if (
+    elapsed !== undefined &&
+    (typeof elapsed !== 'number' ||
+      !Number.isFinite(elapsed) ||
+      elapsed < 0 ||
+      elapsed > 86_400_000)
+  ) {
+    return null;
+  }
+  const countryCode = text(value.country_name, 2)?.toUpperCase();
+  const shippingAddress =
+    countryCode && /^[A-Z]{2}$/.test(countryCode)
+      ? {
+          ...(text(value.first_name, 150)
+            ? {firstName: text(value.first_name, 150)}
+            : {}),
+          ...(text(value.last_name, 150)
+            ? {lastName: text(value.last_name, 150)}
+            : {}),
+          ...(text(value.line1) ? {address1: text(value.line1)} : {}),
+          ...(text(value.line2) ? {address2: text(value.line2)} : {}),
+          ...(text(value.city, 100) ? {city: text(value.city, 100)} : {}),
+          ...(text(value.state, 100) ? {province: text(value.state, 100)} : {}),
+          ...(text(value.zipcode, 20) ? {zip: text(value.zipcode, 20)} : {}),
+          ...(text(value.phone, 30) ? {phone: text(value.phone, 30)} : {}),
+          countryCode,
+        }
+      : undefined;
+  const email = text(value.email, 254);
+  const phone = text(value.phone, 30);
+  return {
+    ...(typeof elapsed === 'number' ? {timeSinceOpen: Math.round(elapsed)} : {}),
+    ...(email ? {email} : {}),
+    ...(phone ? {phone} : {}),
+    ...(shippingAddress ? {shippingAddress} : {}),
+  };
+}
+
 export function parseDocumentedAbandonedRazorpayPayload(
   payload: unknown,
 ): DocumentedAbandonedPayload | null {
@@ -96,7 +167,16 @@ export function parseDocumentedAbandonedRazorpayPayload(
   const cartToken = text(value.cart_token, 150);
   const currency = text(value.currency, 3);
   const lineItemsTotal = positiveInteger(value.line_items_total);
-  if (!token || !cartToken || currency !== 'INR' || !lineItemsTotal) return null;
+  if (
+    !token ||
+    !/^[A-Za-z0-9_-]{16,100}$/.test(token) ||
+    !cartToken ||
+    !/^[A-Za-z0-9_-]{8,150}$/.test(cartToken) ||
+    currency !== 'INR' ||
+    !lineItemsTotal
+  ) {
+    return null;
+  }
   if (!Array.isArray(value.line_items) || !value.line_items.length || value.line_items.length > 250) {
     return null;
   }
@@ -132,119 +212,53 @@ export function parseDocumentedAbandonedRazorpayPayload(
   };
 }
 
-function lineSignature(lines: DocumentedAbandonedLine[]) {
-  return lines
-    .map(({variantId, quantity}) => `${variantId}:${quantity}`)
-    .sort()
-    .join('|');
-}
-
-function amountToPaise(value: string) {
-  if (!/^\d+(?:\.\d{1,2})?$/.test(value)) return null;
-  const [whole, fraction = ''] = value.split('.');
-  const result = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
-  return Number.isSafeInteger(result) ? result : null;
-}
-
 export async function updateDocumentedAbandonedRazorpayDraft({
   env,
   payload,
   eventId,
   fetcher = fetch,
-  now = new Date(),
 }: {
   env: Env;
   payload: unknown;
   eventId?: string;
   fetcher?: typeof fetch;
-  now?: Date;
 }) {
   const parsed = parseDocumentedAbandonedRazorpayPayload(payload);
   const credentials = adminCredentials(env);
   if (!parsed || !credentials) throw new Error('Abandoned checkout payload is invalid');
 
-  const createdAfter = new Date(now.getTime() - 48 * 60 * 60 * 1000).toISOString();
-  const candidates = await adminGraphql<{
+  const tokenTag = `razorpay-abandonment-${parsed.token}`;
+  const existing = await adminGraphql<{
     draftOrders: {
-      nodes: Array<{
-        id: string;
-        status: string;
-        order: {id: string} | null;
-        customAttributes: Array<{key: string; value: string}>;
-        totalLineItemsPriceSet: {
-          presentmentMoney: {amount: string; currencyCode: string};
-        };
-        lineItems: {
-          nodes: Array<{variant: {id: string} | null; quantity: number}>;
-          pageInfo: {hasNextPage: boolean};
-        };
-      }>;
-      pageInfo: {hasNextPage: boolean};
+      nodes: Array<{id: string; status: string; order: {id: string} | null}>;
     };
   }>({
     credentials,
     fetcher,
     requiredScopes: ['write_draft_orders'],
-    query: `query MatchAbandonedRazorpayDraft($query: String!) {
-      draftOrders(first: 100, query: $query, sortKey: CREATED_AT, reverse: true) {
-        nodes {
-          id
-          status
-          order { id }
-          customAttributes { key value }
-          totalLineItemsPriceSet { presentmentMoney { amount currencyCode } }
-          lineItems(first: 250) {
-            nodes { variant { id } quantity }
-            pageInfo { hasNextPage }
-          }
-        }
-        pageInfo { hasNextPage }
+    query: `query ExistingAbandonedRazorpayRecovery($query: String!) {
+      draftOrders(first: 2, query: $query, sortKey: CREATED_AT, reverse: true) {
+        nodes { id status order { id } }
       }
     }`,
-    variables: {
-      query: `status:OPEN tag:checkout-draft created_at:>='${createdAfter}'`,
-    },
+    variables: {query: `tag:${tokenTag}`},
   });
-  if (candidates.draftOrders.pageInfo.hasNextPage) {
-    throw new Error('Too many recent checkout drafts to correlate safely');
+  const prior = existing.draftOrders.nodes[0];
+  if (prior) {
+    return {
+      draftOrderId: prior.id,
+      token: parsed.token,
+      created: false as const,
+    };
   }
 
-  const expectedLines = lineSignature(parsed.lineItems);
-  const matching = candidates.draftOrders.nodes.filter((draft) => {
-    const total = draft.totalLineItemsPriceSet.presentmentMoney;
-    const lines = draft.lineItems.nodes.flatMap((line) => {
-      const match = line.variant?.id.match(/^gid:\/\/shopify\/ProductVariant\/(\d+)$/);
-      return match ? [{variantId: match[1], quantity: line.quantity}] : [];
-    });
-    return (
-      draft.status === 'OPEN' &&
-      !draft.order &&
-      !draft.lineItems.pageInfo.hasNextPage &&
-      lines.length === draft.lineItems.nodes.length &&
-      lineSignature(lines) === expectedLines &&
-      total.currencyCode === parsed.currency &&
-      amountToPaise(total.amount) === parsed.lineItemsTotal
-    );
-  });
-  const tokenMatches = matching.filter((draft) =>
-    draft.customAttributes.some(
-      ({key, value}) => key === 'razorpay_abandonment_token' && value === parsed.token,
-    ),
-  );
-  const eligible = tokenMatches.length ? tokenMatches : matching;
-  if (eligible.length !== 1) {
-    throw new Error(
-      eligible.length ? 'Abandoned checkout draft match is ambiguous' : 'No matching open checkout draft',
-    );
-  }
-
-  const draft = eligible[0];
-  const attributes = new Map(
-    draft.customAttributes.map(({key, value}) => [key, value]),
-  );
-  attributes.set('checkout_provider', 'razorpay');
-  attributes.set('razorpay_abandonment_token', parsed.token);
-  attributes.set('razorpay_cart_token', parsed.cartToken);
+  const attributes = new Map<string, string>([
+    ['checkout_provider', 'razorpay'],
+    ['checkout_state', 'abandoned'],
+    ['razorpay_abandonment_token', parsed.token],
+    ['razorpay_cart_token', parsed.cartToken],
+    ['razorpay_line_items_total', String(parsed.lineItemsTotal)],
+  ]);
   if (parsed.abandonedCheckoutUrl) {
     attributes.set('razorpay_abandoned_checkout_url', parsed.abandonedCheckoutUrl);
   }
@@ -253,8 +267,8 @@ export async function updateDocumentedAbandonedRazorpayDraft({
   const safeEventId = text(eventId, 100);
   if (safeEventId) attributes.set('razorpay_abandonment_event_id', safeEventId);
 
-  const updated = await adminGraphql<{
-    draftOrderUpdate: {
+  const created = await adminGraphql<{
+    draftOrderCreate: {
       draftOrder: {id: string; status: string; order: {id: string} | null} | null;
       userErrors: Array<{field?: string[]; message: string}>;
     };
@@ -262,56 +276,49 @@ export async function updateDocumentedAbandonedRazorpayDraft({
     credentials,
     fetcher,
     requiredScopes: ['write_draft_orders'],
-    query: `mutation UpdateDocumentedAbandonedRazorpayDraft($id: ID!, $input: DraftOrderInput!) {
-      draftOrderUpdate(id: $id, input: $input) {
+    query: `mutation CreateAbandonedRazorpayRecovery($input: DraftOrderInput!) {
+      draftOrderCreate(input: $input) {
         draftOrder { id status order { id } }
         userErrors { field message }
       }
     }`,
     variables: {
-      id: draft.id,
       input: {
-        ...(parsed.shippingAddress
-          ? {shippingAddress: parsed.shippingAddress, billingAddress: parsed.shippingAddress}
-          : {}),
+        lineItems: parsed.lineItems.map(({variantId, quantity}) => ({
+          variantId: `gid://shopify/ProductVariant/${variantId}`,
+          quantity,
+        })),
+        presentmentCurrencyCode: parsed.currency,
+        visibleToCustomer: false,
+        allowDiscountCodesInCheckout: false,
+        tags: [
+          'razorpay',
+          'magic-checkout',
+          'abandoned-checkout',
+          'abandoned-recovery',
+          tokenTag,
+        ],
+        note: 'Razorpay Magic Checkout abandoned recovery',
+        ...(parsed.shippingAddress ? {shippingAddress: parsed.shippingAddress} : {}),
         ...(parsed.email && parsed.email.toLowerCase() !== 'void@razorpay.com'
           ? {email: parsed.email}
           : {}),
         ...(parsed.phone ? {phone: parsed.phone} : {}),
         customAttributes: Array.from(attributes, ([key, value]) => ({key, value})),
-        visibleToCustomer: false,
       },
     },
   });
-  const result = updated.draftOrderUpdate.draftOrder;
+  const draft = created.draftOrderCreate.draftOrder;
   if (
-    updated.draftOrderUpdate.userErrors.length ||
-    !result ||
-    result.id !== draft.id ||
-    result.status !== 'OPEN' ||
-    result.order
+    created.draftOrderCreate.userErrors.length ||
+    !draft ||
+    !/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draft.id) ||
+    draft.status !== 'OPEN' ||
+    draft.order
   ) {
-    throw new Error('Shopify rejected the documented abandoned draft update');
+    throw new Error('Shopify rejected the abandoned recovery draft');
   }
-
-  const tagged = await adminGraphql<{
-    tagsAdd: {node: {id: string} | null; userErrors: Array<{message: string}>};
-  }>({
-    credentials,
-    fetcher,
-    requiredScopes: ['write_draft_orders'],
-    query: `mutation TagDocumentedAbandonedRazorpayDraft($id: ID!, $tags: [String!]!) {
-      tagsAdd(id: $id, tags: $tags) { node { id } userErrors { message } }
-    }`,
-    variables: {
-      id: draft.id,
-      tags: ['razorpay', 'magic-checkout', 'checkout-draft', 'abandoned-checkout'],
-    },
-  });
-  if (tagged.tagsAdd.userErrors.length || tagged.tagsAdd.node?.id !== draft.id) {
-    throw new Error('Shopify rejected the documented abandoned draft tags');
-  }
-  return {draftOrderId: draft.id, token: parsed.token, updated: true as const};
+  return {draftOrderId: draft.id, token: parsed.token, created: true as const};
 }
 
 export function abandonedRazorpayOrderId(payload: unknown) {
@@ -343,11 +350,15 @@ export async function updateAbandonedRazorpayDraft({
   env,
   orderId,
   eventId,
+  analyticsPayload,
+  expectedDraftOrderId,
   fetcher = fetch,
 }: {
   env: Env;
   orderId: string;
   eventId?: string;
+  analyticsPayload?: unknown;
+  expectedDraftOrderId?: string;
   fetcher?: typeof fetch;
 }) {
   const razorpayAuth = razorpayCredentials(env);
@@ -363,6 +374,13 @@ export async function updateAbandonedRazorpayDraft({
     await razorpay.orders.fetch(orderId),
     orderId,
   );
+  if (
+    (order.status !== 'created' && order.status !== 'attempted') ||
+    order.amount_paid !== 0 ||
+    order.amount_due !== order.amount
+  ) {
+    return {draftOrderId: null, razorpayOrderId: order.id, updated: false as const};
+  }
   const draftOrderId = order.notes.shopify_draft_order_id;
   if (
     typeof draftOrderId !== 'string' ||
@@ -371,11 +389,21 @@ export async function updateAbandonedRazorpayDraft({
     throw new Error('Razorpay order has no valid Shopify draft order anchor');
   }
 
-  const shippingAddress = mailingAddress(order.customer_details?.shipping_address);
-  const billingAddress =
-    mailingAddress(order.customer_details?.billing_address) ?? shippingAddress;
-  const email = text(order.customer_details?.email, 254);
-  const phone = text(order.customer_details?.contact, 30);
+  if (expectedDraftOrderId && draftOrderId !== expectedDraftOrderId) {
+    throw new Error('Razorpay order does not match the checkout session draft');
+  }
+
+  const analytics = analyticsPayload
+    ? parseRazorpayAnalyticsAbandonment(analyticsPayload)
+    : null;
+  if (analyticsPayload && !analytics) {
+    throw new Error('Razorpay analytics abandonment payload is invalid');
+  }
+  const shippingAddress =
+    analytics?.shippingAddress ?? mailingAddress(order.customer_details?.shipping_address);
+  const billingAddress = mailingAddress(order.customer_details?.billing_address);
+  const email = analytics?.email ?? text(order.customer_details?.email, 254);
+  const phone = analytics?.phone ?? text(order.customer_details?.contact, 30);
   const shippingFee = Number.isSafeInteger(order.shipping_fee) ? order.shipping_fee! : 0;
   const source = text(order.notes.source, 20);
   const safeEventId = text(eventId, 100);
@@ -409,6 +437,10 @@ export async function updateAbandonedRazorpayDraft({
   if (source) attributes.set('checkout_source', source);
   attributes.set('razorpay_order_id', order.id);
   if (safeEventId) attributes.set('razorpay_abandonment_event_id', safeEventId);
+  if (analytics) attributes.set('razorpay_abandonment_source', 'mx-analytics');
+  if (analytics?.timeSinceOpen !== undefined) {
+    attributes.set('razorpay_time_since_open_ms', String(analytics.timeSinceOpen));
+  }
 
   const result = await adminGraphql<{
     draftOrderUpdate: {

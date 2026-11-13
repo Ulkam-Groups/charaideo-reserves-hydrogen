@@ -2,10 +2,58 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   abandonedRazorpayOrderId,
+  abandonedWebhookSecretMatches,
   parseDocumentedAbandonedRazorpayPayload,
+  parseRazorpayAnalyticsAbandonment,
   updateDocumentedAbandonedRazorpayDraft,
   updateAbandonedRazorpayDraft,
 } from '../app/lib/checkout/providers/razorpay/razorpay-abandoned.server.ts';
+
+test('parses the documented checkout_abandoned analytics fields', () => {
+  assert.deepEqual(
+    parseRazorpayAnalyticsAbandonment({
+      event: 'checkout_abandoned',
+      time_since_open: 360_000,
+      email: 'latest@example.com',
+      phone: '+919999999999',
+      first_name: 'Gaurav',
+      last_name: 'Kumar',
+      line1: 'Near Nehru Road',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      zipcode: '829122',
+      country_name: 'in',
+    }),
+    {
+      timeSinceOpen: 360_000,
+      email: 'latest@example.com',
+      phone: '+919999999999',
+      shippingAddress: {
+        firstName: 'Gaurav',
+        lastName: 'Kumar',
+        address1: 'Near Nehru Road',
+        city: 'Bengaluru',
+        province: 'Karnataka',
+        zip: '829122',
+        phone: '+919999999999',
+        countryCode: 'IN',
+      },
+    },
+  );
+  assert.equal(parseRazorpayAnalyticsAbandonment({event: 'payment_failed'}), null);
+});
+
+test('abandoned callback bearer authentication requires the exact secret', async () => {
+  assert.equal(await abandonedWebhookSecretMatches('expected-secret', null), false);
+  assert.equal(
+    await abandonedWebhookSecretMatches('expected-secret', 'wrong-secret'),
+    false,
+  );
+  assert.equal(
+    await abandonedWebhookSecretMatches('expected-secret', 'expected-secret'),
+    true,
+  );
+});
 
 test('extracts an order id from a Magic Checkout abandonment payload', () => {
   assert.equal(
@@ -61,9 +109,9 @@ test('parses the published Razorpay abandoned-cart payload without an order id',
   assert.equal(parsed?.shippingAddress?.countryCode, 'IN');
 });
 
-test('documented payload updates one exact open draft and persists correlation tokens', async () => {
+test('documented payload creates an isolated idempotent recovery draft', async () => {
   const operations: string[] = [];
-  let updateInput: Record<string, unknown> | undefined;
+  let createInput: Record<string, unknown> | undefined;
   const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.endsWith('/admin/oauth/access_token')) {
@@ -74,55 +122,21 @@ test('documented payload updates one exact open draft and persists correlation t
       variables: {input?: Record<string, unknown>};
     };
     operations.push(body.query);
-    if (body.query.includes('query MatchAbandonedRazorpayDraft')) {
+    if (body.query.includes('query ExistingAbandonedRazorpayRecovery')) {
       return Response.json({
-        data: {
-          draftOrders: {
-            nodes: [
-              {
-                id: 'gid://shopify/DraftOrder/1066559701089',
-                status: 'OPEN',
-                order: null,
-                customAttributes: [{key: 'checkout_source', value: 'product'}],
-                totalLineItemsPriceSet: {
-                  presentmentMoney: {amount: '220.00', currencyCode: 'INR'},
-                },
-                lineItems: {
-                  nodes: [
-                    {
-                      variant: {id: 'gid://shopify/ProductVariant/50294796484705'},
-                      quantity: 1,
-                    },
-                  ],
-                  pageInfo: {hasNextPage: false},
-                },
-              },
-            ],
-            pageInfo: {hasNextPage: false},
-          },
-        },
+        data: {draftOrders: {nodes: []}},
       });
     }
-    if (body.query.includes('mutation UpdateDocumentedAbandonedRazorpayDraft')) {
-      updateInput = body.variables.input;
+    if (body.query.includes('mutation CreateAbandonedRazorpayRecovery')) {
+      createInput = body.variables.input;
       return Response.json({
         data: {
-          draftOrderUpdate: {
+          draftOrderCreate: {
             draftOrder: {
               id: 'gid://shopify/DraftOrder/1066559701089',
               status: 'OPEN',
               order: null,
             },
-            userErrors: [],
-          },
-        },
-      });
-    }
-    if (body.query.includes('mutation TagDocumentedAbandonedRazorpayDraft')) {
-      return Response.json({
-        data: {
-          tagsAdd: {
-            node: {id: 'gid://shopify/DraftOrder/1066559701089'},
             userErrors: [],
           },
         },
@@ -160,16 +174,16 @@ test('documented payload updates one exact open draft and persists correlation t
         },
       },
     },
-    now: new Date('2026-11-13T12:00:00.000Z'),
     fetcher,
   });
 
-  assert.equal(result.updated, true);
-  assert.equal(operations.length, 3);
-  assert.equal(updateInput?.email, 'wizatul1@gmail.com');
-  assert.equal(updateInput?.phone, '+919002048910');
+  assert.equal(result.created, true);
+  assert.equal(operations.length, 2);
+  assert.equal(createInput?.email, 'wizatul1@gmail.com');
+  assert.equal(createInput?.phone, '+919002048910');
+  assert.equal('billingAddress' in (createInput ?? {}), false);
   assert.equal(
-    (updateInput?.customAttributes as Array<{key: string; value: string}>).some(
+    (createInput?.customAttributes as Array<{key: string; value: string}>).some(
       ({key, value}) =>
         key === 'razorpay_cart_token' && value === 'c1-68be3bdc331cfec1e79d05d8c4caa7d7',
     ),
@@ -179,6 +193,52 @@ test('documented payload updates one exact open draft and persists correlation t
     operations.some((query) => query.includes('draftOrderComplete')),
     false,
   );
+});
+
+test('documented payload reuses the recovery draft for the same callback token', async () => {
+  let graphqlCalls = 0;
+  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    if (url.endsWith('/admin/oauth/access_token')) {
+      return Response.json({access_token: 'admin-token'});
+    }
+    graphqlCalls += 1;
+    const body = JSON.parse(String(init?.body)) as {query: string};
+    assert.match(body.query, /ExistingAbandonedRazorpayRecovery/);
+    return Response.json({
+      data: {
+        draftOrders: {
+          nodes: [
+            {
+              id: 'gid://shopify/DraftOrder/1066559701089',
+              status: 'OPEN',
+              order: null,
+            },
+          ],
+        },
+      },
+    });
+  }) as typeof fetch;
+
+  const result = await updateDocumentedAbandonedRazorpayDraft({
+    env: {
+      PUBLIC_STORE_DOMAIN: 'documented-payload.myshopify.com',
+      SHOPIFY_ADMIN_CLIENT_ID: 'client',
+      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
+    } as Env,
+    payload: {
+      token: 'a9de14647f2c1e7b58cafeac93c4712c',
+      cart_token: 'c1-68be3bdc331cfec1e79d05d8c4caa7d7',
+      currency: 'INR',
+      line_items: [{variant_id: '50294796484705', quantity: 1}],
+      line_items_total: '22000',
+    },
+    fetcher,
+  });
+
+  assert.equal(result.created, false);
+  assert.equal(result.draftOrderId, 'gid://shopify/DraftOrder/1066559701089');
+  assert.equal(graphqlCalls, 1);
 });
 
 test('updates only the anchored open draft for a zero-attempt abandoned order', async () => {
@@ -287,6 +347,20 @@ test('updates only the anchored open draft for a zero-attempt abandoned order', 
     } as Env,
     orderId: 'order_TzWVdMNwzJNgCm',
     eventId: 'event_abandoned_1',
+    expectedDraftOrderId: 'gid://shopify/DraftOrder/1066559701089',
+    analyticsPayload: {
+      event: 'checkout_abandoned',
+      time_since_open: 360_000,
+      email: 'latest@example.com',
+      phone: '+919111111111',
+      first_name: 'Latest',
+      last_name: 'Buyer',
+      line1: 'Latest address',
+      city: 'Guwahati',
+      state: 'Assam',
+      zipcode: '781001',
+      country_name: 'in',
+    },
     fetcher,
   });
 
@@ -305,8 +379,18 @@ test('updates only the anchored open draft for a zero-attempt abandoned order', 
     operations.some((query) => query.includes('orderCreate')),
     false,
   );
-  assert.equal(updateInput?.email, 'wizatul1@gmail.com');
-  assert.equal(updateInput?.phone, '+919002048910');
+  assert.equal(updateInput?.email, 'latest@example.com');
+  assert.equal(updateInput?.phone, '+919111111111');
+  assert.deepEqual(updateInput?.shippingAddress, {
+    firstName: 'Latest',
+    lastName: 'Buyer',
+    address1: 'Latest address',
+    city: 'Guwahati',
+    province: 'Assam',
+    zip: '781001',
+    phone: '+919111111111',
+    countryCode: 'IN',
+  });
   assert.equal('tags' in (updateInput ?? {}), false);
   assert.equal('note' in (updateInput ?? {}), false);
   assert.deepEqual(updateInput?.customAttributes, [
@@ -315,6 +399,8 @@ test('updates only the anchored open draft for a zero-attempt abandoned order', 
     {key: 'checkout_source', value: 'product'},
     {key: 'razorpay_order_id', value: 'order_TzWVdMNwzJNgCm'},
     {key: 'razorpay_abandonment_event_id', value: 'event_abandoned_1'},
+    {key: 'razorpay_abandonment_source', value: 'mx-analytics'},
+    {key: 'razorpay_time_since_open_ms', value: '360000'},
   ]);
   assert.equal(
     (updateInput?.shippingLine as {priceWithCurrency: {amount: string}}).priceWithCurrency

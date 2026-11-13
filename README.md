@@ -52,14 +52,21 @@ an order. Duplicate deliveries look up Shopify orders by Razorpay
 and endpoints are defined.
 
 Configure Razorpay Magic Checkout's separate abandoned-checkout webhook URL as
-`/webhooks/razorpay/abandoned` and enable its secret-key option using
-`RAZORPAY_ABANDONED_WEBHOOK_SECRET`. This endpoint only enriches the existing
-open Shopify draft order referenced by `notes.shopify_draft_order_id`; it never
-completes or deletes a draft order. For Razorpay's documented payload without an
-`order_id`, the handler searches only recent open Razorpay checkout drafts and
-requires one exact variant, quantity, currency, and line-total match. It persists
-the callback `token` and `cart_token` for deterministic retries and rejects zero
-or multiple matches instead of guessing from customer contact details.
+`/webhooks/razorpay/abandoned?auth=<secret>` and store the same independently
+generated value in `RAZORPAY_ABANDONED_WEBHOOK_SECRET`. Razorpay does not expose
+a signing-secret field for this Magic Checkout callback, so this URL bearer token
+is separate from all Razorpay API and standard-webhook secrets. When an `order_id`
+is present, the endpoint enriches only its anchored open draft. For Razorpay's
+documented payload without an `order_id`, it creates or reuses an isolated
+abandoned-recovery draft keyed by Razorpay's callback token. It never completes,
+deletes, or guesses an existing checkout draft from customer or cart contents.
+The native Magic Checkout client also listens for Razorpay's documented
+`mx-analytics` `checkout_abandoned` event before opening the checkout. It sends
+that event and the already-known Razorpay order ID to the separate same-origin,
+session-bound `/api/checkout/razorpay/abandoned` endpoint, which verifies the
+Razorpay order's draft anchor before enriching that exact open draft. This browser
+signal is immediate when the modal closes; the server webhook remains the delayed
+fallback for sessions where the browser cannot deliver it.
 
 Before enabling this in production, test one prepaid and one COD order through
 Razorpay Magic Checkout and confirm Shiprocket serviceability and fees, the
