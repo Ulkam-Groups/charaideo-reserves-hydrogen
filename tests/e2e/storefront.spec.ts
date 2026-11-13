@@ -223,6 +223,8 @@ test('first item opens a populated cart drawer without an empty or recovery stat
   await expect(drawer.locator('.cart-empty')).toBeHidden();
   await expect(drawer.locator('.cart-recovery')).toHaveCount(0);
   await expect(drawer.locator('.cart-summary-aside')).toBeVisible();
+  await page.goto('/cart');
+  await expect(page.locator('#main-content .cart-line')).toHaveCount(1);
 });
 
 test('empty cart has no Fastrr launch control', async ({page, context}) => {
