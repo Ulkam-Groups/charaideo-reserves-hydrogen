@@ -81,6 +81,7 @@ export function FirstVisitOfferBanner() {
             </p>
             <Link
               to={DISCOVERY_SET_URL}
+              prefetch="intent"
               className="first-visit-offer-action"
               onClick={() => setVisible(false)}
             >
