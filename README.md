@@ -25,6 +25,7 @@ Checkout.
 
 Set `CHECKOUT_PROVIDER=razorpay`, `RAZORPAY_KEY_ID`,
 `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`,
+`RAZORPAY_ABANDONED_WEBHOOK_SECRET`,
 `SHOPIFY_ADMIN_CLIENT_ID`, and `SHOPIFY_ADMIN_CLIENT_SECRET` to test Razorpay
 Magic Checkout. The app installation must grant the scopes declared by the
 active Shopify app configuration; discount progress additionally requires
@@ -49,6 +50,16 @@ deliveries repeat the server-side reconciliation so browser closure cannot lose
 an order. Duplicate deliveries look up Shopify orders by Razorpay
 `sourceIdentifier` before creation. Coupons are disabled until promotion rules
 and endpoints are defined.
+
+Configure Razorpay Magic Checkout's separate abandoned-checkout webhook URL as
+`/webhooks/razorpay/abandoned` and enable its secret-key option using
+`RAZORPAY_ABANDONED_WEBHOOK_SECRET`. This endpoint only enriches the existing
+open Shopify draft order referenced by `notes.shopify_draft_order_id`; it never
+completes or deletes a draft order. For Razorpay's documented payload without an
+`order_id`, the handler searches only recent open Razorpay checkout drafts and
+requires one exact variant, quantity, currency, and line-total match. It persists
+the callback `token` and `cart_token` for deterministic retries and rejects zero
+or multiple matches instead of guessing from customer contact details.
 
 Before enabling this in production, test one prepaid and one COD order through
 Razorpay Magic Checkout and confirm Shiprocket serviceability and fees, the

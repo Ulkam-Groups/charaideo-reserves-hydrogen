@@ -118,7 +118,7 @@ export function razorpayVerificationFailureCode(error: unknown) {
   return 'RAZORPAY_ORDER_DATA_INVALID';
 }
 
-function adminCredentials(env: Env): ShopifyAdminCredentials | null {
+export function adminCredentials(env: Env): ShopifyAdminCredentials | null {
   const domain = (env.SHOPIFY_ADMIN_STORE_DOMAIN ?? env.PUBLIC_STORE_DOMAIN)?.trim();
   const clientId = env.SHOPIFY_ADMIN_CLIENT_ID?.trim();
   const clientSecret = env.SHOPIFY_ADMIN_CLIENT_SECRET?.trim();
@@ -558,7 +558,7 @@ function shopifyThrottleDelay(result: ShopifyGraphqlResult<unknown>) {
   );
 }
 
-async function adminGraphql<T>({
+export async function adminGraphql<T>({
   credentials,
   query,
   variables,
