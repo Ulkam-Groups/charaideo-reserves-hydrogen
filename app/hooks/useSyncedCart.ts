@@ -29,11 +29,7 @@ export function useSyncedCart(originalCart: CartApiQueryFragment | null) {
     if (publishedCart) {
       setConfirmedCart((current) => selectAuthoritativeCart(current, publishedCart));
     }
-  }, [
-    publishedCart?.id,
-    publishedCart?.updatedAt,
-    publishedCart?.totalQuantity,
-  ]);
+  }, [publishedCart]);
 
   return synchronizedCart;
 }

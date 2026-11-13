@@ -881,9 +881,12 @@ test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft',
         lineItems: Array<{
           variantId: string;
           quantity: number;
+          priceOverride: {amount: string; currencyCode: string};
         }>;
         tags: string[];
         visibleToCustomer: boolean;
+        acceptAutomaticDiscounts?: boolean;
+        discountCodes?: string[];
       };
     };
   };
@@ -892,6 +895,7 @@ test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft',
     {
       variantId: orderLine.variantId,
       quantity: 2,
+      priceOverride: {amount: '499.00', currencyCode: 'INR'},
     },
   ]);
   assert.deepEqual(request.variables.input.tags, [
@@ -900,55 +904,8 @@ test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft',
     'checkout-draft',
   ]);
   assert.equal(request.variables.input.visibleToCustomer, false);
-});
-
-test('Razorpay draft anchor applies Shopify codes natively and verifies the payable total', async () => {
-  const calls: Array<{url: string; init?: RequestInit}> = [];
-  const responses = [
-    Response.json({access_token: 'admin-token'}),
-    Response.json({
-      data: {
-        draftOrderCreate: {
-          draftOrder: {
-            id: 'gid://shopify/DraftOrder/124',
-            name: '#D2',
-            status: 'OPEN',
-            discountCodes: ['WELCOME10'],
-            totalPriceSet: {
-              presentmentMoney: {amount: '898.20', currencyCode: 'INR'},
-            },
-          },
-          userErrors: [],
-        },
-      },
-    }),
-  ];
-  const fetcher = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    calls.push({url: String(input), init});
-    return responses.shift()!;
-  }) as typeof fetch;
-
-  await createRazorpayDraftOrderAnchor({
-    env: {
-      PUBLIC_STORE_DOMAIN: 'store.myshopify.com',
-      SHOPIFY_ADMIN_CLIENT_ID: 'discount-client',
-      SHOPIFY_ADMIN_CLIENT_SECRET: 'secret',
-    } as Env,
-    lines: [orderLine],
-    source: 'cart',
-    discountCodes: ['welcome10'],
-    expectedAmount: 89_820,
-    fetcher,
-  });
-
-  const request = JSON.parse(String(calls[1].init?.body)) as {
-    variables: {input: Record<string, unknown>};
-  };
-  assert.deepEqual(request.variables.input.discountCodes, ['welcome10']);
-  assert.equal(request.variables.input.acceptAutomaticDiscounts, true);
-  assert.deepEqual(request.variables.input.lineItems, [
-    {variantId: orderLine.variantId, quantity: 2},
-  ]);
+  assert.equal('acceptAutomaticDiscounts' in request.variables.input, false);
+  assert.equal('discountCodes' in request.variables.input, false);
 });
 
 test('Razorpay draft finalization adds verified delivery and payment metadata', () => {

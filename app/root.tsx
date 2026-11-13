@@ -13,6 +13,7 @@ import type {Route} from './+types/root';
 import {PageLayout} from '~/components/PageLayout';
 import {CheckoutConfirmationProgress} from '~/components/CheckoutConfirmationProgress';
 import {MetaPixel} from '~/components/MetaPixel';
+import {FirstVisitOfferBanner} from '~/components/FirstVisitOfferBanner';
 import {HEADER_QUERY} from '~/lib/fragments';
 import designSystem from '~/styles/design-system.css?url';
 import stylesheet from '~/styles/app.css?url';
@@ -440,6 +441,7 @@ export default function App() {
             <Outlet />
           </PageLayout>
         </Analytics.Provider>
+        <FirstVisitOfferBanner />
         <CheckoutConfirmationProgress />
         <FastrrWarmup enabled={Boolean(data.fastrrSellerDomain)} />
         <ScrollRestoration nonce={nonce} />

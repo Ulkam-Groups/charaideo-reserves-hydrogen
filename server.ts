@@ -44,7 +44,7 @@ export default {
 
       stage = 'response-headers';
       if (hydrogenContext.session.isPending) {
-        response.headers.set(
+        response.headers.append(
           'Set-Cookie',
           await hydrogenContext.session.commit(),
         );

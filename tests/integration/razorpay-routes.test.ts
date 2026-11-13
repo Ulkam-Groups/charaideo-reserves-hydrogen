@@ -186,6 +186,17 @@ test('Razorpay cart checkout reconciles Shopify discounts and preserves full-pri
       {
         cartTotal: '1500.00',
         couponCode: null,
+        cartDiscountCodes: [],
+        amount: 150_000,
+        lineItems: [
+          {offer_price: 50_000, quantity: 2},
+          {offer_price: 50_000, quantity: 1},
+        ],
+      },
+      {
+        cartTotal: '1500.00',
+        couponCode: null,
+        cartDiscountCodes: [{code: 'EXPIRED', applicable: false}],
         amount: 150_000,
         lineItems: [
           {offer_price: 50_000, quantity: 2},
@@ -271,9 +282,11 @@ test('Razorpay cart checkout reconciles Shopify discounts and preserves full-pri
                 },
               },
               attributes: [],
-              discountCodes: scenario.couponCode
-                ? [{code: scenario.couponCode, applicable: true}]
-                : [],
+              discountCodes:
+                scenario.cartDiscountCodes ??
+                (scenario.couponCode
+                  ? [{code: scenario.couponCode, applicable: true}]
+                  : []),
               appliedGiftCards: [],
             }),
           },
@@ -298,8 +311,8 @@ test('Razorpay cart checkout reconciles Shopify discounts and preserves full-pri
         scenario.lineItems,
       );
       assert.equal(
-        (payload.notes as Record<string, unknown>).shopify_discount_codes,
-        scenario.couponCode ? JSON.stringify([scenario.couponCode]) : undefined,
+        (payload.notes as Record<string, unknown>).coupon,
+        scenario.couponCode ?? undefined,
       );
     }
   } finally {
@@ -406,14 +419,17 @@ test('Razorpay does not locally stack qualified discounts and uses Shopify final
   }
 });
 
-test('Razorpay cart checkout fails closed for stale carts and unchargeable Shopify totals', async () => {
+test('Razorpay cart checkout fails closed for stale, sold-out, gift-card, and unchargeable carts', async () => {
   const originalFetch = globalThis.fetch;
   let externalCalls = 0;
   globalThis.fetch = (async () => {
     externalCalls += 1;
     throw new Error('Razorpay must not be called');
   }) as typeof fetch;
-  const baseContext = (totalAmount: string) => ({
+  const baseContext = (
+    totalAmount: string,
+    options: {availableForSale?: boolean; giftCard?: boolean} = {},
+  ) => ({
     env: {
       CHECKOUT_PROVIDER: 'razorpay',
       RAZORPAY_KEY_ID: 'rzp_test_public',
@@ -437,6 +453,7 @@ test('Razorpay cart checkout fails closed for stale carts and unchargeable Shopi
               },
               merchandise: {
                 id: 'gid://shopify/ProductVariant/111',
+                availableForSale: options.availableForSale ?? true,
                 title: 'Default Title',
                 compareAtPrice: null,
                 image: null,
@@ -455,7 +472,9 @@ test('Razorpay cart checkout fails closed for stale carts and unchargeable Shopi
         },
         attributes: [],
         discountCodes: [],
-        appliedGiftCards: [],
+        appliedGiftCards: options.giftCard
+          ? [{id: 'gid://shopify/GiftCard/1', lastCharacters: '1234'}]
+          : [],
       }),
     },
     session: {set() {}, unset() {}},
@@ -476,6 +495,23 @@ test('Razorpay cart checkout fails closed for stale carts and unchargeable Shopi
       context: baseContext('500.00'),
     } as unknown as ActionFunctionArgs);
     assert.equal(staleResponse.status, 409);
+
+    for (const options of [{availableForSale: false}, {giftCard: true}]) {
+      const response = await orderAction({
+        request: formRequest(
+          '/api/checkout/razorpay/order',
+          new URLSearchParams({
+            source: 'cart',
+            products: JSON.stringify([
+              {variantId: 'gid://shopify/ProductVariant/111', quantity: 1},
+            ]),
+          }),
+        ),
+        params: {},
+        context: baseContext('500.00', options),
+      } as unknown as ActionFunctionArgs);
+      assert.equal(response.status, 409);
+    }
 
     for (const total of ['0.00', '600.00']) {
       const response = await orderAction({
@@ -581,10 +617,6 @@ test('Razorpay order route can create and persist a feature-flagged draft anchor
               id: 'gid://shopify/DraftOrder/123',
               name: '#D1',
               status: 'OPEN',
-              discountCodes: [],
-              totalPriceSet: {
-                presentmentMoney: {amount: '1.00', currencyCode: 'INR'},
-              },
             },
             userErrors: [],
           },

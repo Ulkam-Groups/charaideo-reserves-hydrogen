@@ -48,6 +48,10 @@ export async function createHydrogenRouterContext(
       i18n: resolveStorefrontI18n(request),
       cart: {
         queryFragment: CART_QUERY_FRAGMENT,
+        mutateFragment: CART_QUERY_FRAGMENT.replace(
+          'fragment CartApiQuery on Cart',
+          'fragment CartApiMutation on Cart',
+        ).replace('lines(first: $numCartLines)', 'lines(first: 100)'),
       },
     },
     {reviewsCache: cache, monitor, requestId},

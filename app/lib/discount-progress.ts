@@ -29,13 +29,6 @@ export type DiscountProgressMilestone = {
   targets: DiscountProgressTargets;
 };
 
-export type DiscountCodeCombination = {
-  id: string;
-  codes: string[];
-  discountClasses: string[];
-  combinesWith?: DiscountCombinationRules;
-};
-
 export type DiscountProgressItem = {
   productId: string;
   variantId: string;
@@ -118,64 +111,4 @@ export type DiscountProgressStatus =
 export type DiscountProgressData = {
   status: DiscountProgressStatus;
   milestones: DiscountProgressMilestone[];
-  codeDiscounts?: DiscountCodeCombination[];
 };
-
-export function combinableDiscountMilestones(
-  milestones: readonly DiscountProgressMilestone[],
-  appliedCodes: readonly string[],
-  codeDiscounts: readonly DiscountCodeCombination[],
-) {
-  const incompatibleIds = new Set(
-    incompatibleDiscountMilestoneIds(milestones, appliedCodes, codeDiscounts),
-  );
-  return milestones.filter(({id}) => !incompatibleIds.has(id));
-}
-
-export function incompatibleDiscountMilestoneIds(
-  milestones: readonly DiscountProgressMilestone[],
-  appliedCodes: readonly string[],
-  codeDiscounts: readonly DiscountCodeCombination[],
-) {
-  if (!appliedCodes.length) return [];
-
-  const applied = appliedCodes.map((code) =>
-    codeDiscounts.find((discount) =>
-      discount.codes.some((candidate) => candidate.toLowerCase() === code.toLowerCase()),
-    ),
-  );
-
-  return milestones.flatMap((milestone) =>
-    applied.every((discount) => discountsCanCombine(discount, milestone))
-      ? []
-      : [milestone.id],
-  );
-}
-
-function discountsCanCombine(
-  applied: DiscountCodeCombination | undefined,
-  milestone: DiscountProgressMilestone,
-) {
-  // Never present an offer as applicable when Shopify's rules are unavailable.
-  if (!applied) return false;
-  if (applied.id === milestone.id) return true;
-  if (!applied.discountClasses.length || !milestone.discountClasses?.length) return false;
-
-  return milestone.discountClasses.every(
-    (milestoneClass) =>
-      combinationAllows(applied.combinesWith, milestoneClass) &&
-      applied.discountClasses.every((appliedClass) =>
-        combinationAllows(milestone.combinesWith, appliedClass),
-      ),
-  );
-}
-
-function combinationAllows(
-  rules: DiscountCombinationRules | undefined,
-  discountClass: string,
-) {
-  if (discountClass === 'ORDER') return rules?.orderDiscounts === true;
-  if (discountClass === 'PRODUCT') return rules?.productDiscounts === true;
-  if (discountClass === 'SHIPPING') return rules?.shippingDiscounts === true;
-  return false;
-}
