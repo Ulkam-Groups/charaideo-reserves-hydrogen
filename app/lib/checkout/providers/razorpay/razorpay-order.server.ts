@@ -643,15 +643,11 @@ export async function createRazorpayDraftOrderAnchor({
   env,
   lines,
   source,
-  discountCodes = [],
-  expectedAmount,
   fetcher = fetch,
 }: {
   env: Env;
   lines: RazorpayOrderLine[];
   source: 'cart' | 'product';
-  discountCodes?: string[];
-  expectedAmount?: number;
   fetcher?: typeof fetch;
 }) {
   const credentials = adminCredentials(env);
@@ -671,29 +667,19 @@ export async function createRazorpayDraftOrderAnchor({
     ) {
       throw new RazorpayReconciliationError('Shopify draft order line is invalid');
     }
-    return {variantId: line.variantId, quantity: line.quantity};
+    return {
+      variantId: line.variantId,
+      quantity: line.quantity,
+      priceOverride: {
+        amount: (inrToPaise(line.unitPrice) / 100).toFixed(2),
+        currencyCode: 'INR',
+      },
+    };
   });
-
-  if (
-    discountCodes.length > 250 ||
-    discountCodes.some(
-      (code) => !code.trim() || code.length > 255 || /[\r\n]/.test(code),
-    )
-  ) {
-    throw new RazorpayReconciliationError('Shopify discount codes are invalid');
-  }
 
   const result = await adminGraphql<{
     draftOrderCreate: {
-      draftOrder: {
-        id: string;
-        name: string;
-        status: string;
-        discountCodes: string[];
-        totalPriceSet: {
-          presentmentMoney: {amount: string; currencyCode: string};
-        };
-      } | null;
+      draftOrder: {id: string; name: string; status: string} | null;
       userErrors: Array<{field?: string[]; message: string}>;
     };
   }>({
@@ -702,13 +688,7 @@ export async function createRazorpayDraftOrderAnchor({
     requiredScopes: ['write_draft_orders'],
     query: `mutation CreateRazorpayDraftOrder($input: DraftOrderInput!) {
       draftOrderCreate(input: $input) {
-        draftOrder {
-          id
-          name
-          status
-          discountCodes
-          totalPriceSet { presentmentMoney { amount currencyCode } }
-        }
+        draftOrder { id name status }
         userErrors { field message }
       }
     }`,
@@ -718,8 +698,6 @@ export async function createRazorpayDraftOrderAnchor({
         presentmentCurrencyCode: 'INR',
         visibleToCustomer: false,
         allowDiscountCodesInCheckout: false,
-        acceptAutomaticDiscounts: source === 'cart',
-        ...(discountCodes.length ? {discountCodes} : {}),
         tags: ['razorpay', 'magic-checkout', 'checkout-draft'],
         note: 'Pending Razorpay Magic Checkout payment',
         customAttributes: [
@@ -731,22 +709,10 @@ export async function createRazorpayDraftOrderAnchor({
   });
 
   const draftOrder = result.draftOrderCreate.draftOrder;
-  const total = draftOrder?.totalPriceSet?.presentmentMoney;
-  const appliedCodes = new Set(
-    (draftOrder?.discountCodes ?? []).map((code) => code.toLowerCase()),
-  );
-  const requestedCodesApplied = discountCodes.every((code) =>
-    appliedCodes.has(code.toLowerCase()),
-  );
-  const expectedTotalMatches =
-    expectedAmount === undefined ||
-    (total?.currencyCode === 'INR' && inrToPaise(total.amount) === expectedAmount);
   if (
     result.draftOrderCreate.userErrors.length ||
     !draftOrder ||
-    !/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrder.id) ||
-    !requestedCodesApplied ||
-    !expectedTotalMatches
+    !/^gid:\/\/shopify\/DraftOrder\/\d+$/.test(draftOrder.id)
   ) {
     console.error('Shopify rejected Razorpay draft order creation', {
       userErrorCount: result.draftOrderCreate.userErrors.length,

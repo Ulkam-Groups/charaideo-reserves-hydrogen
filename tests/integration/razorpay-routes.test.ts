@@ -298,8 +298,8 @@ test('Razorpay cart checkout reconciles Shopify discounts and preserves full-pri
         scenario.lineItems,
       );
       assert.equal(
-        (payload.notes as Record<string, unknown>).shopify_discount_codes,
-        scenario.couponCode ? JSON.stringify([scenario.couponCode]) : undefined,
+        (payload.notes as Record<string, unknown>).coupon,
+        scenario.couponCode ?? undefined,
       );
     }
   } finally {
@@ -581,10 +581,6 @@ test('Razorpay order route can create and persist a feature-flagged draft anchor
               id: 'gid://shopify/DraftOrder/123',
               name: '#D1',
               status: 'OPEN',
-              discountCodes: [],
-              totalPriceSet: {
-                presentmentMoney: {amount: '1.00', currencyCode: 'INR'},
-              },
             },
             userErrors: [],
           },

@@ -27,9 +27,7 @@ import {
 import {useSyncedCart} from '~/hooks/useSyncedCart';
 import {
   cartDiscountProgressItems,
-  combinableDiscountMilestones,
   discountProgressAmount,
-  incompatibleDiscountMilestoneIds,
   isDiscountProgressItemEligible,
   type DiscountProgressMilestone,
 } from '~/lib/discount-progress';
@@ -166,23 +164,10 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
   const childrenMap = getLineItemChildrenMap(cartLines);
   const discountItems = cartDiscountProgressItems(cart);
   const rootData = useRouteLoaderData<typeof rootLoader>('root');
-  const appliedCodes = (cart?.discountCodes ?? [])
-    .filter(({applicable}) => applicable)
-    .map(({code}) => code);
   const discountMilestones = rootData?.cartDiscountProgress.milestones ?? [];
-  const incompatibleMilestoneIds = incompatibleDiscountMilestoneIds(
-    discountMilestones,
-    appliedCodes,
-    rootData?.cartDiscountProgress.codeDiscounts ?? [],
-  );
-  const compatibleMilestones = combinableDiscountMilestones(
-    rootData?.cartDiscountProgress.milestones ?? [],
-    appliedCodes,
-    rootData?.cartDiscountProgress.codeDiscounts ?? [],
-  );
   const freeShippingMilestone =
     rootData?.cartDiscountProgress.status === 'ready'
-      ? compatibleMilestones.find(
+      ? discountMilestones.find(
           (milestone) =>
             milestone.reward === 'Free shipping' &&
             milestone.method === 'automatic',
@@ -248,10 +233,9 @@ export function CartMain({layout, cart: originalCart}: CartMainProps) {
           detailsMode={layout === 'aside' ? 'popup' : 'inline'}
           paused={cartBusy}
           items={discountItems}
-          milestones={discountMilestones}
+          milestones={rootData?.cartDiscountProgress.milestones ?? []}
           status={rootData?.cartDiscountProgress.status ?? 'unavailable'}
           appliedMilestoneIds={appliedMilestoneIds}
-          unavailableMilestoneIds={incompatibleMilestoneIds}
         />
       )}
       <div
