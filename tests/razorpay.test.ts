@@ -885,6 +885,8 @@ test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft',
         }>;
         tags: string[];
         visibleToCustomer: boolean;
+        acceptAutomaticDiscounts?: boolean;
+        discountCodes?: string[];
       };
     };
   };
@@ -902,6 +904,8 @@ test('Razorpay draft anchor is opt-in and creates an uncompleted Shopify draft',
     'checkout-draft',
   ]);
   assert.equal(request.variables.input.visibleToCustomer, false);
+  assert.equal('acceptAutomaticDiscounts' in request.variables.input, false);
+  assert.equal('discountCodes' in request.variables.input, false);
 });
 
 test('Razorpay draft finalization adds verified delivery and payment metadata', () => {

@@ -94,15 +94,17 @@ const RECIPE_FIELDS = [
 export function ProductEditorialSections({
   product,
   selectedVariant,
+  isCombo = false,
   afterTasteProfile,
 }: {
   product: ProductEditorialData;
   selectedVariant: VariantData;
+  isCombo?: boolean;
   afterTasteProfile?: ReactNode;
 }) {
   return (
     <div className="tea-editorial">
-      <CupCharacter product={product} />
+      <CupCharacter product={product} isCombo={isCombo} />
       {afterTasteProfile}
       <TeaRecord product={product} selectedVariant={selectedVariant} />
       <RecipeExperience product={product} />
@@ -134,7 +136,13 @@ function SectionHeading({
   );
 }
 
-function CupCharacter({product}: {product: ProductEditorialData}) {
+function CupCharacter({
+  product,
+  isCombo,
+}: {
+  product: ProductEditorialData;
+  isCombo: boolean;
+}) {
   const notes = parseStringList(product.tastingNotes?.value);
 
   return (
@@ -150,24 +158,28 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
         intro="See the flavour, body and drinking style before you choose your pack."
         id="cup-character-title"
       />
-      <div className="tea-character-layout">
-        <div className="tea-profile" aria-label="Tea character scores">
-          {PROFILE_FIELDS.map(([label, key]) => {
-            const score = parseScore(product[key]?.value);
-            if (score == null) return null;
-            return (
-              <div className="tea-meter" key={key}>
-                <div className="tea-meter-label">
-                  <span>{label}</span>
-                  <strong>{score} / 5</strong>
+      <div
+        className={`tea-character-layout${isCombo ? ' tea-character-layout--combo' : ''}`}
+      >
+        {!isCombo && (
+          <div className="tea-profile" aria-label="Tea character scores">
+            {PROFILE_FIELDS.map(([label, key]) => {
+              const score = parseScore(product[key]?.value);
+              if (score == null) return null;
+              return (
+                <div className="tea-meter" key={key}>
+                  <div className="tea-meter-label">
+                    <span>{label}</span>
+                    <strong>{score} / 5</strong>
+                  </div>
+                  <div className="tea-meter-track" aria-hidden="true">
+                    <span style={{width: `${score * 20}%`}} />
+                  </div>
                 </div>
-                <div className="tea-meter-track" aria-hidden="true">
-                  <span style={{width: `${score * 20}%`}} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
         <div className="tea-character-copy">
           <span className="eyebrow">What you’ll notice</span>
           {notes.length > 0 ? (
@@ -179,10 +191,12 @@ function CupCharacter({product}: {product: ProductEditorialData}) {
           ) : (
             <p className="tea-empty">Tasting notes are being prepared.</p>
           )}
-          <div className="tea-character-facts">
-            <Fact label="Best time" value={product.bestTime?.value} />
-            <Fact label="With milk" value={product.milkPairing?.value} />
-          </div>
+          {!isCombo && (
+            <div className="tea-character-facts">
+              <Fact label="Best time" value={product.bestTime?.value} />
+              <Fact label="With milk" value={product.milkPairing?.value} />
+            </div>
+          )}
           {(product.characterSummary?.value || product.description) && (
             <div className="tea-callout">
               <p>{product.characterSummary?.value || product.description}</p>

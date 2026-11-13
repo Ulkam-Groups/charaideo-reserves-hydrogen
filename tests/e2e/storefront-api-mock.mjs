@@ -39,6 +39,7 @@ const product = {
   reviewCount: null,
   descriptionHtml: '<p>A deterministic Assam tea used by the storefront E2E suite.</p>',
   images: {nodes: []},
+  media: {nodes: []},
   encodedVariantExistence: '',
   encodedVariantAvailability: '',
   options: [

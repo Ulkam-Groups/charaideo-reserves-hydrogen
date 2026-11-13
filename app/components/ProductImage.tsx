@@ -6,26 +6,46 @@ import {Image, useAnalytics} from '@shopify/hydrogen';
 
 type GalleryImage = NonNullable<ProductVariantFragment['image']>;
 
+type ProductMedia =
+  | {__typename: 'MediaImage'; id: string; image: GalleryImage}
+  | {
+      __typename: 'Video';
+      id: string;
+      alt?: string | null;
+      previewImage?: GalleryImage | null;
+      sources: Array<{url: string; mimeType: string}>;
+    };
+
+type GalleryItem =
+  | {type: 'image'; id: string; image: GalleryImage}
+  | {type: 'video'; id: string; media: Extract<ProductMedia, {__typename: 'Video'}>};
+
 const LIGHTBOX_FIT_SCALE = 1;
 const LIGHTBOX_MIN_SCALE = 1;
 const LIGHTBOX_MAX_SCALE = 5;
 
 export function ProductImage({
   image,
-  images = [],
+  media = [],
   overlay,
 }: {
   image: ProductVariantFragment['image'];
-  images?: GalleryImage[];
+  media?: ProductMedia[];
   overlay?: ReactNode;
 }) {
   const {publish} = useAnalytics();
-  const galleryImages = useMemo(() => {
-    const unique = new Map<string, GalleryImage>();
-    if (image) unique.set(imageKey(image), image);
-    images.forEach((item) => unique.set(imageKey(item), item));
+  const galleryItems = useMemo(() => {
+    const unique = new Map<string, GalleryItem>();
+    if (image) unique.set(imageKey(image), {type: 'image', id: imageKey(image), image});
+    media.forEach((item) => {
+      if (item.__typename === 'MediaImage' && item.image) {
+        unique.set(imageKey(item.image), {type: 'image', id: imageKey(item.image), image: item.image});
+      } else if (item.__typename === 'Video') {
+        unique.set(item.id, {type: 'video', id: item.id, media: item});
+      }
+    });
     return [...unique.values()];
-  }, [image, images]);
+  }, [image, media]);
   const [activeImageId, setActiveImageId] = useState(image ? imageKey(image) : undefined);
   const [zoomed, setZoomed] = useState(false);
   const [lightboxScale, setLightboxScale] = useState(LIGHTBOX_FIT_SCALE);
@@ -74,20 +94,18 @@ export function ProductImage({
     };
   }, [zoomed]);
 
-  if (!galleryImages.length) {
+  if (!galleryItems.length) {
     return <div className="product-image" />;
   }
 
-  const activeImage =
-    galleryImages.find((item) => imageKey(item) === activeImageId) ?? galleryImages[0];
-  const activeIndex = galleryImages.findIndex(
-    (item) => imageKey(item) === imageKey(activeImage),
-  );
+  const activeItem = galleryItems.find((item) => item.id === activeImageId) ?? galleryItems[0];
+  const activeImage = activeItem.type === 'image' ? activeItem.image : null;
+  const activeIndex = galleryItems.findIndex((item) => item.id === activeItem.id);
 
   const step = (direction: 1 | -1) => {
     const next =
-      galleryImages[(activeIndex + direction + galleryImages.length) % galleryImages.length];
-    setActiveImageId(imageKey(next));
+      galleryItems[(activeIndex + direction + galleryItems.length) % galleryItems.length];
+    setActiveImageId(next.id);
   };
 
   const updateLightboxScale = (nextScale: number) => {
@@ -101,7 +119,7 @@ export function ProductImage({
       <div
         className="product-stage"
         onKeyDown={(event) => {
-          if (galleryImages.length < 2) return;
+          if (galleryItems.length < 2) return;
           if (event.key === 'ArrowRight') step(1);
           if (event.key === 'ArrowLeft') step(-1);
         }}
@@ -109,14 +127,14 @@ export function ProductImage({
           touchStartX.current = event.touches[0].clientX;
         }}
         onTouchEnd={(event) => {
-          if (touchStartX.current === null || galleryImages.length < 2) return;
+          if (touchStartX.current === null || galleryItems.length < 2) return;
           const delta = event.changedTouches[0].clientX - touchStartX.current;
           touchStartX.current = null;
           if (Math.abs(delta) > 40) step(delta < 0 ? 1 : -1);
         }}
       >
       {overlay}
-      <button
+      {activeItem.type === 'image' ? <button
         type="button"
         className="product-image product-image-trigger"
         aria-label="Open product image in full screen"
@@ -133,53 +151,70 @@ export function ProductImage({
         }}
       >
         <img
-          alt={activeImage.altText || 'Product image'}
-          src={activeImage.url}
-          key={imageKey(activeImage)}
-          width={activeImage.width ?? undefined}
-          height={activeImage.height ?? undefined}
+          alt={activeItem.image.altText || 'Product image'}
+          src={activeItem.image.url}
+          key={imageKey(activeItem.image)}
+          width={activeItem.image.width ?? undefined}
+          height={activeItem.image.height ?? undefined}
           loading="eager"
           {...{fetchpriority: 'high'}}
           decoding="async"
         />
         <span className="product-image-count" aria-hidden="true">
-          {activeIndex + 1} / {galleryImages.length}
+          {activeIndex + 1} / {galleryItems.length}
         </span>
         <span className="product-image-zoom" aria-hidden="true">
           Zoom
         </span>
-      </button>
-      {galleryImages.length > 1 && (
+      </button> : (
+        <div className="product-image product-video">
+          <video
+            key={activeItem.id}
+            controls
+            playsInline
+            preload="metadata"
+            poster={activeItem.media.previewImage?.url}
+            aria-label={activeItem.media.alt || 'Product video'}
+          >
+            {activeItem.media.sources.map((source) => (
+              <source key={source.url} src={source.url} type={source.mimeType} />
+            ))}
+          </video>
+          <span className="product-image-count" aria-hidden="true">{activeIndex + 1} / {galleryItems.length}</span>
+        </div>
+      )}
+      {galleryItems.length > 1 && (
         <>
           <button type="button" className="product-stage-arrow product-stage-arrow--prev" aria-label="Previous image" onClick={() => step(-1)}>&#8249;</button>
           <button type="button" className="product-stage-arrow product-stage-arrow--next" aria-label="Next image" onClick={() => step(1)}>&#8250;</button>
         </>
       )}
       </div>
-      {galleryImages.length > 1 && (
-        <div className="product-thumbnails" aria-label="Product images">
-          {galleryImages.map((item, index) => {
-            const key = imageKey(item);
-            const active = key === imageKey(activeImage);
+      {galleryItems.length > 1 && (
+        <div className="product-thumbnails" aria-label="Product media">
+          {galleryItems.map((item, index) => {
+            const preview = item.type === 'image' ? item.image : item.media.previewImage;
+            const active = item.id === activeItem.id;
             return (
               <button
                 type="button"
-                key={key}
+                key={item.id}
                 className="product-thumbnail"
-                aria-label={`View product image ${index + 1}`}
+                aria-label={`View product ${item.type === 'image' ? 'image' : 'video'} ${index + 1}`}
                 aria-pressed={active}
                 onClick={() => {
                   publish('custom_product_gallery_viewed', {imageIndex: index + 1});
-                  setActiveImageId(key);
+                  setActiveImageId(item.id);
                 }}
               >
-                <Image alt="" data={item} sizes="64px" loading="lazy" />
+                {preview ? <Image alt="" data={preview} sizes="64px" loading="lazy" /> : null}
+                {item.type !== 'image' && <span className="product-thumbnail-play" aria-hidden="true">▶</span>}
               </button>
             );
           })}
         </div>
       )}
-      {zoomed && typeof document !== 'undefined'
+      {zoomed && activeImage && typeof document !== 'undefined'
         ? createPortal(<div
           className="product-image-lightbox"
           role="dialog"
@@ -311,5 +346,13 @@ export function ProductImage({
 }
 
 function imageKey(image: GalleryImage) {
-  return image.id || image.url;
+  // A variant image and its matching Product.media image can have different
+  // GraphQL IDs even though they point to the same Shopify CDN asset.
+  // Ignore transformation query parameters so the gallery shows that asset once.
+  try {
+    const url = new URL(image.url);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return image.url.split('?')[0];
+  }
 }
