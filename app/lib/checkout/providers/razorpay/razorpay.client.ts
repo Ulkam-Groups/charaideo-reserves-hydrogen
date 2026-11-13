@@ -13,6 +13,7 @@ type RazorpayPaymentResponse = {
 type RazorpayCheckoutInstance = {
   open(): void;
   on(event: 'payment.failed', handler: () => void): void;
+  on(event: 'mx-analytics', handler: (payload: unknown) => void): void;
 };
 
 type RazorpayCheckoutConstructor = new (options: {
@@ -112,12 +113,13 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
       recordRazorpayCheckout(input.source, 'order_response_invalid');
       return false;
     }
+    const razorpayOrderId = order.orderId;
 
     const checkout = new Razorpay({
       key: order.keyId,
       one_click_checkout: true,
       name: order.businessName,
-      order_id: order.orderId,
+      order_id: razorpayOrderId,
       show_coupons: false,
       handler(response) {
         dispatchCheckoutConfirmation(true);
@@ -148,6 +150,37 @@ export async function startRazorpayCheckout(input: CheckoutInput): Promise<boole
             );
           });
       },
+    });
+    checkout.on('mx-analytics', (payload) => {
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        (payload as {event?: unknown}).event !== 'checkout_abandoned'
+      ) {
+        return;
+      }
+      const data = payload as Record<string, unknown>;
+      const analytics = JSON.stringify({
+        event: data.event,
+        time_since_open: data.time_since_open,
+        email: data.email,
+        phone: data.phone,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        line1: data.line1,
+        line2: data.line2,
+        city: data.city,
+        state: data.state,
+        zipcode: data.zipcode,
+        country_name: data.country_name,
+      });
+      if (typeof analytics !== 'string') return;
+      void postForm('/api/checkout/razorpay/abandoned', {
+        razorpay_order_id: razorpayOrderId,
+        analytics,
+      }).catch(() => {
+        // Abandonment reporting is best-effort and must never interrupt checkout.
+      });
     });
     checkout.on('payment.failed', () => {
       recordRazorpayCheckout(input.source, 'payment_failed');

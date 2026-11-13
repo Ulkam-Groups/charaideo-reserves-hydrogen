@@ -5,11 +5,39 @@ import test from 'node:test';
 import type {ActionFunctionArgs, LoaderFunctionArgs} from 'react-router';
 import {action as orderAction} from '../../app/routes/api.checkout.razorpay.order.ts';
 import {action as verifyAction} from '../../app/routes/api.checkout.razorpay.verify.ts';
+import {action as abandonedAction} from '../../app/routes/api.checkout.razorpay.abandoned.ts';
 import {action as cartClearAfterCheckoutAction} from '../../app/routes/api.cart-clear-after-checkout.ts';
 import {clearCartAfterSuccessfulCheckout} from '../../app/lib/checkout/cart-clear.server.ts';
 import {loader as successLoader} from '../../app/routes/checkout.razorpay.success.tsx';
 
 const origin = 'https://store.example';
+
+test('browser abandonment endpoint rejects an order outside its checkout session', async () => {
+  const response = await abandonedAction({
+    request: formRequest(
+      '/api/checkout/razorpay/abandoned',
+      new URLSearchParams({
+        razorpay_order_id: 'order_other123',
+        analytics: JSON.stringify({event: 'checkout_abandoned'}),
+      }),
+    ),
+    params: {},
+    context: {
+      env: {CHECKOUT_PROVIDER: 'razorpay'},
+      session: {
+        get(key: string) {
+          if (key === 'razorpayOrderId') return 'order_session123';
+          if (key === 'razorpayDraftOrderId') {
+            return 'gid://shopify/DraftOrder/123';
+          }
+          return undefined;
+        },
+      },
+    },
+  } as unknown as ActionFunctionArgs);
+
+  assert.equal(response.status, 400);
+});
 
 test('successful checkout cart cleanup removes all cart lines', async () => {
   const removed: string[][] = [];

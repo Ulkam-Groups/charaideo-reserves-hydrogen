@@ -9,7 +9,7 @@ Read that document before changing checkout ownership, Draft Order completion, o
 webhook behavior.
 
 - `razorpay.ts` contains SSR-safe validation and Magic Checkout order payload construction.
-- `razorpay.client.ts` creates an order through the storefront, opens `magic-checkout.js`, and submits the payment result for server verification.
+- `razorpay.client.ts` creates an order through the storefront, opens `magic-checkout.js`, submits the payment result for server verification, and reports the `checkout_abandoned` analytics event to a session-bound endpoint using the exact Razorpay order ID.
 - `razorpay.server.ts` creates orders with the official `razorpay` SDK and verifies signatures with Oxygen's Web Crypto API without exposing the key secret.
 - `razorpay-oxygen.server.ts` initializes only the official SDK's API, Orders, and Payments modules used by this storefront; the package's main class eagerly imports Node-only modules that Oxygen cannot load.
 - `crypto-compat.server.ts` blocks accidental use of the SDK's Node-only crypto helpers. Payment and webhook HMAC verification remains in `razorpay.server.ts`.

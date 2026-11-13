@@ -308,6 +308,66 @@ test('Razorpay client creates an order before opening Magic Checkout', async () 
   }
 });
 
+test('Razorpay client reports checkout abandonment with its exact order id', async () => {
+  let analyticsHandler: ((payload: unknown) => void) | undefined;
+  const requests: Request[] = [];
+  const originalFetch = globalThis.fetch;
+  Object.assign(globalThis, {
+    fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request =
+        input instanceof Request
+          ? input
+          : new Request(`https://store.test${input}`, init);
+      requests.push(request);
+      if (request.url.endsWith('/api/checkout/razorpay/order')) {
+        return Response.json({
+          keyId: 'rzp_test_public',
+          orderId: 'order_abandoned123',
+          businessName: 'Charaideo Reserves',
+        });
+      }
+      return Response.json({updated: true});
+    },
+    window: {
+      Razorpay: class {
+        on(event: string, handler: (payload: unknown) => void) {
+          if (event === 'mx-analytics') analyticsHandler = handler;
+        }
+        open() {}
+      },
+      location: {assign() {}},
+      dispatchEvent() {},
+    },
+  });
+
+  try {
+    assert.equal(
+      await startRazorpayCheckout({
+        source: 'product',
+        products: [{variantId: 'gid://shopify/ProductVariant/12345', quantity: 1}],
+      }),
+      true,
+    );
+    assert.equal(typeof analyticsHandler, 'function');
+    analyticsHandler?.({event: 'payment_page_reached'});
+    assert.equal(requests.length, 1);
+    analyticsHandler?.({
+      event: 'checkout_abandoned',
+      time_since_open: 360_000,
+      email: 'buyer@example.com',
+    });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(requests.length, 2);
+    assert.equal(requests[1].url.endsWith('/api/checkout/razorpay/abandoned'), true);
+    const body = new URLSearchParams(await requests[1].text());
+    assert.equal(body.get('razorpay_order_id'), 'order_abandoned123');
+    assert.equal(JSON.parse(body.get('analytics') ?? '{}').event, 'checkout_abandoned');
+  } finally {
+    globalThis.fetch = originalFetch;
+    Reflect.deleteProperty(globalThis, 'window');
+  }
+});
+
 test('Razorpay client removes confirmation progress when verification fails', async () => {
   let options: Record<string, unknown> | undefined;
   const confirmationStates: boolean[] = [];
