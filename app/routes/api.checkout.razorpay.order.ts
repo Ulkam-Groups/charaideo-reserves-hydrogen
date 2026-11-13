@@ -173,7 +173,13 @@ export async function action({request, context}: ActionFunctionArgs) {
 
     if (source === 'cart') {
       const cart = (await context.cart.get()) as CartApiQueryFragment | null;
-      if (!cart?.lines.nodes.length || cart.appliedGiftCards.length) {
+      if (
+        !cart?.lines.nodes.length ||
+        cart.appliedGiftCards.length ||
+        cart.lines.nodes.some(
+          (line) => line.merchandise.availableForSale === false,
+        )
+      ) {
         return json({error: 'Cart is unavailable for this checkout'}, 409);
       }
       const cartProducts = cart.lines.nodes.map((line) => ({
